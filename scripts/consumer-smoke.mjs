@@ -76,6 +76,7 @@ function installFixture() {
         'install',
         '--ignore-workspace',
         '--prefer-offline',
+        '--no-frozen-lockfile',
         '--config.confirmModulesPurge=false',
     ], fixtureRoot)
 }
