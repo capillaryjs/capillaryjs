@@ -5,6 +5,7 @@ import {fileURLToPath} from 'node:url'
 
 const root = path.resolve(fileURLToPath(new URL('..', import.meta.url)))
 const expectedRepository = 'git+https://github.com/sylwellsoftware/gluefrayjs.git'
+const expectedOrigin = 'https://github.com/sylwellsoftware/gluefrayjs'
 const packages = [
     ['packages/glue/package.json', '@sylwellsoftware/glue', 'packages/glue'],
     ['packages/fray/package.json', '@sylwellsoftware/fray', 'packages/fray'],
@@ -46,7 +47,7 @@ if (gitSucceeds('rev-parse', '--verify', 'HEAD')) {
     )
 }
 assert(
-    git('remote', 'get-url', 'origin') === 'https://github.com/sylwellsoftware/gluefrayjs.git',
+    git('remote', 'get-url', 'origin').replace(/\.git$/, '') === expectedOrigin,
     'origin URL mismatch',
 )
 assert(git('branch', '--show-current') === 'main', 'public candidate must be on main')
