@@ -75,7 +75,7 @@ function installFixture() {
     run('pnpm', [
         'install',
         '--ignore-workspace',
-        '--offline',
+        '--prefer-offline',
         '--config.confirmModulesPurge=false',
     ], fixtureRoot)
 }
