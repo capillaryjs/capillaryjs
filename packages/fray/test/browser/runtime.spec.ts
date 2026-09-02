@@ -155,10 +155,9 @@ test('supports reduced motion and 200% configured text sizing', async ({page}) =
     })
     expect(Number.parseFloat(duration)).toBeLessThan(0.001)
 
-    await page.evaluate(() => {
-        document.documentElement.style.setProperty('--base-font-size', '28px')
-        document.documentElement.style.setProperty('--ui-font-size', '28px')
-    })
+    await page.goto('/?fontScale=200')
+    await page.waitForFunction(() => globalThis.frayTestReady === true)
+    await page.addStyleTag({content: await readFile(lightThemePath, 'utf8')})
     const typography = await page.evaluate(() => {
         const style = getComputedStyle(document.documentElement)
         return {

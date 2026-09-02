@@ -23,6 +23,11 @@ import {
 import {DataTable, Dialog, TreeView} from '../../src/experimental.js'
 import {jsx} from '../../src/jsx-runtime.js'
 
+if (new URLSearchParams(location.search).get('fontScale') === '200') {
+    document.documentElement.style.setProperty('--base-font-size', '28px')
+    document.documentElement.style.setProperty('--ui-font-size', '28px')
+}
+
 const inputValue = new Emitter('hello')
 class InputProbe extends Component {
     initialize() {
