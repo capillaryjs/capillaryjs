@@ -1,0 +1,24 @@
+{
+  "name": "@sylwellsoftware/dummy-server",
+  "private": true,
+  "version": "0.0.0",
+  "description": "Generic transport adapters for caller-supplied deterministic demo scenarios.",
+  "license": "Apache-2.0",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./contract": "./src/contract.ts",
+    "./embedded": "./src/embedded/createScenarioFetch.ts",
+    "./node": "./src/node/server.ts"
+  },
+  "scripts": {
+    "start": "node --import tsx src/node/server.ts",
+    "test": "node --import tsx --test test/*.test.ts",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "engines": {
+    "node": ">=22",
+    "pnpm": ">=10"
+  },
+  "packageManager": "pnpm@10.11.0"
+}

@@ -1,0 +1,11 @@
+{
+  "extends": "../../../../tsconfig.base.json",
+  "compilerOptions": {
+    "lib": ["ES2023", "DOM", "DOM.Iterable"],
+    "types": [],
+    "jsx": "react-jsx",
+    "jsxImportSource": "@sylwellsoftware/fray",
+    "noEmit": true
+  },
+  "include": ["index.ts", "classic.tsx", "automatic.tsx"]
+}

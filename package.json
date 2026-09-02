@@ -1,0 +1,38 @@
+{
+  "name": "gluefrayjs",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Public workspace for the experimental Glue reactive core and Fray UI runtime.",
+  "license": "Apache-2.0",
+  "type": "module",
+  "packageManager": "pnpm@10.11.0",
+  "engines": {
+    "node": ">=22",
+    "pnpm": ">=10"
+  },
+  "scripts": {
+    "format": "node scripts/public-source-check.mjs format",
+    "lint": "node scripts/public-source-check.mjs lint",
+    "typecheck": "pnpm --filter @sylwellsoftware/glue typecheck && pnpm --filter @sylwellsoftware/fray typecheck && pnpm --filter @sylwellsoftware/dummy-server typecheck",
+    "test": "pnpm --filter @sylwellsoftware/glue test && pnpm --filter @sylwellsoftware/fray test && pnpm --filter @sylwellsoftware/dummy-server test",
+    "test:tooling": "node --test scripts/test/*.test.mjs",
+    "test:browser": "playwright test",
+    "test:types": "pnpm --filter @sylwellsoftware/glue test:types:consumer && pnpm --filter @sylwellsoftware/fray test:types:consumer",
+    "build": "pnpm --filter @sylwellsoftware/glue build && pnpm --filter @sylwellsoftware/fray build",
+    "pack:artifacts": "node scripts/package-artifacts.mjs",
+    "test:consumer": "node scripts/consumer-smoke.mjs",
+    "pack:check": "pnpm pack:artifacts && pnpm test:consumer",
+    "scan:public": "node scripts/public-scan.mjs",
+    "verify": "pnpm format && pnpm lint && pnpm test:tooling && pnpm typecheck && pnpm test && pnpm build && pnpm test:types",
+    "verify:release": "pnpm verify && pnpm test:browser && pnpm pack:check && pnpm scan:public && node scripts/public-release-preflight.mjs"
+  },
+  "devDependencies": {
+    "@axe-core/playwright": "^4.13.0",
+    "@playwright/test": "^1.62.1",
+    "@types/node": "^26.4.0",
+    "happy-dom": "^20.0.10",
+    "tsx": "^4.23.13",
+    "typescript": "^5.9.2",
+    "vite": "^6.4.3"
+  }
+}

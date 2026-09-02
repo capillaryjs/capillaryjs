@@ -1,0 +1,85 @@
+{
+  "type": "module",
+  "name": "@sylwellsoftware/fray",
+  "private": false,
+  "version": "0.1.0-alpha.1",
+  "description": "Experimental browser-only TypeScript component runtime, JSX controls, and semantic themes.",
+  "license": "Apache-2.0",
+  "author": {
+    "name": "Sylwell Software",
+    "email": "npm@sylwellsoftware.com",
+    "url": "https://sylwellsoftware.com"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sylwellsoftware/gluefrayjs.git",
+    "directory": "packages/fray"
+  },
+  "homepage": "https://github.com/sylwellsoftware/gluefrayjs#readme",
+  "bugs": {
+    "url": "https://github.com/sylwellsoftware/gluefrayjs/issues"
+  },
+  "keywords": [
+    "components",
+    "jsx",
+    "reactive",
+    "typescript"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "main": "dist/index.js",
+  "module": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./experimental": {
+      "types": "./dist/experimental.d.ts",
+      "import": "./dist/experimental.js"
+    },
+    "./jsx-runtime": {
+      "types": "./dist/jsx-runtime.d.ts",
+      "import": "./dist/jsx-runtime.js"
+    },
+    "./jsx-dev-runtime": {
+      "types": "./dist/jsx-dev-runtime.d.ts",
+      "import": "./dist/jsx-dev-runtime.js"
+    },
+    "./themes/light.css": "./themes/light.css",
+    "./themes/dark.css": "./themes/dark.css"
+  },
+  "files": [
+    "dist",
+    "themes",
+    "EXPERIMENTAL.md",
+    "LICENSE",
+    "NOTICE"
+  ],
+  "sideEffects": [
+    "./themes/*.css"
+  ],
+  "scripts": {
+    "build": "vite build && tsc -p tsconfig.build.json",
+    "prepack": "pnpm typecheck && pnpm test && pnpm build && pnpm test:types:consumer",
+    "test": "node --import tsx --test test/*.test.ts",
+    "test:types:consumer": "tsc -p test-types/consumer/tsconfig.json --noEmit",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "watch": "vite build --watch",
+    "dev": "vite"
+  },
+  "peerDependencies": {
+    "@sylwellsoftware/glue": "^0.1.0-alpha.1"
+  },
+  "devDependencies": {
+    "@sylwellsoftware/glue": "workspace:^",
+    "vite": "^6.3.5"
+  },
+  "engines": {
+    "node": ">=22",
+    "pnpm": ">=10"
+  },
+  "packageManager": "pnpm@10.11.0"
+}

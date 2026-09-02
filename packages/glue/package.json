@@ -1,0 +1,65 @@
+{
+  "name": "@sylwellsoftware/glue",
+  "private": false,
+  "version": "0.1.0-alpha.1",
+  "description": "Experimental platform-neutral reactive values, derived state, live queries, and causal tracing.",
+  "license": "Apache-2.0",
+  "author": {
+    "name": "Sylwell Software",
+    "email": "npm@sylwellsoftware.com",
+    "url": "https://sylwellsoftware.com"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sylwellsoftware/gluefrayjs.git",
+    "directory": "packages/glue"
+  },
+  "homepage": "https://github.com/sylwellsoftware/gluefrayjs#readme",
+  "bugs": {
+    "url": "https://github.com/sylwellsoftware/gluefrayjs/issues"
+  },
+  "keywords": [
+    "reactive",
+    "state-management",
+    "typescript"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "main": "dist/index.js",
+  "module": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./experimental": {
+      "types": "./dist/experimental.d.ts",
+      "import": "./dist/experimental.js"
+    }
+  },
+  "files": [
+    "dist",
+    "EXPERIMENTAL.md",
+    "LICENSE",
+    "NOTICE"
+  ],
+  "scripts": {
+    "build": "vite build && tsc -p tsconfig.build.json",
+    "prepack": "pnpm typecheck && pnpm test && pnpm build && pnpm test:types:consumer",
+    "test": "node --import tsx --test test/*.test.ts",
+    "test:types:consumer": "tsc -p test-types/consumer/tsconfig.json --noEmit",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "watch": "vite build --watch"
+  },
+  "type": "module",
+  "devDependencies": {
+    "vite": "^6.3.5"
+  },
+  "engines": {
+    "node": ">=22",
+    "pnpm": ">=10"
+  },
+  "packageManager": "pnpm@10.11.0"
+}
