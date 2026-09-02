@@ -157,6 +157,7 @@ test('supports reduced motion and 200% configured text sizing', async ({page}) =
 
     await page.evaluate(() => {
         document.documentElement.style.setProperty('--base-font-size', '28px')
+        document.documentElement.style.setProperty('--ui-font-size', '28px')
     })
     const typography = await page.evaluate(() => {
         const style = getComputedStyle(document.documentElement)
