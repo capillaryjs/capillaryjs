@@ -20,8 +20,8 @@ prerelease series.
 
 ## Install
 
-The packages are prepared for an initial alpha release but are not yet
-available from npm. After publication, install them with:
+The alpha packages are available from npm under the `next` tag. Install them
+with:
 
 ```bash
 pnpm add @sylwellsoftware/glue @sylwellsoftware/fray
@@ -76,6 +76,9 @@ pnpm verify:release
 The equivalent operator entry points are `./gradlew publicCheck` and
 `./gradlew publicReleasePreflight`. pnpm remains authoritative for dependency
 resolution and JavaScript build/test/package mechanics.
+
+Maintainers should follow the staged, 2FA-protected process in
+[docs/RELEASING.md](docs/RELEASING.md); ordinary pushes never publish a package.
 
 ## Status and scope
 

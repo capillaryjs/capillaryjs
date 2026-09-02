@@ -20,6 +20,8 @@
     "test:types": "pnpm --filter @sylwellsoftware/glue test:types:consumer && pnpm --filter @sylwellsoftware/fray test:types:consumer",
     "build": "pnpm --filter @sylwellsoftware/glue build && pnpm --filter @sylwellsoftware/fray build",
     "pack:artifacts": "node scripts/package-artifacts.mjs",
+    "release:validate": "node scripts/stage-release.mjs validate",
+    "release:stage": "node scripts/stage-release.mjs stage",
     "test:consumer": "node scripts/consumer-smoke.mjs",
     "pack:check": "pnpm pack:artifacts && pnpm test:consumer",
     "scan:public": "node scripts/public-scan.mjs",

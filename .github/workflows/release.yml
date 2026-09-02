@@ -1,0 +1,136 @@
+name: Stage npm release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Exact package version already committed to the selected manifests
+        required: true
+        type: string
+      tag:
+        description: npm distribution tag (next for prereleases, latest for stable releases)
+        required: true
+        type: choice
+        options:
+          - next
+          - latest
+      release_set:
+        description: Explicit package set to stage
+        required: true
+        type: choice
+        options:
+          - glue-and-fray
+          - glue
+          - fray
+
+permissions:
+  contents: read
+
+concurrency:
+  group: npm-stage-release
+  cancel-in-progress: false
+
+jobs:
+  verify:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Check out public main
+        uses: actions/checkout@v6
+
+      - name: Set up Node
+        uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          package-manager-cache: false
+
+      - name: Set up Java
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - name: Enable pinned pnpm
+        run: |
+          corepack enable
+          corepack prepare pnpm@10.11.0 --activate
+
+      - name: Install locked dependencies
+        run: corepack pnpm install --frozen-lockfile
+
+      - name: Install pinned browser engines
+        run: corepack pnpm exec playwright install --with-deps
+
+      - name: Verify source and deterministic release artifacts
+        run: ./gradlew publicReleasePreflight
+
+      - name: Validate release plan and registry availability
+        env:
+          RELEASE_VERSION: ${{ inputs.version }}
+          RELEASE_TAG: ${{ inputs.tag }}
+          RELEASE_SET: ${{ inputs.release_set }}
+        run: >-
+          corepack pnpm release:validate --
+          --version "$RELEASE_VERSION"
+          --tag "$RELEASE_TAG"
+          --release-set "$RELEASE_SET"
+
+      - name: Retain the exact reviewed tarballs
+        uses: actions/upload-artifact@v6
+        with:
+          name: npm-release-${{ github.run_id }}
+          path: |
+            .artifacts/release/package-artifacts.json
+            .artifacts/release/packages/*.tgz
+          if-no-files-found: error
+          retention-days: 14
+
+  stage:
+    needs: verify
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment: npm-release
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - name: Check out the verified commit
+        uses: actions/checkout@v6
+
+      - name: Set up Node and npm registry
+        uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          registry-url: https://registry.npmjs.org
+          package-manager-cache: false
+
+      - name: Install staged-publishing npm CLI
+        run: npm install --global npm@11.19.1
+
+      - name: Download exact verified tarballs
+        uses: actions/download-artifact@v7
+        with:
+          name: npm-release-${{ github.run_id }}
+          path: .artifacts/release
+
+      - name: Show and stage release plan
+        env:
+          RELEASE_VERSION: ${{ inputs.version }}
+          RELEASE_TAG: ${{ inputs.tag }}
+          RELEASE_SET: ${{ inputs.release_set }}
+        run: >-
+          node scripts/stage-release.mjs stage
+          --version "$RELEASE_VERSION"
+          --tag "$RELEASE_TAG"
+          --release-set "$RELEASE_SET"
+
+      - name: Record human promotion instructions
+        run: |
+          {
+            echo '## Packages staged for review'
+            echo
+            echo 'CI did not publish or approve a package.'
+            echo 'Use npmjs.com Staged Packages, or npm stage list/view/download, to inspect it.'
+            echo 'A maintainer must approve each stage with 2FA. For a two-package release, approve Glue before Fray.'
+          } >> "$GITHUB_STEP_SUMMARY"

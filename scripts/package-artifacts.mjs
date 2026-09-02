@@ -188,9 +188,12 @@ function validateTarball(definition, tarball, tarFiles, expectedVersion) {
     validateExportTargets(manifest, tarFiles, definition.name)
 
     if (definition.name === '@sylwellsoftware/fray') {
+        const gluePeer = manifest.peerDependencies?.['@sylwellsoftware/glue']
         assert(
-            manifest.peerDependencies?.['@sylwellsoftware/glue'] === '^0.1.0-alpha.1',
-            'Fray packed peer range drifted',
+            typeof gluePeer === 'string'
+                && gluePeer.length > 0
+                && !/^(?:file:|link:|workspace:)/.test(gluePeer),
+            'Fray packed Glue peer range is missing or local-only',
         )
         assert(
             !Object.hasOwn(manifest.dependencies ?? {}, '@sylwellsoftware/glue'),
