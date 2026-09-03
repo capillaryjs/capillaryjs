@@ -6,6 +6,8 @@ Versioning.
 
 ## Unreleased
 
+## 0.5.0 - 2026-09-03
+
 ### Added
 
 - New `@sylwellsoftware/fray-visualization` package with reactive static and
