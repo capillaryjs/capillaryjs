@@ -33,6 +33,8 @@ export type QuerySerializer<TArguments extends QueryValues> = (
     args: TArguments,
 ) => void | UrlLike
 
+export type ResultParser<TResult> = (json: unknown) => TResult
+
 export interface RestQueryHandlerOptions<
     TArguments extends QueryValues,
     TResult,
@@ -41,6 +43,7 @@ export interface RestQueryHandlerOptions<
     baseUrl?: string
     fetch?: FetchLike<TResult>
     serialize?: QuerySerializer<TArguments>
+    parseResult?: ResultParser<TResult>
     trace?: boolean
 }
 
@@ -67,6 +70,7 @@ export class RestQueryHandler<
     readonly baseUrl: string | undefined
     readonly fetchImplementation: FetchLike<TResult>
     readonly serialize: QuerySerializer<TArguments>
+    readonly parseResult: ResultParser<TResult> | undefined
     readonly trace: boolean
 
     constructor(options: string | RestQueryHandlerOptions<TArguments, TResult>) {
@@ -83,6 +87,7 @@ export class RestQueryHandler<
         this.baseUrl = normalized.baseUrl ?? getLocationHref()
         this.fetchImplementation = normalized.fetch ?? getGlobalFetch<TResult>()
         this.serialize = normalized.serialize ?? serializeQuery
+        this.parseResult = normalized.parseResult
         this.trace = normalized.trace ?? false
 
         if (typeof this.fetchImplementation !== 'function') {
@@ -90,6 +95,9 @@ export class RestQueryHandler<
         }
         if (typeof this.serialize !== 'function') {
             throw new TypeError('RestQueryHandler serialize must be a function')
+        }
+        if (this.parseResult !== undefined && typeof this.parseResult !== 'function') {
+            throw new TypeError('RestQueryHandler parseResult must be a function')
         }
     }
 
@@ -120,7 +128,8 @@ export class RestQueryHandler<
         const fetchOptions = options.signal === undefined ? {} : {signal: options.signal}
         const response = await this.fetchImplementation(serialized.toString(), fetchOptions)
         if (!response?.ok) throw new HttpError(response?.status)
-        return await response.json() as TResult
+        const json: unknown = await response.json()
+        return this.parseResult == null ? json as TResult : this.parseResult(json)
     }
 }
 

@@ -5,6 +5,7 @@ import {FetchState} from '../src/index.js'
 import {
     AsyncCommand,
     AsyncCommandConcurrencyError,
+    LiveQuery,
 } from '../src/index.js'
 import type {AsyncCommandContext} from '../src/index.js'
 
@@ -129,6 +130,25 @@ describe('AsyncCommand', () => {
         assert.equal(command.get(), undefined)
         assert.equal(command.getFetchState(), FetchState.Initial)
         assert.equal(command.getError(), null)
+        command.dispose()
+    })
+
+    test('keeps follow-up query failure independent from command success', async () => {
+        const command = new AsyncCommand<void, string>({execute: () => 'saved'})
+        const queryFailure = new Error('refresh failed')
+        const query = new LiveQuery<string>({
+            autoFetch: false,
+            handler: {fetch: () => Promise.reject(queryFailure)},
+        })
+
+        const result = await command.run()
+        assert.equal(result, 'saved')
+        await query.refresh('command reconciled')
+        assert.equal(command.getFetchState(), FetchState.Ready)
+        assert.equal(command.getError(), null)
+        assert.equal(query.getFetchState(), FetchState.Error)
+        assert.equal(query.getError(), queryFailure)
+        query.dispose()
         command.dispose()
     })
 

@@ -46,8 +46,13 @@ by asynchronous retrieval. Richer responsibilities remain separate:
 | `DerivedEmitter` | A cached value computed from one or more readable emitters |
 | `QueryArg` | A named query-input view over another emitter when a semantic name is useful |
 | `LiveQuery` | Reactive request timing, latest-request ownership, status/error state, and cached results |
+| `LiveResult` | Common read/dispose contract for remote and locally derived endpoint results |
 | `QueryHandler` | Non-reactive retrieval strategy over a plain named argument object |
 | `RestQueryHandler` | HTTP URL construction, wire serialization, Fetch execution, and JSON result retrieval |
+| `QueryEndpoint` | Immutable declaration that opens caller-owned queries through any handler |
+| `RestEndpoint` | Immutable REST query declaration with optional response parsing |
+| `DerivedEndpoint` | Immutable local projection declaration that opens caller-owned live results |
+| `AsyncCommand` | Abortable mutation lifecycle with explicit concurrency policy |
 | `EventBubble` / `EventBus` | Optional cause-and-effect diagnostics without owning application history |
 
 The intended flow is explicit and one-directional:
@@ -177,20 +182,102 @@ const users = new LiveQuery({handler, args: {search}})
 Arguments are a named record of emitters. Construction fetches immediately
 unless `autoFetch: false`; `refresh()` and `retry()` return the active request
 promise. A newer request aborts and supersedes the older request, and stale
-results cannot overwrite current state. `dispose()` aborts the active request
-and releases argument subscriptions.
+results cannot overwrite current state. `abort()` cancels without disposing;
+`dispose()` aborts the active request and releases argument subscriptions.
 
 By default the last successful value remains visible while refreshing and after
 a refresh error. Set `keepPreviousValue: false` to clear it while loading or in
 error state.
 
+Polling is opt-in and waits one full interval before the first poll:
+
+```ts
+const pollingEnabled = new Emitter(true)
+const intervalMs = new Emitter(5_000)
+const users = new LiveQuery({
+    handler,
+    args: {search},
+    polling: {enabled: pollingEnabled, intervalMs},
+})
+```
+
+`enabled` and `intervalMs` may be constants or readable emitters. A changed
+control restarts the timer from that change. A tick is skipped while a request
+is active; the next normal tick remains scheduled. Errors do not cause an
+immediate retry or backoff, but polling continues while enabled. Disposal
+releases the timer and control subscriptions. Applications can feed page
+visibility or any other policy into `enabled`; Glue never reads the DOM. Tests
+and nonstandard runtimes may inject `PollingScheduler`.
+
 The REST adapter accepts injected `fetch`, `baseUrl`, and `serialize` behavior.
 Its generic serializer omits `undefined` and empty arrays, encodes `null` as an
 empty value, repeats keys for arrays, JSON-encodes objects, and stringifies
 scalars. Application-specific table filter/sort formats belong in an injected
-serializer, not Glue. A `RestQueryHandler` result generic declares the expected
-JSON shape but does not validate it at runtime; validate untrusted responses at
-the application boundary.
+serializer, not Glue. A result generic alone does not validate JSON. Supply
+`parseResult(json: unknown)` to decode or validate immediately after JSON
+parsing. A thrown parser error becomes the `LiveQuery` error, and Glue does not
+include the raw response body in its diagnostics.
+
+## Service endpoint declarations
+
+Applications may group immutable endpoint declarations in ordinary service
+classes. Glue does not register, locate, construct, or cache services; the
+application chooses application-, session-, request-, or transient lifetimes.
+Every `open()` call creates a caller-owned result with independent arguments,
+request state, polling, and disposal.
+
+```ts
+import {DerivedEndpoint, RestEndpoint} from '@sylwellsoftware/glue'
+
+class MovieService {
+    readonly movies = new RestEndpoint<{genre: string}, readonly Movie[]>({
+        url: '/api/movies',
+        parseResult: parseMovies,
+    })
+
+    readonly matchingMovies = new DerivedEndpoint<
+        readonly Movie[],
+        {genre: string},
+        readonly Movie[]
+    >({
+        apply: (movies, {genre}) => movies.filter((movie) => movie.genre === genre),
+    })
+}
+
+const service = new MovieService()
+const remote = service.movies.open({genre})
+const local = service.matchingMovies.open({source: cachedMovies, args: {genre}})
+```
+
+Both results implement `LiveResult`, so a UI that only reads value, fetch
+state, error, and subscriptions can accept either. `LiveQuery` additionally
+implements `RefreshableLiveResult` with `refresh()`, `retry()`, and `abort()`.
+
+For a query-like body protocol such as GraphQL, put a custom handler in a
+`QueryEndpoint`. The handler owns method, headers, authentication, body
+serialization, response checks, validation, and safe diagnostics:
+
+```ts
+import {QueryEndpoint} from '@sylwellsoftware/glue'
+
+const projectStatus = new QueryEndpoint<{id: string}, ProjectStatus>({
+    handler: {
+        async fetch({id}, {signal} = {}) {
+            const response = await fetch('/graphql', {
+                method: 'POST',
+                headers: {'content-type': 'application/json'},
+                body: JSON.stringify({query: STATUS_QUERY, variables: {id}}),
+                signal,
+            })
+            if (!response.ok) throw new Error(`HTTP ${response.status}`)
+            return parseProjectStatus(await response.json())
+        },
+    },
+})
+```
+
+Ordinary POST/PUT/PATCH/DELETE mutations belong in `AsyncCommand` executors,
+not auto-running query declarations.
 
 ## Optional tracing
 
@@ -212,8 +299,16 @@ whether to retain, render, or export observed events.
 mutation lifecycle with explicit `ignore`, `replace`, and `reject` concurrency
 policies. It exposes the last result/error through the standard emitter
 snapshot and a read-only `isRunning` view. It deliberately does not own batch
-progress, retries, notifications, or UI behavior. See
-the API reference below for the command contract.
+progress, retries, notifications, or UI behavior. Executor completion alone
+determines command success. The application may then refresh affected queries;
+their failures remain in their own query snapshots:
+
+```ts
+const saved = await saveCommand.run(update)
+if (saved !== undefined) {
+    await Promise.all([users.refresh('save reconciled'), audit.refresh('save reconciled')])
+}
+```
 
 ## Integration with Fray and other consumers
 

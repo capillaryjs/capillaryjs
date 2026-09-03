@@ -19,13 +19,19 @@ notes and migration guidance. It is not a promise of `1.0` stability.
 | `QueryArg` | Named reactive query argument. | Glue query layer |
 | `QueryHandler` | Query-handler interface/base class. | Glue query layer |
 | `LiveQuery` | Abortable reactive asynchronous query. | Glue query layer |
+| `LiveResult`, `RefreshableLiveResult` | Shared local/remote result contract and remote lifecycle extension. | Glue query layer |
 | `RestQueryHandler` | Injectable Fetch/URL JSON adapter. | Glue REST adapter |
+| `QueryEndpoint` | Immutable custom-handler endpoint declaration. | Glue query layer |
+| `RestEndpoint` | Immutable REST endpoint declaration with result parsing. | Glue REST adapter |
+| `DerivedEndpoint`, `DerivedLiveResult` | Immutable local endpoint declaration and caller-owned result. | Glue query layer |
 | `AsyncCommand` | Abortable mutation lifecycle with explicit concurrency policy. | Glue command layer |
 
 The empty `emitters/derivedEmitter.js` target is not an API. `DerivedEmitter`
 is owned by its implementation module and exported once from the package root.
 The full emitter, query refresh/error-retention, serializer, and tracing
-contracts are documented in `packages/glue/README.md`.
+contracts are documented in `packages/glue/README.md`. Endpoint declarations
+are reusable and immutable; each opened query/result is mutable and
+caller-owned. Application classes and composition roots own service lifetimes.
 
 ## Fray stable entry point
 
@@ -93,6 +99,21 @@ abortable mutation lifecycle, observable result/fetch/error state, running
 state, concurrency policy, stale-result suppression, reset, and disposal. It
 does not provide queuing,
 retry, batch, notification, or DOM policy.
+
+## Query endpoint boundary
+
+`QueryEndpoint`, `RestEndpoint`, and `DerivedEndpoint` separate reusable
+declaration from live instance ownership. Remote and derived results share the
+`LiveResult` read/dispose shape; refresh, retry, abort, and polling are remote
+capabilities. `LiveQuery` polling accepts constant or reactive enablement and
+intervals plus an injectable scheduler. It skips overlaps and contains no
+retry/backoff or visibility policy.
+
+`RestQueryHandler.parseResult` is the optional unknown-to-domain boundary.
+Glue has no schema dependency. A body-based read uses an application-owned
+custom handler in `QueryEndpoint`; mutations remain `AsyncCommand` executors.
+Glue does not provide service registration, dependency injection, global
+singletons, or an implicit query cache.
 
 The empty `dialog.js`, `radiobox.js`, and `listviewitem.js` modules are not
 exported. They may be implemented by a future proposal, but their filenames do

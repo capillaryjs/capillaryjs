@@ -3,7 +3,9 @@ import {
     Emitter,
     FetchState,
     LiveQuery,
+    QueryEndpoint,
     QueryArg,
+    RestEndpoint,
     RestQueryHandler,
 } from '../src/index.js'
 import type {QueryHandlerLike} from '../src/index.js'
@@ -77,6 +79,24 @@ void rest.fetch({term: 'missing page'})
 new RestQueryHandler<SearchArguments, SearchResult>({
     url: 'https://example.test/search',
     fetch: globalThis.fetch,
+})
+
+const remoteSearch = new RestEndpoint<SearchArguments, SearchResult>({
+    url: 'https://example.test/search',
+    fetch: globalThis.fetch,
+    parseResult(value) {
+        if (!Array.isArray(value)) throw new TypeError('Expected search results')
+        return value as SearchResult
+    },
+})
+const remoteResult = remoteSearch.open({term: label, page})
+remoteResult.get()?.[0]?.title.toUpperCase()
+// @ts-expect-error Endpoint argument emitters retain their declared value types.
+remoteSearch.open({term: label, page: label})
+
+const bodySearch = new QueryEndpoint<SearchArguments, SearchResult>({handler})
+bodySearch.open({term: label, page}, {
+    polling: {intervalMs: 5_000, enabled: new Emitter(true)},
 })
 
 const save = new AsyncCommand<{id: number}, {savedId: number}>({

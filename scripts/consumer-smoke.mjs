@@ -107,7 +107,8 @@ function writeFixtureSources() {
 </html>
 `)
     mkdirSync(join(fixtureRoot, 'src'), {recursive: true})
-    writeFileSync(join(fixtureRoot, 'src', 'main.tsx'), `import {Emitter} from '@sylwellsoftware/glue'
+    writeFileSync(join(fixtureRoot, 'src', 'main.tsx'), `import {DerivedEndpoint, Emitter, RestEndpoint} from '@sylwellsoftware/glue'
+import type {LiveResult} from '@sylwellsoftware/glue'
 import {Button, Component, Panel, Textbox, h, styleRegistry} from '@sylwellsoftware/fray'
 import '@sylwellsoftware/fray/styles/structural.css'
 import '@sylwellsoftware/fray/colors/iceblue/colors.css'
@@ -115,11 +116,24 @@ import '@sylwellsoftware/fray/themes/minimal/theme.css'
 
 class App extends Component {
     readonly count = new Emitter(0)
+    readonly offset = new Emitter(1)
     readonly name = new Emitter('Ada')
     readonly textbox = new Textbox({label: 'Name', valueEmitter: this.name})
+    readonly totalEndpoint = new DerivedEndpoint<number, {offset: number}, number>({
+        apply: (count, {offset}) => count + offset,
+    })
+    readonly total: LiveResult<number> = this.totalEndpoint.open({
+        source: this.count,
+        args: {offset: this.offset},
+    })
+    readonly recordsEndpoint = new RestEndpoint<Record<string, never>, {id: string}>({
+        url: 'https://example.test/records',
+        fetch: async () => ({ok: true, json: () => ({id: 'record-1'})}),
+        parseResult: (value) => value as {id: string},
+    })
 
     initialize(): void {
-        this.watch(this.count, this.name)
+        this.watch(this.count, this.name, this.total)
     }
 
     render() {
@@ -133,12 +147,15 @@ class App extends Component {
                     onClick={() => this.count.set(this.count.get() + 1)}
                 />
                 {h('p', {id: 'h-output'}, \`Hello, \${this.name.get()}.\`)}
+                {h('p', {id: 'endpoint-output'}, \`Derived total: \${this.total.get()}\`)}
             </Panel>
         </main>
     }
 
     onDestroy(): void {
         this.count.dispose()
+        this.total.dispose()
+        this.offset.dispose()
         this.name.dispose()
     }
 
@@ -173,6 +190,7 @@ async function verifyBrowserRuntime() {
             await page.getByRole('button', {name: 'Count: 0'}).click()
             await expectText(page, 'button', 'Count: 1')
             await expectText(page, '#h-output', 'Hello, Ada.')
+            await expectText(page, '#endpoint-output', 'Derived total: 2')
             const peerIdentity = await page.locator('main').getAttribute('data-peer-identity')
             assert(peerIdentity === 'true', 'Fray did not resolve the consumer Glue instance')
             assert(pageErrors.length === 0, `Browser emitted page errors: ${pageErrors.join(', ')}`)

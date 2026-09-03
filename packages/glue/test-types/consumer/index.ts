@@ -2,6 +2,7 @@ import {
     DerivedEmitter,
     Emitter,
     LiveQuery,
+    RestEndpoint,
 } from '@sylwellsoftware/glue'
 import type {QueryHandlerLike} from '@sylwellsoftware/glue'
 import {AsyncCommand} from '@sylwellsoftware/glue'
@@ -26,6 +27,17 @@ const query = new LiveQuery<Result, {term: Emitter<string>}>({
     autoFetch: false,
 })
 query.get()?.id.toUpperCase()
+
+const endpoint = new RestEndpoint<Arguments, Result>({
+    url: 'https://example.test/items',
+    fetch: async () => ({
+        ok: true,
+        json: () => ({id: 'record-1'}),
+    }),
+    parseResult: (value) => value as Result,
+})
+const endpointResult = endpoint.open({term})
+endpointResult.get()?.id.toUpperCase()
 
 const command = new AsyncCommand<{id: string}, Result>({
     execute: ({id}, {signal}) => {

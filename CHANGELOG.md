@@ -6,6 +6,23 @@ Versioning.
 
 ## Unreleased
 
+### Added
+
+- Immutable `QueryEndpoint`, `RestEndpoint`, and `DerivedEndpoint`
+  declarations with shared `LiveResult` contracts and caller-owned instances.
+- Opt-in `LiveQuery` polling with reactive controls, overlap prevention,
+  injectable scheduling, and deterministic cleanup.
+- Optional `RestQueryHandler.parseResult` response validation after JSON
+  parsing.
+
+### Changed
+
+- `LiveQuery` now exposes explicit `abort()` without disposing the query.
+- Application service classes can declare reusable remote and offline-filtered
+  endpoints without a Glue registry, cache, or dependency-injection system.
+- Command-triggered query reconciliation is documented as application-owned;
+  refreshed query failures do not alter the settled command state.
+
 ## 0.3.0 - 2026-09-03
 
 ### Added

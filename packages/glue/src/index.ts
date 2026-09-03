@@ -27,10 +27,13 @@ export type {
 } from './commands/asyncCommand.js'
 export {LiveQuery} from './emitters/liveQuery.js'
 export type {
+    LiveQueryPollingOptions,
     LiveQueryOptions,
+    PollingScheduler,
     QueryArgumentEmitters,
     QueryArgumentValues,
 } from './emitters/liveQuery.js'
+export type {LiveResult, RefreshableLiveResult} from './emitters/liveResult.js'
 
 export {combineFetchStates, FetchState, FetchStateValues} from './enums/fetchState.js'
 export type {FetchStateValue} from './enums/fetchState.js'
@@ -48,7 +51,25 @@ export type {
     FetchLike,
     JsonResponseLike,
     QuerySerializer,
+    ResultParser,
     RestQueryHandlerOptions,
     SearchParamsLike,
     UrlLike,
 } from './queryhandling/restQueryHandler.js'
+export {
+    DerivedEndpoint,
+    DerivedLiveResult,
+    derivedEndpoint,
+    QueryEndpoint,
+    queryEndpoint,
+    RestEndpoint,
+    restEndpoint,
+} from './queryhandling/endpoints.js'
+export type {
+    DerivedEndpointOptions,
+    EndpointArgumentEmitters,
+    EndpointQueryOptions,
+    OpenDerivedEndpointOptions,
+    QueryEndpointOptions,
+    RestEndpointOptions,
+} from './queryhandling/endpoints.js'

@@ -3,11 +3,23 @@ import {FetchState} from '../enums/fetchState.js'
 import type {QueryHandlerLike, QueryRequestOptions, QueryValues} from '../queryhandling/queryHandler.js'
 import {BaseEmitter} from './baseEmitter.js'
 import type {EmitterValue, ReadableEmitter} from './baseEmitter.js'
+import type {RefreshableLiveResult} from './liveResult.js'
 
 export type QueryArgumentEmitters = Record<string, ReadableEmitter<unknown, unknown>>
 
 export type QueryArgumentValues<TArguments extends QueryArgumentEmitters> = {
     [TName in keyof TArguments]: EmitterValue<TArguments[TName]>
+}
+
+export interface PollingScheduler {
+    schedule(callback: () => void, delayMs: number): unknown
+    cancel(handle: unknown): void
+}
+
+export interface LiveQueryPollingOptions {
+    intervalMs: number | ReadableEmitter<number, unknown>
+    enabled?: boolean | ReadableEmitter<boolean, unknown>
+    scheduler?: PollingScheduler
 }
 
 export interface LiveQueryOptions<
@@ -18,6 +30,7 @@ export interface LiveQueryOptions<
     args?: TArguments
     autoFetch?: boolean
     keepPreviousValue?: boolean
+    polling?: LiveQueryPollingOptions
     owner?: unknown
     purpose?: string
     trace?: boolean
@@ -36,12 +49,18 @@ interface AbortControllerConstructor {
 export class LiveQuery<
     TResult,
     TArguments extends QueryArgumentEmitters = Record<string, never>,
-> extends BaseEmitter<TResult | undefined, unknown> {
+> extends BaseEmitter<TResult | undefined, unknown>
+implements RefreshableLiveResult<TResult | undefined, unknown> {
     readonly handler: QueryHandlerLike<QueryArgumentValues<TArguments>, TResult>
     readonly args: TArguments
     readonly keepPreviousValue: boolean
     private lastSuccessfulValue: TResult | undefined
+    private hasSuccessfulValue = false
     private argumentUnsubscribers: Array<() => void>
+    private pollingUnsubscribers: Array<() => void> = []
+    private readonly polling: LiveQueryPollingOptions | undefined
+    private readonly pollingScheduler: PollingScheduler
+    private pollingHandle: unknown = null
     private requestId = 0
     private abortController: AbortControllerLike | null = null
     /** Exposed for deterministic tests; consumers should use refresh()/retry(). */
@@ -56,6 +75,7 @@ export class LiveQuery<
             args = {} as TArguments,
             autoFetch = true,
             keepPreviousValue = true,
+            polling,
             owner,
             purpose = 'live query',
             trace,
@@ -64,6 +84,7 @@ export class LiveQuery<
             throw new TypeError('LiveQuery handler must implement fetch()')
         }
         assertNamedArgs(args)
+        if (polling != null) assertPollingOptions(polling)
 
         super(undefined, {
             fetchState: FetchState.Initial,
@@ -75,6 +96,8 @@ export class LiveQuery<
         this.handler = handler
         this.args = {...args}
         this.keepPreviousValue = keepPreviousValue
+        this.polling = polling
+        this.pollingScheduler = polling?.scheduler ?? defaultPollingScheduler
         this.lastSuccessfulValue = undefined
         this.argumentUnsubscribers = Object.values(this.args).map((argument) =>
             argument.subscribe(({event}) => {
@@ -82,7 +105,10 @@ export class LiveQuery<
             }, {emitCurrent: false}),
         )
 
+        if (polling != null) this.initializePolling(polling)
+
         if (autoFetch) this._activeRequest = this.refresh('initial fetch')
+        this.scheduleNextPoll()
     }
 
     get argumentValues(): QueryArgumentValues<TArguments> {
@@ -120,6 +146,7 @@ export class LiveQuery<
             .then((result) => {
                 if (!this.isCurrentRequest(requestId, controller)) return undefined
                 this.lastSuccessfulValue = result
+                this.hasSuccessfulValue = true
                 this.setSnapshot({
                     value: result,
                     fetchState: FetchState.Ready,
@@ -157,15 +184,64 @@ export class LiveQuery<
         return this.refresh(eventOrCause)
     }
 
+    abort(eventOrCause: EventBubble<unknown> | unknown = 'query aborted'): void {
+        if (this.isDisposed || this.abortController == null) return
+        this.requestId += 1
+        this.abortController.abort()
+        this.abortController = null
+        this._activeRequest = null
+        const parentEvent = eventOrCause instanceof EventBubble ? eventOrCause : null
+        this.setSnapshot({
+            value: this.hasSuccessfulValue ? this.lastSuccessfulValue : undefined,
+            fetchState: this.hasSuccessfulValue ? FetchState.Ready : FetchState.Initial,
+            error: null,
+            cause: parentEvent == null ? eventOrCause : 'query aborted',
+            parentEvent,
+        })
+    }
+
     override dispose(): void {
         if (this.isDisposed) return
         this.requestId += 1
         this.abortController?.abort()
         this.abortController = null
         this._activeRequest = null
+        this.cancelScheduledPoll()
         for (const unsubscribe of this.argumentUnsubscribers) unsubscribe()
         this.argumentUnsubscribers = []
+        for (const unsubscribe of this.pollingUnsubscribers) unsubscribe()
+        this.pollingUnsubscribers = []
         super.dispose()
+    }
+
+    private initializePolling(polling: LiveQueryPollingOptions): void {
+        for (const source of [polling.intervalMs, polling.enabled]) {
+            if (!isReadableEmitter(source)) continue
+            this.pollingUnsubscribers.push(source.subscribe(() => {
+                assertPollingInterval(readPollingValue(polling.intervalMs))
+                assertPollingEnabled(readPollingValue(polling.enabled, true))
+                this.cancelScheduledPoll()
+                this.scheduleNextPoll()
+            }, {emitCurrent: false}))
+        }
+    }
+
+    private scheduleNextPoll(): void {
+        if (this.isDisposed || this.polling == null || this.pollingHandle != null) return
+        if (!readPollingValue(this.polling.enabled, true)) return
+        const intervalMs = readPollingValue(this.polling.intervalMs)
+        assertPollingInterval(intervalMs)
+        this.pollingHandle = this.pollingScheduler.schedule(() => {
+            this.pollingHandle = null
+            this.scheduleNextPoll()
+            if (this._activeRequest == null) void this.refresh('poll')
+        }, intervalMs)
+    }
+
+    private cancelScheduledPoll(): void {
+        if (this.pollingHandle == null) return
+        this.pollingScheduler.cancel(this.pollingHandle)
+        this.pollingHandle = null
     }
 
     private isCurrentRequest(requestId: number, controller: AbortControllerLike): boolean {
@@ -173,6 +249,69 @@ export class LiveQuery<
             && requestId === this.requestId
             && controller === this.abortController
             && !controller.signal.aborted
+    }
+}
+
+const defaultPollingScheduler: PollingScheduler = {
+    schedule(callback, delayMs) {
+        const schedule = Reflect.get(globalThis, 'setTimeout')
+        if (typeof schedule !== 'function') {
+            throw new Error('LiveQuery polling requires an injected scheduler in this runtime')
+        }
+        return Reflect.apply(schedule, globalThis, [callback, delayMs])
+    },
+    cancel(handle) {
+        const cancel = Reflect.get(globalThis, 'clearTimeout')
+        if (typeof cancel === 'function') Reflect.apply(cancel, globalThis, [handle])
+    },
+}
+
+function isReadableEmitter(value: unknown): value is ReadableEmitter<never, unknown> {
+    return value != null
+        && (typeof value === 'object' || typeof value === 'function')
+        && typeof Reflect.get(value, 'get') === 'function'
+        && typeof Reflect.get(value, 'subscribe') === 'function'
+}
+
+function assertPollingSource(value: unknown, name: string): void {
+    if (typeof value !== 'number' && typeof value !== 'boolean' && !isReadableEmitter(value)) {
+        throw new TypeError(`LiveQuery polling ${name} must be a value or emitter`)
+    }
+}
+
+function assertPollingOptions(polling: LiveQueryPollingOptions): void {
+    if (polling == null || typeof polling !== 'object' || Array.isArray(polling)) {
+        throw new TypeError('LiveQuery polling options must be an object')
+    }
+    assertPollingSource(polling.intervalMs, 'intervalMs')
+    if (polling.enabled !== undefined) assertPollingSource(polling.enabled, 'enabled')
+    assertPollingInterval(readPollingValue(polling.intervalMs))
+    assertPollingEnabled(readPollingValue(polling.enabled, true))
+    if (polling.scheduler != null
+        && (typeof polling.scheduler.schedule !== 'function'
+            || typeof polling.scheduler.cancel !== 'function')) {
+        throw new TypeError('LiveQuery polling scheduler must implement schedule() and cancel()')
+    }
+}
+
+function readPollingValue<TValue>(
+    value: TValue | ReadableEmitter<TValue, unknown> | undefined,
+    fallback?: TValue,
+): TValue {
+    if (value === undefined) return fallback as TValue
+    if (isReadableEmitter(value)) return value.get() as TValue
+    return value as TValue
+}
+
+function assertPollingInterval(value: number): void {
+    if (!Number.isFinite(value) || value <= 0) {
+        throw new RangeError('LiveQuery polling intervalMs must be a finite positive number')
+    }
+}
+
+function assertPollingEnabled(value: boolean): void {
+    if (typeof value !== 'boolean') {
+        throw new TypeError('LiveQuery polling enabled must be a boolean')
     }
 }
 

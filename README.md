@@ -27,8 +27,9 @@ or receive queries; views render the downstream values they read.
 
 ## Packages
 
-- `@sylwellsoftware/glue` — emitters, derived values, live queries, query
-  handlers, async commands, and optional causal diagnostics.
+- `@sylwellsoftware/glue` — emitters, derived values, reusable remote/local
+  endpoint declarations, live queries with opt-in polling, async commands, and
+  optional causal diagnostics.
 - `@sylwellsoftware/fray` — keyed DOM rendering, components, JSX runtimes,
   accessible controls and layouts, semantic filters, and theme tools. It has a
   peer dependency on Glue.
@@ -86,8 +87,10 @@ runtime.mount(runtime.create(Counter), document.body)
 
 Glue values always expose a synchronous snapshot and a subscription contract.
 `Emitter` owns mutation, `DerivedEmitter` owns cached computation, and
-`LiveQuery` owns execution timing, latest-result handling, and status/error
-snapshots. Query handlers own retrieval and wire encoding.
+`LiveQuery` owns execution timing, latest-result handling, optional polling,
+and status/error snapshots. Query handlers own retrieval and wire encoding.
+Application service classes may group immutable endpoint declarations, while
+each caller owns the live result it opens.
 
 Fray patches compatible DOM and component identity synchronously by type and
 key. Components own their subtree, subscriptions, bindings, listeners, and
