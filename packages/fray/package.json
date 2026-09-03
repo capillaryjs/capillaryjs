@@ -2,7 +2,7 @@
   "type": "module",
   "name": "@sylwellsoftware/fray",
   "private": false,
-  "version": "0.1.0-alpha.1",
+  "version": "0.2.0",
   "description": "Experimental browser-only TypeScript component runtime, JSX controls, and semantic themes.",
   "license": "Apache-2.0",
   "author": {

@@ -6,6 +6,8 @@ Versioning.
 
 ## Unreleased
 
+## 0.2.0 - 2026-09-03
+
 ### Added
 
 - Generated theme-neutral Fray structural CSS and independently replaceable
