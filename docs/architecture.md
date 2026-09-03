@@ -73,5 +73,5 @@ must inject a scenario implementing the public request/response contract. The
 embedded adapter is an in-memory transport; the Node adapter validates actual
 HTTP behavior. The package contains no application scenario or domain fixture.
 
-See [API_SURFACE.md](API_SURFACE.md) for the stable and experimental alpha
-exports.
+See [API_SURFACE.md](API_SURFACE.md) for the current public exports and
+compatibility boundaries.

@@ -1,8 +1,8 @@
 # Contributing
 
-Thanks for helping improve Glue and Fray. The project is in an experimental
-alpha stage, so proposals that clarify contracts, accessibility, lifecycle
-ownership, and package boundaries are especially useful.
+Thanks for helping improve Glue and Fray. Proposals that clarify contracts,
+accessibility, lifecycle ownership, and package boundaries are especially
+useful.
 
 Before opening a change:
 

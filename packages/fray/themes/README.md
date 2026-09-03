@@ -80,5 +80,5 @@ practical; translucent white/black lighting used to construct a treatment is
 permitted in `theme.css`.
 
 The top-level `themes/light.css` and `themes/dark.css` exports are retained as
-alpha compatibility bundles. New integrations should use the separated paths
+legacy compatibility bundles. New integrations should use the separated paths
 above.

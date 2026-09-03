@@ -1,7 +1,7 @@
 # Security policy
 
-Glue and Fray are prerelease software. Security fixes are provided for the
-latest published alpha only; older prereleases are unsupported.
+Security fixes are provided on a best-effort basis for the current public
+`0.x` release line; older releases may be unsupported.
 
 Please do not disclose a suspected vulnerability in a public issue. Use the
 repository's **Security** tab to submit a private vulnerability report. Include
