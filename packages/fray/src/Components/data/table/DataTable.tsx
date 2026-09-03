@@ -1,17 +1,5 @@
-import {
-    DerivedEmitter,
-    Emitter,
-    FetchState,
-    LiveQuery,
-    QueryArg,
-    RestQueryHandler,
-} from '@sylwellsoftware/glue'
-import type {
-    FetchLike,
-    QueryHandlerLike,
-    QuerySerializer,
-    ReadableEmitter,
-} from '@sylwellsoftware/glue'
+import {Emitter, FetchState} from '@sylwellsoftware/glue'
+import type {ReadableEmitter} from '@sylwellsoftware/glue'
 
 import {Placeholder} from '../../Placeholder.js'
 import {Component, css} from '../../component.js'
@@ -23,6 +11,7 @@ import type {FilterModeValue} from '../../../util/filterMode.js'
 import {
     createSelectionHandler,
     defaultItemKey,
+    SingleSelectionHandler,
 } from '../selectionhandler.js'
 import type {
     BaseSelectionHandler,
@@ -30,35 +19,20 @@ import type {
 } from '../selectionhandler.js'
 import {TableHeader} from './TableHeader.js'
 import type {TableColumn, TableRow} from './TableHeaderCell.js'
-import {applyLocalTableState, serializeTableQuery} from './tableQuery.js'
+import {
+    createLocalTableDataSource,
+    createRestTableDataSource,
+} from './tableDataSource.js'
+import type {
+    RestTableDataSourceOptions,
+    TableDataSource,
+    TableQueryInput,
+} from './tableDataSource.js'
 import type {TableFilters, TableSort} from './tableQuery.js'
 
-export type TableQueryArguments = {
-    sort: TableSort | null
-    filters: TableFilters
-}
-
-export type TableQueryInput<TRow extends TableRow = TableRow> = ReadableEmitter<
-    readonly TRow[] | undefined,
-    unknown
-> & {
-    retry?: (cause?: unknown) => unknown
-    dispose?: () => void
-}
-
-export interface DataTableProps<TRow extends TableRow = TableRow> extends ComponentProps {
-    mode: 'local' | 'remote'
+interface DataTableCommonProps<TRow extends TableRow> extends ComponentProps {
     columns: readonly TableColumn<TRow>[]
-    data?: readonly TRow[] | ReadableEmitter<readonly TRow[], unknown>
-    query?: TableQueryInput<TRow>
-    queryHandler?: QueryHandlerLike<TableQueryArguments, readonly TRow[]>
-    queryUrl?: string
-    baseUrl?: string
-    fetch?: FetchLike<readonly TRow[]>
-    serializeQuery?: QuerySerializer<TableQueryArguments>
-    selectedItemsEmitter?: ValueEmitter<TRow[]>
     rowKey?: Extract<keyof TRow, string> | ItemKeyGetter<TRow>
-    multiSelect?: boolean
     caption?: FrayChild
     emptyMessage?: FrayChild
     placeholderCount?: number
@@ -67,126 +41,115 @@ export interface DataTableProps<TRow extends TableRow = TableRow> extends Compon
     onFilterChange?: (filters: TableFilters, event: Event | null) => void
 }
 
-/** Experimental table with explicit local and remote data modes. */
+type DataTableInputProps<TRow extends TableRow> =
+    | {
+        data?: readonly TRow[] | ReadableEmitter<readonly TRow[], unknown>
+        dataSource?: never
+        rest?: never
+    }
+    | {
+        data?: never
+        dataSource: TableDataSource<TRow>
+        rest?: never
+    }
+    | {
+        data?: never
+        dataSource?: never
+        rest: Omit<RestTableDataSourceOptions<TRow>, 'owner' | 'sortEmitter' | 'filtersEmitter'>
+    }
+
+type DataTableSelectionProps<TRow extends TableRow> =
+    | {
+        multiSelect?: false
+        selectedItemEmitter?: ValueEmitter<TRow | null>
+        selectedItemsEmitter?: never
+    }
+    | {
+        multiSelect: true
+        selectedItemsEmitter?: ValueEmitter<TRow[]>
+        selectedItemEmitter?: never
+    }
+
+export type DataTableProps<TRow extends TableRow = TableRow> =
+    DataTableCommonProps<TRow> & DataTableInputProps<TRow> & DataTableSelectionProps<TRow>
+
+/** Accessible table over an explicit local, caller-query, or REST data source. */
 export class DataTable<TRow extends TableRow = TableRow>
     extends Component<DataTableProps<TRow>> {
     readonly columns: readonly TableColumn<TRow>[]
     readonly rowKey: ItemKeyGetter<TRow>
-    readonly sortEmitter: Emitter<TableSort | null>
-    readonly filtersEmitter: Emitter<TableFilters>
+    readonly sortEmitter: ValueEmitter<TableSort | null>
+    readonly filtersEmitter: ValueEmitter<TableFilters>
     readonly selectedItemsEmitter: ValueEmitter<TRow[]>
+    readonly selectedItemEmitter: ValueEmitter<TRow | null> | null
     readonly selectionHandler: BaseSelectionHandler<TRow>
     query: TableQueryInput<TRow> | null = null
-    private dataSource: ReadableEmitter<readonly TRow[], unknown> | null = null
-    private readonly ownedSelectedItemsEmitter: Emitter<TRow[]> | null
-    private ownedDataSource: Emitter<readonly TRow[]> | null = null
-    private ownsQuery = false
-    private readonly queryArgs: Array<QueryArg<TableSort | null> | QueryArg<TableFilters>> = []
+    private dataSource: TableDataSource<TRow> | null = null
+    private readonly suppliedDataSource: TableDataSource<TRow> | null
+    private readonly ownedSortEmitter: Emitter<TableSort | null> | null
+    private readonly ownedFiltersEmitter: Emitter<TableFilters> | null
+    private ownedDataSource: TableDataSource<TRow> | null = null
 
     constructor(props: DataTableProps<TRow>) {
         super(props)
-        if (props.mode !== 'local' && props.mode !== 'remote') {
-            throw new TypeError('DataTable mode must be local or remote')
-        }
+        assertDataTableInput(props)
         this.columns = normalizeColumns(props.columns)
         this.rowKey = normalizeRowKey(props.rowKey)
-        this.sortEmitter = new Emitter<TableSort | null>(null, {
-            owner: this,
-            purpose: 'table sort',
-        })
-        this.filtersEmitter = new Emitter<TableFilters>({}, {
-            owner: this,
-            purpose: 'table filters',
-        })
-        this.ownedSelectedItemsEmitter = props.selectedItemsEmitter == null
-            ? new Emitter<TRow[]>([], {owner: this, purpose: 'selected table rows'})
+        this.suppliedDataSource = props.dataSource ?? null
+        this.ownedSortEmitter = this.suppliedDataSource == null
+            ? new Emitter<TableSort | null>(null, {owner: this, purpose: 'table sort'})
             : null
-        this.selectedItemsEmitter = props.selectedItemsEmitter
-            ?? this.ownedSelectedItemsEmitter!
-        this.selectionHandler = createSelectionHandler({
-            owner: this,
-            multiSelect: props.multiSelect ?? false,
-            selectedItemsEmitter: this.selectedItemsEmitter,
-            getItems: () => this.query?.get() ?? [],
-            getKey: this.rowKey,
-        })
+        this.ownedFiltersEmitter = this.suppliedDataSource == null
+            ? new Emitter<TableFilters>({}, {owner: this, purpose: 'table filters'})
+            : null
+        this.sortEmitter = this.suppliedDataSource?.sortEmitter ?? this.ownedSortEmitter!
+        this.filtersEmitter = this.suppliedDataSource?.filtersEmitter ?? this.ownedFiltersEmitter!
+        this.selectionHandler = props.multiSelect === true
+            ? createSelectionHandler({
+                owner: this,
+                multiSelect: true,
+                ...(props.selectedItemsEmitter == null
+                    ? {}
+                    : {selectedItemsEmitter: props.selectedItemsEmitter}),
+                getItems: () => this.query?.get() ?? [],
+                getKey: this.rowKey,
+            })
+            : createSelectionHandler({
+                owner: this,
+                ...(props.selectedItemEmitter == null
+                    ? {}
+                    : {selectedItemEmitter: props.selectedItemEmitter}),
+                getItems: () => this.query?.get() ?? [],
+                getKey: this.rowKey,
+            })
+        this.selectedItemsEmitter = this.selectionHandler.selectedItemsEmitter
+        this.selectedItemEmitter = this.selectionHandler instanceof SingleSelectionHandler
+            ? this.selectionHandler.selectedItemEmitter
+            : null
     }
 
     initialize(): void {
-        this.query = this.props.mode === 'local'
-            ? this.createLocalQuery()
-            : this.createRemoteQuery()
-        this.watch(this.query, this.selectedItemsEmitter)
-    }
-
-    private createLocalQuery(): TableQueryInput<TRow> {
-        const suppliedData = this.props.data ?? []
-        let source: ReadableEmitter<readonly TRow[], unknown>
-        if (isReadableEmitter<readonly TRow[]>(suppliedData)) {
-            source = suppliedData
-        } else {
-            this.ownedDataSource = new Emitter<readonly TRow[]>(suppliedData, {
+        if (this.suppliedDataSource != null) {
+            this.dataSource = this.suppliedDataSource
+        } else if (this.props.rest != null) {
+            this.ownedDataSource = createRestTableDataSource({
+                ...this.props.rest,
+                sortEmitter: this.sortEmitter,
+                filtersEmitter: this.filtersEmitter,
                 owner: this,
-                purpose: 'local table data',
             })
-            source = this.ownedDataSource
+            this.dataSource = this.ownedDataSource
+        } else {
+            this.ownedDataSource = createLocalTableDataSource({
+                data: this.props.data ?? [],
+                sortEmitter: this.sortEmitter,
+                filtersEmitter: this.filtersEmitter,
+                owner: this,
+            })
+            this.dataSource = this.ownedDataSource
         }
-        this.dataSource = source
-        this.ownsQuery = true
-        return new DerivedEmitter(
-            [source, this.sortEmitter, this.filtersEmitter] as const,
-            ([rows, sort, filters]) => applyLocalTableState(rows, sort, filters),
-            {owner: this, purpose: 'local table view'},
-        )
-    }
-
-    private createRemoteQuery(): TableQueryInput<TRow> {
-        if (this.props.query != null) {
-            assertTableQuery(this.props.query)
-            return this.props.query
-        }
-
-        const handler = this.props.queryHandler ?? this.createRestHandler()
-        if (handler == null || typeof handler.fetch !== 'function') {
-            throw new TypeError('Remote DataTable requires query, queryHandler, or queryUrl')
-        }
-        const sort = new QueryArg<TableSort | null>('sort', this.sortEmitter, {
-            owner: this,
-            purpose: 'remote table sort argument',
-        })
-        const filters = new QueryArg<TableFilters>('filters', this.filtersEmitter, {
-            owner: this,
-            purpose: 'remote table filters argument',
-        })
-        this.queryArgs.push(sort, filters)
-        this.ownsQuery = true
-        const args = {sort, filters}
-        return new LiveQuery<readonly TRow[], typeof args>({
-            handler,
-            args,
-            owner: this,
-            purpose: 'remote table query',
-            keepPreviousValue: true,
-        })
-    }
-
-    private createRestHandler(): RestQueryHandler<
-        TableQueryArguments,
-        readonly TRow[]
-    > | null {
-        if (this.props.queryUrl == null) return null
-        const options: {
-            url: string
-            baseUrl?: string
-            fetch?: FetchLike<readonly TRow[]>
-            serialize: QuerySerializer<TableQueryArguments>
-        } = {
-            url: this.props.queryUrl,
-            serialize: this.props.serializeQuery ?? serializeTableQuery,
-        }
-        if (this.props.baseUrl != null) options.baseUrl = this.props.baseUrl
-        if (this.props.fetch != null) options.fetch = this.props.fetch
-        return new RestQueryHandler<TableQueryArguments, readonly TRow[]>(options)
+        this.query = this.dataSource.query
+        this.watch(this.query, this.selectedItemsEmitter)
     }
 
     render(): FrayChild {
@@ -207,10 +170,10 @@ export class DataTable<TRow extends TableRow = TableRow>
             {isLoading ? <p role="status" data-part="status">Loading rows…</p> : null}
             {status === FetchState.Error ? <div data-part="error" role="alert">
                 <span>{errorMessage(error, 'Unable to load rows')}</span>
-                {typeof this.query?.retry === 'function'
+                {typeof this.dataSource?.retry === 'function'
                     ? <button
                         type="button"
-                        onClick={() => this.query?.retry?.('table retry')}
+                        onClick={() => this.dataSource?.retry?.('table retry')}
                     >Retry</button>
                     : null}
             </div> : null}
@@ -299,14 +262,19 @@ export class DataTable<TRow extends TableRow = TableRow>
         return this.selectedItemsEmitter
     }
 
+    getSelectedRow(): TRow | null {
+        return this.selectedItemEmitter?.get() ?? null
+    }
+
+    getSelectedRowEmitter(): ValueEmitter<TRow | null> | null {
+        return this.selectedItemEmitter
+    }
+
     onDestroy(): void {
         this.selectionHandler.destroy()
-        if (this.ownsQuery) this.query?.dispose?.()
-        for (const argument of this.queryArgs) argument.dispose()
         this.ownedDataSource?.dispose()
-        this.ownedSelectedItemsEmitter?.dispose()
-        this.sortEmitter.dispose()
-        this.filtersEmitter.dispose()
+        this.ownedSortEmitter?.dispose()
+        this.ownedFiltersEmitter?.dispose()
     }
 
     static dependencies = [Placeholder, TableHeader]
@@ -323,6 +291,11 @@ export class DataTable<TRow extends TableRow = TableRow>
         & > table {
             width: 100%;
             border-collapse: collapse;
+        }
+
+        & thead:has([data-fray-component="filter-panel"]) {
+            position: relative;
+            z-index: 1100;
         }
 
         & th,
@@ -391,6 +364,34 @@ function normalizeColumns<TRow extends TableRow>(
     })
 }
 
+function assertDataTableInput<TRow extends TableRow>(props: DataTableProps<TRow>): void {
+    const legacyNames = ['mode', 'query', 'queryHandler', 'queryUrl', 'baseUrl', 'fetch',
+        'serializeQuery']
+    const legacy = legacyNames.find((name) => Object.hasOwn(props, name))
+    if (legacy != null) {
+        throw new TypeError(
+            `DataTable ${legacy} moved to dataSource/rest; see the 0.3 migration guide`,
+        )
+    }
+    const hasData = props.data !== undefined
+    const hasDataSource = props.dataSource !== undefined
+    const hasRest = props.rest !== undefined
+    if (Number(hasData) + Number(hasDataSource) + Number(hasRest) > 1) {
+        throw new TypeError('DataTable accepts exactly one of data, dataSource, or rest')
+    }
+    if (hasDataSource) {
+        const source = props.dataSource
+        if (source == null
+            || typeof source !== 'object'
+            || source.query == null
+            || typeof source.sortEmitter?.set !== 'function'
+            || typeof source.filtersEmitter?.set !== 'function'
+            || typeof source.dispose !== 'function') {
+            throw new TypeError('DataTable dataSource must implement the table data-source contract')
+        }
+    }
+}
+
 function normalizeRowKey<TRow extends TableRow>(
     rowKey: DataTableProps<TRow>['rowKey'],
 ): ItemKeyGetter<TRow> {
@@ -406,23 +407,6 @@ function normalizeRowKey<TRow extends TableRow>(
         }
     }
     throw new TypeError('DataTable rowKey must be a function or property name')
-}
-
-function isReadableEmitter<TValue>(value: unknown): value is ReadableEmitter<TValue, unknown> {
-    return value != null
-        && (typeof value === 'object' || typeof value === 'function')
-        && typeof Reflect.get(value, 'get') === 'function'
-        && typeof Reflect.get(value, 'subscribe') === 'function'
-        && typeof Reflect.get(value, 'getFetchState') === 'function'
-        && typeof Reflect.get(value, 'getError') === 'function'
-}
-
-function assertTableQuery<TRow extends TableRow>(
-    value: unknown,
-): asserts value is TableQueryInput<TRow> {
-    if (!isReadableEmitter<readonly TRow[] | undefined>(value)) {
-        throw new TypeError('DataTable query must be an emitter')
-    }
 }
 
 function renderCellValue(value: unknown): FrayChild {

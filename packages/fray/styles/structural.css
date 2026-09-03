@@ -323,6 +323,11 @@ fray-data-table {
             border-collapse: collapse;
         }
 
+        fray-data-table thead:has([data-fray-component="filter-panel"]) {
+            position: relative;
+            z-index: 1100;
+        }
+
         fray-data-table th,
         fray-data-table td {
             padding: var(--ui-padding-v) var(--ui-padding-h);
@@ -408,9 +413,9 @@ th[data-fray-component="table-header-cell"] {
         }
 
 fray-filter-panel {
-            position: absolute;
-            z-index: 1000;
-            inset-block-start: 100%;
+            position: fixed;
+            z-index: 1100;
+            inset-block-start: 0;
             inset-inline-end: 0;
             display: flex;
             min-width: 12rem;
@@ -422,6 +427,7 @@ fray-filter-panel {
             border: var(--panel-border);
             border-radius: var(--panel-radius);
             box-shadow: var(--panel-shadow);
+            overflow-y: auto;
         }
 
 div[data-fray-component="description-item"] {

@@ -2,6 +2,7 @@ import {Emitter} from '@sylwellsoftware/glue'
 import type {EmitterOptions, ReadableEmitter} from '@sylwellsoftware/glue'
 
 import type {Component, ComponentProps} from './component.js'
+import {isFilterMode} from '../util/filterMode.js'
 
 export interface ValueEmitter<TValue> extends ReadableEmitter<TValue, unknown> {
     set(value: TValue, eventOrCause?: unknown): boolean
@@ -80,9 +81,6 @@ export function assertOptions<TOption>(
 }
 
 export function describeState(value: unknown): string {
-    if (value === '') return 'prefer'
-    if (value === '!') return 'deny'
-    if (value === '_') return 'require'
-    if (value === '☐') return 'neutral'
+    if (isFilterMode(value)) return value
     return String(value)
 }

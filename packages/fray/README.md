@@ -738,14 +738,83 @@ operation, labelled roles, reduced motion, 200% configured text sizing, and
 forced-colors focus visibility. A formal manual screen-reader pass is still a
 release-candidate requirement; automated checks are not a substitute for it.
 
-## Experimental data components
+## Data workflows
 
-`ListView`, `DataTable`, `TreeView`, `TreeItem`, `Dialog`, filters, selection
-handlers, and `Placeholder` are available only from
-`@sylwellsoftware/fray/experimental`. They are outside the stable alpha
-compatibility surface and may change without a migration bridge. Their state
-model, keyboard behavior, measured data boundary, and current limitations are
-documented in [EXPERIMENTAL.md](EXPERIMENTAL.md).
+`ListView`, `DataTable`, `TreeView`, `TreeItem`, `Dialog`, `FilterPanel`, and
+their model helpers are part of the stable alpha entry point. All accept
+ordinary Glue emitters; they do not introduce a second state store.
+
+List and table selection is discriminated by cardinality. Single selection is
+an item or `null`; array state is reserved for explicit multi-selection:
+
+```tsx
+const selected = new Emitter<Project | null>(null)
+const selectedRows = new Emitter<Project[]>([])
+
+<ListView items={projects} selectedItemEmitter={selected} itemKey="id" />
+<DataTable
+    data={projects}
+    columns={columns}
+    multiSelect
+    selectedItemsEmitter={selectedRows}
+/>
+```
+
+Both modes reconcile selected keys to fresh objects when data is replaced.
+Multi-selection retains Control/Command toggles, Shift and pointer-drag ranges,
+and keyboard operation.
+
+DataTable accepts exactly one data boundary:
+
+```tsx
+// Direct local data; Fray derives sorted/filtered rows.
+<DataTable data={projects} columns={columns} />
+
+// Convenient REST adapter; the table creates and disposes this source.
+<DataTable
+    rest={{url: '/api/projects', baseUrl: location.href}}
+    columns={columns}
+/>
+
+// Explicit source; the caller owns and eventually disposes it.
+const source = createQueryTableDataSource({query, sortEmitter, filtersEmitter})
+<DataTable dataSource={source} columns={columns} />
+```
+
+`createLocalTableDataSource`, `createQueryTableDataSource`,
+`createHandlerTableDataSource`, and `createRestTableDataSource` make ownership
+visible. Sources package the row query with sort/filter emitters, retry, and
+disposal. The default REST serializer retains the compact existing endpoint
+tokens; inject `serializeQuery` when an endpoint uses another wire contract.
+
+Tree node state is projected from complete immutable snapshots:
+
+```ts
+const selectedNode = deriveTreeNode(treeNodes, selectedKey)
+
+// Only for an authoritative writable root:
+updateWritableTreeNode(treeNodes, 'project-1', (node) => ({...node, label: 'Updated'}))
+```
+
+For a tree derived from domain state, a callback updates that real source; the
+tree derivation then rebuilds and `deriveTreeNode` resolves the fresh node.
+`updateTreeNode` is the equivalent pure path-copy operation.
+
+Generic `FilterState` keeps `neutral`, `prefer`, `require`, and `deny` semantic
+values separate from glyphs and transport. `filterByState`,
+`deriveFilterPredicate`, and `deriveFilteredItems` consume caller-supplied
+dimension matchers. `serializeFilterState`/`parseFilterState` round-trip
+validated version-1 plain data without owning URL or storage access. Unknown
+valid keys are preserved and ignored until a matching definition exists.
+Dimensions combine with AND. Within each dimension, a denied match always
+rejects, every required option must match, and at least one preferred option
+must match when preferences are active. Neutral options do not constrain the
+result.
+
+The stable non-virtualized performance boundary and detailed state behavior are
+documented in [EXPERIMENTAL.md](EXPERIMENTAL.md), whose subpath now exists as a
+temporary compatibility re-export. See the migration section there before
+upgrading from 0.2.x.
 
 Fray is not a replacement for an SSR/hydration framework, Web Components,
 React/Vue adapters, a broad design system, a virtualized production data grid,

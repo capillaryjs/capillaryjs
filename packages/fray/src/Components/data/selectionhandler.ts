@@ -1,15 +1,39 @@
 import {Emitter} from '@sylwellsoftware/glue'
+import type {
+    EmitterNotification,
+    SubscribeOptions,
+} from '@sylwellsoftware/glue'
 
 import type {ValueEmitter} from '../controlUtils.js'
 
 export type ItemKeyGetter<TItem> = (item: TItem, index: number) => unknown
 
-export interface SelectionHandlerConfig<TItem> {
+interface SelectionHandlerCommonConfig<TItem> {
     getItems: () => readonly TItem[]
     getKey?: ItemKeyGetter<TItem>
-    selectedItemsEmitter?: ValueEmitter<TItem[]>
     owner?: unknown
-    multiSelect?: boolean
+}
+
+export interface SingleSelectionHandlerConfig<TItem>
+extends SelectionHandlerCommonConfig<TItem> {
+    multiSelect?: false
+    selectedItemEmitter?: ValueEmitter<TItem | null>
+    selectedItemsEmitter?: never
+}
+
+export interface MultiSelectionHandlerConfig<TItem>
+extends SelectionHandlerCommonConfig<TItem> {
+    multiSelect: true
+    selectedItemsEmitter?: ValueEmitter<TItem[]>
+    selectedItemEmitter?: never
+}
+
+export type SelectionHandlerConfig<TItem> =
+    | SingleSelectionHandlerConfig<TItem>
+    | MultiSelectionHandlerConfig<TItem>
+
+interface BaseSelectionHandlerConfig<TItem> extends SelectionHandlerCommonConfig<TItem> {
+    selectedItemsEmitter?: ValueEmitter<TItem[]>
 }
 
 type SelectionEvent = MouseEvent | KeyboardEvent
@@ -44,7 +68,7 @@ export class BaseSelectionHandler<TItem = unknown> {
         getKey = defaultItemKey,
         selectedItemsEmitter,
         owner = null,
-    }: SelectionHandlerConfig<TItem>) {
+    }: BaseSelectionHandlerConfig<TItem>) {
         if (typeof getItems !== 'function') {
             throw new TypeError('Selection handler getItems must be a function')
         }
@@ -234,11 +258,43 @@ export class BaseSelectionHandler<TItem = unknown> {
 }
 
 export class SingleSelectionHandler<TItem = unknown> extends BaseSelectionHandler<TItem> {
+    readonly selectedItemEmitter: ValueEmitter<TItem | null>
+    readonly selectedItem$: ValueEmitter<TItem | null>
+    private readonly ownedSelectedItemEmitter: Emitter<TItem | null> | null
+
+    constructor(config: SingleSelectionHandlerConfig<TItem>) {
+        const owned = config.selectedItemEmitter == null
+            ? new Emitter<TItem | null>(null, {
+                owner: config.owner,
+                purpose: 'selected item',
+            })
+            : null
+        const selectedItemEmitter = config.selectedItemEmitter ?? owned!
+        super({
+            getItems: config.getItems,
+            ...(config.getKey == null ? {} : {getKey: config.getKey}),
+            ...(config.owner === undefined ? {} : {owner: config.owner}),
+            selectedItemsEmitter: new SingleSelectionArrayView(selectedItemEmitter),
+        })
+        this.ownedSelectedItemEmitter = owned
+        this.selectedItemEmitter = selectedItemEmitter
+        this.selectedItem$ = selectedItemEmitter
+    }
+
     protected selectIndex(index: number): void {
         const item = this.getItems()[index]
         if (item === undefined) return
         this.anchorIndex = index
         this.setSelectedItems([item], 'single selection changed')
+    }
+
+    getSelectedItem(): TItem | null {
+        return this.selectedItemEmitter.get()
+    }
+
+    override destroy(): void {
+        super.destroy()
+        this.ownedSelectedItemEmitter?.dispose()
     }
 }
 
@@ -303,11 +359,48 @@ export class MultiSelectionHandler<TItem = unknown> extends BaseSelectionHandler
 }
 
 export function createSelectionHandler<TItem>(
+    config: MultiSelectionHandlerConfig<TItem>,
+): MultiSelectionHandler<TItem>
+export function createSelectionHandler<TItem>(
+    config: SingleSelectionHandlerConfig<TItem>,
+): SingleSelectionHandler<TItem>
+export function createSelectionHandler<TItem>(
     config: SelectionHandlerConfig<TItem>,
 ): BaseSelectionHandler<TItem> {
     return config.multiSelect
         ? new MultiSelectionHandler(config)
         : new SingleSelectionHandler(config)
+}
+
+class SingleSelectionArrayView<TItem> implements ValueEmitter<TItem[]> {
+    constructor(private readonly source: ValueEmitter<TItem | null>) {}
+
+    get(): TItem[] {
+        const value = this.source.get()
+        return value == null ? [] : [value]
+    }
+
+    getError(): unknown {
+        return this.source.getError()
+    }
+
+    getFetchState(): ReturnType<ValueEmitter<TItem | null>['getFetchState']> {
+        return this.source.getFetchState()
+    }
+
+    set(value: TItem[], eventOrCause?: unknown): boolean {
+        return this.source.set(value[0] ?? null, eventOrCause)
+    }
+
+    subscribe(
+        listener: (notification: EmitterNotification<TItem[], unknown>) => void,
+        options?: SubscribeOptions,
+    ): () => void {
+        return this.source.subscribe((notification) => listener({
+            ...notification,
+            value: notification.value == null ? [] : [notification.value],
+        }), options)
+    }
 }
 
 export function defaultItemKey<TItem>(item: TItem, index: number): unknown {

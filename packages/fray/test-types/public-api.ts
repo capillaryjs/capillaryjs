@@ -5,7 +5,10 @@ import {
     Component,
     DescriptionItem,
     DescriptionList,
+    DataTable,
+    Dialog,
     Dropdown,
+    ListView,
     Panel,
     ProgressBar,
     Sidebar,
@@ -13,21 +16,15 @@ import {
     Tab,
     TabPanel,
     Textbox,
+    TreeView,
     h,
+    serializeTableQuery,
 } from '../src/index.js'
 import type {
     ComponentProps,
     Key,
     Ref,
 } from '../src/index.js'
-import {
-    DataTable,
-    Dialog,
-    ListView,
-    TreeView,
-    serializeTableQuery,
-} from '../src/experimental.js'
-
 const textboxValue = new Emitter('Ada')
 const textbox = new Textbox({label: 'Name', valueEmitter: textboxValue})
 textbox.valueEmitter.get().toUpperCase()
@@ -74,13 +71,20 @@ class Card extends Component<CardProps> {
 h(Card, {title: 'Typed'}, h(Button, {label: 'Save'}))
 
 type Row = {id: number; name: string}
+const selectedRow = new Emitter<Row | null>(null)
 new ListView<Row>({
     items: [{id: 1, name: 'Ada'}],
+    selectedItemEmitter: selectedRow,
     renderItem(row) {
         row.name.toUpperCase()
-        // @ts-expect-error Experimental row models retain their declared shape.
+        // @ts-expect-error Stable row models retain their declared shape.
         return row.missing
     },
+})
+new ListView<Row>({
+    items: [],
+    multiSelect: true,
+    selectedItemsEmitter: new Emitter<Row[]>([]),
 })
 new TreeView<Row>({
     label: 'Rows',
@@ -91,17 +95,29 @@ new TreeView<Row>({
 })
 new Dialog({title: 'Confirm', valueEmitter: new Emitter(false), children: 'Continue?'})
 new DataTable<Row>({
-    mode: 'local',
     data: [{id: 1, name: 'Ada'}],
+    selectedItemEmitter: selectedRow,
     columns: [{field: 'name', render: (row) => row.name.toUpperCase()}],
 })
 new DataTable<Row>({
-    mode: 'local',
+    rest: {url: '/rows', baseUrl: 'https://example.test/'},
+    columns: [{field: 'name'}],
+})
+new DataTable<Row>({
     data: [],
-    // @ts-expect-error Experimental table fields must exist on the row model.
+    // @ts-expect-error Stable table fields must exist on the row model.
     columns: [{field: 'missing'}],
 })
 
+// @ts-expect-error Single selection accepts one item or null, not an array.
+new ListView<Row>({items: [], selectedItemsEmitter: new Emitter<Row[]>([])})
+// @ts-expect-error Multi-selection requires the collection emitter.
+new DataTable<Row>({
+    data: [],
+    columns: [{field: 'name'}],
+    multiSelect: true,
+    selectedItemEmitter: selectedRow,
+})
 const serialized = serializeTableQuery(new URL('https://example.test/rows'), {
     sort: {field: 'name', direction: 'asc'},
 })

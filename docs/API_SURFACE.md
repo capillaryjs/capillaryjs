@@ -45,6 +45,12 @@ contracts are documented in `packages/glue/README.md`.
 | `FilterMode` | Semantic vocabulary used by multi-state controls. | Fray controls |
 | `Panel`, `Sidebar`, `SplitView`, `Tab`, `TabLine`, `TabPanel` | Region, sidebar, split-pane, and tab layout primitives. | Fray layout |
 | `DescriptionList`, `DescriptionItem` | Native term/value record summaries. | Fray data display |
+| `ListView`, selection handlers | Keyed single/multi list selection with refresh reconciliation and keyboard/pointer behavior. | Fray data workflow |
+| `TreeView`, `TreeItem`, tree model helpers | Accessible keyed trees, node projection, and explicit immutable root updates. | Fray data workflow |
+| `DataTable`, table source/query helpers, `FilterPanel` | Local, caller-query, or REST-backed tables with explicit ownership. | Fray data workflow |
+| `FilterState` helpers | Semantic multi-dimension matching, reactive derivation, and versioned plain-data persistence. | Fray data workflow |
+| `Dialog` | Controlled native modal behavior, focus containment/restoration, and cleanup. | Fray dialog |
+| `Placeholder` | Loading-content placeholder used by data components. | Fray data display |
 | `ProgressBar` | Labelled determinate or indeterminate native progress. | Fray status |
 
 The package also exposes `./jsx-runtime`, `./jsx-dev-runtime`, generated
@@ -90,11 +96,10 @@ state, concurrency policy, stale-result suppression, reset, and disposal. It
 does not belong to Glue's stable alpha surface and does not provide queuing,
 retry, batch, notification, or DOM policy.
 
-`@sylwellsoftware/fray/experimental` is the only intended alpha entry point for
-`ListView`, `DataTable`, `TreeView`, `TreeItem`, `Dialog`, filter/table helpers,
-selection handlers, and `Placeholder`. These APIs are labeled experimental,
-receive best-effort fixes, and may change in any prerelease without a
-compatibility bridge.
+`@sylwellsoftware/fray/experimental` temporarily re-exports Fray's stable root
+for compatibility with 0.2.x data-component imports. New code must import the
+promoted data APIs from `@sylwellsoftware/fray`; the compatibility subpath does
+not contain a separate implementation.
 
 The empty `dialog.js`, `radiobox.js`, and `listviewitem.js` modules are not
 exported. They may be implemented by a future proposal, but their filenames do

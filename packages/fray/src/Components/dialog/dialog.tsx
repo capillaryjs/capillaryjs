@@ -20,7 +20,7 @@ export interface DialogProps extends ValueControlProps<boolean> {
     onClose?: () => void
 }
 
-/** Experimental controlled modal built on the native dialog element. */
+/** Controlled modal built on the native dialog element. */
 export class Dialog extends Component<DialogProps> {
     readonly openEmitter: ValueEmitter<boolean>
     readonly dialogId: string

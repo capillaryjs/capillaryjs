@@ -57,7 +57,7 @@ export class Checkbox<TValue extends CheckboxValue = FilterModeValue>
         }
         this.valueEmitter = createValueEmitter<TValue>(this, emitterProps, fallback,
             'checkbox semantic state')
-        // Compatibility alias used only by the experimental filter implementation.
+        // Compatibility alias used by filter controls.
         this.semanticStateEmitter = this.valueEmitter
     }
 

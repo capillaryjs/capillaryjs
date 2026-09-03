@@ -5,6 +5,8 @@ import {
     Component,
     DescriptionItem,
     DescriptionList,
+    DataTable,
+    Dialog,
     Dropdown,
     FilterMode,
     Fragment,
@@ -17,10 +19,10 @@ import {
     Textbox,
     Toggle,
     Toolbar,
+    TreeView,
     h,
     styleRegistry,
 } from '../../src/index.js'
-import {DataTable, Dialog, TreeView} from '../../src/experimental.js'
 import {jsx} from '../../src/jsx-runtime.js'
 
 if (new URLSearchParams(location.search).get('fontScale') === '200') {
@@ -318,7 +320,6 @@ function measureDataTable(rowCount: number): DataTableBenchmarkMetrics {
 
     const initialStart = performance.now()
     const table = DataTable.new({
-        mode: 'local',
         data,
         rowKey: 'id',
         multiSelect: true,

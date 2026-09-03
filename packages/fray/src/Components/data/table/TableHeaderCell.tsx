@@ -104,6 +104,7 @@ export class TableHeaderCell extends Component<TableHeaderCellProps> {
             aria-sort={direction === 'asc'
                 ? 'ascending'
                 : direction === 'desc' ? 'descending' : 'none'}
+            style={{zIndex: this.filterVisible ? 1200 : null}}
         >
             {this.props.sortable
                 ? <button

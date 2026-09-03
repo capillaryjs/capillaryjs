@@ -1,8 +1,8 @@
-# Fray experimental data APIs
+# Fray data APIs and experimental compatibility path
 
-Everything imported from `@sylwellsoftware/fray/experimental` is outside Fray's stable
-alpha compatibility surface. It may change in any `0.x` release without a
-deprecation window. The stable package root does not export these symbols.
+The data APIs described here are now exported from `@sylwellsoftware/fray`.
+`@sylwellsoftware/fray/experimental` temporarily re-exports the stable root so
+0.2.x import paths continue to resolve. New code should use the package root.
 
 `TreeView` is a controlled, single-select ARIA tree. Stable node keys reconcile
 selection and expansion across data replacement. Arrow keys navigate and
@@ -18,18 +18,20 @@ all async work; the dialog does not infer promise or confirmation policy.
 
 ## Current behavior
 
-`ListView` and `DataTable` use stable item/row keys and expose their selected
-items through writable emitters. Single selection replaces the prior item.
+`ListView` and `DataTable` use stable item/row keys. Single selection exposes a
+writable item-or-null emitter. Explicit multi-selection exposes an item array.
 Multi-selection supports Control/Command toggles, Shift ranges, primary-button
 drag ranges, arrow/Home/End focus movement, and Space/Enter selection. A data
 refresh reconciles selected keys to the new row objects.
 
-`DataTable` requires an explicit `mode`:
+`DataTable` accepts one explicit input boundary:
 
-- `local` accepts an array or emitter, and performs sorting/filtering in the
-  browser;
-- `remote` accepts a query emitter/handler or REST configuration, and sends
-  sort/filter arguments through the documented table serializer.
+- `data` accepts an array or emitter and applies sorting/filtering locally;
+- `dataSource` accepts a caller-owned `TableDataSource`;
+- `rest` is a concise configuration whose adapter is owned by the table.
+
+Named factories package local data, caller queries, application handlers, and
+REST endpoints. A supplied source is never disposed by the table.
 
 Filter state lives in the table's `filtersEmitter`, so opening a panel,
 changing a filter, rerendering, and refreshing data do not reset it. Remote
@@ -54,14 +56,14 @@ rendering.
 
 The browser fixture measures a 1,000-row/four-column local table using stable
 keys. It times initial DOM creation, a full data refresh, numeric sorting, a
-filter that retains 500 rows, and one selection update. On the 2026-09-01 local
+filter that retains 500 rows, and one selection update. On the 2026-09-03 local
 arm64 macOS verification host with Playwright 1.62.1, the results were:
 
 | Engine | Initial | Rerender | Sort | Filter | Selection |
 | --- | ---: | ---: | ---: | ---: | ---: |
-| Chromium | 19.0 ms | 9.3 ms | 9.2 ms | 6.0 ms | 20.9 ms |
-| Firefox | 62.0 ms | 16.0 ms | 14.0 ms | 11.0 ms | 32.0 ms |
-| WebKit | 18.0 ms | 12.0 ms | 22.0 ms | 6.0 ms | 4.0 ms |
+| Chromium | 18.5 ms | 10.7 ms | 9.1 ms | 7.0 ms | 16.5 ms |
+| Firefox | 26.0 ms | 18.0 ms | 18.0 ms | 13.0 ms | 23.0 ms |
+| WebKit | 22.0 ms | 13.0 ms | 15.0 ms | 8.0 ms | 4.0 ms |
 
 These are synchronous headless-browser regression measurements, not a promise
 of end-to-end frame or device performance. The automated budget allows two
@@ -73,3 +75,25 @@ Virtualization is deliberately deferred: the measured boundary does not
 justify its lifecycle, focus, and accessibility complexity. Revisit it only
 with a demonstrated consumer above 1,000 rows and browser measurements showing
 that server-side pagination/filtering is insufficient.
+
+## Migrating from 0.2.x
+
+This is a stable-root breaking change and therefore ships only in a Fray minor
+release.
+
+- Import data components and helpers from `@sylwellsoftware/fray`. The
+  `/experimental` path remains a temporary compatibility re-export.
+- Replace single-selection `selectedItemsEmitter: Emitter<T[]>` with
+  `selectedItemEmitter: Emitter<T | null>`. Add `multiSelect: true` only where
+  array selection is intentional.
+- Remove `DataTable.mode`. Keep direct local input as `data`; wrap an existing
+  query with `createQueryTableDataSource`; wrap a handler with
+  `createHandlerTableDataSource`; or use `rest={{url, ...}}` /
+  `createRestTableDataSource`.
+- Migrate persisted `FilterMode` tokens explicitly: `☐` to `neutral`, the
+  empty string to `prefer`, `_` to `require`, and `!` to `deny`. The parser
+  rejects symbolic data so corrupted or ambiguous persistence is not silently
+  accepted.
+- Endpoint encoding is separate. `serializeTableQuery` still emits the prior
+  compact REST tokens by default, while custom endpoints may inject another
+  serializer.

@@ -1,4 +1,4 @@
-import {FetchState} from '@sylwellsoftware/glue'
+import {Emitter, FetchState} from '@sylwellsoftware/glue'
 import type {ReadableEmitter} from '@sylwellsoftware/glue'
 
 import {Component, css} from '../../component.js'
@@ -33,9 +33,12 @@ export interface FilterPanelProps extends ComponentProps {
     onChange?: (filters: Map<FilterValue, FilterModeValue>, event: Event | null) => void
 }
 
-/** Experimental filter choices. Option data is always supplied by the caller. */
+/** Filter choices whose option data is always supplied by the caller. */
 export class FilterPanel extends Component<FilterPanelProps> {
     readonly optionsEmitter: ReadableEmitter<FilterOptions, unknown> | null
+    private readonly optionStateEmitters = new Map<FilterValue, Emitter<FilterModeValue>>()
+    private staleOptionValues = new Set<FilterValue>()
+    private placementTimer: ReturnType<typeof setTimeout> | null = null
 
     constructor(props: FilterPanelProps = {}) {
         super(props)
@@ -57,6 +60,10 @@ export class FilterPanel extends Component<FilterPanelProps> {
         const filters = normalizeFilters(this.props.filters)
         const filterModes = this.props.filterModes ?? Checkbox.symbols
         const defaultSemanticState = this.props.defaultSemanticState ?? FilterMode.Neutral
+        const activeValues = new Set(values.map(optionValue))
+        this.staleOptionValues = new Set(
+            [...this.optionStateEmitters.keys()].filter((value) => !activeValues.has(value)),
+        )
         const Host = this.Host
 
         if (fetchState === FetchState.Error) {
@@ -86,14 +93,15 @@ export class FilterPanel extends Component<FilterPanelProps> {
                     const value = optionValue(option)
                     const label = optionLabel(option)
                     const state = filters.get(value) ?? defaultSemanticState
+                    const valueEmitter = this.optionEmitter(value, state)
                     return <FilterModeCheckbox
-                        key={`${String(value)}:${String(state)}`}
+                        key={optionKey(value)}
                         label={label}
-                        defaultValue={state}
+                        valueEmitter={valueEmitter}
                         symbols={filterModes}
                         onChange={(nextState, event) => {
                             event?.stopPropagation()
-                            const next = new Map(filters)
+                            const next = normalizeFilters(this.props.filters)
                             if (nextState === FilterMode.Neutral) next.delete(value)
                             else next.set(value, nextState)
                             this.props.onChange?.(next, event)
@@ -103,6 +111,62 @@ export class FilterPanel extends Component<FilterPanelProps> {
         </Host>
     }
 
+    afterUpdate(dom: ChildNode | null): void {
+        for (const value of this.staleOptionValues) {
+            this.optionStateEmitters.get(value)?.dispose()
+            this.optionStateEmitters.delete(value)
+        }
+        this.staleOptionValues.clear()
+        if (this.placementTimer != null) clearTimeout(this.placementTimer)
+        this.placementTimer = setTimeout(() => {
+            this.placementTimer = null
+            this.placeInsideViewport(dom)
+        }, 0)
+    }
+
+    onDestroy(): void {
+        if (this.placementTimer != null) clearTimeout(this.placementTimer)
+        this.placementTimer = null
+        for (const emitter of this.optionStateEmitters.values()) emitter.dispose()
+        this.optionStateEmitters.clear()
+    }
+
+    private optionEmitter(
+        value: FilterValue,
+        state: FilterModeValue,
+    ): Emitter<FilterModeValue> {
+        const existing = this.optionStateEmitters.get(value)
+        if (existing != null) {
+            if (existing.get() !== state) existing.set(state, 'filter option synchronized')
+            return existing
+        }
+        const emitter = new Emitter(state, {owner: this, purpose: `filter option ${String(value)}`})
+        this.optionStateEmitters.set(value, emitter)
+        return emitter
+    }
+
+    private placeInsideViewport(dom: ChildNode | null): void {
+        if (!(dom instanceof HTMLElement) || dom.parentElement == null) return
+        const viewport = dom.ownerDocument.defaultView
+        if (viewport == null || viewport.innerHeight <= 0) return
+        const anchor = dom.parentElement.getBoundingClientRect()
+        dom.style.removeProperty('max-height')
+        const panel = dom.getBoundingClientRect()
+        const spaceAbove = anchor.top
+        const spaceBelow = Math.max(0, viewport.innerHeight - anchor.bottom)
+        const placeAbove = panel.height > spaceBelow && spaceAbove > spaceBelow
+        if (placeAbove) {
+            dom.dataset.placement = 'above'
+            dom.style.insetBlockStart = `${Math.max(8, anchor.top - panel.height)}px`
+        } else {
+            delete dom.dataset.placement
+            dom.style.insetBlockStart = `${anchor.bottom}px`
+        }
+        dom.style.insetInlineEnd = `${Math.max(8, viewport.innerWidth - anchor.right)}px`
+        const available = placeAbove ? spaceAbove : spaceBelow
+        dom.style.maxHeight = `${Math.max(48, available - 8)}px`
+    }
+
     static dependencies = [Checkbox]
 
     static override hostName = 'filter-panel'
@@ -110,9 +174,9 @@ export class FilterPanel extends Component<FilterPanelProps> {
 
     static css = css`
         & {
-            position: absolute;
-            z-index: 1000;
-            inset-block-start: 100%;
+            position: fixed;
+            z-index: 1100;
+            inset-block-start: 0;
             inset-inline-end: 0;
             display: flex;
             min-width: 12rem;
@@ -124,7 +188,9 @@ export class FilterPanel extends Component<FilterPanelProps> {
             border: var(--panel-border);
             border-radius: var(--panel-radius);
             box-shadow: var(--panel-shadow);
+            overflow-y: auto;
         }
+
     `
 }
 
@@ -158,6 +224,10 @@ function optionLabel(option: FilterOptionInput): FrayChild {
         if (label != null) return isFrayLabel(label) ? label : String(label)
     }
     return String(optionValue(option))
+}
+
+function optionKey(value: FilterValue): string {
+    return `${typeof value}:${String(value)}`
 }
 
 function isFrayLabel(value: unknown): value is string | number {

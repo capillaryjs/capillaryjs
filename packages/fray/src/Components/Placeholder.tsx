@@ -5,7 +5,7 @@ export interface PlaceholderProps extends ComponentProps {
     width?: number | string
 }
 
-/** Deterministic loading placeholder for experimental data components. */
+/** Deterministic loading placeholder for data components. */
 export class Placeholder extends Component<PlaceholderProps> {
     render() {
         const width = normalizeWidth(this.props.width ?? 65)

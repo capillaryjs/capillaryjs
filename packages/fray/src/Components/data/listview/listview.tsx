@@ -9,32 +9,45 @@ import type {ValueEmitter} from '../../controlUtils.js'
 import {
     createSelectionHandler,
     defaultItemKey,
+    SingleSelectionHandler,
 } from '../selectionhandler.js'
 import type {
     BaseSelectionHandler,
     ItemKeyGetter,
 } from '../selectionhandler.js'
 
-export interface ListViewProps<TItem = unknown> extends ComponentProps {
+interface ListViewCommonProps<TItem> extends ComponentProps {
     items?: readonly TItem[] | ReadableEmitter<readonly TItem[], unknown>
-    selectedItemsEmitter?: ValueEmitter<TItem[]>
     itemKey?: string | ItemKeyGetter<TItem>
-    multiSelect?: boolean
     label?: string
     placeholderCount?: number
     renderItem?: (item: TItem, index: number) => FrayChild
 }
 
-/** Experimental accessible listbox with stable-key selection. */
+export type ListViewProps<TItem = unknown> = ListViewCommonProps<TItem> & (
+    | {
+        multiSelect?: false
+        selectedItemEmitter?: ValueEmitter<TItem | null>
+        selectedItemsEmitter?: never
+    }
+    | {
+        multiSelect: true
+        selectedItemsEmitter?: ValueEmitter<TItem[]>
+        selectedItemEmitter?: never
+    }
+)
+
+/** Accessible listbox with stable-key selection. */
 export class ListView<TItem = unknown> extends Component<ListViewProps<TItem>> {
     readonly itemsEmitter: ReadableEmitter<readonly TItem[], unknown>
     readonly items$: ReadableEmitter<readonly TItem[], unknown>
     readonly selectedItemsEmitter: ValueEmitter<TItem[]>
     readonly selectedItems$: ValueEmitter<TItem[]>
+    readonly selectedItemEmitter: ValueEmitter<TItem | null> | null
+    readonly selectedItem$: ValueEmitter<TItem | null> | null
     readonly getItemKey: ItemKeyGetter<TItem>
     readonly selectionHandler: BaseSelectionHandler<TItem>
     private readonly ownedItemsEmitter: Emitter<readonly TItem[]> | null
-    private readonly ownedSelectedItemsEmitter: Emitter<TItem[]> | null
 
     constructor(props: ListViewProps<TItem> = {}) {
         super(props)
@@ -49,20 +62,31 @@ export class ListView<TItem = unknown> extends Component<ListViewProps<TItem>> {
             this.itemsEmitter = this.ownedItemsEmitter
         }
         this.items$ = this.itemsEmitter
-        this.ownedSelectedItemsEmitter = props.selectedItemsEmitter == null
-            ? new Emitter<TItem[]>([], {owner: this, purpose: 'selected list items'})
-            : null
-        this.selectedItemsEmitter = props.selectedItemsEmitter
-            ?? this.ownedSelectedItemsEmitter!
-        this.selectedItems$ = this.selectedItemsEmitter
         this.getItemKey = normalizeKeyGetter(props.itemKey)
-        this.selectionHandler = createSelectionHandler({
-            owner: this,
-            multiSelect: props.multiSelect ?? false,
-            selectedItemsEmitter: this.selectedItemsEmitter,
-            getItems: () => this.itemsEmitter.get(),
-            getKey: this.getItemKey,
-        })
+        this.selectionHandler = props.multiSelect === true
+            ? createSelectionHandler({
+                owner: this,
+                multiSelect: true,
+                ...(props.selectedItemsEmitter == null
+                    ? {}
+                    : {selectedItemsEmitter: props.selectedItemsEmitter}),
+                getItems: () => this.itemsEmitter.get(),
+                getKey: this.getItemKey,
+            })
+            : createSelectionHandler({
+                owner: this,
+                ...(props.selectedItemEmitter == null
+                    ? {}
+                    : {selectedItemEmitter: props.selectedItemEmitter}),
+                getItems: () => this.itemsEmitter.get(),
+                getKey: this.getItemKey,
+            })
+        this.selectedItemsEmitter = this.selectionHandler.selectedItemsEmitter
+        this.selectedItems$ = this.selectedItemsEmitter
+        this.selectedItemEmitter = this.selectionHandler instanceof SingleSelectionHandler
+            ? this.selectionHandler.selectedItemEmitter
+            : null
+        this.selectedItem$ = this.selectedItemEmitter
     }
 
     initialize(): void {
@@ -141,10 +165,17 @@ export class ListView<TItem = unknown> extends Component<ListViewProps<TItem>> {
         return this.selectedItemsEmitter
     }
 
+    getSelectedItem(): TItem | null {
+        return this.selectedItemEmitter?.get() ?? null
+    }
+
+    getSelectedItemEmitter(): ValueEmitter<TItem | null> | null {
+        return this.selectedItemEmitter
+    }
+
     onDestroy(): void {
         this.selectionHandler.destroy()
         this.ownedItemsEmitter?.dispose()
-        this.ownedSelectedItemsEmitter?.dispose()
     }
 
     static dependencies = [Placeholder]

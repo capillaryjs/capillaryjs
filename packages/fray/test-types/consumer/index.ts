@@ -2,18 +2,16 @@ import {Emitter} from '@sylwellsoftware/glue'
 import {
     DescriptionItem,
     DescriptionList,
+    DataTable,
+    Dialog,
     Dropdown,
     ProgressBar,
     SplitView,
     Textbox,
-    h,
-} from '@sylwellsoftware/fray'
-import {
-    DataTable,
-    Dialog,
     TreeView,
+    h,
     serializeTableQuery,
-} from '@sylwellsoftware/fray/experimental'
+} from '@sylwellsoftware/fray'
 import {Fragment, jsx} from '@sylwellsoftware/fray/jsx-runtime'
 
 const text = new Emitter('typed')
@@ -33,7 +31,6 @@ new Dialog({title: 'Confirm', children: 'Continue?'})
 
 type Row = {id: number; name: string}
 new DataTable<Row>({
-    mode: 'local',
     columns: [{field: 'name', render: (row) => row.name.toUpperCase()}],
     data: [{id: 1, name: 'Ada'}],
 })

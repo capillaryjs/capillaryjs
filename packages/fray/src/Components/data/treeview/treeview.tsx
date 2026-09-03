@@ -7,6 +7,7 @@ import {componentClass, invoke} from '../../controlUtils.js'
 import type {ValueEmitter} from '../../controlUtils.js'
 import {TreeItem} from './treeitem.js'
 import type {TreeItemProps, TreeNode} from './treeitem.js'
+import {assertTreeNodes} from './treeModel.js'
 
 export interface TreeViewProps<TValue = unknown> extends ComponentProps {
     nodes?: readonly TreeNode<TValue>[] | ReadableEmitter<readonly TreeNode<TValue>[], unknown>
@@ -25,7 +26,7 @@ interface VisibleNode<TValue> {
     setSize: number
 }
 
-/** Experimental single-select ARIA tree with controlled expansion and selection. */
+/** Single-select ARIA tree with controlled expansion and selection. */
 export class TreeView<TValue = unknown> extends Component<TreeViewProps<TValue>> {
     readonly nodesEmitter: ReadableEmitter<readonly TreeNode<TValue>[], unknown>
     readonly selectedKeyEmitter: ValueEmitter<Key | null>
@@ -366,18 +367,6 @@ function flattenAll<TValue>(nodes: readonly TreeNode<TValue>[]): VisibleNode<TVa
     }
     visit(nodes, 0, null)
     return result
-}
-
-function assertTreeNodes<TValue>(value: unknown): asserts value is readonly TreeNode<TValue>[] {
-    if (!Array.isArray(value)) throw new TypeError('TreeView nodes must be an array')
-    for (const {node} of flattenAll(value as readonly TreeNode<TValue>[])) {
-        if (node == null || typeof node !== 'object' || node.id == null) {
-            throw new TypeError('Each tree node requires an id')
-        }
-        if (!Array.isArray(node.children ?? [])) {
-            throw new TypeError(`Tree node ${String(node.id)} children must be an array`)
-        }
-    }
 }
 
 function textValue<TValue>(node: TreeNode<TValue>): string {

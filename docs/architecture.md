@@ -23,6 +23,14 @@ renders the downstream value or snapshot it consumes rather than subscribing
 to every upstream source. Commands remain callbacks when no reusable state must
 be observed.
 
+DataTable makes that ownership boundary concrete through `TableDataSource`.
+Direct local and inline REST inputs create component-owned sources; an explicit
+source remains caller-owned. Generic filter state stores semantic values and
+caller matchers while presentation symbols and wire serialization remain at
+their own boundaries. Tree node projections are read-only derivations over
+complete root snapshots; reverse changes are explicit commands against a
+writable root or the application's true domain source.
+
 Fray uses a synchronous keyed DOM patcher. It preserves stable node identity,
 focus, stateful DOM properties, and event-listener cardinality. Components have
 explicit mount, update, and destroy lifecycles; subscriptions and registered

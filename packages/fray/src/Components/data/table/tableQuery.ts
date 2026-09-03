@@ -1,6 +1,6 @@
 import type {UrlLike} from '@sylwellsoftware/glue'
 
-import {FilterMode} from '../../../util/filterMode.js'
+import {FilterMode, isFilterMode} from '../../../util/filterMode.js'
 import type {FilterModeValue} from '../../../util/filterMode.js'
 
 export interface TableSort {
@@ -20,11 +20,21 @@ export interface TableQueryState {
     filters?: TableFilters
 }
 
+export const DefaultTableFilterEncoding: Readonly<Record<FilterModeValue, string>> = {
+    [FilterMode.Neutral]: '☐',
+    [FilterMode.Prefer]: '',
+    [FilterMode.Require]: '_',
+    [FilterMode.Deny]: '!',
+}
+
 /**
- * Serialize Fray's experimental remote-table wire format.
+ * Serialize Fray's compact remote-table wire format.
  *
  * - `sort=field:asc|desc`
- * - repeated `filter=field:mode:JSON(value)` entries
+ * - repeated `filter=field:token:JSON(value)` entries
+ *
+ * Semantic modes deliberately remain separate from this compatibility wire
+ * encoding. Endpoints with another contract should inject their own serializer.
  */
 export function serializeTableQuery<TUrl extends UrlLike>(
     url: TUrl,
@@ -42,7 +52,7 @@ export function serializeTableQuery<TUrl extends UrlLike>(
             }
             url.searchParams.append(
                 'filter',
-                `${field}:${mode}:${JSON.stringify(value)}`,
+                `${field}:${DefaultTableFilterEncoding[mode]}:${JSON.stringify(value)}`,
             )
         }
     }
@@ -91,10 +101,6 @@ export function assertSort(sort: unknown): asserts sort is TableSort {
 
 function isSortDirection(value: unknown): value is TableSort['direction'] {
     return value === 'asc' || value === 'desc'
-}
-
-function isFilterMode(value: unknown): value is FilterModeValue {
-    return Object.values(FilterMode).some((mode) => mode === value)
 }
 
 function compareValues(left: unknown, right: unknown): number {

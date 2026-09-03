@@ -6,6 +6,30 @@ Versioning.
 
 ## Unreleased
 
+### Added
+
+- Stable Fray exports for list, tree, table, dialog, filter, selection, and
+  placeholder workflows previously available only from `/experimental`.
+- Versioned semantic filter-state composition and persistence helpers.
+- Read-only keyed tree-node projections and immutable writable-root updates.
+- Explicit local, caller-query, handler, and REST table data-source adapters.
+
+### Changed
+
+- `FilterMode` values are now `neutral`, `prefer`, `require`, and `deny`;
+  checkbox symbols and REST tokens remain separate presentation/transport data.
+- Generic filter dimensions reject denied matches, require every required value,
+  accept any preferred value when preferences are active, and ignore neutral
+  values.
+- Single-select lists and tables use item-or-null emitters; array emitters now
+  require explicit multi-selection.
+- DataTable replaces its `mode` and loose query/REST props with one of `data`,
+  `dataSource`, or `rest`. The `/experimental` entry temporarily re-exports the
+  stable Fray surface for import compatibility.
+
+These changes require a Fray minor release. Migration guidance is in
+`packages/fray/EXPERIMENTAL.md`.
+
 ## 0.2.0 - 2026-09-03
 
 ### Added

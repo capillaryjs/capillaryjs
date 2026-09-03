@@ -2,20 +2,34 @@ import assert from 'node:assert/strict'
 import {after, afterEach, before, describe, test} from 'node:test'
 import {Window} from 'happy-dom'
 
-import {Emitter, FetchState} from '@sylwellsoftware/glue'
-import {FilterMode, h} from '../src/index.js'
-import type {FilterModeValue} from '../src/index.js'
 import {
     DataTable,
     Dialog,
+    FilterMode,
     FilterPanel,
     ListView,
     TreeItem,
     TreeView,
     createSelectionHandler,
+    createQueryTableDataSource,
+    createRestTableDataSource,
+    deriveFilteredItems,
+    deriveTreeNode,
+    filterByState,
+    parseFilterState,
     serializeTableQuery,
-} from '../src/experimental.js'
-import type {FilterValue} from '../src/experimental.js'
+    serializeFilterState,
+    updateTreeNode,
+    updateWritableTreeNode,
+    h,
+} from '../src/index.js'
+import type {
+    FilterState,
+    FilterValue,
+    FilterModeValue,
+    TreeNode,
+} from '../src/index.js'
+import {Emitter, FetchState} from '@sylwellsoftware/glue'
 import {requiredAt, requiredQuery} from './testUtils.js'
 
 let window: Window
@@ -45,10 +59,10 @@ after(() => window.close())
 describe('selection handlers', () => {
     test('use an explicit provider and replace row listeners on every update', () => {
         const items = [{id: 'a'}, {id: 'b'}]
-        const selected = new Emitter<Array<{id: string}>>([])
+        const selected = new Emitter<{id: string} | null>(null)
         const handler = createSelectionHandler({
             getItems: () => items,
-            selectedItemsEmitter: selected,
+            selectedItemEmitter: selected,
         })
         const rows = items.map(() => document.createElement('div'))
         let notifications = 0
@@ -58,13 +72,13 @@ describe('selection handlers', () => {
         handler.rowsUpdated(rows)
         requiredAt(rows, 1).dispatchEvent(new MouseEvent('click', {bubbles: true}))
 
-        assert.deepEqual(selected.get(), [items[1]])
+        assert.equal(selected.get(), items[1])
         assert.equal(notifications, 1)
         assert.equal(requiredAt(rows, 1).getAttribute('aria-selected'), 'true')
 
         handler.destroy()
         requiredAt(rows, 0).dispatchEvent(new MouseEvent('click', {bubbles: true}))
-        assert.deepEqual(selected.get(), [items[1]])
+        assert.equal(selected.get(), items[1])
     })
 
     test('supports command toggles, shift ranges, arrows, and space', () => {
@@ -138,7 +152,70 @@ describe('selection handlers', () => {
     })
 })
 
-describe('experimental data components', () => {
+describe('stable data components', () => {
+    test('tree-node projection follows replacement, movement, absence, and return', () => {
+        type Value = {revision: number}
+        const roots = new Emitter<readonly TreeNode<Value>[]>([
+            {id: 'left', label: 'Left', children: [
+                {id: 'target', label: 'Target 1', value: {revision: 1}},
+            ]},
+            {id: 'right', label: 'Right'},
+        ])
+        const key = new Emitter<string | number | null>('target')
+        const selected = deriveTreeNode(roots, key)
+        let notifications = 0
+        selected.subscribe(() => notifications += 1, {emitCurrent: false})
+
+        const stale = selected.get()
+        roots.set([
+            {id: 'left', label: 'Left'},
+            {id: 'right', label: 'Right', children: [
+                {id: 'target', label: 'Target 2', value: {revision: 2}},
+            ]},
+        ])
+        assert.notEqual(selected.get(), stale)
+        assert.equal(selected.get()?.value?.revision, 2)
+
+        roots.set([{id: 'left', label: 'Left'}])
+        assert.equal(selected.get(), null)
+        roots.set([{id: 'target', label: 'Target 3', value: {revision: 3}}])
+        assert.equal(selected.get()?.value?.revision, 3)
+        assert.equal(notifications, 3)
+
+        selected.dispose()
+        assert.equal(roots.subscriberCount, 0)
+        assert.equal(key.subscriberCount, 0)
+    })
+
+    test('tree-node updates path-copy writable roots and reject invalid identity', () => {
+        const sibling = {id: 'sibling', label: 'Sibling'} as const
+        const target = {id: 'target', label: 'Target', value: {reviewed: false}} as const
+        const branch = {id: 'branch', label: 'Branch', children: [target, sibling]} as const
+        const roots = new Emitter<readonly TreeNode<{reviewed: boolean}>[]>([branch])
+        let notifications = 0
+        roots.subscribe(() => notifications += 1, {emitCurrent: false})
+
+        assert.equal(updateWritableTreeNode(roots, 'target', (node) => ({
+            ...node,
+            value: {reviewed: true},
+        })), true)
+        const nextBranch = requiredAt(roots.get(), 0)
+        assert.notEqual(nextBranch, branch)
+        assert.notEqual(requiredAt(nextBranch.children ?? [], 0), target)
+        assert.equal(requiredAt(nextBranch.children ?? [], 1), sibling)
+        assert.equal(notifications, 1)
+        assert.equal(updateWritableTreeNode(roots, 'missing', (node) => node), false)
+        assert.equal(notifications, 1)
+        assert.throws(() => updateTreeNode(roots.get(), 'target', (node) => ({
+            ...node,
+            id: 'changed',
+        })), /cannot change the stable id/)
+        assert.throws(() => updateTreeNode([
+            {id: 'duplicate', label: 'One'},
+            {id: 'duplicate', label: 'Two'},
+        ], 'duplicate', (node) => node), /Duplicate tree item id/)
+    })
+
     test('TreeView supports controlled expansion, selection, navigation, and cleanup', () => {
         const nodes = new Emitter([
             {
@@ -230,22 +307,22 @@ describe('experimental data components', () => {
 
     test('ListView shares its selected emitter and preserves key selection on refresh', () => {
         const items = new Emitter([{id: 'a', label: 'Alpha'}, {id: 'b', label: 'Beta'}])
-        const selected = new Emitter<Array<{id: string; label: string}>>([])
+        const selected = new Emitter<{id: string; label: string} | null>(null)
         const list = ListView.new({
             items,
-            selectedItemsEmitter: selected,
+            selectedItemEmitter: selected,
             label: 'Projects',
         }).attachTo(document.body)
 
         const rows = document.querySelectorAll('[role="option"]')
         assert.equal(requiredQuery('fray-list-view').dataset.frayComponent, 'list-view')
         requiredAt(rows, 1).dispatchEvent(new MouseEvent('click', {bubbles: true}))
-        assert.equal(list.getSelectedItemsEmitter(), selected)
-        assert.equal(requiredAt(selected.get(), 0).id, 'b')
+        assert.equal(list.getSelectedItemEmitter(), selected)
+        assert.equal(selected.get()?.id, 'b')
 
         const refreshed = [{id: 'a', label: 'New Alpha'}, {id: 'b', label: 'New Beta'}]
         items.set(refreshed)
-        assert.equal(requiredAt(selected.get(), 0), requiredAt(refreshed, 1))
+        assert.equal(selected.get(), requiredAt(refreshed, 1))
         assert.equal(requiredAt(document.querySelectorAll('[role="option"]'), 1)
             .getAttribute('aria-selected'), 'true')
 
@@ -280,14 +357,13 @@ describe('experimental data components', () => {
         assert.equal(items.subscriberCount, 0)
     })
 
-    test('DataTable local mode sorts, filters, selects only body rows, and stays semantic', () => {
+    test('DataTable direct data sorts, filters, selects only body rows, and stays semantic', () => {
         const rows = [
             {id: 1, name: 'Beta', department: 'Ops'},
             {id: 2, name: 'Alpha', department: 'R&D'},
             {id: 3, name: 'Gamma', department: 'Ops'},
         ]
         const table = DataTable.new({
-            mode: 'local',
             caption: 'People',
             data: rows,
             columns: [
@@ -326,13 +402,20 @@ describe('experimental data components', () => {
         table.destroy()
     })
 
+    test('rejects legacy table query props with migration guidance', () => {
+        assert.throws(() => new DataTable({
+            mode: 'local',
+            data: [],
+            columns: [{field: 'name'}],
+        } as never), /moved to dataSource\/rest/)
+    })
+
     test('preserves an open filter and its state through table/data rerenders', () => {
         const data = new Emitter([
             {id: 1, name: 'Ada', department: 'R&D'},
             {id: 2, name: 'Grace', department: 'Ops'},
         ])
         const table = DataTable.new({
-            mode: 'local',
             data,
             columns: [
                 {field: 'name', label: 'Name'},
@@ -341,7 +424,9 @@ describe('experimental data components', () => {
         }).attachTo(document.body)
 
         requiredQuery<HTMLButtonElement>('button[aria-label="Filter Department"]').click()
-        requiredQuery<HTMLElement>('[role="checkbox"]').click()
+        const checkbox = requiredQuery<HTMLElement>('[role="checkbox"]')
+        checkbox.focus()
+        checkbox.click()
         assert.deepEqual(table.filtersEmitter.get(), {
             department: [['Ops', FilterMode.Prefer]],
         })
@@ -360,6 +445,8 @@ describe('experimental data components', () => {
             department: [['Ops', FilterMode.Prefer]],
         })
         assert.equal(document.querySelector('[role="group"]') != null, true)
+        assert.equal(requiredQuery<HTMLElement>('[role="checkbox"]'), checkbox)
+        assert.equal(document.activeElement, checkbox)
         assert.deepEqual(
             [...document.querySelectorAll<HTMLTableRowElement>('tbody tr')]
                 .map((row) => requiredAt(row.cells, 0).textContent),
@@ -375,9 +462,9 @@ describe('experimental data components', () => {
         })
         let retries = 0
         const query = Object.assign(source, {retry: () => retries += 1})
+        const dataSource = createQueryTableDataSource({query})
         const table = DataTable.new({
-            mode: 'remote',
-            query,
+            dataSource,
             columns: [{field: 'name', label: 'Name'}],
             emptyMessage: 'No people',
             placeholderCount: 2,
@@ -413,6 +500,7 @@ describe('experimental data components', () => {
 
         table.destroy()
         assert.equal(source.subscriberCount, 0)
+        dataSource.dispose()
     })
 
     test('FilterPanel consumes injected options without fetching application data', () => {
@@ -441,4 +529,159 @@ describe('experimental data components', () => {
             'department:_:"Ops"',
         ])
     })
+
+    test('REST table adapter owns query wiring while the table leaves caller sources alive',
+        async () => {
+            type Row = {id: number; department: string}
+            const requests: string[] = []
+            const source = createRestTableDataSource<Row>({
+                url: '/rows',
+                baseUrl: 'https://example.test/',
+                fetch: async (url) => {
+                    requests.push(url)
+                    return {
+                        ok: true,
+                        json: () => [{id: 1, department: 'Ops'}],
+                    }
+                },
+            })
+            const table = DataTable.new({
+                dataSource: source,
+                columns: [{field: 'department', label: 'Department'}],
+            }).attachTo(document.body)
+            await activeTableRequest(source.query)
+            assert.equal(requiredQuery('tbody').textContent, 'Ops')
+
+            source.filtersEmitter.set({
+                department: [['Ops', FilterMode.Require]],
+            })
+            await activeTableRequest(source.query)
+            assert.match(requests.at(-1) ?? '', /filter=department%3A_%3A%22Ops%22/)
+
+            table.destroy()
+            assert.equal(emitterSubscriberCount(source.sortEmitter), 1)
+            source.dispose()
+            assert.equal(emitterSubscriberCount(source.sortEmitter), 0)
+        })
 })
+
+describe('semantic filter state', () => {
+    interface Finding {
+        id: number
+        severity: 'critical' | 'low'
+        external: boolean
+        legacy: boolean
+    }
+
+    const dimensions = [
+        {
+            key: 'severity',
+            options: [
+                {key: 'critical', matches: (item: Finding) => item.severity === 'critical'},
+                {key: 'low', matches: (item: Finding) => item.severity === 'low'},
+            ],
+        },
+        {
+            key: 'scope',
+            options: [
+                {key: 'external', matches: (item: Finding) => item.external},
+                {key: 'legacy', matches: (item: Finding) => item.legacy},
+            ],
+        },
+    ] as const
+
+    test('combines dimensions while allowing overlapping option matches', () => {
+        const findings: Finding[] = [
+            {id: 1, severity: 'critical', external: true, legacy: false},
+            {id: 2, severity: 'critical', external: true, legacy: true},
+            {id: 3, severity: 'low', external: true, legacy: false},
+        ]
+        const state: FilterState = {
+            severity: {critical: FilterMode.Require},
+            scope: {external: FilterMode.Prefer, legacy: FilterMode.Deny},
+            future: {unknown: FilterMode.Require},
+        }
+        assert.deepEqual(filterByState(findings, state, dimensions), [findings[0]])
+        assert.deepEqual(filterByState(findings, {}, dimensions), findings)
+    })
+
+    test('requires every required option and any preferred option while deny wins', () => {
+        interface TaggedItem {
+            id: number
+            tags: readonly string[]
+        }
+        const taggedItems: TaggedItem[] = [
+            {id: 1, tags: ['music', 'biography', 'drama']},
+            {id: 2, tags: ['music', 'biography', 'comedy']},
+            {id: 3, tags: ['music', 'drama']},
+            {id: 4, tags: ['music', 'biography', 'drama', 'musical']},
+            {id: 5, tags: ['music', 'biography']},
+        ]
+        const taggedDimensions = [{
+            key: 'genres',
+            options: ['music', 'biography', 'drama', 'comedy', 'musical'].map((key) => ({
+                key,
+                matches: (item: TaggedItem) => item.tags.includes(key),
+            })),
+        }]
+        const state: FilterState = {genres: {
+            music: FilterMode.Require,
+            biography: FilterMode.Require,
+            drama: FilterMode.Prefer,
+            comedy: FilterMode.Prefer,
+            musical: FilterMode.Deny,
+        }}
+
+        assert.deepEqual(
+            filterByState(taggedItems, state, taggedDimensions).map(({id}) => id),
+            [1, 2],
+        )
+    })
+
+    test('reacts to data and state replacement and disposes both subscriptions', () => {
+        const items = new Emitter<readonly Finding[]>([
+            {id: 1, severity: 'critical', external: false, legacy: false},
+        ])
+        const state = new Emitter<FilterState>({})
+        const filtered = deriveFilteredItems(items, state, dimensions)
+        assert.equal(filtered.get().length, 1)
+        state.set({severity: {low: FilterMode.Require}})
+        assert.equal(filtered.get().length, 0)
+        items.set([{id: 2, severity: 'low', external: false, legacy: false}])
+        assert.equal(filtered.get()[0]?.id, 2)
+        filtered.dispose()
+        assert.equal(items.subscriberCount, 0)
+        assert.equal(state.subscriberCount, 0)
+    })
+
+    test('round-trips versioned JSON, preserves unknown keys, and rejects invalid data', () => {
+        const state: FilterState = {
+            zFuture: {option: FilterMode.Neutral},
+            severity: {low: FilterMode.Deny, critical: FilterMode.Require},
+        }
+        const serialized = serializeFilterState(state)
+        assert.deepEqual(Object.keys(serialized.dimensions), ['severity', 'zFuture'])
+        assert.deepEqual(
+            parseFilterState(JSON.parse(JSON.stringify(serialized))),
+            serialized.dimensions,
+        )
+        assert.throws(() => parseFilterState({version: 2, dimensions: {}}), /version 1/)
+        assert.throws(() => parseFilterState({
+            version: 1,
+            dimensions: {severity: {critical: '!'}},
+        }), /Unknown filter mode/)
+        assert.throws(() => parseFilterState({
+            version: 1,
+            dimensions: {constructor: {}},
+        }), /not safe/)
+    })
+})
+
+async function activeTableRequest(query: unknown): Promise<void> {
+    const request = (query as {_activeRequest?: Promise<unknown> | null})._activeRequest
+    if (request != null) await request
+}
+
+function emitterSubscriberCount(emitter: unknown): number {
+    return (emitter as {subscriberCount: number}).subscriberCount
+}
