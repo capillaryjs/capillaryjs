@@ -1,6 +1,6 @@
 # Alpha API surface
 
-Status: accepted for the public `0.1.0-alpha.1` candidate
+Status: accepted for the current public `0.x` line
 Updated: 2026-09-03
 
 Glue and Fray are experimental browser-toolkit packages. The stable alpha

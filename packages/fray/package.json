@@ -79,7 +79,7 @@
     "dev": "vite"
   },
   "peerDependencies": {
-    "@sylwellsoftware/glue": "^0.1.0-alpha.1"
+    "@sylwellsoftware/glue": "^0.2.0"
   },
   "devDependencies": {
     "@sylwellsoftware/glue": "workspace:^",

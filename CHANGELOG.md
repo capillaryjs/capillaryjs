@@ -23,6 +23,8 @@ Versioning.
   component-level styling variables instead of embedding theme colors.
 - Fray packaging and consumer checks now validate structural, theme, and color
   CSS subpaths as real external assets.
+- Fray's published peer dependency now follows the compatible Glue `0.2.x`
+  release line.
 
 ## 0.1.0-alpha.1 - 2026-09-02
 

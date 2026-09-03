@@ -39,6 +39,13 @@ test('stages Glue before Fray with no publish or approval command', () => {
     assert.doesNotMatch(log, /stage approve|^publish .*\.tgz/m)
 })
 
+test('refuses a Fray artifact with a stale Glue peer range', () => {
+    const fixture = createFixture({stalePeer: true})
+    const result = invoke(fixture, 'validate', 'glue-and-fray')
+    assert.equal(result.status, 1)
+    assert.match(result.stderr, /peer-depend on the current Glue release line/)
+})
+
 test('refuses staging outside protected GitHub main or with a long-lived token', () => {
     const fixture = createFixture()
     let result = invoke(fixture, 'stage', 'glue', {GITHUB_ACTIONS: 'true', GITHUB_REF: 'refs/heads/topic'})
@@ -51,6 +58,8 @@ test('refuses staging outside protected GitHub main or with a long-lived token',
 
 test('release workflow has the protected stage-only trust boundary', () => {
     const workflow = readFileSync(path.join(sourceRoot, '.github/workflows/release.yml'), 'utf8')
+    assert.match(workflow,
+        /run-name: Stage \$\{\{ inputs\.release_set }} \$\{\{ inputs\.version }} with \$\{\{ inputs\.tag }}/)
     assert.match(workflow, /environment: npm-release/)
     assert.match(workflow, /id-token: write/)
     assert.match(workflow, /node-version: 24/)
@@ -59,13 +68,14 @@ test('release workflow has the protected stage-only trust boundary', () => {
     assert.doesNotMatch(workflow, /NODE_AUTH_TOKEN|NPM_TOKEN|npm publish|stage approve/)
 })
 
-function createFixture({published} = {}) {
+function createFixture({published, stalePeer = false} = {}) {
     const root = mkdtempSync(path.join(os.tmpdir(), 'stage-release-'))
     mkdirSync(path.join(root, 'scripts'), {recursive: true})
     mkdirSync(path.join(root, 'packages', 'glue'), {recursive: true})
     mkdirSync(path.join(root, 'packages', 'fray'), {recursive: true})
     mkdirSync(path.join(root, '.artifacts', 'release', 'packages'), {recursive: true})
     cpSync(path.join(sourceRoot, 'scripts', 'stage-release.mjs'), path.join(root, 'scripts', 'stage-release.mjs'))
+    cpSync(path.join(sourceRoot, 'scripts', 'release-metadata.mjs'), path.join(root, 'scripts', 'release-metadata.mjs'))
     const entries = []
     for (const name of ['glue', 'fray']) {
         writeFileSync(path.join(root, 'packages', name, 'package.json'), JSON.stringify({
@@ -73,6 +83,11 @@ function createFixture({published} = {}) {
             version: '0.1.0-alpha.2',
             private: false,
             publishConfig: {access: 'public'},
+            ...(name === 'fray' ? {
+                peerDependencies: {
+                    '@sylwellsoftware/glue': stalePeer ? '^0.1.0-alpha.1' : '^0.1.0-alpha.2',
+                },
+            } : {}),
         }))
         const filename = `sylwellsoftware-${name}-0.1.0-alpha.2.tgz`
         const tarball = path.join(root, '.artifacts', 'release', 'packages', filename)

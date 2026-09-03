@@ -4,6 +4,8 @@ import {existsSync, readFileSync} from 'node:fs'
 import {basename, join, resolve} from 'node:path'
 import {fileURLToPath} from 'node:url'
 
+import {isExactSemanticVersion} from './release-metadata.mjs'
+
 const root = resolve(fileURLToPath(new URL('..', import.meta.url)))
 const packages = [
     {key: 'glue', name: '@sylwellsoftware/glue', directory: 'glue'},
@@ -39,7 +41,7 @@ function parse(args) {
 }
 
 function validateInputs(options) {
-    assert(/^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?$/.test(options.version ?? ''), 'an exact semver version is required')
+    assert(isExactSemanticVersion(options.version), 'an exact semver version is required')
     assert(/^[a-z][a-z0-9-]*$/.test(options.tag ?? ''), 'an exact npm tag is required')
     const prerelease = options.version.includes('-')
     assert(
@@ -63,12 +65,17 @@ function validateArtifacts(selected, options) {
     assert(report.schemaVersion === 1 && Array.isArray(report.packages), 'artifact report has an unsupported format')
     const entries = new Map(report.packages.map((entry) => [entry.name, entry]))
 
+    const glueManifest = JSON.parse(readFileSync(join(root, 'packages/glue/package.json'), 'utf8'))
     return selected.map((definition) => {
         const manifest = JSON.parse(readFileSync(join(root, 'packages', definition.directory, 'package.json'), 'utf8'))
         assert(manifest.name === definition.name, `manifest identity drifted for ${definition.name}`)
         assert(manifest.version === options.version, `${definition.name} manifest version is ${manifest.version}, expected ${options.version}`)
         assert(manifest.private === false, `${definition.name} is private`)
         assert(manifest.publishConfig?.access === 'public', `${definition.name} is not configured for public access`)
+        if (definition.key === 'fray') {
+            assert(manifest.peerDependencies?.['@sylwellsoftware/glue'] === `^${glueManifest.version}`,
+                `${definition.name} must peer-depend on the current Glue release line`)
+        }
         const entry = entries.get(definition.name)
         assert(entry?.version === options.version, `artifact report version drifted for ${definition.name}`)
         assert(basename(entry.filename ?? '') === entry.filename, `unsafe artifact filename for ${definition.name}`)

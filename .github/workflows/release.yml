@@ -1,4 +1,5 @@
 name: Stage npm release
+run-name: Stage ${{ inputs.release_set }} ${{ inputs.version }} with ${{ inputs.tag }}
 
 on:
   workflow_dispatch:

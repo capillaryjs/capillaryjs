@@ -6,7 +6,7 @@ tracing. Fray provides a small DOM component runtime, JSX, accessible controls,
 generated structural CSS, and independently replaceable visual themes and
 color palettes.
 
-The current version is `0.1.0-alpha.1`. APIs may change during the `0.x`
+APIs may change during the `0.x`
 prerelease series.
 
 ## Packages

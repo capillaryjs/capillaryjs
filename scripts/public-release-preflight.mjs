@@ -3,6 +3,8 @@ import {readFileSync} from 'node:fs'
 import path from 'node:path'
 import {fileURLToPath} from 'node:url'
 
+import {changelogHasRelease, isExactSemanticVersion} from './release-metadata.mjs'
+
 const root = path.resolve(fileURLToPath(new URL('..', import.meta.url)))
 const expectedRepository = 'git+https://github.com/sylwellsoftware/gluefrayjs.git'
 const expectedOrigin = 'https://github.com/sylwellsoftware/gluefrayjs'
@@ -10,6 +12,7 @@ const packages = [
     ['packages/glue/package.json', '@sylwellsoftware/glue', 'packages/glue'],
     ['packages/fray/package.json', '@sylwellsoftware/fray', 'packages/fray'],
 ]
+const packageVersions = []
 
 const workspace = readJson('package.json')
 assert(workspace.private === true, 'workspace root must remain private')
@@ -18,7 +21,8 @@ assert(workspace.license === 'Apache-2.0', 'workspace license must be Apache-2.0
 for (const [manifestPath, name, directory] of packages) {
     const manifest = readJson(manifestPath)
     assert(manifest.name === name, `${name}: package name mismatch`)
-    assert(manifest.version === '0.1.0-alpha.1', `${name}: candidate version mismatch`)
+    assert(isExactSemanticVersion(manifest.version),
+        `${name}: candidate must have an exact semantic version`)
     assert(manifest.private === false, `${name}: package must be publishable`)
     assert(manifest.license === 'Apache-2.0', `${name}: license mismatch`)
     assert(manifest.author?.name === 'Sylwell Software', `${name}: author name mismatch`)
@@ -27,6 +31,13 @@ for (const [manifestPath, name, directory] of packages) {
     assert(manifest.repository?.url === expectedRepository, `${name}: repository mismatch`)
     assert(manifest.repository?.directory === directory, `${name}: repository directory mismatch`)
     assert(manifest.publishConfig?.access === 'public', `${name}: public access is required`)
+    packageVersions.push([name, manifest.version])
+}
+
+const changelog = readFileSync(path.join(root, 'CHANGELOG.md'), 'utf8')
+for (const [name, version] of packageVersions) {
+    assert(changelogHasRelease(changelog, version),
+        `${name}: CHANGELOG.md has no ${version} release`)
 }
 
 const dummyServer = readJson('apps/dummy-server/package.json')
