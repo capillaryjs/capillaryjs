@@ -6,6 +6,8 @@ Versioning.
 
 ## Unreleased
 
+## 0.3.0 - 2026-09-03
+
 ### Added
 
 - Stable Fray exports for list, tree, table, dialog, filter, selection, and
