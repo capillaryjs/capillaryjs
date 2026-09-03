@@ -20,8 +20,10 @@ const artifactRoot = join(workspaceRoot, '.artifacts', 'release')
 const report = JSON.parse(readFileSync(join(artifactRoot, 'package-artifacts.json'), 'utf8'))
 const glue = findPackage('@sylwellsoftware/glue')
 const fray = findPackage('@sylwellsoftware/fray')
+const visualization = findPackage('@sylwellsoftware/fray-visualization')
 const glueTarball = join(artifactRoot, 'packages', glue.filename)
 const frayTarball = join(artifactRoot, 'packages', fray.filename)
+const visualizationTarball = join(artifactRoot, 'packages', visualization.filename)
 const fixtureRoot = mkdtempSync(join(tmpdir(), 'gluefray-consumer-'))
 
 let completed = false
@@ -34,6 +36,7 @@ try {
     installFixture()
     assertInstalledPackage('@sylwellsoftware/glue', glue.version)
     assertInstalledPackage('@sylwellsoftware/fray', fray.version)
+    assertInstalledPackage('@sylwellsoftware/fray-visualization', visualization.version)
     assertSingleGlueInstall()
 
     writeFixtureSources()
@@ -42,7 +45,7 @@ try {
     assertSafeBundle()
     await verifyBrowserRuntime()
     completed = true
-    console.log('[consumer] ESM, automatic JSX, h(), CSS, peer identity, build, and browser smoke passed')
+    console.log('[consumer] ESM, automatic JSX, h(), CSS, peer identity, visualization, build, and browser smoke passed')
 } finally {
     rmSync(fixtureRoot, {recursive: true, force: true})
     if (!completed) console.error('[consumer] failed fixture removed')
@@ -55,6 +58,9 @@ function writeConsumerManifest(includeFray) {
         '@sylwellsoftware/glue': `file:${glueTarball}`,
     }
     if (includeFray) dependencies['@sylwellsoftware/fray'] = `file:${frayTarball}`
+    if (includeFray) {
+        dependencies['@sylwellsoftware/fray-visualization'] = `file:${visualizationTarball}`
+    }
 
     writeJson('package.json', {
         name: 'gluefray-tarball-consumer',
@@ -120,11 +126,33 @@ import {
     h,
     provideService,
 } from '@sylwellsoftware/fray'
+import {
+    BlockGraph,
+    createBlockSelection,
+    createSplitSelection,
+    staticCriterion,
+} from '@sylwellsoftware/fray-visualization'
 import '@sylwellsoftware/fray/styles/structural.css'
+import '@sylwellsoftware/fray-visualization/styles/structural.css'
 import '@sylwellsoftware/fray/colors/iceblue/colors.css'
 import '@sylwellsoftware/fray/themes/minimal/theme.css'
 
 const greetingService = defineService<{prefix: string}>('greeting')
+type RecordRow = {id: string; state: 'open' | 'closed'}
+const rows = new Emitter<readonly RecordRow[]>([
+    {id: 'one', state: 'open'},
+    {id: 'two', state: 'closed'},
+])
+const stateCriterion = staticCriterion<RecordRow>({
+    key: 'state',
+    label: 'State',
+    categories: [
+        {key: 'open', label: 'Open', colors: ['#dff', '#399', '#155'], predicate: row => row.state === 'open'},
+        {key: 'closed', label: 'Closed', colors: ['#fdd', '#c66', '#622'], predicate: row => row.state === 'closed'},
+    ],
+})
+const splitSelection = createSplitSelection([stateCriterion])
+const blockSelection = createBlockSelection(rows, splitSelection.activeSplits$)
 
 class App extends Component {
     readonly count = new Emitter(0)
@@ -165,6 +193,7 @@ class App extends Component {
                 />
                 {h('p', {id: 'h-output'}, \`Hello, \${this.name.get()}.\`)}
                 {h('p', {id: 'endpoint-output'}, \`Derived total: \${this.total.get()}\`)}
+                <BlockGraph model={blockSelection} label="Record mosaic" />
             </Panel>
         </main>
     }
@@ -176,7 +205,7 @@ class App extends Component {
         this.name.dispose()
     }
 
-    static dependencies = [Button, Panel, Textbox]
+    static dependencies = [BlockGraph, Button, Panel, Textbox]
     static requiredServices = [greetingService]
 }
 
@@ -207,15 +236,17 @@ async function verifyBrowserRuntime() {
             const pageErrors = []
             page.on('pageerror', (error) => pageErrors.push(error))
             await page.goto('http://127.0.0.1:4176/', {waitUntil: 'networkidle'})
-            await expectText(page, 'button', 'Count: 0')
+            await expectText(page, '[data-fray-component="button"]', 'Count: 0')
             await page.getByRole('button', {name: 'Count: 0'}).click()
-            await expectText(page, 'button', 'Count: 1')
+            await expectText(page, '[data-fray-component="button"]', 'Count: 1')
             await expectText(page, '#h-output', 'Hello, Ada.')
             await expectText(page, '#endpoint-output', 'Derived total: 2')
             const peerIdentity = await page.locator('main').getAttribute('data-peer-identity')
             assert(peerIdentity === 'true', 'Fray did not resolve the consumer Glue instance')
             const service = await page.locator('main').getAttribute('data-service')
             assert(service === 'scope-ready', 'Fray did not resolve the consumer service scope')
+            const visualizationCount = await page.getByRole('treeitem', {name: /1 item/}).count()
+            assert(visualizationCount === 2, 'Visualization package did not render both partitions')
             assert(pageErrors.length === 0, `Browser emitted page errors: ${pageErrors.join(', ')}`)
         } finally {
             await browser.close()

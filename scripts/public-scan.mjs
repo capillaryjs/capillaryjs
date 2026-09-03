@@ -27,6 +27,7 @@ const tracked = run('git', ['ls-files', '--cached', '--others', '--exclude-stand
 const generated = [
     path.join(root, 'packages/glue/dist'),
     path.join(root, 'packages/fray/dist'),
+    path.join(root, 'packages/fray-visualization/dist'),
     path.join(root, '.artifacts/release/packages'),
     path.join(root, '.artifacts/release/package-artifacts.json'),
 ].flatMap(listFiles)

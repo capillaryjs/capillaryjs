@@ -1,10 +1,28 @@
 # Changelog
 
-All notable changes to Glue and Fray are recorded here. The format follows
+All notable changes to Glue, Fray, and Fray Visualization are recorded here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and Semantic
 Versioning.
 
 ## Unreleased
+
+### Added
+
+- New `@sylwellsoftware/fray-visualization` package with reactive static and
+  dynamic grouping criteria, blacklist filters, explicit split/block state,
+  accessible controls, and deterministic cleanup.
+- Strict proportional `BlockGraph` layouts whose categories form complete
+  disjoint partitions, with surfaced unmatched/multiple-match diagnostics.
+- Civil-date `SeriesBuilder` and responsive `LineGraph` line/stacked-area
+  rendering with pure scale/path calculations and pointer/keyboard readout.
+- Deterministic packing, isolated consumer, privacy, cross-browser private-demo,
+  and dependency-ordered release integration for the third public package.
+
+### Changed
+
+- Fray two-state checkboxes with custom semantic values now expose the second
+  value as the checked state, so native checkbox interactions remain correct
+  for bindings such as `visible`/`hidden`.
 
 ## 0.4.0 - 2026-09-03
 
@@ -79,10 +97,10 @@ package guide.
 
 ### Added
 
-- Initial public alpha packaging for `@sylwellsoftware/glue` and
+- Initial public packaging for `@sylwellsoftware/glue` and
   `@sylwellsoftware/fray`.
 - Strict TypeScript source and declarations, ESM package exports, JSX runtimes,
-  accessible controls, supported light/dark themes, and experimental data APIs.
+  accessible controls, supported light/dark themes, and initial data APIs.
 - Generic caller-supplied scenario adapters for in-memory and Node HTTP tests.
 - Standalone verification, deterministic tarball inspection, isolated consumer
   tests, privacy scanning, and checked Gradle orchestration.

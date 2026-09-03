@@ -5,6 +5,8 @@ Glue and Fray form a one-way dependency stack:
 ```text
 consumer application
         ↓
+@sylwellsoftware/fray-visualization — optional analytical models and views
+        ↓ peer dependencies
 @sylwellsoftware/fray  — DOM components, JSX, structural CSS, themes/colors
         ↓ peer dependency
 @sylwellsoftware/glue  — emitters, queries, commands, diagnostics
@@ -15,6 +17,12 @@ Fray watches Glue emitters, renders component-owned DOM, collects structural
 styles, and propagates an explicit application service scope. Consumers own
 application state, service implementations, endpoints, concrete service
 registration, page composition, and theme selection.
+
+Fray Visualization is an optional layer over both packages. It owns reusable
+grouping/filtering coordination, strict partition diagnostics, block/history
+calculations, accessible analytical controls, and generated structural CSS.
+Consumers still own domain predicates, stable keys, presets, dates, and
+semantic colors. It never fetches application data.
 
 The integration seam is the small readable/writable emitter contract. Leaf UI
 controls write ordinary emitters; components that understand an aggregate

@@ -11,6 +11,11 @@ const expectedOrigin = 'https://github.com/sylwellsoftware/gluefrayjs'
 const packages = [
     ['packages/glue/package.json', '@sylwellsoftware/glue', 'packages/glue'],
     ['packages/fray/package.json', '@sylwellsoftware/fray', 'packages/fray'],
+    [
+        'packages/fray-visualization/package.json',
+        '@sylwellsoftware/fray-visualization',
+        'packages/fray-visualization',
+    ],
 ]
 const packageVersions = []
 

@@ -20,9 +20,12 @@ on:
         required: true
         type: choice
         options:
+          - all
           - glue-and-fray
+          - fray-and-visualization
           - glue
           - fray
+          - fray-visualization
 
 permissions:
   contents: read
@@ -133,5 +136,5 @@ jobs:
             echo
             echo 'CI did not publish or approve a package.'
             echo 'Use npmjs.com Staged Packages, or npm stage list/view/download, to inspect it.'
-            echo 'A maintainer must approve each stage with 2FA. For a two-package release, approve Glue before Fray.'
+            echo 'A maintainer must approve each stage with 2FA. Approve dependencies before dependants: Glue, then Fray, then Fray Visualization.'
           } >> "$GITHUB_STEP_SUMMARY"

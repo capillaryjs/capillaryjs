@@ -17,6 +17,13 @@ test('validates an explicit two-package plan in dependency order', () => {
     assert.match(result.stdout, /order: @sylwellsoftware\/glue -> @sylwellsoftware\/fray/)
 })
 
+test('validates all three packages in dependency order', () => {
+    const fixture = createFixture()
+    const result = invoke(fixture, 'validate', 'all')
+    assert.equal(result.status, 0, result.stderr)
+    assert.match(result.stdout, /order: @sylwellsoftware\/glue -> @sylwellsoftware\/fray -> @sylwellsoftware\/fray-visualization/)
+})
+
 test('accepts the optional package-manager argument separator', () => {
     const fixture = createFixture()
     const result = invoke(fixture, 'validate', 'glue-and-fray', {}, {separator: true})
@@ -80,11 +87,12 @@ function createFixture({published, stalePeer = false} = {}) {
     mkdirSync(path.join(root, 'scripts'), {recursive: true})
     mkdirSync(path.join(root, 'packages', 'glue'), {recursive: true})
     mkdirSync(path.join(root, 'packages', 'fray'), {recursive: true})
+    mkdirSync(path.join(root, 'packages', 'fray-visualization'), {recursive: true})
     mkdirSync(path.join(root, '.artifacts', 'release', 'packages'), {recursive: true})
     cpSync(path.join(sourceRoot, 'scripts', 'stage-release.mjs'), path.join(root, 'scripts', 'stage-release.mjs'))
     cpSync(path.join(sourceRoot, 'scripts', 'release-metadata.mjs'), path.join(root, 'scripts', 'release-metadata.mjs'))
     const entries = []
-    for (const name of ['glue', 'fray']) {
+    for (const name of ['glue', 'fray', 'fray-visualization']) {
         writeFileSync(path.join(root, 'packages', name, 'package.json'), JSON.stringify({
             name: `@sylwellsoftware/${name}`,
             version: '0.1.0-alpha.2',
@@ -93,6 +101,11 @@ function createFixture({published, stalePeer = false} = {}) {
             ...(name === 'fray' ? {
                 peerDependencies: {
                     '@sylwellsoftware/glue': stalePeer ? '^0.1.0-alpha.1' : '^0.1.0-alpha.2',
+                },
+            } : name === 'fray-visualization' ? {
+                peerDependencies: {
+                    '@sylwellsoftware/glue': '^0.1.0-alpha.2',
+                    '@sylwellsoftware/fray': '^0.1.0-alpha.2',
                 },
             } : {}),
         }))
@@ -128,6 +141,13 @@ exit 0
         log,
         glueTarball: path.join(root, '.artifacts', 'release', 'packages', entries[0].filename),
         frayTarball: path.join(root, '.artifacts', 'release', 'packages', entries[1].filename),
+        visualizationTarball: path.join(
+            root,
+            '.artifacts',
+            'release',
+            'packages',
+            entries[2].filename,
+        ),
         path: `${bin}:${process.env.PATH}`,
     }
 }

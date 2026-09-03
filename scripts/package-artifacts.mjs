@@ -45,6 +45,19 @@ const definitions = [
                 || /^themes\/(?:README\.md|light\.css|dark\.css|[a-z]+\/theme\.css)$/.test(path)
         },
     },
+    {
+        directory: join(workspaceRoot, 'packages', 'fray-visualization'),
+        name: '@sylwellsoftware/fray-visualization',
+        allow(path) {
+            return false
+                || path === 'LICENSE'
+                || path === 'NOTICE'
+                || path === 'README.md'
+                || path === 'package.json'
+                || isDistributionFile(path)
+                || path === 'styles/structural.css'
+        },
+    },
 ]
 
 resetArtifactDirectory()
@@ -201,6 +214,22 @@ function validateTarball(definition, tarball, tarFiles, expectedVersion) {
             !Object.hasOwn(manifest.dependencies ?? {}, '@sylwellsoftware/glue'),
             'Fray must not bundle Glue as a runtime dependency',
         )
+    }
+
+    if (definition.name === '@sylwellsoftware/fray-visualization') {
+        for (const peerName of ['@sylwellsoftware/glue', '@sylwellsoftware/fray']) {
+            const peer = manifest.peerDependencies?.[peerName]
+            assert(
+                typeof peer === 'string'
+                    && peer.length > 0
+                    && !/^(?:file:|link:|workspace:)/.test(peer),
+                `Fray Visualization packed ${peerName} peer range is missing or local-only`,
+            )
+            assert(
+                !Object.hasOwn(manifest.dependencies ?? {}, peerName),
+                `Fray Visualization must not bundle ${peerName} as a runtime dependency`,
+            )
+        }
     }
 
     for (const path of tarFiles.filter(isTextTarPath)) {

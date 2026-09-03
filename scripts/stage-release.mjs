@@ -10,6 +10,11 @@ const root = resolve(fileURLToPath(new URL('..', import.meta.url)))
 const packages = [
     {key: 'glue', name: '@sylwellsoftware/glue', directory: 'glue'},
     {key: 'fray', name: '@sylwellsoftware/fray', directory: 'fray'},
+    {
+        key: 'fray-visualization',
+        name: '@sylwellsoftware/fray-visualization',
+        directory: 'fray-visualization',
+    },
 ]
 
 try {
@@ -52,10 +57,17 @@ function validateInputs(options) {
 }
 
 function selectPackages(releaseSet) {
-    assert(['glue', 'fray', 'glue-and-fray'].includes(releaseSet), 'release set must be glue, fray, or glue-and-fray')
-    return releaseSet === 'glue-and-fray'
-        ? packages
-        : packages.filter(({key}) => key === releaseSet)
+    const releaseSets = {
+        glue: ['glue'],
+        fray: ['fray'],
+        'fray-visualization': ['fray-visualization'],
+        'glue-and-fray': ['glue', 'fray'],
+        'fray-and-visualization': ['fray', 'fray-visualization'],
+        all: ['glue', 'fray', 'fray-visualization'],
+    }
+    const keys = releaseSets[releaseSet]
+    assert(keys != null, `release set must be one of ${Object.keys(releaseSets).join(', ')}`)
+    return packages.filter(({key}) => keys.includes(key))
 }
 
 function validateArtifacts(selected, options) {
@@ -67,6 +79,7 @@ function validateArtifacts(selected, options) {
     const entries = new Map(report.packages.map((entry) => [entry.name, entry]))
 
     const glueManifest = JSON.parse(readFileSync(join(root, 'packages/glue/package.json'), 'utf8'))
+    const frayManifest = JSON.parse(readFileSync(join(root, 'packages/fray/package.json'), 'utf8'))
     return selected.map((definition) => {
         const manifest = JSON.parse(readFileSync(join(root, 'packages', definition.directory, 'package.json'), 'utf8'))
         assert(manifest.name === definition.name, `manifest identity drifted for ${definition.name}`)
@@ -76,6 +89,12 @@ function validateArtifacts(selected, options) {
         if (definition.key === 'fray') {
             assert(manifest.peerDependencies?.['@sylwellsoftware/glue'] === `^${glueManifest.version}`,
                 `${definition.name} must peer-depend on the current Glue release line`)
+        }
+        if (definition.key === 'fray-visualization') {
+            assert(manifest.peerDependencies?.['@sylwellsoftware/glue'] === `^${glueManifest.version}`,
+                `${definition.name} must peer-depend on the current Glue release line`)
+            assert(manifest.peerDependencies?.['@sylwellsoftware/fray'] === `^${frayManifest.version}`,
+                `${definition.name} must peer-depend on the current Fray release line`)
         }
         const entry = entries.get(definition.name)
         assert(entry?.version === options.version, `artifact report version drifted for ${definition.name}`)

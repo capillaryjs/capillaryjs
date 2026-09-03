@@ -109,6 +109,27 @@ services fail before initialization and undeclared lookup fails explicitly.
 Function components remain presentation-oriented. Components dispose the live
 queries/results they open; they do not dispose scope-shared services.
 
+## Fray Visualization entry point
+
+| Export | Purpose |
+| --- | --- |
+| `GroupingCriterion`, `staticCriterion`, `derivedCriterion` | Stable-key static or reactive category declarations with sticky visibility state. |
+| `filterByHidden`, `categoryCounts` | Reactive blacklist filtering and unfiltered live counts. |
+| `SplitSelectionModel`, `createSplitSelection` | Ordered active split state, exact presets, and checkbox adapters. |
+| `BlockSelectionModel`, `createBlockSelection` | Reactive strict-partition layout and rebuild-safe path/item selection. |
+| `buildBlockLayout`, `criterionSnapshot`, `findBlock` | Pure block calculation and lookup. |
+| `CategoryHidePanel`, `SplitSelectionPanel` | Accessible category visibility and pointer/keyboard split controls. |
+| `BlockGraph` | Nested proportional mosaic with partition diagnostics and keyboard selection. |
+| `SeriesBuilder` | Ordinary and cumulative civil-date history construction. |
+| `buildLineChartModel`, path/tick/date helpers | Pure responsive chart calculations. |
+| `LineGraph` | Responsive SVG line/stacked-area rendering and pointer/keyboard readout. |
+
+The package also exports generated `./styles/structural.css`. Components
+consume caller-owned models and emitters; they do not fetch, persist, or infer
+domain policy. Filter predicates may overlap, but every active BlockGraph
+criterion must assign each item to exactly one category. History dates are
+strict `YYYY-MM-DD` civil dates calculated with UTC-day arithmetic.
+
 ## Async command boundary
 
 `AsyncCommand` and `AsyncCommandConcurrencyError` are root exports. The command owns an explicitly configured
