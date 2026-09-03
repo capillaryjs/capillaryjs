@@ -120,15 +120,19 @@ export class TabLine extends Component<TabLineProps> {
             display: flex;
             flex-flow: row wrap;
             padding-top: 3px;
-            background: var(--tabline-bg, #f5f5f5);
+            background: var(--fray-tabline-background, var(--tabline-bg));
         }
 
         & > [data-part="tab"] {
-            border-radius: var(--ui-border-radius) var(--ui-border-radius) 0 0;
+            background: var(--fray-tab-button-background, var(--fray-button-background));
+            border-radius: var(--fray-radius-md, var(--ui-border-radius)) var(--fray-radius-md, var(--ui-border-radius)) 0 0;
         }
 
         & > [data-part="tab"][aria-selected="true"] {
-            background: var(--tab-bg-active, var(--panel-bg, #fff));
+            background: var(
+                --fray-tab-button-background-active,
+                var(--fray-tab-active-background, var(--tab-bg-active))
+            );
         }
     `
 }

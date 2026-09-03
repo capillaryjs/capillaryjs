@@ -149,8 +149,17 @@ export class Checkbox<TValue extends CheckboxValue = FilterModeValue>
             height: 1em;
             line-height: 1;
             place-items: center;
-            border: var(--cbx-o-border, 1px solid currentColor);
-            border-radius: var(--cbx-border-radius, var(--ui-border-radius));
+            color: var(--fray-checkbox-symbol-color, currentColor);
+            background: var(--fray-checkbox-box-background, transparent);
+            border: var(--fray-checkbox-box-border, var(--cbx-o-border));
+            border-radius: var(--cbx-border-radius, var(--fray-radius-sm));
+        }
+
+        & [data-part="control"][aria-checked="true"] [data-part="symbol"] {
+            background: var(
+                --fray-checkbox-box-background-checked,
+                var(--fray-selection-background)
+            );
         }
     `
 }

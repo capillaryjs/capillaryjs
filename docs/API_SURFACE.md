@@ -1,7 +1,7 @@
 # Alpha API surface
 
 Status: accepted for the public `0.1.0-alpha.1` candidate
-Updated: 2026-09-01
+Updated: 2026-09-03
 
 Glue and Fray are experimental browser-toolkit packages. The stable alpha
 surface below is deliberately narrow: it identifies which `0.x` APIs receive
@@ -37,17 +37,20 @@ contracts are documented in `packages/glue/README.md`.
 | `jsx`, `jsxs`, `jsxDEV`, `Fragment` | Automatic JSX runtime. | Fray runtime |
 | `FrayRuntime`, `createFrayRuntime`, `defaultFrayRuntime` | Immutable application-scoped element naming, creation, mounting, and styles. | Fray runtime |
 | `StyleRegistry`, `createStyleRegistry`, `styleRegistry` | Isolated or default idempotent structural-style collection/injection. | Fray styling |
+| `frayThemeVariableCatalog` | Machine-readable color/theme variable hierarchy and fallbacks. | Fray styling |
+| `frayThemeOptions`, `frayColorOptions`, `findFrayStylesheetOption`, `replaceFrayStylesheet` | Runtime-selectable treatment and palette catalogs and independent link replacement. | Fray styling |
 | `Button`, `Toolbar` | Action and action-layout primitives, including presentation-only busy state. | Fray controls |
-| `Textbox`, `Dropdown`, `Toggle` | Value controls. | Fray controls |
+| `Textbox`, `Dropdown`, `Toggle`, `ThemePicker`, `ColorPicker` | Value controls, including runtime presentation selection. | Fray controls |
 | `Checkbox`, `TriCheckbox`, `QuadCheckbox` | Multi-state controls. | Fray controls |
 | `FilterMode` | Semantic vocabulary used by multi-state controls. | Fray controls |
 | `Panel`, `Sidebar`, `SplitView`, `Tab`, `TabLine`, `TabPanel` | Region, sidebar, split-pane, and tab layout primitives. | Fray layout |
 | `DescriptionList`, `DescriptionItem` | Native term/value record summaries. | Fray data display |
 | `ProgressBar` | Labelled determinate or indeterminate native progress. | Fray status |
 
-The package also exposes `./jsx-runtime` and `./jsx-dev-runtime` for the
-automatic JSX transform. Supported theme/CSS subpaths are defined by the theme
-ADR and completed with packaging.
+The package also exposes `./jsx-runtime`, `./jsx-dev-runtime`, generated
+`./styles/structural.css`, replaceable `./themes/*/theme.css`, and replaceable
+`./colors/*/colors.css` subpaths. The older top-level light/dark stylesheets are
+temporary alpha compatibility exports.
 
 `Component.read()` and `Component.snapshot()` are the supported render-time
 tracked-read APIs. `WritableEmitter`, `LiveBinding`, `EmitterSnapshot`,

@@ -50,22 +50,7 @@ export class StyleRegistry {
     }
 
     generateRootCSS(): string {
-        return `:root {
-  --base-font-size: 14px;
-  --ui-font-size: var(--base-font-size);
-  --ui-padding: 0.375rem;
-  --ui-padding-h: 0.375rem;
-  --ui-padding-v: 0;
-  --ui-border-radius: 0.25rem;
-  --input-width: 15rem;
-  --spacing-small: 0.5rem;
-  --spacing-medium: 1rem;
-  --panel-padding: 0.75rem;
-  --noselect-user-select: none;
-  --noselect-cursor: default;
-}
-
-*, *::before, *::after {
+        return `*, *::before, *::after {
   box-sizing: border-box;
 }
 

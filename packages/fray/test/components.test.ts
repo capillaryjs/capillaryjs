@@ -6,6 +6,7 @@ import {Emitter} from '@sylwellsoftware/glue'
 import {
     Button,
     Checkbox,
+    ColorPicker,
     DescriptionItem,
     DescriptionList,
     Dropdown,
@@ -18,6 +19,7 @@ import {
     Tab,
     TabPanel,
     Textbox,
+    ThemePicker,
     Toggle,
     Toolbar,
     TriCheckbox,
@@ -151,6 +153,29 @@ describe('action and text controls', () => {
 })
 
 describe('choice controls', () => {
+    test('theme and color pickers update independent stylesheet links', () => {
+        const theme = new Emitter('minimal')
+        const colors = new Emitter('iceblue')
+        ThemePicker.new({label: 'Theme', valueEmitter: theme}).attachTo(document.body)
+        ColorPicker.new({label: 'Colors', valueEmitter: colors}).attachTo(document.body)
+
+        assert.equal(document.querySelectorAll('select').length, 2)
+        assert.equal(document.documentElement.dataset.frayTheme, 'minimal')
+        assert.equal(document.documentElement.dataset.frayColor, 'iceblue')
+        assert.equal(document.head.querySelectorAll('link[data-fray-stylesheet]').length, 2)
+
+        theme.set('shiny')
+        colors.set('purple')
+        assert.equal(document.documentElement.dataset.frayTheme, 'shiny')
+        assert.equal(document.documentElement.dataset.frayColor, 'purple')
+        assert.equal(
+            document.head.querySelector<HTMLLinkElement>(
+                'link[data-fray-stylesheet="theme"]',
+            )?.dataset.fraySelection,
+            'shiny',
+        )
+    })
+
     test('Dropdown tracks options, typed values, and external updates', () => {
         const options = new Emitter([
             {value: 1, label: 'One'},

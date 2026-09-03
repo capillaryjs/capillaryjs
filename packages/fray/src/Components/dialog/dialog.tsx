@@ -113,15 +113,15 @@ export class Dialog extends Component<DialogProps> {
             width: min(38rem, calc(100vw - 2rem));
             max-height: min(42rem, calc(100dvh - 2rem));
             padding: 0;
-            color: var(--ui-text-color);
-            background: var(--panel-bg);
-            border: 1px solid var(--ui-border-color);
-            border-radius: var(--panel-radius, var(--ui-border-radius));
-            box-shadow: 0 1.25rem 4rem rgb(0 0 0 / 35%);
+            color: var(--fray-panel-color, var(--ui-text-color));
+            background: var(--fray-panel-background, var(--panel-bg));
+            border: var(--fray-panel-border, var(--panel-border));
+            border-radius: var(--fray-panel-radius, var(--panel-radius));
+            box-shadow: var(--fray-dialog-shadow, var(--fray-panel-shadow));
         }
 
         dialog[data-fray-component="dialog"]::backdrop {
-            background: rgb(0 0 0 / 55%);
+            background: var(--fray-dialog-backdrop-background);
         }
 
         dialog[data-fray-component="dialog"] > [data-part] {
@@ -129,7 +129,18 @@ export class Dialog extends Component<DialogProps> {
         }
 
         dialog[data-fray-component="dialog"] > [data-part="header"] {
-            border-block-end: 1px solid var(--ui-border-color);
+            color: var(
+                --fray-dialog-header-color,
+                var(--fray-section-header-color, var(--fray-header-color))
+            );
+            background: var(
+                --fray-dialog-header-background,
+                var(--fray-section-header-background, var(--fray-header-background))
+            );
+            border-block-end: var(
+                --fray-section-header-border,
+                var(--fray-header-border)
+            );
         }
 
         dialog[data-fray-component="dialog"] > [data-part="header"] h2,

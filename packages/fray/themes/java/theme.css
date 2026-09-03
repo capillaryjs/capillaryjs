@@ -1,0 +1,140 @@
+@charset "utf-8";
+
+:where(:root), [data-fray-theme="java"] {
+  color-scheme: light;
+  --fray-font-family: Arial, Helvetica, sans-serif;
+  --fray-font-size: 0.875rem;
+  --fray-line-height: 1.15;
+  --fray-control-min-height: 1.75rem;
+  --fray-space-xs: 2px;
+  --fray-space-sm: 4px;
+  --fray-space-md: 8px;
+  --fray-space-lg: 12px;
+  --fray-radius-sm: 0;
+  --fray-radius-md: 0;
+  --fray-radius-lg: 3px;
+  --fray-motion-fast: 0ms;
+
+  --fray-ui-background: var(--fray-color-surface-muted);
+  --fray-ui-color: var(--fray-color-text);
+  --fray-ui-border: 1px solid var(--fray-color-border-strong);
+  --fray-ui-shadow: none;
+  --fray-focus-ring: 0 0 0 1px var(--fray-color-focus);
+
+  --fray-panel-background: var(--fray-color-surface-muted);
+  --fray-panel-color: var(--fray-color-text);
+  --fray-panel-border: 2px groove var(--fray-color-highlight);
+  --fray-panel-shadow: none;
+  --fray-panel-radius: 0;
+  --fray-dialog-shadow: 3px 3px 0 color-mix(in srgb, var(--fray-color-shadow) 45%, transparent);
+  --fray-dialog-backdrop-background: color-mix(in srgb, var(--fray-color-shadow) 45%, transparent);
+
+  --fray-header-background: transparent;
+  --fray-header-color: var(--fray-color-text);
+  --fray-header-border: 0 solid transparent;
+  --fray-header-shadow: none;
+  --fray-table-header-background: var(--fray-color-surface-raised);
+  --fray-dialog-header-background: linear-gradient(to bottom, var(--fray-color-primary-active), var(--fray-color-primary));
+
+  --fray-button-background: var(--fray-color-surface-muted);
+  --fray-button-background-hover: var(--fray-color-primary-soft);
+  --fray-button-background-active: var(--fray-color-surface-inset);
+  --fray-button-background-disabled: var(--fray-color-disabled);
+  --fray-button-color: var(--fray-color-text);
+  --fray-button-border: 2px outset var(--fray-color-highlight);
+  --fray-button-shadow: none;
+  --fray-button-shadow-active: none;
+
+  --fray-input-background: var(--fray-color-surface-raised);
+  --fray-input-color: var(--fray-color-text);
+  --fray-input-border: 1px solid var(--fray-color-border-strong);
+  --fray-input-shadow: inset 1px 1px 1px color-mix(in srgb, var(--fray-color-shadow) 30%, transparent);
+  --fray-input-background-disabled: var(--fray-color-disabled);
+  --fray-input-color-disabled: var(--fray-color-on-disabled);
+
+  --fray-selection-background: var(--fray-color-selection);
+  --fray-selection-color: var(--fray-color-on-selection);
+  --fray-row-hover-background: var(--fray-color-primary-soft);
+  --fray-table-row-background: var(--fray-color-surface-raised);
+  --fray-table-row-alt-background: var(--fray-color-surface-raised);
+  --fray-checkbox-box-background: var(--fray-color-surface-raised);
+  --fray-checkbox-box-background-checked: var(--fray-color-selection);
+  --fray-checkbox-box-border: 2px inset var(--fray-color-highlight);
+  --fray-checkbox-symbol-color: var(--fray-color-on-selection);
+  --fray-radio-background: var(--fray-button-background);
+  --fray-radio-background-checked: var(--fray-selection-background);
+  --fray-toolbar-background: var(--fray-color-surface-muted);
+  --fray-toolbar-color: var(--fray-color-text);
+  --fray-toolbar-border: 2px outset var(--fray-color-highlight);
+  --fray-toolbar-shadow: none;
+  --fray-tabline-background: var(--fray-color-surface-muted);
+  --fray-tab-active-background: var(--fray-panel-background);
+  --fray-tab-button-background: var(--fray-color-surface-muted);
+  --fray-progress-track-background: var(--fray-color-surface-inset);
+  --fray-progress-value-background: var(--fray-color-primary);
+  --fray-working-background-image: repeating-linear-gradient(135deg, transparent 0 4px, color-mix(in srgb, var(--fray-color-text) 12%, transparent) 4px 8px);
+
+  --base-font-size: var(--fray-font-size);
+  --ui-font-size: var(--fray-font-size);
+  --ui-padding: var(--fray-space-sm);
+  --ui-padding-h: var(--fray-space-sm);
+  --ui-padding-v: var(--fray-space-xs);
+  --ui-border-radius: var(--fray-radius-md);
+  --ui-text-color: var(--fray-ui-color);
+  --ui-muted-text-color: var(--fray-color-text-muted);
+  --ui-border-color: var(--fray-color-border);
+  --ui-input-bg: var(--fray-input-background);
+  --ui-input-border: var(--fray-input-border);
+  --ui-input-bg-disabled: var(--fray-input-background-disabled);
+  --ui-input-border-disabled: 1px solid var(--fray-color-border);
+  --ui-input-text-color-disabled: var(--fray-input-color-disabled);
+  --ui-accent-color: var(--fray-color-primary);
+  --ui-accent-color-highlight: var(--fray-color-primary-soft);
+  --input-width: 15rem;
+  --input-shadow: var(--fray-input-shadow);
+  --button-background: var(--fray-button-background);
+  --button-background-hover: var(--fray-button-background-hover);
+  --button-background-disabled: var(--fray-button-background-disabled);
+  --button-border: var(--fray-button-border);
+  --button-border-disabled: 1px solid var(--fray-color-border);
+  --button-shadow: var(--fray-button-shadow);
+  --button-color: var(--fray-button-color);
+  --toggle-selected-bg: var(--fray-selection-background);
+  --toggle-selected-text: var(--fray-selection-color);
+  --panel-bg: var(--fray-panel-background);
+  --panel-border: var(--fray-panel-border);
+  --panel-radius: var(--fray-panel-radius);
+  --panel-shadow: var(--fray-panel-shadow);
+  --panel-color: var(--fray-panel-color);
+  --panel-padding: var(--fray-space-md);
+  --toolbar-bg: var(--fray-toolbar-background);
+  --toolbar-border: var(--fray-toolbar-border);
+  --toolbar-radius: var(--fray-radius-lg);
+  --toolbar-shadow: var(--fray-toolbar-shadow);
+  --toolbar-color: var(--fray-toolbar-color);
+  --sectionheader-bg: var(--fray-section-header-background, var(--fray-header-background));
+  --sectionheader-shadow: var(--fray-header-shadow);
+  --sectionheader-color: var(--fray-header-color);
+  --tabline-bg: var(--fray-tabline-background);
+  --tab-bg-active: var(--fray-tab-active-background);
+  --error-color: var(--fray-color-error);
+  --cbx-o-border: var(--fray-checkbox-box-border);
+  --cbx-border-radius: 0;
+  --spacing-small: var(--fray-space-sm);
+  --spacing-medium: var(--fray-space-md);
+  --noselect-user-select: none;
+  --noselect-cursor: default;
+}
+
+:where(:root:not([data-fray-theme]), [data-fray-theme="java"]) :where(
+  button[data-fray-component="button"],
+  [role="tab"],
+  [role="radio"],
+  [role="checkbox"]
+):active {
+  border-style: inset;
+}
+
+:where(:root:not([data-fray-theme]), [data-fray-theme="java"]) [data-fray-component="tab-line"] > [role="tab"][aria-selected="true"] {
+  border-bottom-color: var(--fray-tab-active-background);
+}

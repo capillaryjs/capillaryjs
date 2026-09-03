@@ -130,7 +130,7 @@ export class Textbox extends Component<TextboxProps> {
 
         & > [data-part="error"] {
             margin: 0;
-            color: var(--error-color, #b00020);
+            color: var(--fray-color-error, var(--error-color));
         }
     `
 }

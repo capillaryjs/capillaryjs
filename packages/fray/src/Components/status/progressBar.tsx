@@ -77,7 +77,9 @@ export class ProgressBar extends Component<ProgressBarProps> {
         & > progress {
             width: 100%;
             min-height: 0.8rem;
-            accent-color: var(--ui-accent-color);
+            color: var(--fray-progress-value-background, var(--ui-accent-color));
+            background: var(--fray-progress-track-background, transparent);
+            accent-color: var(--fray-color-primary, var(--ui-accent-color));
         }
 
         @media (forced-colors: active) {

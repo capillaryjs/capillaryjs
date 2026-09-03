@@ -40,7 +40,9 @@ const definitions = [
                 || path === 'README.md'
                 || path === 'package.json'
                 || isDistributionFile(path)
-                || /^themes\/(?:README\.md|light\.css|dark\.css)$/.test(path)
+                || path === 'styles/structural.css'
+                || /^colors\/(?:README\.md|[a-z]+\/colors\.css)$/.test(path)
+                || /^themes\/(?:README\.md|light\.css|dark\.css|[a-z]+\/theme\.css)$/.test(path)
         },
     },
 ]
@@ -213,8 +215,20 @@ function validateExportTargets(manifest, tarFiles, packageName) {
     for (const target of targets) {
         assert(target.startsWith('./'), `${packageName} export must be relative: ${target}`)
         const tarPath = `package/${target.slice(2)}`
-        assert(tarFiles.includes(tarPath), `${packageName} export target is missing: ${target}`)
+        if (tarPath.includes('*')) {
+            const pattern = new RegExp(`^${escapeRegex(tarPath).replace('*', '[^/]+')}$`)
+            assert(
+                tarFiles.some((path) => pattern.test(path)),
+                `${packageName} wildcard export has no targets: ${target}`,
+            )
+        } else {
+            assert(tarFiles.includes(tarPath), `${packageName} export target is missing: ${target}`)
+        }
     }
+}
+
+function escapeRegex(value) {
+    return value.replace(/[.+?^${}()|[\]\\]/g, '\\$&')
 }
 
 function collectExportTargets(value) {

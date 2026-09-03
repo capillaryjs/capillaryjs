@@ -8,6 +8,24 @@ Versioning.
 
 ### Added
 
+- Generated theme-neutral Fray structural CSS and independently replaceable
+  Shiny, Java, and Minimal treatment bundles.
+- Eight independently replaceable Fray color palettes, a documented
+  hierarchical CSS-variable catalog, and theme/color picker components.
+- Package-level architecture and integration documentation reconstructed from
+  the original Glue and Fray design discussions.
+
+### Changed
+
+- Fray components now consume semantic palette, family, variant, and
+  component-level styling variables instead of embedding theme colors.
+- Fray packaging and consumer checks now validate structural, theme, and color
+  CSS subpaths as real external assets.
+
+## 0.1.0-alpha.1 - 2026-09-02
+
+### Added
+
 - Initial public alpha packaging for `@sylwellsoftware/glue` and
   `@sylwellsoftware/fray`.
 - Strict TypeScript source and declarations, ESM package exports, JSX runtimes,

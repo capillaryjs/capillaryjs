@@ -336,14 +336,26 @@ export class DataTable<TRow extends TableRow = TableRow>
             user-select: none;
         }
 
+        & tbody tr:nth-child(odd) {
+            background: var(--fray-table-row-background, transparent);
+        }
+
+        & tbody tr:nth-child(even) {
+            background: var(--fray-table-row-alt-background, transparent);
+        }
+
+        & tbody tr[data-fray-selectable-row]:hover {
+            background: var(--fray-row-hover-background, var(--button-background-hover));
+        }
+
         & tbody tr[data-fray-selectable-row]:focus-visible {
-            outline: 2px solid var(--ui-accent-color);
+            outline: 2px solid var(--fray-color-focus, var(--ui-accent-color));
             outline-offset: -2px;
         }
 
         & tbody tr[data-fray-selectable-row][aria-selected="true"] {
-            color: var(--toggle-selected-text);
-            background: var(--toggle-selected-bg);
+            color: var(--fray-selection-color, var(--toggle-selected-text));
+            background: var(--fray-selection-background, var(--toggle-selected-bg));
         }
 
         & > [data-part="error"] {

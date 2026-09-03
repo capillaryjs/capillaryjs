@@ -1,0 +1,29 @@
+@charset "utf-8";
+
+:where(:root), [data-fray-color="red"] {
+  --fray-color-canvas: #fcf6f5;
+  --fray-color-surface: #ffffff;
+  --fray-color-surface-muted: #f7e7e5;
+  --fray-color-surface-raised: #ffffff;
+  --fray-color-surface-inset: #ecd3d0;
+  --fray-color-text: #38201e;
+  --fray-color-text-muted: #735653;
+  --fray-color-border: #dab6b2;
+  --fray-color-border-strong: #a87570;
+  --fray-color-primary: #b3261e;
+  --fray-color-primary-hover: #9d1f19;
+  --fray-color-primary-active: #7d1814;
+  --fray-color-primary-soft: #f8d8d5;
+  --fray-color-on-primary: #ffffff;
+  --fray-color-focus: #c92e24;
+  --fray-color-selection: #b3261e;
+  --fray-color-on-selection: #ffffff;
+  --fray-color-disabled: #eee1df;
+  --fray-color-on-disabled: #796866;
+  --fray-color-error: #9d1f19;
+  --fray-color-on-error: #ffffff;
+  --fray-color-success: #287a3c;
+  --fray-color-on-success: #ffffff;
+  --fray-color-highlight: #ffffff;
+  --fray-color-shadow: #3a1512;
+}

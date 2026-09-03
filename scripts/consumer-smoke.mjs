@@ -109,7 +109,9 @@ function writeFixtureSources() {
     mkdirSync(join(fixtureRoot, 'src'), {recursive: true})
     writeFileSync(join(fixtureRoot, 'src', 'main.tsx'), `import {Emitter} from '@sylwellsoftware/glue'
 import {Button, Component, Panel, Textbox, h, styleRegistry} from '@sylwellsoftware/fray'
-import '@sylwellsoftware/fray/themes/light.css'
+import '@sylwellsoftware/fray/styles/structural.css'
+import '@sylwellsoftware/fray/colors/iceblue/colors.css'
+import '@sylwellsoftware/fray/themes/minimal/theme.css'
 
 class App extends Component {
     readonly count = new Emitter(0)

@@ -150,12 +150,27 @@ export class TableHeaderCell extends Component<TableHeaderCellProps> {
         th[data-fray-component="table-header-cell"] {
             position: relative;
             text-align: start;
+            color: var(
+                --fray-table-header-color,
+                var(--fray-section-header-color, var(--fray-header-color))
+            );
+            background: var(
+                --fray-table-header-background,
+                var(--fray-section-header-background, var(--fray-header-background))
+            );
+            border-block-end: var(--fray-section-header-border, var(--fray-header-border));
+            box-shadow: var(--fray-section-header-shadow, var(--fray-header-shadow));
         }
 
         th[data-fray-component="table-header-cell"] > [data-part="sort"],
         th[data-fray-component="table-header-cell"] > [data-part="filter-toggle"] {
             width: auto;
             font-family: inherit;
+            color: inherit;
+            background: var(
+                --fray-table-header-button-background,
+                var(--fray-button-background)
+            );
         }
 
         th[data-fray-component="table-header-cell"] > [data-part="filter-toggle"] {

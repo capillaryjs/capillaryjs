@@ -1,11 +1,11 @@
 # Glue
 
-Glue is the platform-neutral reactive core used by Fray. The experimental
-`0.1.0-alpha.1` candidate is not yet published. Its implementation and tests
-are strict TypeScript; the ESM build includes declarations and declaration
-maps.
+Glue is a small, platform-neutral reactive value and live-query library. Fray
+uses it as its state/data-flow layer, but Glue does not depend on Fray, a DOM,
+or any UI framework. Its implementation and tests are strict TypeScript; the
+ESM build includes declarations and declaration maps.
 
-After publication, install it with pnpm:
+Install the published alpha with pnpm:
 
 ```bash
 pnpm add @sylwellsoftware/glue
@@ -14,6 +14,73 @@ pnpm add @sylwellsoftware/glue
 Glue is ESM-only. Core emitters, derived state, and diagnostics support Node 22+
 and modern ESM runtimes without a DOM. `LiveQuery` needs `AbortController`, and
 `RestQueryHandler` needs Fetch and URL capabilities unless they are injected.
+
+## Design model
+
+Glue models values that stay current rather than requests that callers must
+manually rerun and redistribute. The same small read-side protocol applies to
+local state, computed state, query inputs, and asynchronous results:
+
+```ts
+interface ReadableEmitter<TValue, TError = unknown> {
+    get(): TValue
+    getFetchState(): FetchStateValue
+    getError(): TError | null
+    subscribe(listener: (notification: {
+        value: TValue
+        fetchState: FetchStateValue
+        error: TError | null
+        event: EventBubble<unknown> | null
+    }) => void): () => void
+}
+```
+
+That uniformity is the central design constraint. It lets a consumer bind to a
+current value without knowing whether the value is mutable, derived, or backed
+by asynchronous retrieval. Richer responsibilities remain separate:
+
+| Concept | Responsibility |
+| --- | --- |
+| `BaseEmitter` | Synchronously readable value/snapshot, subscriptions, mapping, equality, diagnostics, and disposal |
+| `Emitter` | An explicitly writable leaf value |
+| `DerivedEmitter` | A cached value computed from one or more readable emitters |
+| `QueryArg` | A named query-input view over another emitter when a semantic name is useful |
+| `LiveQuery` | Reactive request timing, latest-request ownership, status/error state, and cached results |
+| `QueryHandler` | Non-reactive retrieval strategy over a plain named argument object |
+| `RestQueryHandler` | HTTP URL construction, wire serialization, Fetch execution, and JSON result retrieval |
+| `EventBubble` / `EventBus` | Optional cause-and-effect diagnostics without owning application history |
+
+The intended flow is explicit and one-directional:
+
+```text
+Emitter(s) ──► DerivedEmitter(s) ──► named query arguments
+                                           │
+                                           ▼
+                                      LiveQuery
+                                           │ current plain values
+                                           ▼
+                                      QueryHandler
+                                           │
+                                           ▼
+                           value + fetch state + error
+```
+
+This separation prevents several kinds of accidental coupling:
+
+- leaf values do not need to know that a distant consumer may use them in a
+  request;
+- derived values express semantic computation rather than transport encoding;
+- `LiveQuery` decides *when* the current inputs require retrieval, while its
+  handler decides *how* retrieval works;
+- REST-specific formats, base URLs, authentication wrappers, and response
+  validation remain at application/adapter boundaries;
+- one live query can be mapped into multiple local views without multiplying
+  network requests.
+
+Glue deliberately favors explicit graphs over hidden tracking, proxy-created
+state, hooks, or a global store. If a value can be computed, prefer a
+`DerivedEmitter` to manually mirroring it. Use callbacks for commands and
+emitters for state that other objects need to read, combine, or observe.
 
 ## Emitters
 
@@ -55,6 +122,42 @@ current ones.
 
 `emitter.map(fn)` transforms the complete value. `emitter.mapEach(fn)` requires
 an array and transforms its non-nullish members.
+
+### Ownership, equality, and disposal
+
+Emitters eagerly cache their current snapshot so reads are synchronous.
+`Object.is` is the default value equality rule; pass `equals` when the domain
+has a better equivalence relation. A derived emitter subscribes eagerly to its
+sources and releases those subscriptions when sources are replaced or the
+derived value is disposed.
+
+The object that creates a long-lived emitter/query normally owns its disposal.
+Disposal is idempotent, prevents new subscriptions, and releases owned source
+subscriptions. A UI or service lifecycle should therefore dispose the graph it
+constructs rather than relying on garbage collection to sever active edges.
+
+## Query arguments
+
+`LiveQuery` accepts a named record of any readable emitters, so wrapping every
+input in `QueryArg` is neither required nor desirable. Use `QueryArg` when a
+stable query-facing name and separately owned bridge clarify the boundary:
+
+```ts
+import {DerivedEmitter, Emitter, LiveQuery, QueryArg} from '@sylwellsoftware/glue'
+
+const firstName = new Emitter('Ada')
+const lastName = new Emitter('Lovelace')
+const searchText = new DerivedEmitter(
+    [firstName, lastName] as const,
+    ([first, last]) => `${first} ${last}`,
+)
+const search = new QueryArg('search', searchText)
+const users = new LiveQuery({handler, args: {search}})
+```
+
+Here the leaf emitters know nothing about querying, and the computation knows
+nothing about REST. Dispose `users`, `search`, and `searchText` at the lifetime
+boundary that created them.
 
 ## Live queries
 
@@ -98,6 +201,11 @@ process-local IDs, timestamps, weak owner references where supported, and
 explicit parent/child causality. The bus retains neither event history nor
 owners; its unsubscribe function is idempotent.
 
+Tracing follows the same design as data flow: mutation, derivation, query
+start, and query completion can retain explicit parent/child causality without
+turning diagnostics into a second execution system. Applications decide
+whether to retain, render, or export observed events.
+
 ## Experimental commands
 
 `@sylwellsoftware/glue/experimental` exports `AsyncCommand`, an abortable
@@ -106,6 +214,34 @@ policies. It exposes the last result/error through the standard emitter
 snapshot and a read-only `isRunning` view. It deliberately does not own batch
 progress, retries, notifications, or UI behavior. See
 [EXPERIMENTAL.md](EXPERIMENTAL.md) for the provisional contract.
+
+## Integration with Fray and other consumers
+
+Glue's UI seam is intentionally just the readable/writable emitter protocol.
+A typical Fray path is:
+
+```text
+browser event
+    └──► Fray control writes an Emitter
+              └──► DerivedEmitter computes shared/domain state
+                        ├──► Fray renders a local view
+                        └──► LiveQuery refreshes through a handler
+                                      └──► Fray renders query snapshot state
+```
+
+Leaf controls should normally receive ordinary writable emitters, not
+`QueryArg` objects. The component or service that understands an aggregate
+interaction owns its derived value. The data-aware consumer owns the query
+bridge and watches the result it actually renders. This keeps UI components
+reusable for local state, static data, remote data, and tests.
+
+Fray's theme and color selection is not a Glue feature. An application may
+store selected theme/color identifiers in ordinary Glue emitters when it wants
+observable or persistent selection state, but Fray and the browser remain
+responsible for CSS assets, stylesheet links, and rendering.
+
+Nothing in this contract is Fray-specific: another UI framework, a CLI, a Node
+service, or a test can consume the same emitters and live queries.
 
 ## Local checks
 

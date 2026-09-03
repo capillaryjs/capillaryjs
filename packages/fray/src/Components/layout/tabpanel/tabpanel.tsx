@@ -117,9 +117,9 @@ export class TabPanel extends Component<TabPanelProps> {
             width: 100%;
             min-height: 0;
             overflow: hidden;
-            background: var(--panel-bg, white);
-            border-radius: var(--panel-radius, var(--ui-border-radius));
-            box-shadow: var(--panel-shadow, none);
+            background: var(--fray-panel-background, var(--panel-bg, transparent));
+            border-radius: var(--fray-panel-radius, var(--panel-radius));
+            box-shadow: var(--fray-panel-shadow, var(--panel-shadow, none));
         }
 
         & > [data-part="content"] {
@@ -127,7 +127,7 @@ export class TabPanel extends Component<TabPanelProps> {
             flex-direction: column;
             flex: 1;
             overflow: auto;
-            background: var(--panel-bg, white);
+            background: var(--fray-panel-background, var(--panel-bg, transparent));
         }
     `
 }

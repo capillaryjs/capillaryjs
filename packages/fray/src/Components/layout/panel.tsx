@@ -77,6 +77,19 @@ export class Panel extends Component<PanelProps> {
             font: inherit;
         }
 
+        & > [data-part="header"] {
+            background: var(
+                --fray-panel-header-background,
+                var(--fray-section-header-background, var(--fray-header-background))
+            );
+            color: var(
+                --fray-panel-header-color,
+                var(--fray-section-header-color, var(--fray-header-color))
+            );
+            border: var(--fray-section-header-border, var(--fray-header-border));
+            box-shadow: var(--fray-section-header-shadow, var(--fray-header-shadow));
+        }
+
         & > [data-part="content"] {
             display: flex;
             flex: 1;

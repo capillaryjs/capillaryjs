@@ -19,6 +19,7 @@ export * from './Components/lineinputs/toggle.js'
 export * from './Components/menu/button.js'
 export * from './Components/menu/toolbar.js'
 export * from './Components/status/progressBar.js'
+export * from './Components/theme/stylesheetPicker.js'
 export {Component, css, h, live} from './Components/component.js'
 export type {
     BaseStyleNames,
@@ -42,3 +43,4 @@ export * from './util/filterMode.js'
 
 export * from './runtime.js'
 export * from './styling/styleRegistry.js'
+export * from './styling/theme.js'

@@ -48,21 +48,29 @@
       "types": "./dist/jsx-dev-runtime.d.ts",
       "import": "./dist/jsx-dev-runtime.js"
     },
+    "./styles/structural.css": "./styles/structural.css",
+    "./themes/*/theme.css": "./themes/*/theme.css",
+    "./colors/*/colors.css": "./colors/*/colors.css",
     "./themes/light.css": "./themes/light.css",
     "./themes/dark.css": "./themes/dark.css"
   },
   "files": [
     "dist",
+    "styles",
     "themes",
+    "colors",
     "EXPERIMENTAL.md",
     "LICENSE",
     "NOTICE"
   ],
   "sideEffects": [
-    "./themes/*.css"
+    "./styles/*.css",
+    "./colors/**/*.css",
+    "./themes/**/*.css"
   ],
   "scripts": {
-    "build": "vite build && tsc -p tsconfig.build.json",
+    "build": "pnpm build:styles && vite build && tsc -p tsconfig.build.json",
+    "build:styles": "node --import tsx scripts/build-structural-css.mjs",
     "prepack": "pnpm typecheck && pnpm test && pnpm build && pnpm test:types:consumer",
     "test": "node --import tsx --test test/*.test.ts",
     "test:types:consumer": "tsc -p test-types/consumer/tsconfig.json --noEmit",

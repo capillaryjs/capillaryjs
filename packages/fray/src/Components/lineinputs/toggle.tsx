@@ -144,6 +144,7 @@ export class Toggle<TValue extends Key = string> extends Component<ToggleProps<T
         }
 
         fieldset[data-fray-component="toggle"] [data-part="option"] {
+            background: var(--fray-toggle-button-background, var(--fray-button-background));
             border-radius: 0;
         }
 
@@ -156,8 +157,11 @@ export class Toggle<TValue extends Key = string> extends Component<ToggleProps<T
         }
 
         fieldset[data-fray-component="toggle"] [data-part="option"][aria-checked="true"] {
-            background: var(--toggle-selected-bg, var(--ui-accent-color));
-            color: var(--toggle-selected-text, white);
+            background: var(
+                --fray-toggle-button-background-checked,
+                var(--fray-selection-background, var(--toggle-selected-bg))
+            );
+            color: var(--fray-selection-color, var(--toggle-selected-text));
         }
     `
 }
