@@ -28,6 +28,7 @@ try {
 
 function parse(args) {
     const command = args.shift()
+    if (args[0] === '--') args.shift()
     const options = {version: undefined, tag: undefined, releaseSet: undefined, artifactRoot: '.artifacts/release'}
     for (let index = 0; index < args.length; index += 1) {
         const flag = args[index]

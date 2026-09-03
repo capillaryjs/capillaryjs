@@ -72,7 +72,7 @@ jobs:
           RELEASE_TAG: ${{ inputs.tag }}
           RELEASE_SET: ${{ inputs.release_set }}
         run: >-
-          corepack pnpm release:validate --
+          corepack pnpm release:validate
           --version "$RELEASE_VERSION"
           --tag "$RELEASE_TAG"
           --release-set "$RELEASE_SET"

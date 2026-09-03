@@ -17,6 +17,12 @@ test('validates an explicit two-package plan in dependency order', () => {
     assert.match(result.stdout, /order: @sylwellsoftware\/glue -> @sylwellsoftware\/fray/)
 })
 
+test('accepts the optional package-manager argument separator', () => {
+    const fixture = createFixture()
+    const result = invoke(fixture, 'validate', 'glue-and-fray', {}, {separator: true})
+    assert.equal(result.status, 0, result.stderr)
+})
+
 test('refuses an already-public version before staging', () => {
     const fixture = createFixture({published: 'glue'})
     const result = invoke(fixture, 'stage', 'glue-and-fray')
@@ -64,6 +70,7 @@ test('release workflow has the protected stage-only trust boundary', () => {
     assert.match(workflow, /id-token: write/)
     assert.match(workflow, /node-version: 24/)
     assert.match(workflow, /npm@11\.19\.1/)
+    assert.doesNotMatch(workflow, /pnpm release:validate --\s/)
     assert.match(workflow, /stage-release\.mjs stage/)
     assert.doesNotMatch(workflow, /NODE_AUTH_TOKEN|NPM_TOKEN|npm publish|stage approve/)
 })
@@ -125,10 +132,11 @@ exit 0
     }
 }
 
-function invoke(fixture, command, releaseSet, extraEnv = {}) {
+function invoke(fixture, command, releaseSet, extraEnv = {}, {separator = false} = {}) {
+    const separatorArgument = separator ? ['--'] : []
     return spawnSync(process.execPath, [
         path.join(fixture.root, 'scripts', 'stage-release.mjs'),
-        command,
+        command, ...separatorArgument,
         '--version', '0.1.0-alpha.2',
         '--tag', 'next',
         '--release-set', releaseSet,
