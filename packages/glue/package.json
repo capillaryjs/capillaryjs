@@ -1,7 +1,7 @@
 {
   "name": "@sylwellsoftware/glue",
   "private": false,
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "Platform-neutral reactive values, derived state, live queries, and causal tracing.",
   "license": "Apache-2.0",
   "author": {
