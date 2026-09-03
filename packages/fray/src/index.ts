@@ -56,5 +56,6 @@ export type {
 export * from './util/filterMode.js'
 
 export * from './runtime.js'
+export * from './services.js'
 export * from './styling/styleRegistry.js'
 export * from './styling/theme.js'

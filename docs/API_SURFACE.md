@@ -41,6 +41,7 @@ caller-owned. Application classes and composition roots own service lifetimes.
 | `h`, `css`, `live` | Vnode/CSS authoring and explicit one-way emitter property binding. | Fray runtime |
 | `jsx`, `jsxs`, `jsxDEV`, `Fragment` | Automatic JSX runtime. | Fray runtime |
 | `FrayRuntime`, `createFrayRuntime`, `defaultFrayRuntime` | Immutable application-scoped element naming, creation, mounting, and styles. | Fray runtime |
+| `ServiceScope`, `createServiceScope`, `defineService`, `provideService` | Typed application service declaration, composition, lazy resolution, and disposal. | Fray runtime |
 | `StyleRegistry`, `createStyleRegistry`, `styleRegistry` | Isolated or default idempotent structural-style collection/injection. | Fray styling |
 | `frayThemeVariableCatalog` | Machine-readable color/theme variable hierarchy and fallbacks. | Fray styling |
 | `frayThemeOptions`, `frayColorOptions`, `findFrayStylesheetOption`, `replaceFrayStylesheet` | Runtime-selectable treatment and palette catalogs and independent link replacement. | Fray styling |
@@ -91,6 +92,22 @@ component prop into one-way updates. `bind:value` and `bind:checked` are typed
 two-way native-control bindings. `read()` and `snapshot()` opt the surrounding
 component into rerendering for value/control-flow or value-state-error output.
 All renderer-created subscriptions are lifecycle-owned and cleaned up.
+
+## Fray service-scope contract
+
+`defineService<T>()` creates an immutable typed key and `provideService()`
+selects its factory at the application composition root. `ServiceScope`
+validates fixed provider registrations, creates each service lazily once,
+supports explicit factory-to-factory resolution, detects cycles, and disposes
+initialized disposable services in reverse creation order. It has no global
+registry, decorator metadata, constructor inspection, or transient lookup.
+
+An application passes one scope to `createFrayRuntime({services})`. Nested
+class components inherit that runtime, list keys in `static requiredServices`,
+and call protected `requireService()` during `initialize()` or later. Missing
+services fail before initialization and undeclared lookup fails explicitly.
+Function components remain presentation-oriented. Components dispose the live
+queries/results they open; they do not dispose scope-shared services.
 
 ## Async command boundary
 

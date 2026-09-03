@@ -5,6 +5,7 @@ import type {
 } from '@sylwellsoftware/glue'
 
 import {FrayRuntime, defaultFrayRuntime} from '../runtime.js'
+import type {ServiceKey} from '../services.js'
 
 export const Fragment = Symbol.for('@sylwellsoftware/fray.Fragment')
 
@@ -261,6 +262,7 @@ export function css(strings: TemplateStringsArray, ...values: unknown[]): string
 
 export class Component<TProps extends ComponentProps = ComponentProps> {
     static dependencies: ComponentDependency[] = []
+    static requiredServices: readonly ServiceKey<unknown>[] = []
     static css = ''
     static hostName: string | null = null
     static standaloneHostName: string | null = null
@@ -383,6 +385,7 @@ export class Component<TProps extends ComponentProps = ComponentProps> {
         if (this.destroyed) throw new Error('Cannot mount a destroyed component')
         let mountedNow = false
         if (!this.initialized) {
+            this.validateRequiredServices()
             this.initialized = true
             this.initialize()
         }
@@ -503,6 +506,20 @@ export class Component<TProps extends ComponentProps = ComponentProps> {
         }
     }
 
+    /** Resolve one explicitly declared application service from this component's runtime. */
+    protected requireService<TService>(key: ServiceKey<TService>): TService {
+        if (!this.initialized) {
+            throw new Error('Components may resolve services during initialize() or later')
+        }
+        const componentType = this.constructor as typeof Component
+        if (!componentType.requiredServices.includes(key)) {
+            throw new Error(
+                `${componentType.name} must declare service "${key.name}" in requiredServices`,
+            )
+        }
+        return this._runtime.services.require(key)
+    }
+
     listen<TEvent extends Event = Event>(
         target: EventTarget,
         type: string,
@@ -543,6 +560,15 @@ export class Component<TProps extends ComponentProps = ComponentProps> {
         this.dom = null
         this._childComponents.clear()
         this.onDestroy()
+    }
+
+    private validateRequiredServices(): void {
+        const componentType = this.constructor as typeof Component
+        for (const key of componentType.requiredServices) {
+            if (!this._runtime.services.has(key)) {
+                throw new Error(`${componentType.name} requires unregistered service "${key.name}"`)
+            }
+        }
     }
 
     onDestroy(): void {}

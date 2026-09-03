@@ -31,8 +31,8 @@ or receive queries; views render the downstream values they read.
   endpoint declarations, live queries with opt-in polling, async commands, and
   optional causal diagnostics.
 - `@sylwellsoftware/fray` — keyed DOM rendering, components, JSX runtimes,
-  accessible controls and layouts, semantic filters, and theme tools. It has a
-  peer dependency on Glue.
+  application-scoped service access, accessible controls and layouts, semantic
+  filters, and theme tools. It has a peer dependency on Glue.
 
 Both packages are ESM-only. Tooling requires Node 22 or newer; Fray targets
 current evergreen browsers.

@@ -11,9 +11,10 @@ consumer application
 ```
 
 Glue owns reactive values and asynchronous state without depending on the DOM.
-Fray watches Glue emitters, renders component-owned DOM, and collects structural
-styles. Consumers own application state, endpoints, page composition, and theme
-selection.
+Fray watches Glue emitters, renders component-owned DOM, collects structural
+styles, and propagates an explicit application service scope. Consumers own
+application state, service implementations, endpoints, concrete service
+registration, page composition, and theme selection.
 
 The integration seam is the small readable/writable emitter contract. Leaf UI
 controls write ordinary emitters; components that understand an aggregate
@@ -35,6 +36,13 @@ Fray uses a synchronous keyed DOM patcher. It preserves stable node identity,
 focus, stateful DOM properties, and event-listener cardinality. Components have
 explicit mount, update, and destroy lifecycles; subscriptions and registered
 cleanups are lifecycle-owned.
+
+The application composition root supplies a fixed `ServiceScope` to
+`FrayRuntime`. Typed providers are lazy and scope-shared; nested class
+components inherit the runtime and may resolve only services they declare.
+Opened Glue queries/results remain component- or caller-owned. Service scope is
+explicit and disposable, with no process-global registry, constructor
+autowiring, decorators, or transient resolution.
 
 The automatic JSX runtime and `h()` produce the same vnode representation.
 Readable emitters may be rendered as fine-grained children, bound to properties,

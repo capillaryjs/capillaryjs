@@ -109,10 +109,22 @@ function writeFixtureSources() {
     mkdirSync(join(fixtureRoot, 'src'), {recursive: true})
     writeFileSync(join(fixtureRoot, 'src', 'main.tsx'), `import {DerivedEndpoint, Emitter, RestEndpoint} from '@sylwellsoftware/glue'
 import type {LiveResult} from '@sylwellsoftware/glue'
-import {Button, Component, Panel, Textbox, h, styleRegistry} from '@sylwellsoftware/fray'
+import {
+    Button,
+    Component,
+    Panel,
+    Textbox,
+    createFrayRuntime,
+    createServiceScope,
+    defineService,
+    h,
+    provideService,
+} from '@sylwellsoftware/fray'
 import '@sylwellsoftware/fray/styles/structural.css'
 import '@sylwellsoftware/fray/colors/iceblue/colors.css'
 import '@sylwellsoftware/fray/themes/minimal/theme.css'
+
+const greetingService = defineService<{prefix: string}>('greeting')
 
 class App extends Component {
     readonly count = new Emitter(0)
@@ -131,15 +143,20 @@ class App extends Component {
         fetch: async () => ({ok: true, json: () => ({id: 'record-1'})}),
         parseResult: (value) => value as {id: string},
     })
+    private greeting = ''
 
     initialize(): void {
+        this.greeting = this.requireService(greetingService).prefix
         this.watch(this.count, this.name, this.total)
     }
 
     render() {
         const peerIdentity = this.textbox.valueEmitter === this.name
             && this.textbox.valueEmitter instanceof Emitter
-        return <main data-peer-identity={String(peerIdentity)}>
+        return <main
+            data-peer-identity={String(peerIdentity)}
+            data-service={this.greeting}
+        >
             <Panel header="Tarball consumer">
                 {this.textbox}
                 <Button
@@ -160,11 +177,15 @@ class App extends Component {
     }
 
     static dependencies = [Button, Panel, Textbox]
+    static requiredServices = [greetingService]
 }
 
-App.registerStyles()
-styleRegistry.injectAll(document)
-App.new().attachTo(document.querySelector('#app')!)
+const services = createServiceScope([
+    provideService(greetingService, () => ({prefix: 'scope-ready'})),
+])
+const runtime = createFrayRuntime({services})
+runtime.registerStyles(App).injectStyles(document)
+runtime.mount(runtime.create(App), document.querySelector('#app')!)
 `)
 }
 
@@ -193,6 +214,8 @@ async function verifyBrowserRuntime() {
             await expectText(page, '#endpoint-output', 'Derived total: 2')
             const peerIdentity = await page.locator('main').getAttribute('data-peer-identity')
             assert(peerIdentity === 'true', 'Fray did not resolve the consumer Glue instance')
+            const service = await page.locator('main').getAttribute('data-service')
+            assert(service === 'scope-ready', 'Fray did not resolve the consumer service scope')
             assert(pageErrors.length === 0, `Browser emitted page errors: ${pageErrors.join(', ')}`)
         } finally {
             await browser.close()

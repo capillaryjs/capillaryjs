@@ -7,6 +7,7 @@ import {
     styleRegistry,
 } from './styling/styleRegistry.js'
 import type {StyleRegistry} from './styling/styleRegistry.js'
+import {ServiceScope, createServiceScope} from './services.js'
 
 const RESERVED_CUSTOM_ELEMENT_NAMES = new Set([
     'annotation-xml',
@@ -28,6 +29,8 @@ export interface FrayElementNameOptions {
 
 export interface FrayRuntimeOptions {
     elementNames?: FrayElementNameOptions
+    /** Service scope inherited by every component created or mounted here. */
+    services?: ServiceScope
 }
 
 /** Immutable application scope for element naming and structural styles. */
@@ -35,6 +38,7 @@ export class FrayRuntime {
     readonly elementPrefix: string | null
     readonly elementNameOverrides: Readonly<Record<string, string>>
     readonly styleRegistry: StyleRegistry
+    readonly services: ServiceScope
 
     constructor(
         options: FrayRuntimeOptions = {},
@@ -64,6 +68,10 @@ export class FrayRuntime {
         this.elementPrefix = prefix
         this.elementNameOverrides = Object.freeze({...overrides})
         this.styleRegistry = registry
+        this.services = options.services ?? createServiceScope()
+        if (!(this.services instanceof ServiceScope)) {
+            throw new TypeError('Fray services must be a ServiceScope')
+        }
     }
 
     resolveElementName(hostName: string, standaloneHostName: string | null = null): string {

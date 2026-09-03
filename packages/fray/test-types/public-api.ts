@@ -17,7 +17,11 @@ import {
     TabPanel,
     Textbox,
     TreeView,
+    createFrayRuntime,
+    createServiceScope,
+    defineService,
     h,
+    provideService,
     serializeTableQuery,
 } from '../src/index.js'
 import type {
@@ -69,6 +73,29 @@ class Card extends Component<CardProps> {
     }
 }
 h(Card, {title: 'Typed'}, h(Button, {label: 'Save'}))
+
+interface GreetingService {
+    greeting(name: string): string
+}
+const greetingService = defineService<GreetingService>('greeting')
+const services = createServiceScope([
+    provideService(greetingService, () => ({
+        greeting: (name) => `Hello ${name}`,
+    })),
+])
+class Greeting extends Component {
+    static requiredServices = [greetingService]
+    private message = ''
+    initialize() {
+        this.message = this.requireService(greetingService).greeting('Ada')
+    }
+    render() {
+        return h('output', null, this.message)
+    }
+}
+createFrayRuntime({services}).create(Greeting)
+// @ts-expect-error A provider must implement its service contract.
+provideService(greetingService, () => ({greeting: 42}))
 
 type Row = {id: number; name: string}
 const selectedRow = new Emitter<Row | null>(null)

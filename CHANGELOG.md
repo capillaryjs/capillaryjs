@@ -14,6 +14,8 @@ Versioning.
   injectable scheduling, and deterministic cleanup.
 - Optional `RestQueryHandler.parseResult` response validation after JSON
   parsing.
+- Typed Fray service keys, immutable providers, lazy application scopes, and
+  declared class-component service access through `FrayRuntime`.
 
 ### Changed
 
@@ -22,6 +24,9 @@ Versioning.
   endpoints without a Glue registry, cache, or dependency-injection system.
 - Command-triggered query reconciliation is documented as application-owned;
   refreshed query failures do not alter the settled command state.
+- Application services are registered once at the composition root and become
+  available to nested class components without service prop-drilling. Service
+  instances are scope-shared while opened endpoint results remain caller-owned.
 
 ## 0.3.0 - 2026-09-03
 

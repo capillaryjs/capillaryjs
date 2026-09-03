@@ -222,9 +222,11 @@ include the raw response body in its diagnostics.
 
 Applications may group immutable endpoint declarations in ordinary service
 classes. Glue does not register, locate, construct, or cache services; the
-application chooses application-, session-, request-, or transient lifetimes.
-Every `open()` call creates a caller-owned result with independent arguments,
-request state, polling, and disposal.
+application chooses and constructs its service scope. Fray applications may
+expose those services through Fray's typed runtime `ServiceScope`; non-Fray
+applications use their own explicit composition. Every `open()` call creates a
+caller-owned result with independent arguments, request state, polling, and
+disposal.
 
 ```ts
 import {DerivedEndpoint, RestEndpoint} from '@sylwellsoftware/glue'

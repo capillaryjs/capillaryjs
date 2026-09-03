@@ -65,8 +65,8 @@ Responsibility stays at the narrowest layer that understands it:
 
 | Concern | Owner |
 | --- | --- |
-| Domain state, endpoint configuration, page composition, theme availability and selection policy | Application |
-| DOM structure, native events, accessibility, component lifetime, visual async states | Fray components |
+| Domain state, service implementations/providers, endpoint configuration, page composition, theme availability and selection policy | Application |
+| DOM structure, native events, accessibility, component lifetime, service-scope propagation, visual async states | Fray components/runtime |
 | Mutable/computed values, query timing/results, fetch state, optional causality | Glue |
 | URL/wire serialization and retrieval mechanism | Injected Glue query handler/application adapter |
 | Layout/flow CSS and stable component/part hooks | Fray structural styling |
@@ -138,6 +138,64 @@ class App extends Component {
     static dependencies = [Button, Panel, Textbox]
 }
 ```
+
+## Application services without prop-drilling
+
+Service classes remain ordinary application TypeScript. They commonly group
+immutable Glue endpoint declarations, while every `open()` call still creates
+a caller-owned live result:
+
+```ts
+class ProjectService {
+    readonly label = 'Projects'
+    readonly projects = new RestEndpoint<
+    {search: string},
+    readonly Project[]
+    >({url: '/api/projects', parseResult: parseProjects})
+}
+
+const projectService = defineService<ProjectService>('projects')
+const services = createServiceScope([
+    provideService(projectService, () => new ProjectService()),
+])
+const runtime = createFrayRuntime({services})
+```
+
+The composition root chooses the implementation once. Every nested class
+component created through that runtime inherits the scope:
+
+```ts
+class ProjectList extends Component {
+    static requiredServices = [projectService]
+    private service!: ProjectService
+
+    initialize() {
+        this.service = this.requireService(projectService)
+    }
+
+    render() {
+        return h('output', null, this.service.label)
+    }
+}
+```
+
+Dependencies must be declared in `static requiredServices`. Resolution is
+available during `initialize()` and later, after Fray has assigned the runtime;
+constructors cannot resolve services. A missing service fails before component
+initialization, and an undeclared lookup also fails clearly.
+
+Providers are fixed when `ServiceScope` is created. Factories run lazily once
+per scope, can explicitly require another registered service, and are checked
+for circular resolution. `scope.dispose()` disposes initialized services in
+reverse creation order. Components dispose the queries/results they open, not
+the shared service. Create one scope per browser application or test. Because
+the scope is explicit rather than global, a future non-browser adapter can
+preserve request/session isolation without changing service definitions.
+
+There is intentionally no transient resolve-on-every-call lifetime. Independent
+query state comes from caller-owned endpoint results. Function components stay
+presentation-oriented and receive rendered values or emitters from a nearby
+lifecycle-owning class component.
 
 ## Component host elements
 
