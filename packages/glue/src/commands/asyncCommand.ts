@@ -42,7 +42,7 @@ export class AsyncCommandConcurrencyError extends Error {
     }
 }
 
-/** Experimental abortable mutation state with an explicit concurrency policy. */
+/** Abortable mutation state with an explicit concurrency policy. */
 export class AsyncCommand<TArguments, TResult, TError = unknown>
     extends BaseEmitter<TResult | undefined, TError> {
     readonly execute: AsyncCommandExecutor<TArguments, TResult>

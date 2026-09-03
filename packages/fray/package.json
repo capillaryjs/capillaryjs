@@ -3,7 +3,7 @@
   "name": "@sylwellsoftware/fray",
   "private": false,
   "version": "0.2.0",
-  "description": "Experimental browser-only TypeScript component runtime, JSX controls, and semantic themes.",
+  "description": "Browser-only TypeScript component runtime, JSX controls, and semantic themes.",
   "license": "Apache-2.0",
   "author": {
     "name": "Sylwell Software",
@@ -36,10 +36,6 @@
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
     },
-    "./experimental": {
-      "types": "./dist/experimental.d.ts",
-      "import": "./dist/experimental.js"
-    },
     "./jsx-runtime": {
       "types": "./dist/jsx-runtime.d.ts",
       "import": "./dist/jsx-runtime.js"
@@ -59,7 +55,6 @@
     "styles",
     "themes",
     "colors",
-    "EXPERIMENTAL.md",
     "LICENSE",
     "NOTICE"
   ],

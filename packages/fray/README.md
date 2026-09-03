@@ -1,10 +1,10 @@
 # Fray
 
-Fray is an experimental, browser-only component and DOM runtime built around
+Fray is a browser-only component and DOM runtime built around
 Glue emitters. It targets modern evergreen browsers. Its `0.x` API may change
 with documented migration notes.
 
-Install the published alpha together with its Glue peer:
+Install it together with its Glue peer:
 
 ```bash
 pnpm add @sylwellsoftware/glue @sylwellsoftware/fray
@@ -207,7 +207,7 @@ TypeScript TSX is Fray's supported template syntax. Classic JSX and direct
 use the same renderer. A future template-file syntax can target this vnode
 contract without changing Glue binding semantics.
 
-Fray's own stable and experimental built-ins are authored in TSX. Direct
+Fray's built-ins are authored in TSX. Direct
 `h()` remains supported for consumers that do not use JSX and as the renderer's
 canonical vnode operation, but it is not the built-in component authoring
 format. The workspace lint gate rejects new `h()` templates under
@@ -741,7 +741,7 @@ release-candidate requirement; automated checks are not a substitute for it.
 ## Data workflows
 
 `ListView`, `DataTable`, `TreeView`, `TreeItem`, `Dialog`, `FilterPanel`, and
-their model helpers are part of the stable alpha entry point. All accept
+their model helpers are part of the package entry point. All accept
 ordinary Glue emitters; they do not introduce a second state store.
 
 List and table selection is discriminated by cardinality. Single selection is
@@ -812,14 +812,13 @@ must match when preferences are active. Neutral options do not constrain the
 result.
 
 The stable non-virtualized performance boundary and detailed state behavior are
-documented in [EXPERIMENTAL.md](EXPERIMENTAL.md), whose subpath now exists as a
-temporary compatibility re-export. See the migration section there before
+documented in this guide. See the migration notes in the changelog before
 upgrading from 0.2.x.
 
 Fray is not a replacement for an SSR/hydration framework, Web Components,
 React/Vue adapters, a broad design system, a virtualized production data grid,
 legacy-browser support, or a stable `1.0` API. See the [workspace
-overview](../../README.md), [alpha API surface](../../docs/API_SURFACE.md),
+overview](../../README.md), [API surface](../../docs/API_SURFACE.md),
 [architecture overview](../../docs/architecture.md),
 [changelog](../../CHANGELOG.md), [contribution guide](../../CONTRIBUTING.md),
 and [security policy](../../SECURITY.md).

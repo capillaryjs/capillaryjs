@@ -18,6 +18,13 @@ export type {
     SubscribeOptions,
 } from './emitters/baseEmitter.js'
 export {Emitter} from './emitters/emitter.js'
+export {AsyncCommand, AsyncCommandConcurrencyError} from './commands/asyncCommand.js'
+export type {
+    AsyncCommandConcurrency,
+    AsyncCommandContext,
+    AsyncCommandExecutor,
+    AsyncCommandOptions,
+} from './commands/asyncCommand.js'
 export {LiveQuery} from './emitters/liveQuery.js'
 export type {
     LiveQueryOptions,

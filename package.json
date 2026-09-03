@@ -2,7 +2,7 @@
   "name": "gluefrayjs",
   "version": "0.0.0",
   "private": true,
-  "description": "Public workspace for the experimental Glue reactive core and Fray UI runtime.",
+  "description": "Public workspace for the Glue reactive core and Fray UI runtime.",
   "license": "Apache-2.0",
   "type": "module",
   "packageManager": "pnpm@10.11.0",

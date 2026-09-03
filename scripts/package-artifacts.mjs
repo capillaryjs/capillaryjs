@@ -22,7 +22,7 @@ const definitions = [
         directory: join(workspaceRoot, 'packages', 'glue'),
         name: '@sylwellsoftware/glue',
         allow(path) {
-            return path === 'EXPERIMENTAL.md'
+            return false
                 || path === 'LICENSE'
                 || path === 'NOTICE'
                 || path === 'README.md'
@@ -34,7 +34,7 @@ const definitions = [
         directory: join(workspaceRoot, 'packages', 'fray'),
         name: '@sylwellsoftware/fray',
         allow(path) {
-            return path === 'EXPERIMENTAL.md'
+            return false
                 || path === 'LICENSE'
                 || path === 'NOTICE'
                 || path === 'README.md'

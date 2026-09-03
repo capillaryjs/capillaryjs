@@ -4,7 +4,7 @@ import {
     LiveQuery,
 } from '@sylwellsoftware/glue'
 import type {QueryHandlerLike} from '@sylwellsoftware/glue'
-import {AsyncCommand} from '@sylwellsoftware/glue/experimental'
+import {AsyncCommand} from '@sylwellsoftware/glue'
 
 const left = new Emitter(2)
 const right = new Emitter(3)

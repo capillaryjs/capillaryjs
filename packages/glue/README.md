@@ -5,7 +5,7 @@ uses it as its state/data-flow layer, but Glue does not depend on Fray, a DOM,
 or any UI framework. Its implementation and tests are strict TypeScript; the
 ESM build includes declarations and declaration maps.
 
-Install the published alpha with pnpm:
+Install with pnpm:
 
 ```bash
 pnpm add @sylwellsoftware/glue
@@ -206,14 +206,14 @@ start, and query completion can retain explicit parent/child causality without
 turning diagnostics into a second execution system. Applications decide
 whether to retain, render, or export observed events.
 
-## Experimental commands
+## Async commands
 
-`@sylwellsoftware/glue/experimental` exports `AsyncCommand`, an abortable
+`AsyncCommand` is exported from Glue's package root. It is an abortable
 mutation lifecycle with explicit `ignore`, `replace`, and `reject` concurrency
 policies. It exposes the last result/error through the standard emitter
 snapshot and a read-only `isRunning` view. It deliberately does not own batch
 progress, retries, notifications, or UI behavior. See
-[EXPERIMENTAL.md](EXPERIMENTAL.md) for the provisional contract.
+the API reference below for the command contract.
 
 ## Integration with Fray and other consumers
 
@@ -256,7 +256,7 @@ Glue intentionally does not own a DOM renderer, component lifecycle,
 application-specific query encoding, persistent event history, CommonJS build,
 or framework adapter. Fray consumes Glue as a peer; browser UI belongs there.
 
-See the [workspace overview](../../README.md), [alpha API
+See the [workspace overview](../../README.md), [API
 surface](../../docs/API_SURFACE.md), [changelog](../../CHANGELOG.md),
 [contribution guide](../../CONTRIBUTING.md), and [security
 policy](../../SECURITY.md).

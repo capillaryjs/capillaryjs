@@ -2,7 +2,7 @@
   "name": "@sylwellsoftware/glue",
   "private": false,
   "version": "0.2.0",
-  "description": "Experimental platform-neutral reactive values, derived state, live queries, and causal tracing.",
+  "description": "Platform-neutral reactive values, derived state, live queries, and causal tracing.",
   "license": "Apache-2.0",
   "author": {
     "name": "Sylwell Software",
@@ -33,15 +33,10 @@
     ".": {
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
-    },
-    "./experimental": {
-      "types": "./dist/experimental.d.ts",
-      "import": "./dist/experimental.js"
     }
   },
   "files": [
     "dist",
-    "EXPERIMENTAL.md",
     "LICENSE",
     "NOTICE"
   ],

@@ -7,7 +7,7 @@ import {
     RestQueryHandler,
 } from '../src/index.js'
 import type {QueryHandlerLike} from '../src/index.js'
-import {AsyncCommand} from '../src/experimental.js'
+import {AsyncCommand} from '../src/index.js'
 
 const count = new Emitter(1)
 count.subscribe(({value, fetchState}) => {

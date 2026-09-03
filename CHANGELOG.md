@@ -9,7 +9,7 @@ Versioning.
 ### Added
 
 - Stable Fray exports for list, tree, table, dialog, filter, selection, and
-  placeholder workflows previously available only from `/experimental`.
+  placeholder workflows.
 - Versioned semantic filter-state composition and persistence helpers.
 - Read-only keyed tree-node projections and immutable writable-root updates.
 - Explicit local, caller-query, handler, and REST table data-source adapters.
@@ -24,11 +24,10 @@ Versioning.
 - Single-select lists and tables use item-or-null emitters; array emitters now
   require explicit multi-selection.
 - DataTable replaces its `mode` and loose query/REST props with one of `data`,
-  `dataSource`, or `rest`. The `/experimental` entry temporarily re-exports the
-  stable Fray surface for import compatibility.
+  `dataSource`, or `rest`.
 
-These changes require a Fray minor release. Migration guidance is in
-`packages/fray/EXPERIMENTAL.md`.
+These changes require a Fray minor release. Migration guidance is in the Fray
+package guide.
 
 ## 0.2.0 - 2026-09-03
 

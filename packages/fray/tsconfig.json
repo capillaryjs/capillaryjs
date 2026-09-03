@@ -7,7 +7,6 @@
     "paths": {
       "@sylwellsoftware/glue": ["packages/glue/src/index.ts"],
       "@sylwellsoftware/fray": ["packages/fray/src/index.ts"],
-      "@sylwellsoftware/fray/experimental": ["packages/fray/src/experimental.ts"],
       "@sylwellsoftware/fray/jsx-runtime": ["packages/fray/src/jsx-runtime.ts"],
       "@sylwellsoftware/fray/jsx-dev-runtime": ["packages/fray/src/jsx-dev-runtime.ts"]
     },

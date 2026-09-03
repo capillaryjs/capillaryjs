@@ -1,12 +1,10 @@
-# Alpha API surface
+# Public API surface
 
 Status: accepted for the current public `0.x` line
 Updated: 2026-09-03
 
-Glue and Fray are experimental browser-toolkit packages. The stable alpha
-surface below is deliberately narrow: it identifies which `0.x` APIs receive
-compatibility notes and migration guidance. It is not a promise of `1.0`
-stability.
+This document identifies the public `0.x` APIs that receive compatibility
+notes and migration guidance. It is not a promise of `1.0` stability.
 
 ## Glue stable entry point
 
@@ -22,6 +20,7 @@ stability.
 | `QueryHandler` | Query-handler interface/base class. | Glue query layer |
 | `LiveQuery` | Abortable reactive asynchronous query. | Glue query layer |
 | `RestQueryHandler` | Injectable Fetch/URL JSON adapter. | Glue REST adapter |
+| `AsyncCommand` | Abortable mutation lifecycle with explicit concurrency policy. | Glue command layer |
 
 The empty `emitters/derivedEmitter.js` target is not an API. `DerivedEmitter`
 is owned by its implementation module and exported once from the package root.
@@ -56,7 +55,7 @@ contracts are documented in `packages/glue/README.md`.
 The package also exposes `./jsx-runtime`, `./jsx-dev-runtime`, generated
 `./styles/structural.css`, replaceable `./themes/*/theme.css`, and replaceable
 `./colors/*/colors.css` subpaths. The older top-level light/dark stylesheets are
-temporary alpha compatibility exports.
+legacy compatibility exports.
 
 `Component.read()` and `Component.snapshot()` are the supported render-time
 tracked-read APIs. `WritableEmitter`, `LiveBinding`, `EmitterSnapshot`,
@@ -87,33 +86,27 @@ two-way native-control bindings. `read()` and `snapshot()` opt the surrounding
 component into rerendering for value/control-flow or value-state-error output.
 All renderer-created subscriptions are lifecycle-owned and cleaned up.
 
-## Experimental entry points
+## Async command boundary
 
-`@sylwellsoftware/glue/experimental` exports `AsyncCommand` and
-`AsyncCommandConcurrencyError`. The command owns an explicitly configured
+`AsyncCommand` and `AsyncCommandConcurrencyError` are root exports. The command owns an explicitly configured
 abortable mutation lifecycle, observable result/fetch/error state, running
 state, concurrency policy, stale-result suppression, reset, and disposal. It
-does not belong to Glue's stable alpha surface and does not provide queuing,
+does not provide queuing,
 retry, batch, notification, or DOM policy.
-
-`@sylwellsoftware/fray/experimental` temporarily re-exports Fray's stable root
-for compatibility with 0.2.x data-component imports. New code must import the
-promoted data APIs from `@sylwellsoftware/fray`; the compatibility subpath does
-not contain a separate implementation.
 
 The empty `dialog.js`, `radiobox.js`, and `listviewitem.js` modules are not
 exported. They may be implemented by a future proposal, but their filenames do
 not reserve public APIs.
 
-## Alpha non-goals
+## Non-goals
 
 - SSR or hydration, registered Web Components/Shadow DOM, and framework adapters.
-- A standalone `.fray` parser, compiler, or language server; TSX is the alpha
+- A standalone `.fray` parser, compiler, or language server; TSX is the
   template syntax and `h()`/vnodes are its canonical intermediate form.
 - Legacy browsers or a general concurrent/reconciler runtime.
 - A production-stable data grid, virtualized lists, or pagination.
 - CommonJS unless a concrete consumer demonstrates the need.
-- Compatibility promises for experimental subpaths or unpublished internals.
+- Compatibility promises for unpublished internals.
 - Supporting every possible application theme.
 
 See [architecture.md](architecture.md) for the package and runtime boundaries.

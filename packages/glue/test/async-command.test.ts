@@ -5,8 +5,8 @@ import {FetchState} from '../src/index.js'
 import {
     AsyncCommand,
     AsyncCommandConcurrencyError,
-} from '../src/experimental.js'
-import type {AsyncCommandContext} from '../src/experimental.js'
+} from '../src/index.js'
+import type {AsyncCommandContext} from '../src/index.js'
 
 describe('AsyncCommand', () => {
     test('publishes one traced lifecycle snapshot and a readable running view', async () => {

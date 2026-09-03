@@ -7,7 +7,6 @@ export default {
         lib: {
             entry: {
                 index: sourcePath('./src/index.ts'),
-                experimental: sourcePath('./src/experimental.ts'),
                 'jsx-runtime': sourcePath('./src/jsx-runtime.ts'),
                 'jsx-dev-runtime': sourcePath('./src/jsx-dev-runtime.ts')
             },
