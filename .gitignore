@@ -13,6 +13,7 @@ test-results/
 blob-report/
 .artifacts/
 .gradle/
+/build/
 *.log
 *.tgz
 *.tar.gz
