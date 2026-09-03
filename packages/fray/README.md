@@ -15,6 +15,23 @@ Chromium, Firefox, and Safari at candidate time. Its reproducible test matrix
 uses Playwright's pinned Chromium, Firefox, and WebKit builds. Repository
 tooling requires Node 22+ and pnpm 10; Fray's runtime itself is browser-only.
 
+## Why Fray
+
+Fray presents application values without requiring developers to translate
+them into a second UI-specific state system. A control writes the same Glue
+emitter that a derivation or query can observe, and a component renders the
+downstream value it actually needs. State remains owned and explicit, while
+reactive propagation and rendering mechanics stay library concerns.
+
+Presentation should be equally direct. Native HTML already defines buttons,
+inputs, tables, lists, progress, dialogs, and landmarks, so Fray uses those
+elements when their semantics match. Components that need another boundary use
+readable light-DOM host names rather than framework identity classes.
+Application classes remain available for meaningful reusable traits and
+consumer styling, while Fray's current structural implementation uses explicit
+host and part metadata for its own layout and documented exceptional theme
+rules.
+
 ## Design model
 
 Fray is the presentation half of a deliberately two-layer architecture:

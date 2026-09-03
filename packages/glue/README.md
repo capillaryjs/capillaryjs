@@ -15,6 +15,26 @@ Glue is ESM-only. Core emitters, derived state, and diagnostics support Node 22+
 and modern ESM runtimes without a DOM. `LiveQuery` needs `AbortController`, and
 `RestQueryHandler` needs Fetch and URL capabilities unless they are injected.
 
+## Why Glue
+
+Most application values come from a service query, direct user input, or a
+calculation over those sources. Those values and their status are real state,
+but developers should not have to construct and synchronize a separate
+framework-shaped copy of them so that consumers can react.
+
+Glue keeps each value at its natural boundary. A control can write an
+`Emitter`, a calculation can expose a `DerivedEmitter`, and a query can react
+to argument emitters while exposing its result, loading state, and error. A
+consumer reads the downstream value it needs without knowing whether it began
+as input, computation, or remote data.
+
+For example, a table header may write a sort emitter. A `LiveQuery` uses that
+emitter as an argument, retrieves fresh rows, and emits the new result to the
+table. The developer declares this meaningful relationship; Glue handles
+propagation, current snapshots, cancellation, and stale-result protection.
+Mutation authority, domain rules, transport encoding, service construction,
+and ownership/disposal remain explicit application responsibilities.
+
 ## Design model
 
 Glue models values that stay current rather than requests that callers must

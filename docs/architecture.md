@@ -18,6 +18,30 @@ styles, and propagates an explicit application service scope. Consumers own
 application state, service implementations, endpoints, concrete service
 registration, page composition, and theme selection.
 
+## Developer model
+
+The stack starts from application data rather than a framework-specific state
+shape. Most interface values are retrieved through a service, entered or
+selected by a user, or computed from those values. Each value stays with its
+natural owner: an input uses a writable emitter, a computation uses a derived
+emitter, and a live query owns its result, loading state, and error. Fray
+consumes that same graph.
+
+State therefore exists without requiring the developer to mirror it into a
+parallel component store or maintain synchronization effects between the
+store, requests, and views. A table sort can flow from a header control into a
+query argument and return as newly retrieved rows. Glue owns propagation and
+request lifecycle; the application still owns meaningful decisions about
+mutation, domain policy, service composition, transport, and disposal.
+
+Fray applies the same directness to presentation. Native HTML elements carry
+native meaning where possible, and readable custom hosts mark component
+boundaries that have no suitable native root. Framework identity does not
+occupy application classes. The current structural contract additionally uses
+stable component and part attributes where layout or exceptional theme rules
+need them; those hooks are explicit implementation contracts rather than
+domain state.
+
 Fray Visualization is an optional layer over both packages. It owns reusable
 grouping/filtering coordination, strict partition diagnostics, block/history
 calculations, accessible analytical controls, and generated structural CSS.

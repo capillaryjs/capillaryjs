@@ -6,6 +6,26 @@ Glue supplies platform-neutral state, derivation, live-query, and diagnostic
 primitives. Fray supplies browser-native rendering, accessible components, TSX,
 and independently replaceable structural, theme, and color stylesheets.
 
+## Why this stack exists
+
+Application interfaces mostly work with meaningful values: data retrieved from
+a service, values entered or selected by a user, and values derived from those
+sources. State is real, but developers should not have to build and synchronize
+a second, framework-shaped state model merely to let the interface react.
+
+Glue keeps state with the concept that owns it. An input exposes a writable
+value, a calculation exposes a derived value, and a live query exposes its
+result together with loading and error state. Developers declare the
+relationships; Glue keeps them current. Fray renders those same values through
+native browser semantics and explicit component lifecycles instead of adding a
+second reactive model.
+
+For example, a table header can write a sort emitter, a query can subscribe to
+that argument and retrieve fresh rows, and the table can observe the query
+result. The flow says exactly what the application means. Domain policy,
+mutation authority, service construction, transport, and lifetime ownership
+remain explicit application choices.
+
 ## The architecture
 
 ```text
