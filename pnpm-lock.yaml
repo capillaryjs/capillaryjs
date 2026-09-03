@@ -41,6 +41,18 @@ importers:
         specifier: ^6.3.5
         version: 6.4.3(@types/node@26.4.1)(tsx@4.23.13)
 
+  packages/fray-visualization:
+    devDependencies:
+      '@sylwellsoftware/fray':
+        specifier: ^0.4.0
+        version: link:../fray
+      '@sylwellsoftware/glue':
+        specifier: ^0.4.0
+        version: link:../glue
+      vite:
+        specifier: ^6.3.5
+        version: 6.4.3(@types/node@26.4.1)(tsx@4.23.13)
+
   packages/glue:
     devDependencies:
       vite:

@@ -2,5 +2,7 @@ packages:
   - "packages/*"
   - "apps/*"
 
+linkWorkspacePackages: true
+
 onlyBuiltDependencies:
   - esbuild

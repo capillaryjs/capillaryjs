@@ -217,7 +217,7 @@ test('consumer theme variables override a later-loaded theme stylesheet', async 
         .toHaveCSS('background-color', 'rgb(1, 2, 3)')
 })
 
-test('keeps 1,000-row stable table operations inside the alpha budget',
+test('keeps 1,000-row stable table operations inside the documented budget',
     async ({page, browserName}) => {
         const metrics = await page.evaluate(() => globalThis.frayTest.measureDataTable(1_000))
         console.log(`[${browserName}] DataTable 1000x${metrics.columnCount}: `

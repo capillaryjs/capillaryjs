@@ -85,11 +85,13 @@ export class Checkbox<TValue extends CheckboxValue = FilterModeValue>
             value,
         } = this.props
         const semanticState = this.valueEmitter.get()
-        const [symbol] = this.symbols.find(([, state]) => Object.is(state, semanticState))
-            ?? ['?', semanticState]
+        const semanticIndex = this.symbols.findIndex(([, state]) =>
+            Object.is(state, semanticState))
+        const [symbol] = this.symbols[semanticIndex] ?? ['?', semanticState]
         const stateName = describeState(semanticState)
         const checked = semanticState === FilterMode.Prefer
             || semanticState === FilterMode.Require
+            || (this.symbols.length === 2 && semanticIndex === 1)
 
         const Host = this.Host
         return <Host
