@@ -46,7 +46,8 @@ test('Sidebar keeps its labelled header and toolbar outside the scrolling conten
                 contentOverflowY: getComputedStyle(contentElement).overflowY,
                 contentClientHeight: contentElement.clientHeight,
                 contentScrollHeight: contentElement.scrollHeight,
-                headerTop: header.getBoundingClientRect().top,
+                headerOffsetTop: header.getBoundingClientRect().top
+                    - element.getBoundingClientRect().top,
             }
         })
         expect(before.rootOverflow).toBe('hidden')
@@ -58,9 +59,12 @@ test('Sidebar keeps its labelled header and toolbar outside the scrolling conten
         await content.evaluate((element) => element.scrollTo({top: element.scrollHeight}))
         await expect(content).toHaveJSProperty('scrollTop',
             before.contentScrollHeight - before.contentClientHeight)
-        const headerTop = await sidebar.locator(':scope > [data-part="header"]')
-            .evaluate((element) => element.getBoundingClientRect().top)
-        expect(headerTop).toBe(before.headerTop)
+        const headerOffsetTop = await sidebar.evaluate((element) => {
+            const header = element.querySelector<HTMLElement>('[data-part="header"]')
+            if (header == null) throw new Error('Missing Sidebar header')
+            return header.getBoundingClientRect().top - element.getBoundingClientRect().top
+        })
+        expect(headerOffsetTop).toBe(before.headerOffsetTop)
     })
 
 test('record-view primitives retain semantics, keyboard behavior, and dialog focus',
