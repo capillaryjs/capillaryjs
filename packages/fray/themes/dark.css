@@ -65,7 +65,7 @@
       border: var(--button-border-disabled);
     }
 
-    :where(input, select, textarea) {
+    :where(input:not([type="checkbox"]), select, textarea) {
       min-height: 2rem;
       padding: 0.25rem 0.5rem;
       color: var(--ui-text-color);
@@ -81,6 +81,18 @@
     :where(button, input, select, textarea):focus-visible {
       outline: 2px solid var(--ui-accent-color);
       outline-offset: 1px;
+    }
+
+    :where(.checkboxshell) {
+      color: var(--ui-text-color);
+      background: var(--ui-input-bg);
+      border: var(--cbx-o-border);
+      border-radius: var(--cbx-border-radius);
+    }
+
+    :where(input[type="checkbox"]:checked + .checkboxshell) {
+      color: #102030;
+      background: var(--ui-accent-color);
     }
   }
 }

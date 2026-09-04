@@ -148,9 +148,23 @@ test('stable controls remain operable through the real browser keyboard model', 
 
     await page.keyboard.press('Tab')
     const archived = page.getByRole('checkbox', {name: /Include archived/})
+    const archivedShell = archived.locator('+ .checkboxshell')
+    await expect(archivedShell).toBeVisible()
+    const shellMetrics = await archivedShell.evaluate((element) => {
+        const style = getComputedStyle(element)
+        return {
+            width: element.getBoundingClientRect().width,
+            height: element.getBoundingClientRect().height,
+            background: style.backgroundColor,
+        }
+    })
+    expect(shellMetrics.width).toBeGreaterThan(0)
+    expect(shellMetrics.height).toBeGreaterThan(0)
+    expect(shellMetrics.background).not.toBe('rgba(0, 0, 0, 0)')
     await expect(archived).toBeFocused()
     await archived.press('Space')
-    await expect(archived).toHaveAttribute('aria-checked', 'true')
+    await expect(archived).toBeChecked()
+    await expect(archivedShell).toHaveText('✓')
 
     await page.keyboard.press('Tab')
     const summary = page.getByRole('tab', {name: 'Summary'})

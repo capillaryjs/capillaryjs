@@ -236,20 +236,27 @@ describe('choice controls', () => {
 
     test('Checkbox variants expose semantic state and keyboard cycling', () => {
         const basic = Checkbox.new({label: 'Basic'}).attachTo(document.body)
-        const control = requiredQuery<HTMLElement>('[role="checkbox"]')
-        assert.equal(requiredQuery('fray-checkbox').dataset.frayComponent, 'checkbox')
+        const control = requiredQuery<HTMLInputElement>('input[type="checkbox"]')
+        assert.equal(requiredQuery('fray-check-box').dataset.frayComponent, 'check-box')
+        assert.equal(control.closest('fray-check-box'), requiredQuery('fray-check-box'))
+        assert.equal(control.nextElementSibling?.className, 'checkboxshell')
+        assert.equal(control.nextElementSibling?.textContent, '☐')
         assert.equal(basic.valueEmitter.get(), FilterMode.Neutral)
-        control.click()
+        control.dispatchEvent(new Event('change', {bubbles: true}))
         assert.equal(basic.valueEmitter.get(), FilterMode.Prefer)
-        assert.equal(control.getAttribute('aria-checked'), 'true')
-        assert.match(control.getAttribute('aria-label') ?? '', /prefer/)
+        assert.equal(control.checked, true)
+        assert.equal(control.nextElementSibling?.textContent, '✓')
+        assert.match((control.closest('fray-check-box') as HTMLElement | null)?.dataset.state ?? '',
+            /prefer/)
+
+        assert.equal(control.closest('label')?.lastElementChild?.textContent, 'Basic')
 
         basic.destroy()
         document.body.replaceChildren()
         const tri = TriCheckbox.new({label: 'Tri'}).attachTo(document.body)
         assert.equal(requiredQuery('fray-tri-checkbox').dataset.frayComponent, 'tri-checkbox')
         assert.equal(tri.valueEmitter.get(), FilterMode.Neutral)
-        requiredQuery<HTMLElement>('[role="checkbox"]').dispatchEvent(
+        requiredQuery<HTMLInputElement>('input[type="checkbox"]').dispatchEvent(
             new KeyboardEvent('keydown', {key: 'ArrowLeft', bubbles: true}),
         )
         assert.equal(tri.valueEmitter.get(), FilterMode.Deny)
@@ -258,9 +265,9 @@ describe('choice controls', () => {
         document.body.replaceChildren()
         const quad = QuadCheckbox.new({label: 'Quad'}).attachTo(document.body)
         assert.equal(requiredQuery('fray-quad-checkbox').dataset.frayComponent, 'quad-checkbox')
-        const quadControl = requiredQuery<HTMLElement>('[role="checkbox"]')
-        quadControl.click()
-        quadControl.click()
+        const quadControl = requiredQuery<HTMLInputElement>('input[type="checkbox"]')
+        quadControl.dispatchEvent(new Event('change', {bubbles: true}))
+        quadControl.dispatchEvent(new Event('change', {bubbles: true}))
         assert.equal(quad.valueEmitter.get(), FilterMode.Require)
     })
 })
@@ -430,11 +437,12 @@ describe('layout controls', () => {
 
         const compact = createFrayRuntime({elementNames: {prefix: null}})
         const compactPanel = compact.create(Panel, {
-            children: [h(Textbox, {label: 'Name'})],
+            children: [h(Textbox, {label: 'Name'}), h(Checkbox, {label: 'Enabled'})],
         })
         compact.mount(compactPanel, document.body)
         assert.ok(document.querySelector('layout-panel'))
         assert.ok(document.querySelector('text-box'))
+        assert.ok(document.querySelector('check-box > label > input[type="checkbox"]'))
         compactPanel.destroy()
     })
 })

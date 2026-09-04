@@ -81,8 +81,6 @@ export class Checkbox<TValue extends CheckboxValue = FilterModeValue>
             label = this.props.value ?? 'Option',
             disabled = false,
             required = false,
-            name,
-            value,
         } = this.props
         const semanticState = this.valueEmitter.get()
         const semanticIndex = this.symbols.findIndex(([, state]) =>
@@ -100,55 +98,98 @@ export class Checkbox<TValue extends CheckboxValue = FilterModeValue>
             data-required={required ? '' : null}
             data-state={stateName}
         >
-            <button
-                type="button"
-                role="checkbox"
-                disabled={disabled}
-                name={name}
-                value={value == null ? undefined : String(value)}
-                aria-checked={checked ? 'true' : 'false'}
-                aria-required={required ? 'true' : null}
-                aria-label={`${label}: ${stateName}`}
-                onClick={(event: MouseEvent) => this.cycleState(1, event)}
-                onKeyDown={(event: KeyboardEvent) => {
-                    if (event.key === 'ArrowRight' || event.key === 'ArrowDown') {
-                        event.preventDefault()
-                        this.cycleState(1, event)
-                    } else if (event.key === 'ArrowLeft' || event.key === 'ArrowUp') {
-                        event.preventDefault()
-                        this.cycleState(-1, event)
-                    }
-                }}
-            >
-                <span className="inputshell" aria-hidden="true">{symbol}</span>
+            <label>
+                <input
+                    type="checkbox"
+                    checked={checked}
+                    disabled={disabled}
+                    required={required}
+                    name={this.props.name}
+                    value={this.props.value == null ? undefined : String(this.props.value)}
+                    data-state={stateName}
+                    aria-label={`${label}: ${stateName}`}
+                    onChange={(event: Event) => this.cycleState(1, event)}
+                    onKeyDown={(event: KeyboardEvent) => {
+                        if (event.key === 'ArrowRight' || event.key === 'ArrowDown') {
+                            event.preventDefault()
+                            this.cycleState(1, event)
+                        } else if (event.key === 'ArrowLeft' || event.key === 'ArrowUp') {
+                            event.preventDefault()
+                            this.cycleState(-1, event)
+                        }
+                    }}
+                />
+                <span className="checkboxshell" aria-hidden="true">{symbol}</span>
                 <span>{label}</span>
-            </button>
+            </label>
         </Host>
     }
 
-    static override hostName = 'checkbox'
+    static override hostName = 'check-box'
     static override standaloneHostName = 'check-box'
 
-    static baseStyles = [
-        ['&', ['inputline']],
-        ['& > [role="checkbox"]', ['input', 'inputline']],
-    ]
-
     static css = css`
-        & > [role="checkbox"] {
+        & {
+            display: inline-block;
+        }
+
+        & > label {
             display: inline-flex;
             align-items: center;
             gap: 0.35em;
-            width: auto;
-            font-family: inherit;
+            cursor: pointer;
         }
 
-        & .inputshell {
+        &[data-disabled] > label {
+            cursor: not-allowed;
+        }
+
+        & input[type="checkbox"] {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0 0 0 0);
+            white-space: nowrap;
+            border: 0;
+            font: inherit;
+            font-size: var(--ui-font-size, inherit);
+        }
+
+        & input[type="checkbox"] + .checkboxshell {
+            position: relative;
             display: inline-grid;
             width: 1em;
             height: 1em;
+            flex: 0 0 1em;
+            overflow: hidden;
+            box-sizing: border-box;
             line-height: 1;
             place-items: center;
+            color: var(--input-color, var(--ui-text-color, currentColor));
+            background: var(--checkbox-box-background, var(--ui-input-bg, transparent));
+            border: var(--checkbox-box-border, var(--cbx-o-border, 1px solid currentColor));
+            border-radius: var(--cbx-border-radius, var(--radius-sm, 0.2rem));
+            font-family: inherit;
+            font-size: 1em;
+            user-select: none;
+        }
+
+        & input[type="checkbox"]:checked + .checkboxshell {
+            color: var(--checkbox-symbol-color, var(--selection-color, currentColor));
+            background: var(--checkbox-box-background-checked,
+                var(--selection-background, var(--ui-accent-color, Highlight)));
+        }
+
+        & input[type="checkbox"]:focus-visible + .checkboxshell {
+            outline: 2px solid var(--focus-color, var(--ui-accent-color, Highlight));
+            outline-offset: 1px;
+        }
+
+        & input[type="checkbox"]:disabled + .checkboxshell {
+            opacity: 0.6;
         }
     `
 }

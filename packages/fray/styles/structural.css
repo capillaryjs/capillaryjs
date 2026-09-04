@@ -54,43 +54,6 @@ fieldset:has(> [data-part="options"]) [role="radio"]:disabled {
   pointer-events: none;
 }
 
-/* inputline */
-fray-checkbox,
-fray-checkbox > [role="checkbox"],
-fray-color-picker,
-fray-color-picker > select,
-fray-dropdown,
-fray-dropdown > select,
-fray-list-view > [role="listbox"] > [role="option"],
-fray-quad-checkbox,
-fray-quad-checkbox > [role="checkbox"],
-fray-textbox,
-fray-textbox > input,
-fray-theme-picker,
-fray-theme-picker > select,
-fray-tri-checkbox,
-fray-tri-checkbox > [role="checkbox"] {
-  display: flex;
-  flex-flow: row nowrap;
-  position: relative;
-  min-height: var(--control-min-height, 2rem);
-  box-sizing: border-box;
-}
-
-/* input */
-fray-checkbox > [role="checkbox"],
-fray-color-picker > select,
-fray-dropdown > select,
-fray-quad-checkbox > [role="checkbox"],
-fray-textbox > input,
-fray-theme-picker > select,
-fray-tri-checkbox > [role="checkbox"] {
-  pointer-events: all;
-  width: var(--input-width, 15rem);
-  box-sizing: border-box;
-  white-space: nowrap;
-}
-
 /* labeledinput */
 fray-color-picker,
 fray-dropdown,
@@ -100,6 +63,34 @@ fray-theme-picker {
   flex-flow: row nowrap;
   align-items: center;
   gap: .5em;
+}
+
+/* inputline */
+fray-color-picker,
+fray-color-picker > select,
+fray-dropdown,
+fray-dropdown > select,
+fray-list-view > [role="listbox"] > [role="option"],
+fray-textbox,
+fray-textbox > input,
+fray-theme-picker,
+fray-theme-picker > select {
+  display: flex;
+  flex-flow: row nowrap;
+  position: relative;
+  min-height: var(--control-min-height, 2rem);
+  box-sizing: border-box;
+}
+
+/* input */
+fray-color-picker > select,
+fray-dropdown > select,
+fray-textbox > input,
+fray-theme-picker > select {
+  pointer-events: all;
+  width: var(--input-width, 15rem);
+  box-sizing: border-box;
+  white-space: nowrap;
 }
 
 /* after */
@@ -146,20 +137,67 @@ button {
             font-family: inherit;
         }
 
-fray-checkbox > [role="checkbox"] {
+fray-check-box {
+            display: inline-block;
+        }
+
+        fray-check-box > label {
             display: inline-flex;
             align-items: center;
             gap: 0.35em;
-            width: auto;
-            font-family: inherit;
+            cursor: pointer;
         }
 
-        fray-checkbox .inputshell {
+        fray-check-box[data-disabled] > label {
+            cursor: not-allowed;
+        }
+
+        fray-check-box input[type="checkbox"] {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0 0 0 0);
+            white-space: nowrap;
+            border: 0;
+            font: inherit;
+            font-size: var(--ui-font-size, inherit);
+        }
+
+        fray-check-box input[type="checkbox"] + .checkboxshell {
+            position: relative;
             display: inline-grid;
             width: 1em;
             height: 1em;
+            flex: 0 0 1em;
+            overflow: hidden;
+            box-sizing: border-box;
             line-height: 1;
             place-items: center;
+            color: var(--input-color, var(--ui-text-color, currentColor));
+            background: var(--checkbox-box-background, var(--ui-input-bg, transparent));
+            border: var(--checkbox-box-border, var(--cbx-o-border, 1px solid currentColor));
+            border-radius: var(--cbx-border-radius, var(--radius-sm, 0.2rem));
+            font-family: inherit;
+            font-size: 1em;
+            user-select: none;
+        }
+
+        fray-check-box input[type="checkbox"]:checked + .checkboxshell {
+            color: var(--checkbox-symbol-color, var(--selection-color, currentColor));
+            background: var(--checkbox-box-background-checked,
+                var(--selection-background, var(--ui-accent-color, Highlight)));
+        }
+
+        fray-check-box input[type="checkbox"]:focus-visible + .checkboxshell {
+            outline: 2px solid var(--focus-color, var(--ui-accent-color, Highlight));
+            outline-offset: 1px;
+        }
+
+        fray-check-box input[type="checkbox"]:disabled + .checkboxshell {
+            opacity: 0.6;
         }
 
 fray-color-picker {
@@ -377,20 +415,67 @@ fray-progress-bar {
             }
         }
 
-fray-quad-checkbox > [role="checkbox"] {
+fray-quad-checkbox {
+            display: inline-block;
+        }
+
+        fray-quad-checkbox > label {
             display: inline-flex;
             align-items: center;
             gap: 0.35em;
-            width: auto;
-            font-family: inherit;
+            cursor: pointer;
         }
 
-        fray-quad-checkbox .inputshell {
+        fray-quad-checkbox[data-disabled] > label {
+            cursor: not-allowed;
+        }
+
+        fray-quad-checkbox input[type="checkbox"] {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0 0 0 0);
+            white-space: nowrap;
+            border: 0;
+            font: inherit;
+            font-size: var(--ui-font-size, inherit);
+        }
+
+        fray-quad-checkbox input[type="checkbox"] + .checkboxshell {
+            position: relative;
             display: inline-grid;
             width: 1em;
             height: 1em;
+            flex: 0 0 1em;
+            overflow: hidden;
+            box-sizing: border-box;
             line-height: 1;
             place-items: center;
+            color: var(--input-color, var(--ui-text-color, currentColor));
+            background: var(--checkbox-box-background, var(--ui-input-bg, transparent));
+            border: var(--checkbox-box-border, var(--cbx-o-border, 1px solid currentColor));
+            border-radius: var(--cbx-border-radius, var(--radius-sm, 0.2rem));
+            font-family: inherit;
+            font-size: 1em;
+            user-select: none;
+        }
+
+        fray-quad-checkbox input[type="checkbox"]:checked + .checkboxshell {
+            color: var(--checkbox-symbol-color, var(--selection-color, currentColor));
+            background: var(--checkbox-box-background-checked,
+                var(--selection-background, var(--ui-accent-color, Highlight)));
+        }
+
+        fray-quad-checkbox input[type="checkbox"]:focus-visible + .checkboxshell {
+            outline: 2px solid var(--focus-color, var(--ui-accent-color, Highlight));
+            outline-offset: 1px;
+        }
+
+        fray-quad-checkbox input[type="checkbox"]:disabled + .checkboxshell {
+            opacity: 0.6;
         }
 
 aside {
@@ -564,18 +649,65 @@ fray-tree-view {
             }
         }
 
-fray-tri-checkbox > [role="checkbox"] {
+fray-tri-checkbox {
+            display: inline-block;
+        }
+
+        fray-tri-checkbox > label {
             display: inline-flex;
             align-items: center;
             gap: 0.35em;
-            width: auto;
-            font-family: inherit;
+            cursor: pointer;
         }
 
-        fray-tri-checkbox .inputshell {
+        fray-tri-checkbox[data-disabled] > label {
+            cursor: not-allowed;
+        }
+
+        fray-tri-checkbox input[type="checkbox"] {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0 0 0 0);
+            white-space: nowrap;
+            border: 0;
+            font: inherit;
+            font-size: var(--ui-font-size, inherit);
+        }
+
+        fray-tri-checkbox input[type="checkbox"] + .checkboxshell {
+            position: relative;
             display: inline-grid;
             width: 1em;
             height: 1em;
+            flex: 0 0 1em;
+            overflow: hidden;
+            box-sizing: border-box;
             line-height: 1;
             place-items: center;
+            color: var(--input-color, var(--ui-text-color, currentColor));
+            background: var(--checkbox-box-background, var(--ui-input-bg, transparent));
+            border: var(--checkbox-box-border, var(--cbx-o-border, 1px solid currentColor));
+            border-radius: var(--cbx-border-radius, var(--radius-sm, 0.2rem));
+            font-family: inherit;
+            font-size: 1em;
+            user-select: none;
+        }
+
+        fray-tri-checkbox input[type="checkbox"]:checked + .checkboxshell {
+            color: var(--checkbox-symbol-color, var(--selection-color, currentColor));
+            background: var(--checkbox-box-background-checked,
+                var(--selection-background, var(--ui-accent-color, Highlight)));
+        }
+
+        fray-tri-checkbox input[type="checkbox"]:focus-visible + .checkboxshell {
+            outline: 2px solid var(--focus-color, var(--ui-accent-color, Highlight));
+            outline-offset: 1px;
+        }
+
+        fray-tri-checkbox input[type="checkbox"]:disabled + .checkboxshell {
+            opacity: 0.6;
         }

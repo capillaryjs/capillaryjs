@@ -6,6 +6,7 @@ import {Window} from 'happy-dom'
 
 import {
     Button,
+    Checkbox,
     Component,
     Textbox,
     createFrayRuntime,
@@ -57,6 +58,21 @@ describe('style registry', () => {
             () => styleRegistry.registerBaseStyle('.example', 'not-a-style'),
             /Unknown Fray base style/,
         )
+    })
+
+    test('keeps checkbox controls separate from generic input and button traits', () => {
+        const runtime = createFrayRuntime()
+        runtime.registerStyles(Checkbox)
+        const stylesheet = runtime.styleRegistry.generateCSS()
+
+        assert.match(stylesheet, /fray-check-box\s*\{[^}]*display:\s*inline-block/)
+        assert.match(stylesheet, /fray-check-box > label\s*\{[^}]*display:\s*inline-flex/)
+        assert.match(stylesheet, /input\[type="checkbox"\] \+ \.checkboxshell/)
+        assert.match(stylesheet, /\.checkboxshell\s*\{[^}]*background:\s*var\(--checkbox-box-background/)
+        assert.match(stylesheet,
+            /input\[type="checkbox"\]:checked \+ \.checkboxshell\s*\{[^}]*background:/)
+        assert.doesNotMatch(stylesheet,
+            /fray-check-box\s*\{[^}]*width:var\(--input-width, 15rem\)/)
     })
 
     test('contains only semantic styles used by supported components', () => {
@@ -213,7 +229,7 @@ describe('supported theme bundles', () => {
             assert.match(css, /@scope/)
             for (const trait of ['buttonlike', 'inputlike', 'datacomponentlike',
                 'headerlike', 'coloredlike', 'panellike', 'toolbarlike',
-                'buttonshell', 'buttoninner', 'inputshell', 'inputinner',
+                'buttonshell', 'buttoninner', 'checkboxshell', 'inputshell', 'inputinner',
                 'datacomponentshell', 'datacomponentinner', 'headershell',
                 'headerinner', 'panelshell', 'panelinner', 'toolbarshell',
                 'toolbarinner', 'coloredshell', 'coloredinner', 'selectshell']) {

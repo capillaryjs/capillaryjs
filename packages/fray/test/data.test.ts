@@ -427,16 +427,13 @@ describe('stable data components', () => {
         }).attachTo(document.body)
 
         requiredQuery<HTMLButtonElement>('button[aria-label="Filter Department"]').click()
-        const checkbox = requiredQuery<HTMLElement>('[role="checkbox"]')
+        const checkbox = requiredQuery<HTMLInputElement>('input[type="checkbox"]')
         checkbox.focus()
         checkbox.click()
         assert.deepEqual(table.filtersEmitter.get(), {
             department: [['Ops', FilterMode.Prefer]],
         })
-        assert.match(
-            requiredQuery<HTMLElement>('[role="checkbox"]').getAttribute('aria-label') ?? '',
-            /prefer/,
-        )
+        assert.match(checkbox.closest('[data-state]')?.getAttribute('data-state') ?? '', /prefer/)
 
         data.set([
             {id: 1, name: 'New Ada', department: 'R&D'},
@@ -448,7 +445,7 @@ describe('stable data components', () => {
             department: [['Ops', FilterMode.Prefer]],
         })
         assert.equal(document.querySelector('[role="group"]') != null, true)
-        assert.equal(requiredQuery<HTMLElement>('[role="checkbox"]'), checkbox)
+        assert.equal(requiredQuery<HTMLInputElement>('input[type="checkbox"]'), checkbox)
         assert.equal(document.activeElement, checkbox)
         assert.deepEqual(
             [...document.querySelectorAll<HTMLTableRowElement>('tbody tr')]
@@ -516,9 +513,9 @@ describe('stable data components', () => {
         }).attachTo(document.body)
 
         assert.equal(requiredQuery('fray-filter-panel').dataset.frayComponent, 'filter-panel')
-        assert.equal(document.querySelectorAll('[role="checkbox"]').length, 2)
-        requiredQuery('[role="checkbox"]')
-            .dispatchEvent(new MouseEvent('click', {bubbles: true}))
+        assert.equal(document.querySelectorAll('input[type="checkbox"]').length, 2)
+        requiredQuery('input[type="checkbox"]')
+            .dispatchEvent(new Event('change', {bubbles: true}))
         assert.equal(nextFilters?.get('Ops'), FilterMode.Prefer)
     })
 

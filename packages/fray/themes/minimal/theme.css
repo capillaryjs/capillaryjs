@@ -192,7 +192,7 @@
       background: var(--button-background);
     }
 
-    :where(input, select, textarea, .inputlike) {
+    :where(input:not([type="checkbox"]), select, textarea, .inputlike) {
       min-height: var(--control-min-height);
       padding: var(--space-xs) var(--space-sm);
       color: var(--input-color);
@@ -204,7 +204,7 @@
       font: inherit;
     }
 
-    :where(input, select, textarea, .inputlike):disabled,
+    :where(input:not([type="checkbox"]), select, textarea, .inputlike):disabled,
     :where(.inputlike[aria-disabled="true"]) {
       color: var(--input-color-disabled);
       background: var(--input-background-disabled);
@@ -217,6 +217,18 @@
       border: var(--input-border);
       border-radius: var(--radius-sm);
       box-shadow: var(--input-shadow);
+    }
+
+    :where(.checkboxshell) {
+      color: var(--input-color);
+      background: var(--checkbox-box-background);
+      border: var(--checkbox-box-border);
+      border-radius: var(--radius-sm);
+    }
+
+    :where(input[type="checkbox"]:checked + .checkboxshell) {
+      color: var(--checkbox-symbol-color);
+      background: var(--checkbox-box-background-checked);
     }
 
     :where([role="checkbox"][aria-checked="true"] .inputshell) {
