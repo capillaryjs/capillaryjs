@@ -2,7 +2,7 @@
   "type": "module",
   "name": "@sylwellsoftware/fray",
   "private": false,
-  "version": "0.6.0",
+  "version": "0.7.0",
   "description": "Browser-only TypeScript component runtime, JSX controls, and semantic themes.",
   "license": "Apache-2.0",
   "author": {
@@ -74,7 +74,7 @@
     "dev": "vite"
   },
   "peerDependencies": {
-    "@sylwellsoftware/glue": "^0.6.0"
+    "@sylwellsoftware/glue": "^0.7.0"
   },
   "devDependencies": {
     "@sylwellsoftware/glue": "workspace:^",

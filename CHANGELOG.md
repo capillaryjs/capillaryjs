@@ -6,6 +6,8 @@ Versioning.
 
 ## Unreleased
 
+## 0.7.0 - 2026-09-04
+
 ### Added
 
 - Contextually discovered hierarchical browser routing with immutable literal
