@@ -2,7 +2,7 @@
   "type": "module",
   "name": "@sylwellsoftware/fray-visualization",
   "private": false,
-  "version": "0.5.0",
+  "version": "0.6.0",
   "description": "Reactive analytical controls, block mosaics, and history charts for Fray applications.",
   "license": "Apache-2.0",
   "author": {
@@ -59,8 +59,8 @@
     "watch": "vite build --watch"
   },
   "peerDependencies": {
-    "@sylwellsoftware/fray": "^0.5.0",
-    "@sylwellsoftware/glue": "^0.5.0"
+    "@sylwellsoftware/fray": "^0.6.0",
+    "@sylwellsoftware/glue": "^0.6.0"
   },
   "devDependencies": {
     "@sylwellsoftware/fray": "^0.4.0",

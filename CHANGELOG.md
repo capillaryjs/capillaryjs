@@ -6,6 +6,8 @@ Versioning.
 
 ## Unreleased
 
+## 0.6.0 - 2026-09-04
+
 ### Added
 
 - Prefix-free public theme traits for complete and split custom-component
