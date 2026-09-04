@@ -71,6 +71,7 @@ export class LineGraph extends Component<LineGraphProps> {
         const formatDate = this.props.formatDate ?? ((date: CivilDate) => date)
         const formatValue = this.props.formatValue ?? ((value: number) => String(value))
         return <section
+            className={`datacomponentlike ${this.props.className ?? this.props.class ?? ''}`.trim()}
             data-fray-visualization="line-graph"
             aria-label={label}
             aria-busy={state !== FetchState.Ready ? 'true' : null}
@@ -87,6 +88,7 @@ export class LineGraph extends Component<LineGraphProps> {
                     : shapes.value.length === 0
                         ? <p role="status">{this.props.emptyMessage ?? 'No history values are available.'}</p>
                         : <div
+                            className="datacomponentshell"
                             data-part="chart"
                             tabIndex={0}
                             role="group"
@@ -99,9 +101,10 @@ export class LineGraph extends Component<LineGraphProps> {
                 <p aria-live="polite"><strong>{formatDate(activeDate)}</strong></p>
                 <ul>{model.series.map(({shape}) => <li key={shape.key}>
                     <span
+                        className="coloredlike"
                         data-part="swatch"
                         data-color-key={shape.colorKey}
-                        style={{background: shape.color}}
+                        style={{'--colored-base': shape.color}}
                         aria-hidden="true"
                     />
                     <span>{shape.label}</span>
@@ -131,11 +134,9 @@ export class LineGraph extends Component<LineGraphProps> {
         section[data-fray-visualization="line-graph"] {
             display: flex;
             min-width: 0;
-            min-height: var(--fray-viz-line-graph-min-height, 24rem);
+            min-height: var(--viz-line-graph-min-height, 24rem);
             flex-direction: column;
-            padding: var(--fray-viz-space, 0.7rem);
-            color: var(--fray-viz-color, var(--fray-ui-color, var(--ui-text-color)));
-            background: var(--fray-viz-panel-background, var(--panel-bg));
+            padding: var(--viz-space, 0.7rem);
         }
 
         section[data-fray-visualization="line-graph"] h2,
@@ -149,9 +150,6 @@ export class LineGraph extends Component<LineGraphProps> {
             min-height: 20rem;
             margin-block: 0.6rem;
             overflow: auto;
-            border: 1px solid var(--fray-viz-border-color, var(--ui-border-color));
-            border-radius: var(--fray-viz-radius, var(--ui-border-radius));
-            background: var(--fray-viz-chart-background, var(--panel-bg));
         }
 
         section[data-fray-visualization="line-graph"] svg {
@@ -162,13 +160,13 @@ export class LineGraph extends Component<LineGraphProps> {
         }
 
         section[data-fray-visualization="line-graph"] [data-part="grid"] {
-            stroke: var(--fray-viz-grid-color, var(--ui-border-color));
+            stroke: var(--viz-grid-color, var(--ui-border-color));
             stroke-width: 1;
             vector-effect: non-scaling-stroke;
         }
 
         section[data-fray-visualization="line-graph"] [data-part="axis-label"] {
-            fill: var(--fray-viz-color, var(--ui-text-color));
+            fill: var(--viz-color, var(--ui-text-color));
             font: 12px system-ui, sans-serif;
         }
 
@@ -181,11 +179,11 @@ export class LineGraph extends Component<LineGraphProps> {
         }
 
         section[data-fray-visualization="line-graph"] [data-part="series-area"] {
-            opacity: var(--fray-viz-area-opacity, 0.25);
+            opacity: var(--viz-area-opacity, 0.25);
         }
 
         section[data-fray-visualization="line-graph"] [data-part="cursor"] {
-            stroke: var(--fray-viz-cursor-color, var(--ui-text-color));
+            stroke: var(--viz-cursor-color, var(--ui-text-color));
             stroke-width: 2;
             stroke-dasharray: 4 3;
             vector-effect: non-scaling-stroke;
@@ -193,7 +191,7 @@ export class LineGraph extends Component<LineGraphProps> {
 
         section[data-fray-visualization="line-graph"] [data-part="readout"] {
             padding-block-start: 0.4rem;
-            border-block-start: 1px solid var(--fray-viz-border-color, var(--ui-border-color));
+            border-block-start: 1px solid var(--viz-border-color, var(--ui-border-color));
         }
 
         section[data-fray-visualization="line-graph"] [data-part="readout"] ul {
@@ -213,7 +211,6 @@ export class LineGraph extends Component<LineGraphProps> {
         section[data-fray-visualization="line-graph"] [data-part="swatch"] {
             width: 0.8rem;
             height: 0.8rem;
-            border: 1px solid var(--fray-viz-border-color, var(--ui-border-color));
             border-radius: 50%;
         }
 

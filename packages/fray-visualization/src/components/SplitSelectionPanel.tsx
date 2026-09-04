@@ -37,7 +37,11 @@ extends Component<SplitSelectionPanelProps<TItem>> {
         const active = this.read(model.activeSplits$)
         const activeKeys = new Set(active.map(({key}) => key))
         const activePreset = this.read(model.activePreset$)
-        return <section data-fray-visualization="split-selection-panel" aria-label={label}>
+        return <section
+            className={`datacomponentlike ${this.props.className ?? this.props.class ?? ''}`.trim()}
+            data-fray-visualization="split-selection-panel"
+            aria-label={label}
+        >
             <header>
                 <h2>{label}</h2>
                 <p>{description}</p>
@@ -55,6 +59,7 @@ extends Component<SplitSelectionPanelProps<TItem>> {
             </div>}
             <ol>{order.map((criterion, index) => <li
                 key={criterion.key}
+                className="datacomponentshell"
                 data-split-key={criterion.key}
                 data-active={activeKeys.has(criterion.key) ? '' : null}
                 data-dragging={this.draggingKey === criterion.key ? '' : null}
@@ -90,7 +95,7 @@ extends Component<SplitSelectionPanelProps<TItem>> {
                     valueEmitter={model.activeState(criterion.key)}
                 />
             </li>)}</ol>
-            <p data-part="announcement" aria-live="polite" aria-atomic="true">
+            <p role="status" aria-live="polite" aria-atomic="true">
                 {this.announcement}
             </p>
         </section>
@@ -102,7 +107,7 @@ extends Component<SplitSelectionPanelProps<TItem>> {
         section[data-fray-visualization="split-selection-panel"] {
             display: grid;
             align-content: start;
-            gap: var(--fray-viz-space, 0.6rem);
+            gap: var(--viz-space, 0.6rem);
             min-width: 0;
         }
 
@@ -113,7 +118,7 @@ extends Component<SplitSelectionPanelProps<TItem>> {
         }
 
         section[data-fray-visualization="split-selection-panel"] header > p {
-            color: var(--fray-viz-muted-color, var(--ui-muted-text-color, currentColor));
+            color: var(--viz-muted-color, var(--ui-muted-text-color, currentColor));
             font-size: 0.875em;
         }
 
@@ -138,24 +143,21 @@ extends Component<SplitSelectionPanelProps<TItem>> {
             min-width: 0;
             min-height: 2.25rem;
             padding: 0.25rem;
-            border: 1px solid var(--fray-viz-border-color, var(--ui-border-color));
-            border-radius: var(--fray-viz-radius, var(--ui-border-radius));
-            background: var(--fray-viz-panel-background, var(--panel-bg));
         }
 
         section[data-fray-visualization="split-selection-panel"] li:not([data-active]) {
-            color: var(--fray-viz-muted-color, var(--ui-muted-text-color, currentColor));
+            color: var(--viz-muted-color, var(--ui-muted-text-color, currentColor));
         }
 
         section[data-fray-visualization="split-selection-panel"] li[data-dragging] {
-            outline: 2px solid var(--fray-color-focus, var(--ui-accent-color));
+            outline: 2px solid var(--focus-color, var(--ui-accent-color));
         }
 
         section[data-fray-visualization="split-selection-panel"] [data-part="drag-handle"] {
             width: 2rem;
             min-height: 2rem;
-            border: 1px solid var(--fray-viz-border-color, var(--ui-border-color));
-            border-radius: var(--fray-viz-radius, var(--ui-border-radius));
+            border: 1px solid var(--viz-border-color, var(--ui-border-color));
+            border-radius: var(--viz-radius, var(--ui-border-radius));
             color: inherit;
             background: transparent;
             cursor: grab;
@@ -169,14 +171,15 @@ extends Component<SplitSelectionPanelProps<TItem>> {
         }
 
         section[data-fray-visualization="split-selection-panel"]
-        [data-fray-component="checkbox"],
+        li > :has(> [role="checkbox"]),
         section[data-fray-visualization="split-selection-panel"]
-        [data-fray-component="checkbox"] > [data-part="control"] {
+        [role="checkbox"] {
             width: 100%;
             justify-content: flex-start;
         }
 
-        section[data-fray-visualization="split-selection-panel"] [data-part="announcement"] {
+        section[data-fray-visualization="split-selection-panel"]
+        > p[role="status"][aria-live="polite"][aria-atomic="true"] {
             position: absolute;
             width: 1px;
             height: 1px;

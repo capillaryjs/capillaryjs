@@ -1,5 +1,7 @@
 import assert from 'node:assert/strict'
+import {readFile} from 'node:fs/promises'
 import {after, afterEach, before, describe, test} from 'node:test'
+import {fileURLToPath} from 'node:url'
 import {Window} from 'happy-dom'
 
 import {Emitter, FetchState} from '@sylwellsoftware/glue'
@@ -71,6 +73,18 @@ const itemsValue: readonly Item[] = [
     {id: 3, state: 'closed', tags: []},
 ]
 
+test('generated structural CSS keeps visualization diagnostics out of theme semantics', async () => {
+    const css = await readFile(fileURLToPath(
+        new URL('../styles/structural.css', import.meta.url),
+    ), 'utf8')
+    assert.match(css, /data-fray-visualization/)
+    assert.match(css, /\[role="treeitem"\]/)
+    assert.match(css, /\.coloredinner/)
+    assert.doesNotMatch(css, /data-fray-component/)
+    assert.doesNotMatch(css, /#[0-9a-f]{3,8}\b/i)
+    assert.doesNotMatch(css, /^\s*--palette-[a-z0-9-]+\s*:/m)
+})
+
 describe('visualization controls', () => {
     test('CategoryHidePanel uses Fray checkboxes and unfiltered live counts', () => {
         const items = new Emitter<readonly Item[]>(itemsValue)
@@ -78,6 +92,9 @@ describe('visualization controls', () => {
         const panel = new CategoryHidePanel({items$: items, criteria: [criterion]})
         panel.mount(document.body)
 
+        assert.equal(required('section[data-fray-visualization="category-hide-panel"]').className,
+            'datacomponentlike')
+        assert.equal(required('details').className, 'datacomponentshell')
         const checkboxes = [...document.querySelectorAll<HTMLElement>('[role="checkbox"]')]
         assert.equal(checkboxes.length, 2)
         assert.match(checkboxes[0]?.getAttribute('aria-label') ?? '', /Open \(2\): visible/)
@@ -115,6 +132,9 @@ describe('visualization controls', () => {
         const panel = new SplitSelectionPanel({model})
         panel.mount(document.body)
 
+        assert.equal(required('section[data-fray-visualization="split-selection-panel"]').className,
+            'datacomponentlike')
+        assert.ok(required('[data-split-key="state"]').classList.contains('datacomponentshell'))
         const tagsHandle = required<HTMLElement>('[aria-label="Reorder Tags"]')
         tagsHandle.focus()
         tagsHandle.dispatchEvent(new KeyboardEvent('keydown', {
@@ -170,8 +190,13 @@ describe('BlockGraph', () => {
         const graph = new BlockGraph({model: selection, label: 'Finding blocks'})
         graph.mount(document.body)
 
+        assert.equal(required('section[data-fray-visualization="block-graph"]').className,
+            'datacomponentlike')
+        assert.ok(required('[data-part="scroller"]').classList.contains('datacomponentshell'))
         const blocks = [...document.querySelectorAll<HTMLElement>('[role="treeitem"]')]
         assert.equal(blocks.length, 2)
+        assert.ok(blocks.every((block) => block.classList.contains('coloredlike')))
+        assert.ok(required('[role="treeitem"] > .coloredinner').classList.contains('coloredinner'))
         assert.match(blocks[0]?.getAttribute('aria-label') ?? '', /Open, 2 items/)
         blocks[0]?.dispatchEvent(new KeyboardEvent('keydown', {key: 'Enter', bubbles: true}))
         assert.deepEqual(selection.selectedItems$.get().map(({id}) => id), [1, 2])
@@ -241,6 +266,10 @@ describe('LineGraph', () => {
         })
         graph.mount(document.body)
 
+        assert.equal(required('section[data-fray-visualization="line-graph"]').className,
+            'datacomponentlike')
+        assert.ok(required('[data-part="chart"]').classList.contains('datacomponentshell'))
+        assert.ok(required('[data-part="swatch"]').classList.contains('coloredlike'))
         assert.equal(document.querySelectorAll('[data-part="series-line"]').length, 2)
         assert.equal(document.querySelectorAll('[data-part="series-area"]').length, 0)
         assert.match(required('[data-part="readout"]').textContent ?? '', /2026-01-05/)

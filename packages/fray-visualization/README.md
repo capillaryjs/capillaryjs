@@ -108,8 +108,18 @@ jump to range bounds, and Escape clears the pinned cursor.
 
 ## Styling boundary
 
-The package provides layout and stable `data-fray-visualization`/`data-part`
-hooks. Applications own look-and-feel through Fray themes and semantic CSS
-variables such as `--fray-viz-panel-background`, `--fray-viz-border-color`,
-`--fray-viz-grid-color`, and category/series color values. Forced-colors mode
-remains usable without relying on color alone.
+The package keeps `data-fray-visualization` as a package-owned structural root
+discriminator and diagnostic label. It lets component-local structural CSS
+distinguish the four native `section` roots without an identity class, a custom
+host wrapper, or a brittle descendant-shape selector. It is not a theme hook.
+`data-part` remains only for chart geometry, scrolling, SVG drawing, and
+interaction mechanics. Themes do not select either attribute. Visualization
+roots opt into `datacomponentlike`; independently framed regions use
+`datacomponentshell`; blocks and legend swatches use `coloredlike`, with block
+labels using `coloredinner`.
+
+Category and series colors feed `--colored-light`, `--colored-base`,
+`--colored-dark`, and `--colored-contrast`. Missing block colors therefore
+default to the active theme's primary palette. Layout still exposes narrow
+`--viz-*` sizing and drawing inputs where no ordinary theme trait applies.
+Forced-colors mode remains usable without relying on color alone.

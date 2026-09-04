@@ -30,6 +30,7 @@ export class BlockGraph<TItem = unknown> extends Component<BlockGraphProps<TItem
             : layout.root.children
         const firstKey = nodes[0]?.key
         return <section
+            className={`datacomponentlike ${this.props.className ?? this.props.class ?? ''}`.trim()}
             data-fray-visualization="block-graph"
             aria-label={label}
             aria-busy={layoutSnapshot.fetchState !== FetchState.Ready ? 'true' : null}
@@ -38,7 +39,7 @@ export class BlockGraph<TItem = unknown> extends Component<BlockGraphProps<TItem
                 <div>
                     <h2>{label}</h2>
                     <p>{description} {layout.root.count} items.</p>
-                    <p data-part="selection">
+                    <output>
                         <strong>Selection:</strong>{' '}
                         {selected == null ? 'None' : selected.path.length === 0
                             ? selected.label
@@ -46,11 +47,10 @@ export class BlockGraph<TItem = unknown> extends Component<BlockGraphProps<TItem
                                 const path = selected.path.slice(0, index + 1)
                                 return findBlock(layout.root, path)?.label ?? segment.categoryKey
                             }).join(' → ')}
-                    </p>
+                    </output>
                 </div>
                 <button
                     type="button"
-                    data-part="clear-selection"
                     disabled={selectedPath == null}
                     onClick={() => model.clear()}
                 >Clear selection</button>
@@ -62,13 +62,13 @@ export class BlockGraph<TItem = unknown> extends Component<BlockGraphProps<TItem
                     : !layout.valid
                         ? this.renderPartitionError(layout.issues)
                         : layout.root.count === 0
-                            ? <p role="status" data-part="empty">{emptyMessage}</p>
+                            ? <p role="status">{emptyMessage}</p>
                             : <div
+                                className="datacomponentshell"
                                 data-part="scroller"
                                 tabIndex={0}
                                 aria-label={`Scrollable ${label}`}
                             ><div
-                                data-part="mosaic"
                                 role="tree"
                                 aria-label={label}
                                 data-orientation={layout.root.childOrientation}
@@ -87,12 +87,10 @@ export class BlockGraph<TItem = unknown> extends Component<BlockGraphProps<TItem
         section[data-fray-visualization="block-graph"] {
             display: flex;
             min-width: 0;
-            min-height: var(--fray-viz-block-graph-min-height, 24rem);
+            min-height: var(--viz-block-graph-min-height, 24rem);
             flex-direction: column;
-            padding: var(--fray-viz-space, 0.7rem);
+            padding: var(--viz-space, 0.7rem);
             overflow: hidden;
-            color: var(--fray-viz-color, var(--fray-ui-color, var(--ui-text-color)));
-            background: var(--fray-viz-panel-background, var(--panel-bg));
         }
 
         section[data-fray-visualization="block-graph"] > header {
@@ -109,7 +107,8 @@ export class BlockGraph<TItem = unknown> extends Component<BlockGraphProps<TItem
             margin: 0;
         }
 
-        section[data-fray-visualization="block-graph"] [data-part="selection"] {
+        section[data-fray-visualization="block-graph"] header output {
+            display: block;
             margin-block-start: 0.25rem;
         }
 
@@ -118,19 +117,17 @@ export class BlockGraph<TItem = unknown> extends Component<BlockGraphProps<TItem
             min-width: 0;
             min-height: 20rem;
             overflow: auto;
-            border: 1px solid var(--fray-viz-border-color, var(--ui-border-color));
-            border-radius: var(--fray-viz-radius, var(--ui-border-radius));
         }
 
-        section[data-fray-visualization="block-graph"] [data-part="mosaic"],
-        section[data-fray-visualization="block-graph"] [data-part="children"] {
+        section[data-fray-visualization="block-graph"] [role="tree"],
+        section[data-fray-visualization="block-graph"] [role="group"] {
             display: flex;
             min-width: 0;
             min-height: 0;
             align-items: stretch;
         }
 
-        section[data-fray-visualization="block-graph"] [data-part="mosaic"] {
+        section[data-fray-visualization="block-graph"] [role="tree"] {
             width: 100%;
             min-width: 34rem;
             height: 100%;
@@ -145,7 +142,7 @@ export class BlockGraph<TItem = unknown> extends Component<BlockGraphProps<TItem
             flex-direction: column;
         }
 
-        section[data-fray-visualization="block-graph"] [data-part="block"] {
+        section[data-fray-visualization="block-graph"] [role="treeitem"] {
             position: relative;
             display: flex;
             min-width: 0;
@@ -153,17 +150,9 @@ export class BlockGraph<TItem = unknown> extends Component<BlockGraphProps<TItem
             flex-basis: 0;
             flex-direction: column;
             overflow: hidden;
-            color: var(--fray-viz-block-color, #fff);
-            background: linear-gradient(
-                135deg,
-                var(--fray-viz-color-1, #31516f),
-                var(--fray-viz-color-2, #426f98) 55%,
-                var(--fray-viz-color-3, #24415c)
-            );
-            border: 1px solid color-mix(in srgb, currentColor 45%, transparent);
         }
 
-        section[data-fray-visualization="block-graph"] [data-part="block-label"] {
+        section[data-fray-visualization="block-graph"] [role="treeitem"] > .coloredinner {
             z-index: 1;
             display: grid;
             grid-template-columns: minmax(0, 1fr) auto;
@@ -173,27 +162,24 @@ export class BlockGraph<TItem = unknown> extends Component<BlockGraphProps<TItem
             min-height: 2.5rem;
             padding: 0.25rem 0.4rem;
             overflow: hidden;
-            color: inherit;
             text-align: start;
             border: 0;
-            border-block-end: 1px solid color-mix(in srgb, currentColor 45%, transparent);
-            background: color-mix(in srgb, #000 24%, transparent);
             cursor: pointer;
         }
 
         section[data-fray-visualization="block-graph"]
-        [data-part="block"][aria-selected="true"] > [data-part="block-label"] {
-            outline: 3px solid var(--fray-viz-selection-color, #fff);
+        [role="treeitem"][aria-selected="true"] > .coloredinner {
+            outline: 3px solid var(--viz-selection-color, var(--colored-contrast, Highlight));
             outline-offset: -3px;
         }
 
-        section[data-fray-visualization="block-graph"] [data-part="block"]:focus {
+        section[data-fray-visualization="block-graph"] [role="treeitem"]:focus {
             z-index: 2;
-            outline: 3px solid var(--fray-viz-focus-color, Highlight);
+            outline: 3px solid var(--viz-focus-color, Highlight);
             outline-offset: -3px;
         }
 
-        section[data-fray-visualization="block-graph"] [data-part="criterion"] {
+        section[data-fray-visualization="block-graph"] .coloredinner > small {
             grid-area: criterion;
             overflow: hidden;
             font-size: 0.68rem;
@@ -202,37 +188,32 @@ export class BlockGraph<TItem = unknown> extends Component<BlockGraphProps<TItem
             white-space: nowrap;
         }
 
-        section[data-fray-visualization="block-graph"] [data-part="label"] {
+        section[data-fray-visualization="block-graph"] .coloredinner > strong {
             grid-area: label;
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
         }
 
-        section[data-fray-visualization="block-graph"] [data-part="count"] {
+        section[data-fray-visualization="block-graph"] .coloredinner > data {
             grid-area: count;
             align-self: center;
             font-weight: 750;
         }
 
-        section[data-fray-visualization="block-graph"] [data-part="children"] {
+        section[data-fray-visualization="block-graph"] [role="group"] {
             flex: 1;
         }
 
-        section[data-fray-visualization="block-graph"] [data-part="partition-error"] {
-            padding: 0.75rem;
-            border: 2px solid var(--fray-color-error, var(--error-color));
-        }
-
         @media (forced-colors: active) {
-            section[data-fray-visualization="block-graph"] [data-part="block"] {
+            section[data-fray-visualization="block-graph"] [role="treeitem"] {
                 color: CanvasText;
                 background: Canvas;
                 border-color: CanvasText;
                 forced-color-adjust: auto;
             }
 
-            section[data-fray-visualization="block-graph"] [data-part="block-label"] {
+            section[data-fray-visualization="block-graph"] [role="treeitem"] > .coloredinner {
                 color: ButtonText;
                 background: ButtonFace;
             }
@@ -245,15 +226,15 @@ export class BlockGraph<TItem = unknown> extends Component<BlockGraphProps<TItem
         tabbableKey: string | null,
     ): FrayChild {
         const selected = pathsEqual(node.path, selectedPath)
-        const colors = node.colors ?? ['#31516f', '#426f98', '#24415c']
+        const colors = node.colors
         return <article
+            className="coloredlike"
             key={node.key}
             role="treeitem"
             tabIndex={(selected || (selectedPath == null && node.key === tabbableKey)) ? 0 : -1}
             aria-level={Math.max(1, node.depth + 1)}
             aria-selected={selected ? 'true' : 'false'}
             aria-label={`${node.criterionLabel ?? 'Items'}: ${node.label}, ${node.count} ${node.count === 1 ? 'item' : 'items'}`}
-            data-part="block"
             data-block-key={node.key}
             data-count={node.count}
             data-depth={node.depth}
@@ -267,22 +248,22 @@ export class BlockGraph<TItem = unknown> extends Component<BlockGraphProps<TItem
             onKeyDown={(event: KeyboardEvent) => this.blockKeyDown(event, node)}
             style={{
                 flexGrow: node.count,
-                '--fray-viz-color-1': colors[0],
-                '--fray-viz-color-2': colors[1],
-                '--fray-viz-color-3': colors[2],
+                ...(colors == null ? {} : {
+                    '--colored-light': colors[0],
+                    '--colored-base': colors[1],
+                    '--colored-dark': colors[2],
+                }),
             }}
         >
             <div
-                data-part="block-label"
-                data-block-key={node.key}
+                className="coloredinner"
             >
-                <span data-part="criterion">{node.criterionLabel ?? 'Items'}</span>
-                <strong data-part="label">{node.label}</strong>
-                <span data-part="count">{node.count}</span>
+                <small>{node.criterionLabel ?? 'Items'}</small>
+                <strong>{node.label}</strong>
+                <data value={String(node.count)}>{node.count}</data>
             </div>
             {node.children.length === 0 ? null : <div
                 role="group"
-                data-part="children"
                 data-orientation={node.childOrientation}
             >{node.children.map((child) => this.renderBlock(
                 child,
@@ -299,7 +280,7 @@ export class BlockGraph<TItem = unknown> extends Component<BlockGraphProps<TItem
             : first.kind === 'unmatched'
                 ? `${first.criterionLabel} has an item with no category.`
                 : `${first.criterionLabel} has an item matching multiple categories.`
-        return <div role="alert" data-part="partition-error">
+        return <div role="alert">
             <strong>Invalid block partition</strong>
             <p>{detail} {issues.length} partition issue{issues.length === 1 ? '' : 's'} detected.</p>
         </div>
@@ -337,7 +318,7 @@ export class BlockGraph<TItem = unknown> extends Component<BlockGraphProps<TItem
 
     private focusBlock(key: string): void {
         if (!(this.dom instanceof Element)) return
-        for (const element of this.dom.querySelectorAll<HTMLElement>('[data-part="block"]')) {
+        for (const element of this.dom.querySelectorAll<HTMLElement>('[role="treeitem"]')) {
             if (element.dataset.blockKey === key) {
                 element.focus()
                 return

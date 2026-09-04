@@ -21,119 +21,51 @@
 }
 
 /* uiline */
-button[data-fray-component="button"] {
+button {
   box-sizing: border-box;
-  line-height: var(--fray-line-height, 1.25);
-  font-size: var(--fray-font-size, var(--ui-font-size));
-  min-height: var(--fray-control-min-height, 2rem);
-  color: var(--fray-ui-color, var(--ui-text-color));
-  padding: var(--ui-padding-v, 0.25rem) var(--ui-padding-h, 0.5rem);
-  border-radius: var(--fray-radius-md, var(--ui-border-radius));
+  min-height: var(--control-min-height, 2rem);
   cursor: pointer;
   user-select: none;
 }
 
 /* button */
-button[data-fray-component="button"] {
+button {
   box-sizing: border-box;
-  background: var(--fray-button-background, var(--button-background));
-  border: var(--fray-button-border, var(--button-border));
-  box-shadow: var(--fray-button-shadow, var(--button-shadow));
-  color: var(--fray-button-color, var(--button-color));
   cursor: default;
   user-select: none;
 }
 
-/* button:hover */
-button[data-fray-component="button"]:hover {
-  background: var(--fray-button-background-hover, var(--button-background-hover));
-  box-shadow: var(--fray-button-shadow, var(--button-shadow));
-}
-
-/* button:focus-visible */
-button[data-fray-component="button"]:focus-visible {
-  outline: 2px solid transparent;
-  outline-offset: 1px;
-  border: 1px solid var(--fray-color-focus, var(--ui-accent-color));
-  box-shadow: var(--fray-focus-ring, 0 0 0 2px var(--ui-accent-color-highlight));
-}
-
 /* button:disabled */
-button[data-fray-component="button"]:disabled {
-  background: var(--fray-button-background-disabled, var(--button-background-disabled));
-  border: var(--button-border-disabled, var(--fray-button-border));
-  color: var(--fray-input-color-disabled, var(--ui-input-text-color-disabled));
+button:disabled {
   cursor: not-allowed;
   pointer-events: none;
 }
 
 /* inputline */
 fray-checkbox,
-fray-checkbox > [data-part="control"] {
+fray-checkbox > [role="checkbox"] {
   display: flex;
   flex-flow: row nowrap;
   position: relative;
-  line-height: var(--fray-line-height, 1.25);
-  font-size: var(--fray-font-size, var(--ui-font-size));
-  min-height: var(--fray-control-min-height, 2rem);
-  color: var(--fray-ui-color, var(--ui-text-color));
-  border-radius: var(--fray-radius-md, var(--ui-border-radius));
+  min-height: var(--control-min-height, 2rem);
   box-sizing: border-box;
 }
 
 /* input */
-fray-checkbox > [data-part="control"] {
-  background: var(--fray-input-background, var(--ui-input-bg));
-  color: var(--fray-input-color, var(--fray-ui-color, var(--ui-text-color)));
-  padding: var(--ui-padding-v, 0.25rem) var(--ui-padding-h, 0.5rem);
+fray-checkbox > [role="checkbox"] {
   pointer-events: all;
-  border: var(--fray-input-border, var(--ui-input-border));
   width: var(--input-width, 15rem);
-  box-shadow: var(--fray-input-shadow, var(--input-shadow, none));
   box-sizing: border-box;
   white-space: nowrap;
-}
-
-/* input:focus-visible */
-fray-checkbox > [data-part="control"]:focus-visible {
-  outline: 2px solid transparent;
-  outline-offset: 1px;
-  border-color: var(--fray-color-focus, var(--ui-accent-color));
-  box-shadow: var(--fray-focus-ring, 0 0 0 2px var(--ui-accent-color-highlight));
-}
-
-/* input:disabled */
-fray-checkbox > [data-part="control"]:disabled {
-  background: var(--fray-input-background-disabled, var(--ui-input-bg-disabled));
-  border-color: var(--fray-color-border, var(--ui-input-border-disabled));
-  color: var(--fray-input-color-disabled, var(--ui-input-text-color-disabled));
-  cursor: not-allowed;
-}
-
-/* disabled */
-fray-checkbox[data-disabled] {
-  border-color: var(--fray-color-border, var(--ui-input-border-disabled));
-  color: var(--fray-input-color-disabled, var(--ui-input-text-color-disabled));
-}
-
-/* toolbar */
-fray-toolbar {
-  background: var(--fray-toolbar-background, var(--toolbar-bg));
-  border: var(--fray-toolbar-border, var(--toolbar-border));
-  border-radius: var(--toolbar-radius, var(--fray-radius-md));
-  box-shadow: var(--fray-toolbar-shadow, var(--toolbar-shadow));
-  color: var(--fray-toolbar-color, var(--toolbar-color));
 }
 
 section[data-fray-visualization="block-graph"] {
             display: flex;
             min-width: 0;
-            min-height: var(--fray-viz-block-graph-min-height, 24rem);
+            min-height: var(--viz-block-graph-min-height, 24rem);
             flex-direction: column;
-            padding: var(--fray-viz-space, 0.7rem);
+            padding: var(--viz-space, 0.7rem);
             overflow: hidden;
-            color: var(--fray-viz-color, var(--fray-ui-color, var(--ui-text-color)));
-            background: var(--fray-viz-panel-background, var(--panel-bg));
         }
 
         section[data-fray-visualization="block-graph"] > header {
@@ -150,7 +82,8 @@ section[data-fray-visualization="block-graph"] {
             margin: 0;
         }
 
-        section[data-fray-visualization="block-graph"] [data-part="selection"] {
+        section[data-fray-visualization="block-graph"] header output {
+            display: block;
             margin-block-start: 0.25rem;
         }
 
@@ -159,19 +92,17 @@ section[data-fray-visualization="block-graph"] {
             min-width: 0;
             min-height: 20rem;
             overflow: auto;
-            border: 1px solid var(--fray-viz-border-color, var(--ui-border-color));
-            border-radius: var(--fray-viz-radius, var(--ui-border-radius));
         }
 
-        section[data-fray-visualization="block-graph"] [data-part="mosaic"],
-        section[data-fray-visualization="block-graph"] [data-part="children"] {
+        section[data-fray-visualization="block-graph"] [role="tree"],
+        section[data-fray-visualization="block-graph"] [role="group"] {
             display: flex;
             min-width: 0;
             min-height: 0;
             align-items: stretch;
         }
 
-        section[data-fray-visualization="block-graph"] [data-part="mosaic"] {
+        section[data-fray-visualization="block-graph"] [role="tree"] {
             width: 100%;
             min-width: 34rem;
             height: 100%;
@@ -186,7 +117,7 @@ section[data-fray-visualization="block-graph"] {
             flex-direction: column;
         }
 
-        section[data-fray-visualization="block-graph"] [data-part="block"] {
+        section[data-fray-visualization="block-graph"] [role="treeitem"] {
             position: relative;
             display: flex;
             min-width: 0;
@@ -194,17 +125,9 @@ section[data-fray-visualization="block-graph"] {
             flex-basis: 0;
             flex-direction: column;
             overflow: hidden;
-            color: var(--fray-viz-block-color, #fff);
-            background: linear-gradient(
-                135deg,
-                var(--fray-viz-color-1, #31516f),
-                var(--fray-viz-color-2, #426f98) 55%,
-                var(--fray-viz-color-3, #24415c)
-            );
-            border: 1px solid color-mix(in srgb, currentColor 45%, transparent);
         }
 
-        section[data-fray-visualization="block-graph"] [data-part="block-label"] {
+        section[data-fray-visualization="block-graph"] [role="treeitem"] > .coloredinner {
             z-index: 1;
             display: grid;
             grid-template-columns: minmax(0, 1fr) auto;
@@ -214,27 +137,24 @@ section[data-fray-visualization="block-graph"] {
             min-height: 2.5rem;
             padding: 0.25rem 0.4rem;
             overflow: hidden;
-            color: inherit;
             text-align: start;
             border: 0;
-            border-block-end: 1px solid color-mix(in srgb, currentColor 45%, transparent);
-            background: color-mix(in srgb, #000 24%, transparent);
             cursor: pointer;
         }
 
         section[data-fray-visualization="block-graph"]
-        [data-part="block"][aria-selected="true"] > [data-part="block-label"] {
-            outline: 3px solid var(--fray-viz-selection-color, #fff);
+        [role="treeitem"][aria-selected="true"] > .coloredinner {
+            outline: 3px solid var(--viz-selection-color, var(--colored-contrast, Highlight));
             outline-offset: -3px;
         }
 
-        section[data-fray-visualization="block-graph"] [data-part="block"]:focus {
+        section[data-fray-visualization="block-graph"] [role="treeitem"]:focus {
             z-index: 2;
-            outline: 3px solid var(--fray-viz-focus-color, Highlight);
+            outline: 3px solid var(--viz-focus-color, Highlight);
             outline-offset: -3px;
         }
 
-        section[data-fray-visualization="block-graph"] [data-part="criterion"] {
+        section[data-fray-visualization="block-graph"] .coloredinner > small {
             grid-area: criterion;
             overflow: hidden;
             font-size: 0.68rem;
@@ -243,37 +163,32 @@ section[data-fray-visualization="block-graph"] {
             white-space: nowrap;
         }
 
-        section[data-fray-visualization="block-graph"] [data-part="label"] {
+        section[data-fray-visualization="block-graph"] .coloredinner > strong {
             grid-area: label;
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
         }
 
-        section[data-fray-visualization="block-graph"] [data-part="count"] {
+        section[data-fray-visualization="block-graph"] .coloredinner > data {
             grid-area: count;
             align-self: center;
             font-weight: 750;
         }
 
-        section[data-fray-visualization="block-graph"] [data-part="children"] {
+        section[data-fray-visualization="block-graph"] [role="group"] {
             flex: 1;
         }
 
-        section[data-fray-visualization="block-graph"] [data-part="partition-error"] {
-            padding: 0.75rem;
-            border: 2px solid var(--fray-color-error, var(--error-color));
-        }
-
         @media (forced-colors: active) {
-            section[data-fray-visualization="block-graph"] [data-part="block"] {
+            section[data-fray-visualization="block-graph"] [role="treeitem"] {
                 color: CanvasText;
                 background: Canvas;
                 border-color: CanvasText;
                 forced-color-adjust: auto;
             }
 
-            section[data-fray-visualization="block-graph"] [data-part="block-label"] {
+            section[data-fray-visualization="block-graph"] [role="treeitem"] > .coloredinner {
                 color: ButtonText;
                 background: ButtonFace;
             }
@@ -282,9 +197,8 @@ section[data-fray-visualization="block-graph"] {
 section[data-fray-visualization="category-hide-panel"] {
             display: grid;
             align-content: start;
-            gap: var(--fray-viz-space, 0.6rem);
+            gap: var(--viz-space, 0.6rem);
             min-width: 0;
-            color: var(--fray-viz-color, var(--fray-ui-color, var(--ui-text-color)));
         }
 
         section[data-fray-visualization="category-hide-panel"] h2,
@@ -293,7 +207,7 @@ section[data-fray-visualization="category-hide-panel"] {
         }
 
         section[data-fray-visualization="category-hide-panel"] header > p {
-            color: var(--fray-viz-muted-color, var(--ui-muted-text-color, currentColor));
+            color: var(--viz-muted-color, var(--ui-muted-text-color, currentColor));
             font-size: 0.875em;
         }
 
@@ -304,8 +218,6 @@ section[data-fray-visualization="category-hide-panel"] {
 
         section[data-fray-visualization="category-hide-panel"] details {
             min-width: 0;
-            border: 1px solid var(--fray-viz-border-color, var(--ui-border-color));
-            border-radius: var(--fray-viz-radius, var(--ui-border-radius));
         }
 
         section[data-fray-visualization="category-hide-panel"] summary {
@@ -323,33 +235,33 @@ section[data-fray-visualization="category-hide-panel"] {
         }
 
         section[data-fray-visualization="category-hide-panel"]
-        [data-fray-component="toolbar"] {
+        [role="toolbar"] {
             padding: 0.35rem 0.5rem;
-            border-block: 1px solid var(--fray-viz-border-color, var(--ui-border-color));
+            border-block: 1px solid var(--viz-border-color, var(--ui-border-color));
             border-inline: 0;
         }
 
         section[data-fray-visualization="category-hide-panel"] [data-part="categories"] {
             display: grid;
             gap: 0.25rem;
-            max-height: var(--fray-viz-category-max-height, 16rem);
+            max-height: var(--viz-category-max-height, 16rem);
             padding: 0.45rem 0.5rem;
             overflow: auto;
         }
 
         section[data-fray-visualization="category-hide-panel"]
-        .fray-visualization-category-checkbox > [data-part="control"] {
+        [data-part="categories"] > * > [role="checkbox"] {
             width: 100%;
             justify-content: flex-start;
             text-align: start;
             white-space: normal;
         }
 
-button[data-fray-component="button"] {
+button {
             font-family: inherit;
         }
 
-fray-checkbox > [data-part="control"] {
+fray-checkbox > [role="checkbox"] {
             display: inline-flex;
             align-items: center;
             gap: 0.35em;
@@ -357,23 +269,12 @@ fray-checkbox > [data-part="control"] {
             font-family: inherit;
         }
 
-        fray-checkbox [data-part="symbol"] {
+        fray-checkbox .inputshell {
             display: inline-grid;
             width: 1em;
             height: 1em;
             line-height: 1;
             place-items: center;
-            color: var(--fray-checkbox-symbol-color, currentColor);
-            background: var(--fray-checkbox-box-background, transparent);
-            border: var(--fray-checkbox-box-border, var(--cbx-o-border));
-            border-radius: var(--cbx-border-radius, var(--fray-radius-sm));
-        }
-
-        fray-checkbox [data-part="control"][aria-checked="true"] [data-part="symbol"] {
-            background: var(
-                --fray-checkbox-box-background-checked,
-                var(--fray-selection-background)
-            );
         }
 
 fray-toolbar {
@@ -392,11 +293,9 @@ fray-toolbar {
 section[data-fray-visualization="line-graph"] {
             display: flex;
             min-width: 0;
-            min-height: var(--fray-viz-line-graph-min-height, 24rem);
+            min-height: var(--viz-line-graph-min-height, 24rem);
             flex-direction: column;
-            padding: var(--fray-viz-space, 0.7rem);
-            color: var(--fray-viz-color, var(--fray-ui-color, var(--ui-text-color)));
-            background: var(--fray-viz-panel-background, var(--panel-bg));
+            padding: var(--viz-space, 0.7rem);
         }
 
         section[data-fray-visualization="line-graph"] h2,
@@ -410,9 +309,6 @@ section[data-fray-visualization="line-graph"] {
             min-height: 20rem;
             margin-block: 0.6rem;
             overflow: auto;
-            border: 1px solid var(--fray-viz-border-color, var(--ui-border-color));
-            border-radius: var(--fray-viz-radius, var(--ui-border-radius));
-            background: var(--fray-viz-chart-background, var(--panel-bg));
         }
 
         section[data-fray-visualization="line-graph"] svg {
@@ -423,13 +319,13 @@ section[data-fray-visualization="line-graph"] {
         }
 
         section[data-fray-visualization="line-graph"] [data-part="grid"] {
-            stroke: var(--fray-viz-grid-color, var(--ui-border-color));
+            stroke: var(--viz-grid-color, var(--ui-border-color));
             stroke-width: 1;
             vector-effect: non-scaling-stroke;
         }
 
         section[data-fray-visualization="line-graph"] [data-part="axis-label"] {
-            fill: var(--fray-viz-color, var(--ui-text-color));
+            fill: var(--viz-color, var(--ui-text-color));
             font: 12px system-ui, sans-serif;
         }
 
@@ -442,11 +338,11 @@ section[data-fray-visualization="line-graph"] {
         }
 
         section[data-fray-visualization="line-graph"] [data-part="series-area"] {
-            opacity: var(--fray-viz-area-opacity, 0.25);
+            opacity: var(--viz-area-opacity, 0.25);
         }
 
         section[data-fray-visualization="line-graph"] [data-part="cursor"] {
-            stroke: var(--fray-viz-cursor-color, var(--ui-text-color));
+            stroke: var(--viz-cursor-color, var(--ui-text-color));
             stroke-width: 2;
             stroke-dasharray: 4 3;
             vector-effect: non-scaling-stroke;
@@ -454,7 +350,7 @@ section[data-fray-visualization="line-graph"] {
 
         section[data-fray-visualization="line-graph"] [data-part="readout"] {
             padding-block-start: 0.4rem;
-            border-block-start: 1px solid var(--fray-viz-border-color, var(--ui-border-color));
+            border-block-start: 1px solid var(--viz-border-color, var(--ui-border-color));
         }
 
         section[data-fray-visualization="line-graph"] [data-part="readout"] ul {
@@ -474,7 +370,6 @@ section[data-fray-visualization="line-graph"] {
         section[data-fray-visualization="line-graph"] [data-part="swatch"] {
             width: 0.8rem;
             height: 0.8rem;
-            border: 1px solid var(--fray-viz-border-color, var(--ui-border-color));
             border-radius: 50%;
         }
 
@@ -495,7 +390,7 @@ section[data-fray-visualization="line-graph"] {
 section[data-fray-visualization="split-selection-panel"] {
             display: grid;
             align-content: start;
-            gap: var(--fray-viz-space, 0.6rem);
+            gap: var(--viz-space, 0.6rem);
             min-width: 0;
         }
 
@@ -506,7 +401,7 @@ section[data-fray-visualization="split-selection-panel"] {
         }
 
         section[data-fray-visualization="split-selection-panel"] header > p {
-            color: var(--fray-viz-muted-color, var(--ui-muted-text-color, currentColor));
+            color: var(--viz-muted-color, var(--ui-muted-text-color, currentColor));
             font-size: 0.875em;
         }
 
@@ -531,24 +426,21 @@ section[data-fray-visualization="split-selection-panel"] {
             min-width: 0;
             min-height: 2.25rem;
             padding: 0.25rem;
-            border: 1px solid var(--fray-viz-border-color, var(--ui-border-color));
-            border-radius: var(--fray-viz-radius, var(--ui-border-radius));
-            background: var(--fray-viz-panel-background, var(--panel-bg));
         }
 
         section[data-fray-visualization="split-selection-panel"] li:not([data-active]) {
-            color: var(--fray-viz-muted-color, var(--ui-muted-text-color, currentColor));
+            color: var(--viz-muted-color, var(--ui-muted-text-color, currentColor));
         }
 
         section[data-fray-visualization="split-selection-panel"] li[data-dragging] {
-            outline: 2px solid var(--fray-color-focus, var(--ui-accent-color));
+            outline: 2px solid var(--focus-color, var(--ui-accent-color));
         }
 
         section[data-fray-visualization="split-selection-panel"] [data-part="drag-handle"] {
             width: 2rem;
             min-height: 2rem;
-            border: 1px solid var(--fray-viz-border-color, var(--ui-border-color));
-            border-radius: var(--fray-viz-radius, var(--ui-border-radius));
+            border: 1px solid var(--viz-border-color, var(--ui-border-color));
+            border-radius: var(--viz-radius, var(--ui-border-radius));
             color: inherit;
             background: transparent;
             cursor: grab;
@@ -562,14 +454,15 @@ section[data-fray-visualization="split-selection-panel"] {
         }
 
         section[data-fray-visualization="split-selection-panel"]
-        [data-fray-component="checkbox"],
+        li > :has(> [role="checkbox"]),
         section[data-fray-visualization="split-selection-panel"]
-        [data-fray-component="checkbox"] > [data-part="control"] {
+        [role="checkbox"] {
             width: 100%;
             justify-content: flex-start;
         }
 
-        section[data-fray-visualization="split-selection-panel"] [data-part="announcement"] {
+        section[data-fray-visualization="split-selection-panel"]
+        > p[role="status"][aria-live="polite"][aria-atomic="true"] {
             position: absolute;
             width: 1px;
             height: 1px;

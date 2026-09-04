@@ -37,7 +37,11 @@ extends Component<CategoryHidePanelProps<TItem>> {
         } = this.props
         const itemSnapshot = this.snapshot(this.props.items$)
         const items = Array.isArray(itemSnapshot.value) ? itemSnapshot.value : []
-        return <section data-fray-visualization="category-hide-panel" aria-label={label}>
+        return <section
+            className={`datacomponentlike ${this.props.className ?? this.props.class ?? ''}`.trim()}
+            data-fray-visualization="category-hide-panel"
+            aria-label={label}
+        >
             <header>
                 <h2>{label}</h2>
                 <p>{description}</p>
@@ -52,7 +56,11 @@ extends Component<CategoryHidePanelProps<TItem>> {
                     ? categorySnapshot.value
                     : []
                 const visibleCount = categories.filter(({key}) => !hidden.has(key)).length
-                return <details key={criterion.key} open={initiallyOpen(criterion)}>
+                return <details
+                    key={criterion.key}
+                    className="datacomponentshell"
+                    open={initiallyOpen(criterion)}
+                >
                     <summary>
                         <span>{criterion.label}</span>
                         <small>{visibleCount}/{categories.length} visible</small>
@@ -81,7 +89,6 @@ extends Component<CategoryHidePanelProps<TItem>> {
                         const count = countMatches(items, category.predicate)
                         return <Checkbox<CategoryVisibility>
                             key={category.key}
-                            className="fray-visualization-category-checkbox"
                             symbols={visibilitySymbols}
                             label={`${category.label} (${count})`}
                             valueEmitter={criterion.visibility(category.key)}
@@ -98,9 +105,8 @@ extends Component<CategoryHidePanelProps<TItem>> {
         section[data-fray-visualization="category-hide-panel"] {
             display: grid;
             align-content: start;
-            gap: var(--fray-viz-space, 0.6rem);
+            gap: var(--viz-space, 0.6rem);
             min-width: 0;
-            color: var(--fray-viz-color, var(--fray-ui-color, var(--ui-text-color)));
         }
 
         section[data-fray-visualization="category-hide-panel"] h2,
@@ -109,7 +115,7 @@ extends Component<CategoryHidePanelProps<TItem>> {
         }
 
         section[data-fray-visualization="category-hide-panel"] header > p {
-            color: var(--fray-viz-muted-color, var(--ui-muted-text-color, currentColor));
+            color: var(--viz-muted-color, var(--ui-muted-text-color, currentColor));
             font-size: 0.875em;
         }
 
@@ -120,8 +126,6 @@ extends Component<CategoryHidePanelProps<TItem>> {
 
         section[data-fray-visualization="category-hide-panel"] details {
             min-width: 0;
-            border: 1px solid var(--fray-viz-border-color, var(--ui-border-color));
-            border-radius: var(--fray-viz-radius, var(--ui-border-radius));
         }
 
         section[data-fray-visualization="category-hide-panel"] summary {
@@ -139,22 +143,22 @@ extends Component<CategoryHidePanelProps<TItem>> {
         }
 
         section[data-fray-visualization="category-hide-panel"]
-        [data-fray-component="toolbar"] {
+        [role="toolbar"] {
             padding: 0.35rem 0.5rem;
-            border-block: 1px solid var(--fray-viz-border-color, var(--ui-border-color));
+            border-block: 1px solid var(--viz-border-color, var(--ui-border-color));
             border-inline: 0;
         }
 
         section[data-fray-visualization="category-hide-panel"] [data-part="categories"] {
             display: grid;
             gap: 0.25rem;
-            max-height: var(--fray-viz-category-max-height, 16rem);
+            max-height: var(--viz-category-max-height, 16rem);
             padding: 0.45rem 0.5rem;
             overflow: auto;
         }
 
         section[data-fray-visualization="category-hide-panel"]
-        .fray-visualization-category-checkbox > [data-part="control"] {
+        [data-part="categories"] > * > [role="checkbox"] {
             width: 100%;
             justify-content: flex-start;
             text-align: start;
