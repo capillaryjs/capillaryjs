@@ -1178,5 +1178,5 @@ React/Vue adapters, a broad design system, a virtualized production data grid,
 legacy-browser support, or a stable `1.0` API. See the [workspace
 overview](../../README.md), [API surface](../../docs/API_SURFACE.md),
 [architecture overview](../../docs/architecture.md),
-[changelog](../../CHANGELOG.md), [contribution guide](../../CONTRIBUTING.md),
+[changelog](CHANGELOG.md), [contribution guide](../../CONTRIBUTING.md),
 and [security policy](../../SECURITY.md).

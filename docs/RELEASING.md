@@ -6,8 +6,8 @@ are a separate, deliberate operation from a reviewed, clean commit on public
 
 ## Prepare and stage
 
-1. Update the selected package versions, compatible dependency ranges, and
-   `CHANGELOG.md`. Use `next` for prereleases and reserve `latest` for an
+1. Update the selected package versions, compatible dependency ranges, and each
+   selected package's `CHANGELOG.md`. Use `next` for prereleases and reserve `latest` for an
    explicitly approved stable release.
 2. Run `pnpm verify:release` and review
    `.artifacts/release/package-artifacts.json` plus every tarball inventory.

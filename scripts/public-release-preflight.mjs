@@ -9,12 +9,17 @@ const root = path.resolve(fileURLToPath(new URL('..', import.meta.url)))
 const expectedRepository = 'git+https://github.com/sylwellsoftware/gluefrayjs.git'
 const expectedOrigin = 'https://github.com/sylwellsoftware/gluefrayjs'
 const packages = [
-    ['packages/glue/package.json', '@sylwellsoftware/glue', 'packages/glue'],
-    ['packages/fray/package.json', '@sylwellsoftware/fray', 'packages/fray'],
     [
-        'packages/fray-visualization/package.json',
-        '@sylwellsoftware/fray-visualization',
-        'packages/fray-visualization',
+        'packages/glue/package.json', '@sylwellsoftware/glue', 'packages/glue',
+        'packages/glue/CHANGELOG.md',
+    ],
+    [
+        'packages/fray/package.json', '@sylwellsoftware/fray', 'packages/fray',
+        'packages/fray/CHANGELOG.md',
+    ],
+    [
+        'packages/fray-visualization/package.json', '@sylwellsoftware/fray-visualization',
+        'packages/fray-visualization', 'packages/fray-visualization/CHANGELOG.md',
     ],
 ]
 const packageVersions = []
@@ -23,7 +28,7 @@ const workspace = readJson('package.json')
 assert(workspace.private === true, 'workspace root must remain private')
 assert(workspace.license === 'Apache-2.0', 'workspace license must be Apache-2.0')
 
-for (const [manifestPath, name, directory] of packages) {
+for (const [manifestPath, name, directory, changelogPath] of packages) {
     const manifest = readJson(manifestPath)
     assert(manifest.name === name, `${name}: package name mismatch`)
     assert(isExactSemanticVersion(manifest.version),
@@ -36,13 +41,13 @@ for (const [manifestPath, name, directory] of packages) {
     assert(manifest.repository?.url === expectedRepository, `${name}: repository mismatch`)
     assert(manifest.repository?.directory === directory, `${name}: repository directory mismatch`)
     assert(manifest.publishConfig?.access === 'public', `${name}: public access is required`)
-    packageVersions.push([name, manifest.version])
+    packageVersions.push([name, manifest.version, changelogPath])
 }
 
-const changelog = readFileSync(path.join(root, 'CHANGELOG.md'), 'utf8')
-for (const [name, version] of packageVersions) {
+for (const [name, version, changelogPath] of packageVersions) {
+    const changelog = readFileSync(path.join(root, changelogPath), 'utf8')
     assert(changelogHasRelease(changelog, version),
-        `${name}: CHANGELOG.md has no ${version} release`)
+        `${name}: ${changelogPath} has no ${version} release`)
 }
 
 const dummyServer = readJson('apps/dummy-server/package.json')

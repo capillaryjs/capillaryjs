@@ -125,3 +125,6 @@ Category and series colors feed `--colored-light`, `--colored-base`,
 default to the active theme's primary palette. Layout still exposes narrow
 `--viz-*` sizing and drawing inputs where no ordinary theme trait applies.
 Forced-colors mode remains usable without relying on color alone.
+
+See the package [changelog](CHANGELOG.md) for migration notes and release
+history.

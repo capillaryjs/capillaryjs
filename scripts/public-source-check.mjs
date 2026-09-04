@@ -1,5 +1,5 @@
 import {spawnSync} from 'node:child_process'
-import {readFileSync, statSync} from 'node:fs'
+import {existsSync, readFileSync, statSync} from 'node:fs'
 import path from 'node:path'
 import {fileURLToPath} from 'node:url'
 
@@ -23,6 +23,7 @@ const privateConcept = new RegExp(
 
 for (const relativePath of listed) {
     const absolutePath = path.join(root, relativePath)
+    if (!existsSync(absolutePath)) continue
     if (!statSync(absolutePath).isFile()) continue
     const buffer = readFileSync(absolutePath)
     if (buffer.includes(0)) continue

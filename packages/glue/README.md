@@ -374,6 +374,6 @@ application-specific query encoding, persistent event history, CommonJS build,
 or framework adapter. Fray consumes Glue as a peer; browser UI belongs there.
 
 See the [workspace overview](../../README.md), [API
-surface](../../docs/API_SURFACE.md), [changelog](../../CHANGELOG.md),
+surface](../../docs/API_SURFACE.md), [changelog](CHANGELOG.md),
 [contribution guide](../../CONTRIBUTING.md), and [security
 policy](../../SECURITY.md).
