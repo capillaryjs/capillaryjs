@@ -1,4 +1,5 @@
 import {spawn, spawnSync} from 'node:child_process'
+import {createServer} from 'node:net'
 import {
     mkdirSync,
     mkdtempSync,
@@ -219,9 +220,11 @@ runtime.mount(runtime.create(App), document.querySelector('#app')!)
 }
 
 async function verifyBrowserRuntime() {
+    const port = await availablePort()
+    const address = `http://127.0.0.1:${port}`
     const server = spawn(
         'pnpm',
-        ['exec', 'vite', 'preview', '--host', '127.0.0.1', '--port', '4176', '--strictPort'],
+        ['exec', 'vite', 'preview', '--host', '127.0.0.1', '--port', String(port), '--strictPort'],
         {cwd: fixtureRoot, stdio: ['ignore', 'pipe', 'pipe']},
     )
     let output = ''
@@ -229,13 +232,13 @@ async function verifyBrowserRuntime() {
     server.stderr.on('data', (chunk) => { output += chunk.toString() })
 
     try {
-        await waitForServer(server, () => output)
+        await waitForServer(server, () => output, address)
         const browser = await chromium.launch({headless: true})
         try {
             const page = await browser.newPage()
             const pageErrors = []
             page.on('pageerror', (error) => pageErrors.push(error))
-            await page.goto('http://127.0.0.1:4176/', {waitUntil: 'networkidle'})
+            await page.goto(address, {waitUntil: 'networkidle'})
             const counter = page.getByRole('button', {name: 'Count: 0'})
             assert(await counter.textContent() === 'Count: 0', 'Counter button did not initialize')
             await counter.click()
@@ -258,19 +261,37 @@ async function verifyBrowserRuntime() {
     }
 }
 
-async function waitForServer(server, readOutput) {
+async function waitForServer(server, readOutput, address) {
     const deadline = Date.now() + 20_000
     while (Date.now() < deadline) {
         if (server.exitCode != null) {
             throw new Error(`Consumer preview exited early\n${readOutput()}`)
         }
         try {
-            const response = await fetch('http://127.0.0.1:4176/')
+            const response = await fetch(address)
             if (response.ok) return
         } catch {}
         await new Promise((resolvePromise) => setTimeout(resolvePromise, 100))
     }
     throw new Error(`Timed out waiting for consumer preview\n${readOutput()}`)
+}
+
+async function availablePort() {
+    return await new Promise((resolvePromise, reject) => {
+        const probe = createServer()
+        probe.once('error', reject)
+        probe.listen(0, '127.0.0.1', () => {
+            const address = probe.address()
+            if (address == null || typeof address === 'string') {
+                probe.close(() => reject(new Error('Could not allocate a TCP port')))
+                return
+            }
+            probe.close((error) => {
+                if (error != null) reject(error)
+                else resolvePromise(address.port)
+            })
+        })
+    })
 }
 
 async function stopServer(server) {
