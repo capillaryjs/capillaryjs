@@ -7,16 +7,21 @@ import {
     Dialog,
     Dropdown,
     ProgressBar,
+    RouteLink,
     SplitView,
     Textbox,
     TreeView,
+    createBrowserRouter,
     createFrayRuntime,
     createServiceScope,
+    defineRoute,
     defineService,
     h,
     provideService,
+    routeTarget,
     serializeTableQuery,
 } from '@sylwellsoftware/fray'
+import type {NavigationAdapter} from '@sylwellsoftware/fray'
 import {Fragment, jsx} from '@sylwellsoftware/fray/jsx-runtime'
 
 const text = new Emitter('typed')
@@ -64,6 +69,18 @@ class Greeting extends Component {
     }
 }
 createFrayRuntime({services}).create(Greeting)
+
+const homeRoute = defineRoute('home')
+const adapter: NavigationAdapter = {
+    read: () => '/',
+    href: (location) => location,
+    push: (_location) => {},
+    replace: (_location) => {},
+    subscribe: (_listener) => () => {},
+}
+const router = createBrowserRouter({adapter})
+createFrayRuntime({router})
+new RouteLink({to: routeTarget(homeRoute), children: 'Home'})
 
 // @ts-expect-error Built declarations preserve Textbox's string value contract.
 new Textbox({valueEmitter: new Emitter(42)})

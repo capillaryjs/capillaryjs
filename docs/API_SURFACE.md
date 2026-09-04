@@ -1,7 +1,7 @@
 # Public API surface
 
 Status: accepted for the current public `0.x` line
-Updated: 2026-09-03
+Updated: 2026-09-04
 
 This document identifies the public `0.x` APIs that receive compatibility
 notes and migration guidance. It is not a promise of `1.0` stability.
@@ -40,7 +40,7 @@ caller-owned. Application classes and composition roots own service lifetimes.
 | `Component` | Browser component lifecycle and renderer. | Fray runtime |
 | `h`, `css`, `live` | Vnode/CSS authoring and explicit one-way emitter property binding. | Fray runtime |
 | `jsx`, `jsxs`, `jsxDEV`, `Fragment` | Automatic JSX runtime. | Fray runtime |
-| `FrayRuntime`, `createFrayRuntime`, `defaultFrayRuntime` | Immutable application-scoped element naming, creation, mounting, and styles. | Fray runtime |
+| `FrayRuntime`, `createFrayRuntime`, `defaultFrayRuntime` | Immutable application-scoped element naming, services, optional router, creation, mounting, and styles. | Fray runtime |
 | `ServiceScope`, `createServiceScope`, `defineService`, `provideService` | Typed application service declaration, composition, lazy resolution, and disposal. | Fray runtime |
 | `StyleRegistry`, `createStyleRegistry`, `styleRegistry` | Isolated or default idempotent structural-style collection/injection. | Fray styling |
 | `frayThemeVariableCatalog` | Machine-readable palette/theme variable hierarchy and fallbacks. | Fray styling |
@@ -58,6 +58,10 @@ caller-owned. Application classes and composition roots own service lifetimes.
 | `Dialog` | Controlled native modal behavior, focus containment/restoration, and cleanup. | Fray dialog |
 | `Placeholder` | Loading-content placeholder used by data components. | Fray data display |
 | `ProgressBar` | Labelled determinate or indeterminate native progress. | Fray status |
+| `defineRoute`, `defineRouteParameter`, `routeParameter`, `routeTarget`, `withRouteQuery`, route descriptor/target/codec types | Immutable relative route vocabulary, typed dynamic segments, explicit root chains, and query-bearing targets. | Fray routing |
+| `BrowserRouter`, `createBrowserRouter`, transition/issue/binding types | Progressive contextual discovery, ordered restoration, navigation, canonicalization, and structured fallback state. | Fray routing |
+| `NavigationAdapter`, `createHistoryNavigation`, `createHashNavigation`, `MemoryNavigationAdapter` | Injected URL placement and deterministic navigation-history seams. | Fray routing |
+| `RouteScope`, `RouteValue`, `RouteQuery`, `RouteLink`, `waitForRouteValue` | Mounted route context, dynamic/query emitter bindings, native links, and cancellable Glue-readable prerequisites. | Fray routing/components |
 
 The package also exposes `./jsx-runtime`, `./jsx-dev-runtime`, generated
 `./styles/structural.css`, replaceable `./themes/*/theme.css`, and replaceable
@@ -108,6 +112,48 @@ and call protected `requireService()` during `initialize()` or later. Missing
 services fail before initialization and undeclared lookup fails explicitly.
 Function components remain presentation-oriented. Components dispose the live
 queries/results they open; they do not dispose scope-shared services.
+
+## Fray routing contract
+
+Route descriptors are immutable relative vocabulary. Mounted `RouteScope`
+boundaries assign their resolved parent lineage and explicitly complete
+registration; the runtime supplies the root boundary. `TabPanel` registers all
+immediate `Tab.route` literals and scopes the selected content. Completed
+sibling scopes reject duplicate IDs/paths and more than one parameter route,
+with literals taking match precedence.
+
+`RouteValue` binds a typed dynamic segment to an application-owned nullable
+writable emitter. Its optional resolver runs in path order, can await
+application prerequisites, receives settled ancestor values and an
+`AbortSignal`, and may normalize the value or return an explicit redirect.
+`scopeChildren` places further routed descendants below the current dynamic
+value; leaf bindings leave it unset to preserve the mounted view. `RouteQuery`
+binds one explicit query name, codec, default, and optional equality function
+to its current scope. It neither discovers nor serializes arbitrary component
+or domain state.
+
+`BrowserRouter` is caller-owned and passed through
+`createFrayRuntime({router})`. Explicit tab, native-link, and imperative
+navigation pushes by default. Redirects, fallback, canonicalization, and
+passive emitter changes replace. Restoration never pushes. A superseding
+transition aborts outstanding resolvers. Failure settles at the deepest valid
+parent (or active/default root lineage), replaces the failed entry, and exposes
+a structured readable issue; application UI owns localized accessible
+presentation.
+
+`RouteLink` always renders a real `a[href]`, resolves a descriptor against its
+current lineage, exposes `aria-current`, and only intercepts an unmodified
+primary `_self` activation. An explicit `routeTarget` chain addresses a route
+outside the current lineage. Query defaults are omitted, owned names format
+deterministically and are removed outside their active lineage, and undeclared
+query keys are preserved.
+
+The History adapter supports an optional base path and requires deployment
+fallback for direct deep requests. The hash adapter reserves the fragment.
+The memory adapter is for deterministic tests; it does not add SSR support.
+Router disposal removes its adapter listener and subscriptions. Component
+destruction removes mounted registrations but does not dispose the
+caller-owned router.
 
 ## Fray Visualization entry point
 

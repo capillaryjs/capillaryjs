@@ -6,6 +6,20 @@ Versioning.
 
 ## Unreleased
 
+### Added
+
+- Contextually discovered hierarchical browser routing with immutable literal
+  and dynamic route descriptors, ordered cancellable resolvers, canonical
+  fallback, and structured transition/issue state.
+- History/path, hash, and memory navigation adapters plus native `RouteLink`,
+  `RouteValue`, `RouteQuery`, and route-aware `TabPanel` integration.
+
+### Changed
+
+- `FrayRuntime` can carry a caller-owned router, and routed component children
+  inherit their mounted route lineage without changing Glue or unrouted
+  component behavior.
+
 ## 0.6.0 - 2026-09-04
 
 ### Added

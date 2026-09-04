@@ -20,6 +20,10 @@ import {
     Toggle,
     Toolbar,
     TreeView,
+    createBrowserRouter,
+    createFrayRuntime,
+    createHistoryNavigation,
+    defineRoute,
     h,
     styleRegistry,
 } from '../../src/index.js'
@@ -195,6 +199,29 @@ Sidebar.new({
         h('li', {key: index}, `Change request ${index + 1}`))),
 }).attachTo(requiredElement('#sidebar-root'))
 
+let destroyRouting = () => 0
+if (new URLSearchParams(location.search).get('routing') === 'true') {
+    const firstRoute = defineRoute('browser-first')
+    const secondRoute = defineRoute('browser-second')
+    const activeRoute = new Emitter('first')
+    const router = createBrowserRouter({adapter: createHistoryNavigation(window)})
+    const runtime = createFrayRuntime({router})
+    const routedTabs = runtime.mount(runtime.create(TabPanel, {
+        id: 'browser-routing',
+        label: 'Browser routes',
+        valueEmitter: activeRoute,
+        children: [
+            h(Tab, {id: 'first', label: 'First route', route: firstRoute}, 'First page'),
+            h(Tab, {id: 'second', label: 'Second route', route: secondRoute}, 'Second page'),
+        ],
+    }), requiredElement('#routing-root'))
+    destroyRouting = () => {
+        routedTabs.destroy()
+        router.dispose()
+        return activeRoute.subscriberCount
+    }
+}
+
 const primitiveProgress = new Emitter<number | null>(null)
 const primitiveTreeSelection = new Emitter<string | number | null>(null)
 const primitiveTreeExpansion = new Emitter<Array<string | number>>([])
@@ -279,6 +306,9 @@ globalThis.frayTest = {
     },
     setProgress(value) {
         primitiveProgress.set(value)
+    },
+    destroyRouting() {
+        return destroyRouting()
     },
     measureDataTable(rowCount) {
         return measureDataTable(rowCount)

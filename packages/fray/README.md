@@ -85,7 +85,8 @@ Responsibility stays at the narrowest layer that understands it:
 | Domain state, service implementations/providers, endpoint configuration, page composition, theme availability and selection policy | Application |
 | DOM structure, native events, accessibility, component lifetime, service-scope propagation, visual async states | Fray components/runtime |
 | Mutable/computed values, query timing/results, fetch state, optional causality | Glue |
-| URL/wire serialization and retrieval mechanism | Injected Glue query handler/application adapter |
+| Remote wire serialization and retrieval mechanism | Injected Glue query handler/application adapter |
+| Browser navigation placement, restoration, and routed component integration | Caller-owned Fray router with an injected navigation adapter |
 | Layout/flow CSS and stable component/part hooks | Fray structural styling |
 | Look-and-feel treatment and palette | Separately loaded Fray-compatible theme/color CSS |
 
@@ -213,6 +214,164 @@ There is intentionally no transient resolve-on-every-call lifetime. Independent
 query state comes from caller-owned endpoint results. Function components stay
 presentation-oriented and receive rendered values or emitters from a nearby
 lifecycle-owning class component.
+
+## Hierarchical browser routing
+
+Routing is optional and application-scoped. Route descriptors name immutable
+relative segments; the mounted component hierarchy supplies their parentage.
+This lets a `TabPanel` discover immediate routes from ordinary `Tab`
+annotations without requiring a duplicate central route tree:
+
+```tsx
+import {Emitter} from '@sylwellsoftware/glue'
+import {
+    Component,
+    RouteLink,
+    RouteQuery,
+    RouteUnavailableError,
+    RouteValue,
+    Tab,
+    TabPanel,
+    createBrowserRouter,
+    createHashNavigation,
+    createFrayRuntime,
+    defineRoute,
+    defineRouteParameter,
+    routeTarget,
+    stringRouteCodec,
+    waitForRouteValue,
+} from '@sylwellsoftware/fray'
+
+const routes = {
+    changes: defineRoute('changes'),
+    security: defineRoute('security'),
+    overview: defineRoute('security-overview', 'overview'),
+    projects: defineRoute('security-projects', 'projects'),
+}
+const activeApplication = new Emitter('changes')
+const activeSecurityView = new Emitter('overview')
+
+class SecurityApplication extends Component {
+    render() {
+        return <TabPanel valueEmitter={activeSecurityView} label="Security views">
+            <Tab id="overview" label="Overview" route={routes.overview}>Summary</Tab>
+            <Tab id="projects" label="Projects" route={routes.projects}>Projects</Tab>
+        </TabPanel>
+    }
+
+    static dependencies = [Tab, TabPanel]
+}
+
+class App extends Component {
+    render() {
+        return <>
+            <nav aria-label="Applications">
+                <RouteLink to={routeTarget(routes.security, routes.projects)}>
+                    Security projects
+                </RouteLink>
+            </nav>
+            <TabPanel valueEmitter={activeApplication} label="Applications">
+                <Tab id="changes" label="Changes" route={routes.changes}>Changes</Tab>
+                <Tab id="security" label="Security" route={routes.security}>
+                    <SecurityApplication />
+                </Tab>
+            </TabPanel>
+        </>
+    }
+
+    static dependencies = [RouteLink, SecurityApplication, Tab, TabPanel]
+}
+
+const router = createBrowserRouter({adapter: createHashNavigation(window)})
+const runtime = createFrayRuntime({router})
+const app = runtime.mount(runtime.create(App), document.querySelector('#app')!)
+
+addEventListener('pagehide', () => {
+    app.destroy()
+    router.dispose()
+}, {once: true})
+```
+
+The runtime opens the root scope. A selected routed tab opens its own scope for
+nested components, so `/security/projects` restores the outer tab first and
+then discovers and restores the inner tab. Every scope declares when its
+immediate registrations are complete; this distinguishes an unknown child
+from one whose parent has not mounted yet. Duplicate IDs or literal paths and
+multiple parameter routes in one scope fail at completion. Literal routes take
+precedence over the optional parameter route.
+
+`RouteLink` is a native anchor. A descriptor resolves against the current
+lineage, which is convenient for sibling destinations. A link outside the
+destination's mounted lineage uses `routeTarget(...)` with the full chain from
+the root. Modified clicks, downloads, and non-`_self` targets retain native
+browser behavior. `router.navigate(target)` pushes by default;
+`router.redirect(target)` and `navigate(target, {history: 'replace'})` replace.
+`router.href(target)`, `router.resolve(descriptor, context)`, and
+`router.isActive(target, exact)` support advanced composition.
+
+Dynamic path values use a typed codec and an application-owned nullable
+emitter:
+
+```tsx
+const projectRoute = defineRouteParameter('project', stringRouteCodec, 'project-id')
+const selectedProjectId = new Emitter<string | null>(null)
+
+<RouteValue
+    route={projectRoute}
+    valueEmitter={selectedProjectId}
+    resolve={async (projectId, _context, signal) => {
+        const projects = await waitForRouteValue(
+            projectResults,
+            (items) => items.length > 0,
+            signal,
+        )
+        if (!projects.some(({id}) => id === projectId)) {
+            throw new RouteUnavailableError(`Unknown project "${projectId}"`)
+        }
+        return projectId
+    }}
+>
+    <ProjectView />
+</RouteValue>
+```
+
+Resolvers run in path order, may normalize the decoded value, and receive the
+settled ancestor values plus an `AbortSignal`. A newer navigation or router
+disposal aborts outstanding work. `waitForRouteValue` is a convenience for a
+Glue readable; fetching, authorization, retries, and domain validation remain
+application-owned. Set `scopeChildren` on `RouteValue` only when further route
+levels live beneath the dynamic value. Leaving it off avoids remounting an
+otherwise stable leaf view when selection changes.
+
+Explicit query bindings make selected shareable view state routable without
+coupling the originating control to the router:
+
+```tsx
+<RouteQuery
+    name="range"
+    valueEmitter={historyRange}
+    codec={historyRangeCodec}
+    defaultValue="12m"
+>
+    <HistoryView />
+</RouteQuery>
+```
+
+Defaults are omitted, owned names sort deterministically, foreign query keys
+are preserved, and passive emitter changes replace the current URL. Invalid
+owned values reset to the default and produce a structured `router.issue`.
+Path failures similarly fall back to the deepest resolved parent and replace
+the failed entry. Applications observe `router.transition` for pending/idle
+state and render `router.issue` as localized, accessible feedback. An explicit
+navigation clears the issue.
+
+Choose `createHashNavigation(window)` for static hosting; it reserves the URL
+fragment. Choose `createHistoryNavigation(window, {basePath: '/app/'})` for
+ordinary paths; the deployment must serve the application entry point for
+direct requests below that base. `MemoryNavigationAdapter` supplies
+deterministic tests and does not imply server rendering. The application owns
+and disposes the router; destroying a runtime root removes mounted route
+registrations but does not dispose the caller-owned router.
 
 ## Component host elements
 
@@ -551,9 +710,9 @@ sibling-local `key` through the common component props.
 | `ProgressBar` | `label`, `value` or `valueEmitter`, `max`, `valueText` | None | Labelled native progress; a null value is indeterminate. |
 | `ThemePicker` | `label` or `ariaLabel`, theme `options`, value props, `targetDocument`, `disabled` | `onChange(value, option, event)` | String `valueEmitter`; replaces only the theme stylesheet link. |
 | `ColorPicker` | `label` or `ariaLabel`, color `options`, value props, `targetDocument`, `disabled` | `onChange(value, option, event)` | String `valueEmitter`; replaces only the color stylesheet link. |
-| `Tab` | `id`, `label`, `disabled`, `children` | None | Declarative content marker consumed by `TabPanel`; not rendered as a tab by itself. |
+| `Tab` | `id`, `label`, `disabled`, optional literal `route`, `children` | None | Declarative content marker consumed by `TabPanel`; a route annotation binds tab activation to the current route scope. |
 | `TabLine` | `tabs`, `label`, `baseId`, value props | `onChange(id, event)` | Active-tab `valueEmitter`; arrow keys skip disabled tabs, with Home/End support. |
-| `TabPanel` | `tabs` or `Tab` children, `label`, `id`, value props | `onChange(id, event)` | Owns or consumes the active-tab emitter and wires the selected tab to its tabpanel. |
+| `TabPanel` | `tabs` or `Tab` children, `label`, `id`, value props | `onChange(id, event)` | Owns or consumes the active-tab emitter, wires the selected tabpanel, and contextually registers annotated tabs when a router is present. |
 
 Invalid option arrays, duplicate tab IDs, unsupported orientations, malformed
 emitters, and non-function callbacks fail with descriptive errors.

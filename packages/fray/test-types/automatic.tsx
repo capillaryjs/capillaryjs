@@ -5,9 +5,11 @@ import {
     DescriptionList,
     Panel,
     ProgressBar,
+    RouteLink,
     Sidebar,
     SplitView,
     Textbox,
+    defineRoute,
     live,
 } from '../src/index.js'
 
@@ -31,6 +33,8 @@ const sidebar = <Sidebar header="Requests" ariaLabel="Fallback">Request one</Sid
 const details = <DescriptionList><DescriptionItem term="Owner" value="Team" /></DescriptionList>
 const split = <SplitView primary="Navigation" secondary="Content" />
 const progress = <ProgressBar label="Refresh" value={2} max={4} />
+const overviewRoute = defineRoute('overview')
+const routedLink = <RouteLink to={overviewRoute}>Overview</RouteLink>
 
 // @ts-expect-error Automatic JSX checks intrinsic ref node types.
 const invalidInput = <input ref={{current: 'not-an-input'}} />
@@ -49,6 +53,7 @@ void sidebar
 void details
 void split
 void progress
+void routedLink
 void invalidInput
 void invalidAutomaticTree
 void invalidLiveProp

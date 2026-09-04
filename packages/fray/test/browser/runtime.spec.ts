@@ -161,6 +161,26 @@ test('stable controls remain operable through the real browser keyboard model', 
     await expect(details).toHaveAttribute('aria-selected', 'true')
 })
 
+test('History routing restores tabs, preserves focus, and cleans up', async ({page}) => {
+    await page.goto('/browser-second?routing=true')
+    await page.waitForFunction(() => globalThis.frayTestReady === true)
+    const first = page.getByRole('tab', {name: 'First route'})
+    const second = page.getByRole('tab', {name: 'Second route'})
+    await expect(second).toHaveAttribute('aria-selected', 'true')
+    await expect(page).toHaveURL(/\/browser-second\?routing=true$/)
+
+    await second.focus()
+    await second.press('ArrowLeft')
+    await expect(first).toBeFocused()
+    await expect(first).toHaveAttribute('aria-selected', 'true')
+    await expect(page).toHaveURL(/\/browser-first\?routing=true$/)
+
+    await page.goBack()
+    await expect(second).toHaveAttribute('aria-selected', 'true')
+    await expect(page).toHaveURL(/\/browser-second\?routing=true$/)
+    expect(await page.evaluate(() => globalThis.frayTest.destroyRouting())).toBe(0)
+})
+
 test('supports reduced motion and 200% configured text sizing', async ({page}) => {
     await page.emulateMedia({reducedMotion: 'reduce'})
     const duration = await page.locator('#event-action').evaluate((element) => {

@@ -8,6 +8,7 @@ import {
 } from './styling/styleRegistry.js'
 import type {StyleRegistry} from './styling/styleRegistry.js'
 import {ServiceScope, createServiceScope} from './services.js'
+import type {BrowserRouter} from './routing/router.js'
 
 const RESERVED_CUSTOM_ELEMENT_NAMES = new Set([
     'annotation-xml',
@@ -31,6 +32,8 @@ export interface FrayRuntimeOptions {
     elementNames?: FrayElementNameOptions
     /** Service scope inherited by every component created or mounted here. */
     services?: ServiceScope
+    /** Optional caller-owned browser router inherited by routed components. */
+    router?: BrowserRouter
 }
 
 /** Immutable application scope for element naming and structural styles. */
@@ -39,6 +42,8 @@ export class FrayRuntime {
     readonly elementNameOverrides: Readonly<Record<string, string>>
     readonly styleRegistry: StyleRegistry
     readonly services: ServiceScope
+    readonly router: BrowserRouter | null
+    private readonly routedRoots = new WeakSet<Component>()
 
     constructor(
         options: FrayRuntimeOptions = {},
@@ -71,6 +76,13 @@ export class FrayRuntime {
         this.services = options.services ?? createServiceScope()
         if (!(this.services instanceof ServiceScope)) {
             throw new TypeError('Fray services must be a ServiceScope')
+        }
+        this.router = options.router ?? null
+        if (this.router != null
+            && (typeof this.router !== 'object'
+                || typeof this.router.openScope !== 'function'
+                || typeof this.router.completeScope !== 'function')) {
+            throw new TypeError('Fray router must be a BrowserRouter')
         }
     }
 
@@ -118,7 +130,21 @@ export class FrayRuntime {
         before: Node | null = null,
     ): TComponent {
         component._setRuntime(this)
-        component.mount(parent, before)
+        let closeRouteScope: (() => void) | null = null
+        if (this.router != null && !this.routedRoots.has(component)) {
+            this.routedRoots.add(component)
+            closeRouteScope = this.router.openScope(this.router.root, component)
+            component.onCleanup(closeRouteScope)
+        }
+        try {
+            component.mount(parent, before)
+            if (this.router != null && closeRouteScope != null) {
+                this.router.completeScope(this.router.root, component)
+            }
+        } catch (error) {
+            closeRouteScope?.()
+            throw error
+        }
         return component
     }
 

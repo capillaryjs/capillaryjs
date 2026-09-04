@@ -11,22 +11,34 @@ import {
     ListView,
     Panel,
     ProgressBar,
+    RouteLink,
+    RouteQuery,
+    RouteValue,
     Sidebar,
     SplitView,
     Tab,
     TabPanel,
     Textbox,
     TreeView,
+    createBrowserRouter,
     createFrayRuntime,
     createServiceScope,
+    defineRoute,
+    defineRouteParameter,
     defineService,
     h,
     provideService,
+    routeParameter,
+    routeTarget,
     serializeTableQuery,
+    stringRouteCodec,
+    stringRouteQueryCodec,
+    withRouteQuery,
 } from '../src/index.js'
 import type {
     ComponentProps,
     Key,
+    NavigationAdapter,
     Ref,
 } from '../src/index.js'
 const textboxValue = new Emitter('Ada')
@@ -48,6 +60,37 @@ new TabPanel({
     valueEmitter: activeTab,
     children: [h(Tab, {id: 'profile', label: 'Profile'}, 'Profile content')],
 })
+
+const applicationsRoute = defineRoute('applications')
+const projectRoute = defineRouteParameter('project', stringRouteCodec, 'project-id')
+const projectTarget = withRouteQuery(
+    routeTarget(applicationsRoute, routeParameter(projectRoute, 'acme')),
+    {view: 'history'},
+)
+const routeAdapter: NavigationAdapter = {
+    read: () => '/',
+    href: (location) => location,
+    push: (_location) => {},
+    replace: (_location) => {},
+    subscribe: (_listener) => () => {},
+}
+const router = createBrowserRouter({adapter: routeAdapter})
+new RouteLink({to: projectTarget, children: 'Project'})
+new RouteValue({route: projectRoute, valueEmitter: new Emitter<string | null>(null)})
+new RouteQuery({
+    name: 'view',
+    valueEmitter: new Emitter('summary'),
+    codec: stringRouteQueryCodec,
+    defaultValue: 'summary',
+})
+new TabPanel({
+    children: [h(Tab, {id: 'applications', route: applicationsRoute}, 'Applications')],
+})
+createFrayRuntime({router})
+// @ts-expect-error Dynamic routes require a typed routeParameter value in targets.
+routeTarget(projectRoute)
+// @ts-expect-error Dynamic route values retain the descriptor's value type.
+routeParameter(projectRoute, 42)
 
 new Sidebar({
     header: 'Requests',

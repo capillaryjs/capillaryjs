@@ -14,9 +14,11 @@ consumer application
 
 Glue owns reactive values and asynchronous state without depending on the DOM.
 Fray watches Glue emitters, renders component-owned DOM, collects structural
-styles, and propagates an explicit application service scope. Consumers own
+styles, propagates explicit application service and route scopes, and can
+coordinate browser navigation through an injected adapter. Consumers own
 application state, service implementations, endpoints, concrete service
-registration, page composition, and theme selection.
+registration, route vocabulary and codecs, page composition, and theme
+selection.
 
 ## Developer model
 
@@ -75,6 +77,24 @@ components inherit the runtime and may resolve only services they declare.
 Opened Glue queries/results remain component- or caller-owned. Service scope is
 explicit and disposable, with no process-global registry, constructor
 autowiring, decorators, or transient resolution.
+
+The same runtime may carry one caller-owned `BrowserRouter`. Immutable route
+descriptors identify relative path segments, while mounted scopes assign their
+resolved parent lineage. Routed `TabPanel` instances register all immediate
+annotated tabs and activate the existing application-owned emitter during
+restoration. Dynamic values and explicit query arguments likewise bind to
+ordinary writable emitters; tables, filters, services, and domain models do
+not acquire router knowledge.
+
+Location restoration advances one discovered scope at a time. Each step may
+await a cancellable application resolver before its child scope mounts, so
+data-dependent entity paths retain application ownership and deterministic
+parent-to-child order. Explicit navigation pushes; redirects, fallback,
+canonicalization, and passive state synchronization replace. Failures preserve
+the deepest valid prefix and expose structured issue state for application-
+owned accessible presentation. History, hash, and memory adapters keep URL
+placement out of the route model, and destroying the caller-owned router
+releases browser listeners and state subscriptions.
 
 The automatic JSX runtime and `h()` produce the same vnode representation.
 Readable emitters may be rendered as fine-grained children, bound to properties,

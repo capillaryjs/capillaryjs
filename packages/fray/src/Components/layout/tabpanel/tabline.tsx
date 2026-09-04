@@ -20,6 +20,8 @@ export interface TabLineProps extends ValueControlProps<Key | null> {
     label?: string
     baseId?: string
     onChange?: (value: Key, event: Event | null) => void
+    /** @internal Lets TabPanel route activation before changing the value. */
+    onSelectTab?: (tab: TabLineTab, event: Event | null) => void
 }
 
 export class TabLine extends Component<TabLineProps> {
@@ -52,7 +54,11 @@ export class TabLine extends Component<TabLineProps> {
 
     selectTab(tab: TabLineTab | undefined, event: Event | null = null): void {
         if (tab == null || tab.disabled) return
-        this.valueEmitter.set(tab.id, 'tab selected')
+        if (this.props.onSelectTab == null) {
+            this.valueEmitter.set(tab.id, 'tab selected')
+        } else {
+            this.props.onSelectTab(tab, event)
+        }
         invoke(this.props.onChange, tab.id, event)
     }
 

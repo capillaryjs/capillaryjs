@@ -6,6 +6,7 @@ import type {
 
 import {FrayRuntime, defaultFrayRuntime} from '../runtime.js'
 import type {ServiceKey} from '../services.js'
+import type {ResolvedRoute} from '../routing/router.js'
 
 export const Fragment = Symbol.for('@sylwellsoftware/fray.Fragment')
 
@@ -331,6 +332,8 @@ export class Component<TProps extends ComponentProps = ComponentProps> {
     private collectingRenderReads: Set<Watchable> | null = null
     /** @internal */
     _runtime: FrayRuntime = defaultFrayRuntime
+    /** @internal Route lineage inherited by nested routed components. */
+    _routeContext: ResolvedRoute | null = null
 
     constructor(props: TProps = {} as TProps) {
         if (props == null || typeof props !== 'object' || Array.isArray(props)) {
@@ -378,7 +381,22 @@ export class Component<TProps extends ComponentProps = ComponentProps> {
             throw new Error('Cannot change a component runtime after initialization')
         }
         this._runtime = runtime
+        if (this._routeContext == null) this._routeContext = runtime.router?.root ?? null
         return this
+    }
+
+    /** @internal Assign contextual route lineage before initialization. */
+    _setRouteContext(context: ResolvedRoute | null): this {
+        if (this.initialized || this.mounted || this._rendered != null) {
+            throw new Error('Cannot change a component route context after initialization')
+        }
+        this._routeContext = context
+        return this
+    }
+
+    /** @internal Route lineage inherited by component children. */
+    _routeContextForChildren(): ResolvedRoute | null {
+        return this._routeContext
     }
 
     mount(parent: ParentNode | null = null, before: Node | null = null): this {
@@ -737,6 +755,7 @@ function createRecord(value: NormalizedChild, owner: Component): RenderRecord {
 
     if (value instanceof Component) {
         value._setRuntime(owner._runtime)
+        value._setRouteContext(owner._routeContextForChildren())
         value.mount()
         owner.registerChild(value)
         return {
@@ -806,6 +825,7 @@ function createRecord(value: NormalizedChild, owner: Component): RenderRecord {
         const resolvedProps = resolveLivePropValues(sourceProps)
         const instance = new type(resolvedProps as never)
         instance._setRuntime(owner._runtime)
+        instance._setRouteContext(owner._routeContextForChildren())
         const record: ComponentRecord = {
             kind: 'component',
             key,
