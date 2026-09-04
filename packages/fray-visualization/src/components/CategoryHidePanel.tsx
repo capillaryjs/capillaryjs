@@ -1,10 +1,8 @@
 import {FetchState} from '@sylwellsoftware/glue'
 import type {ReadableEmitter} from '@sylwellsoftware/glue'
 import {
-    Button,
     Checkbox,
     Component,
-    Toolbar,
     css,
 } from '@sylwellsoftware/fray'
 import type {ComponentProps, FrayChild} from '@sylwellsoftware/fray'
@@ -65,20 +63,6 @@ extends Component<CategoryHidePanelProps<TItem>> {
                         <span>{criterion.label}</span>
                         <small>{visibleCount}/{categories.length} visible</small>
                     </summary>
-                    <Toolbar label={`${criterion.label} category actions`}>
-                        <Button
-                            label="Show all"
-                            ariaLabel={`Show all ${criterion.label} categories`}
-                            disabled={categories.length === visibleCount}
-                            onClick={() => criterion.setAllVisible(true)}
-                        />
-                        <Button
-                            label="Hide all"
-                            ariaLabel={`Hide all ${criterion.label} categories`}
-                            disabled={categories.length === 0 || visibleCount === 0}
-                            onClick={() => criterion.setAllVisible(false)}
-                        />
-                    </Toolbar>
                     {categorySnapshot.fetchState === FetchState.Error
                         ? <p role="alert">{criterion.label} categories are unavailable.</p>
                         : null}
@@ -99,7 +83,7 @@ extends Component<CategoryHidePanelProps<TItem>> {
         </section>
     }
 
-    static dependencies = [Button, Checkbox, Toolbar]
+    static dependencies = [Checkbox]
 
     static css = css`
         section[data-fray-visualization="category-hide-panel"] {
@@ -140,13 +124,6 @@ extends Component<CategoryHidePanelProps<TItem>> {
         section[data-fray-visualization="category-hide-panel"] summary small {
             font-weight: 400;
             white-space: nowrap;
-        }
-
-        section[data-fray-visualization="category-hide-panel"]
-        [role="toolbar"] {
-            padding: 0.35rem 0.5rem;
-            border-block: 1px solid var(--viz-border-color, var(--ui-border-color));
-            border-inline: 0;
         }
 
         section[data-fray-visualization="category-hide-panel"] [data-part="categories"] {

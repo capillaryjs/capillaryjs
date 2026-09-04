@@ -167,8 +167,8 @@ export class BlockGraph<TItem = unknown> extends Component<BlockGraphProps<TItem
             cursor: pointer;
         }
 
-        section[data-fray-visualization="block-graph"]
-        [role="treeitem"][aria-selected="true"] > .coloredinner {
+        section[data-fray-visualization="block-graph"] [role="treeitem"][aria-selected="true"] {
+            z-index: 3;
             outline: 3px solid var(--viz-selection-color, var(--colored-contrast, Highlight));
             outline-offset: -3px;
         }

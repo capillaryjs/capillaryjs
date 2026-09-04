@@ -164,6 +164,10 @@
       user-select: none;
     }
 
+    :where(button, .buttonlike, input, select, textarea, .inputlike, .inputshell, .selectshell, .checkboxshell, [role="checkbox"], [role="radio"], [role="tab"]) {
+      user-select: none;
+    }
+
     :where(button, .buttonlike):hover:not(:disabled, [aria-disabled="true"]) {
       background: var(--button-background-hover);
     }

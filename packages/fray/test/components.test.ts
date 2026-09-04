@@ -14,6 +14,8 @@ import {
     Panel,
     ProgressBar,
     QuadCheckbox,
+    RadioButton,
+    RadioGroup,
     Sidebar,
     SplitView,
     Tab,
@@ -232,6 +234,39 @@ describe('choice controls', () => {
         assert.equal(document.activeElement, requiredAt(radios, 1))
         assert.equal(requiredAt(radios, 1).getAttribute('aria-checked'), 'true')
         toggle.destroy()
+    })
+
+    test('RadioGroup renders native grouped radio inputs', () => {
+        const value = new Emitter('list')
+        const group = RadioGroup.new({
+            label: 'View',
+            options: [['list', 'List'], ['grid', 'Grid']],
+            valueEmitter: value,
+        }).attachTo(document.body)
+        const radios = [...document.querySelectorAll<HTMLInputElement>('input[type="radio"]')]
+
+        assert.equal(requiredQuery('fray-radio-group').dataset.frayComponent, 'radio-group')
+        assert.equal(radios.length, 2)
+        assert.equal(radios[0]?.checked, true)
+        assert.equal(radios[0]?.name, radios[1]?.name)
+        assert.equal(requiredQuery('fray-radio-button').localName, 'fray-radio-button')
+
+        requiredAt(radios, 1).checked = true
+        requiredAt(radios, 1).dispatchEvent(new Event('change', {bubbles: true}))
+        assert.equal(value.get(), 'grid')
+        assert.equal(requiredAt(radios, 1).checked, true)
+        group.destroy()
+    })
+
+    test('RadioButton exposes a native standalone input', () => {
+        const radio = RadioButton.new({label: 'Enabled', name: 'setting', value: 'enabled'})
+            .attachTo(document.body)
+        const input = requiredQuery<HTMLInputElement>('input[type="radio"]')
+
+        assert.equal(input.name, 'setting')
+        assert.equal(input.value, 'enabled')
+        assert.equal(input.parentElement?.parentElement?.localName, 'fray-radio-button')
+        radio.destroy()
     })
 
     test('Checkbox variants expose semantic state and keyboard cycling', () => {

@@ -699,6 +699,8 @@ sibling-local `key` through the common component props.
 | `Toolbar` | `label`, `orientation`, `id`, `children` | None | Stateless named toolbar; orientation is horizontal or vertical. |
 | `Textbox` | `label` or `ariaLabel`, value props, `disabled`, `required`, `readOnly`, `error`, native text constraints, `inputRef` | `onInput(value, event)`, `onChange(value, event)` | String `valueEmitter`; external emitter changes patch the native input without replacing it. |
 | `Dropdown<T>` | `options`, `label` or `ariaLabel`, value props, `disabled`, `required`, `error`, `placeholder`, `name` | `onChange(value, event)` | Typed string/number `valueEmitter`; `options` may be an array or readable emitter. |
+| `RadioButton` | `label`, `name`, `value`, `checked`, `disabled`, `required` | `onChange(checked, event)` | Native radio input with a label; use a shared `name` to associate standalone buttons. |
+| `RadioGroup<T>` | `options`, `label` or `ariaLabel`, value props, `name`, `disabled`, `required` | `onChange(value, event)` | Native radio inputs with one selected `valueEmitter` option. |
 | `Toggle<T>` | `options`, `label` or `ariaLabel`, value props, `disabled`, `required` | `onChange(value, event)` | One selected value; arrow keys, Home, and End move and select within the radio group. |
 | `Checkbox<T>` | `symbols`, `label`, value props, `disabled`, `required`, `name` | `onChange(value, event)` | Two-state semantic value by default; click/Space advances and arrow keys move in either direction. |
 | `TriCheckbox` | Checkbox props except `symbols` | `onChange(value, event)` | Cycles deny → neutral → prefer using `FilterMode`. |

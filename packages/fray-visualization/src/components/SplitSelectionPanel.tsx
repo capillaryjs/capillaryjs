@@ -1,4 +1,4 @@
-import {Button, Checkbox, Component, css} from '@sylwellsoftware/fray'
+import {Button, Checkbox, Component, css, h} from '@sylwellsoftware/fray'
 import type {ComponentProps, FrayChild} from '@sylwellsoftware/fray'
 
 import type {CategoryVisibility} from '../grouping.js'
@@ -60,21 +60,27 @@ extends Component<SplitSelectionPanelProps<TItem>> {
                     }}
                 />)}
             </div>}
-            <ol>{order.map((criterion, index) => <li
+            <ol>{order.map((criterion) => <li
                 key={criterion.key}
-                className="datacomponentshell"
+                className="datacomponentshell buttonlike"
                 data-split-key={criterion.key}
                 data-active={activeKeys.has(criterion.key) ? '' : null}
                 data-dragging={this.draggingKey === criterion.key ? '' : null}
                 onPointerDown={(event: PointerEvent) => this.startDragging(criterion.key, event)}
                 onClick={(event: MouseEvent) => this.suppressDraggedClick(event)}
             >
-                <button
-                    type="button"
-                    data-part="drag-handle"
-                    aria-label={`Reorder ${criterion.label}`}
-                    title="Drag to reorder; use Alt+Arrow keys from the keyboard"
-                    onKeyDown={(event: KeyboardEvent) => {
+                <Checkbox<CategoryVisibility>
+                    symbols={activeSymbols}
+                    label={criterion.label}
+                    valueEmitter={model.activeState(criterion.key)}
+                />
+                {h('drag-handle', {
+                    'data-part': 'drag-handle',
+                    role: 'button',
+                    tabIndex: 0,
+                    'aria-label': `Reorder ${criterion.label}`,
+                    title: 'Drag to reorder; use Alt+Arrow keys from the keyboard',
+                    onKeyDown: (event: KeyboardEvent) => {
                         if (!event.altKey || (event.key !== 'ArrowUp' && event.key !== 'ArrowDown')) {
                             return
                         }
@@ -86,14 +92,8 @@ extends Component<SplitSelectionPanelProps<TItem>> {
                             this.announce(`${criterion.label} moved to position ${position}`)
                             queueMicrotask(() => this.focusHandle(criterion.key))
                         }
-                    }}
-                ><span aria-hidden="true">↕</span></button>
-                <span data-part="position" aria-hidden="true">{index + 1}</span>
-                <Checkbox<CategoryVisibility>
-                    symbols={activeSymbols}
-                    label={criterion.label}
-                    valueEmitter={model.activeState(criterion.key)}
-                />
+                    },
+                })}
             </li>)}</ol>
             <p role="status" aria-live="polite" aria-atomic="true">
                 {this.announcement}
@@ -137,7 +137,7 @@ extends Component<SplitSelectionPanelProps<TItem>> {
 
         section[data-fray-visualization="split-selection-panel"] li {
             display: grid;
-            grid-template-columns: auto 1.6rem minmax(0, 1fr);
+            grid-template-columns: minmax(0, 1fr) 1.1rem;
             align-items: center;
             gap: 0.35rem;
             min-width: 0;
@@ -154,20 +154,24 @@ extends Component<SplitSelectionPanelProps<TItem>> {
         }
 
         section[data-fray-visualization="split-selection-panel"] [data-part="drag-handle"] {
-            width: 2rem;
-            min-height: 2rem;
-            border: 1px solid var(--viz-border-color, var(--ui-border-color));
-            border-radius: var(--viz-radius, var(--ui-border-radius));
+            display: block;
+            width: 1.1rem;
+            min-height: 1.8rem;
+            padding: 0;
+            border: 0;
+            border-radius: 0;
             color: inherit;
-            background: transparent;
+            background-color: transparent;
+            background-image: radial-gradient(currentColor 0.75px, transparent 0.9px);
+            background-position: center;
+            background-size: 3px 3px;
             cursor: grab;
             touch-action: none;
         }
 
-        section[data-fray-visualization="split-selection-panel"] [data-part="position"] {
-            display: inline-grid;
-            place-items: center;
-            font-variant-numeric: tabular-nums;
+        section[data-fray-visualization="split-selection-panel"] [data-part="drag-handle"]:focus-visible {
+            outline: 2px solid var(--focus-color, var(--ui-accent-color));
+            outline-offset: 1px;
         }
 
         section[data-fray-visualization="split-selection-panel"]

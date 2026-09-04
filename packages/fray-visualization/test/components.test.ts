@@ -95,6 +95,7 @@ describe('visualization controls', () => {
         assert.equal(required('section[data-fray-visualization="category-hide-panel"]').className,
             'datacomponentlike')
         assert.equal(required('details').className, 'datacomponentshell')
+        assert.equal(document.querySelector('[role="toolbar"]'), null)
         const checkboxes = [...document.querySelectorAll<HTMLInputElement>('input[type="checkbox"]')]
         assert.equal(checkboxes.length, 2)
         assert.match(checkboxes[0]?.getAttribute('aria-label') ?? '', /Open \(2\): visible/)
@@ -135,7 +136,13 @@ describe('visualization controls', () => {
         assert.equal(required('section[data-fray-visualization="split-selection-panel"]').className,
             'datacomponentlike')
         assert.ok(required('[data-split-key="state"]').classList.contains('datacomponentshell'))
+        assert.equal(document.querySelector('[data-part="position"]'), null)
+        assert.equal(required('[data-part="drag-handle"]').localName, 'drag-handle')
+        assert.equal(document.querySelector('[data-part="drag-handle"] button'), null)
+        assert.equal(required('[data-split-key="state"]')
+            .lastElementChild?.getAttribute('data-part'), 'drag-handle')
         const tagsHandle = required<HTMLElement>('[aria-label="Reorder Tags"]')
+        assert.equal(tagsHandle.textContent, '')
         tagsHandle.focus()
         tagsHandle.dispatchEvent(new KeyboardEvent('keydown', {
             key: 'ArrowUp',
