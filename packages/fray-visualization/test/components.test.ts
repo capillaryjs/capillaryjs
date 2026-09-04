@@ -95,18 +95,18 @@ describe('visualization controls', () => {
         assert.equal(required('section[data-fray-visualization="category-hide-panel"]').className,
             'datacomponentlike')
         assert.equal(required('details').className, 'datacomponentshell')
-        const checkboxes = [...document.querySelectorAll<HTMLElement>('[role="checkbox"]')]
+        const checkboxes = [...document.querySelectorAll<HTMLInputElement>('input[type="checkbox"]')]
         assert.equal(checkboxes.length, 2)
         assert.match(checkboxes[0]?.getAttribute('aria-label') ?? '', /Open \(2\): visible/)
         assert.match(checkboxes[1]?.getAttribute('aria-label') ?? '', /Closed \(1\): hidden/)
-        assert.equal(checkboxes[0]?.getAttribute('aria-checked'), 'true')
-        assert.equal(checkboxes[1]?.getAttribute('aria-checked'), 'false')
+        assert.equal(checkboxes[0]?.checked, true)
+        assert.equal(checkboxes[1]?.checked, false)
         checkboxes[0]?.click()
         assert.deepEqual([...criterion.hidden$.get()].sort(), ['closed', 'open'])
 
         items.set([...itemsValue, {id: 4, state: 'open', tags: []}])
         assert.match(
-            document.querySelector<HTMLElement>('[role="checkbox"]')?.getAttribute('aria-label')
+            document.querySelector<HTMLInputElement>('input[type="checkbox"]')?.getAttribute('aria-label')
                 ?? '',
             /Open \(3\): hidden/,
         )
@@ -156,22 +156,42 @@ describe('visualization controls', () => {
         stateHandle.dispatchEvent(new MouseEvent('pointerdown', {bubbles: true}))
         document.dispatchEvent(new MouseEvent('pointermove', {
             bubbles: true,
-            clientX: 1,
+            clientX: 8,
             clientY: 1,
         }))
         document.dispatchEvent(new MouseEvent('pointerup', {bubbles: true}))
         await Promise.resolve()
         assert.deepEqual(model.order$.get().map(({key}) => key), ['state', 'tags'])
         assert.equal(document.activeElement?.getAttribute('aria-label'), 'Reorder State')
+        required<HTMLButtonElement>('button[aria-pressed="false"]').click()
+        assert.deepEqual(model.activeSplits$.get().map(({key}) => key), ['tags', 'state'])
+        assert.equal(model.activePreset$.get(), 'all')
+
+        const tagsInput = required<HTMLInputElement>('[data-split-key="tags"] input[type="checkbox"]')
+        const stateRow = required<HTMLElement>('[data-split-key="state"]')
+        Object.defineProperty(document, 'elementFromPoint', {
+            configurable: true,
+            value: () => stateRow,
+        })
+        tagsInput.dispatchEvent(new MouseEvent('pointerdown', {bubbles: true}))
+        document.dispatchEvent(new MouseEvent('pointermove', {
+            bubbles: true,
+            clientX: 8,
+            clientY: 0,
+        }))
+        document.dispatchEvent(new MouseEvent('pointerup', {bubbles: true}))
+        await Promise.resolve()
+        assert.deepEqual(model.order$.get().map(({key}) => key), ['state', 'tags'])
+        assert.deepEqual(model.activeSplits$.get().map(({key}) => key), ['state', 'tags'])
+
+        await new Promise((resolve) => setTimeout(resolve, 0))
+        required<HTMLInputElement>('[data-split-key="tags"] input[type="checkbox"]').click()
+        assert.deepEqual(model.activeSplits$.get().map(({key}) => key), ['state'])
         if (elementFromPoint == null) {
             delete (document as unknown as {elementFromPoint?: unknown}).elementFromPoint
         } else {
             Object.defineProperty(document, 'elementFromPoint', elementFromPoint)
         }
-
-        required<HTMLButtonElement>('button[aria-pressed="false"]').click()
-        assert.deepEqual(model.activeSplits$.get().map(({key}) => key), ['tags', 'state'])
-        assert.equal(model.activePreset$.get(), 'all')
 
         panel.destroy()
         model.dispose()

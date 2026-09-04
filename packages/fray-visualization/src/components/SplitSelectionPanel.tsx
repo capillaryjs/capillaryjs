@@ -19,6 +19,9 @@ export interface SplitSelectionPanelProps<TItem> extends ComponentProps {
 export class SplitSelectionPanel<TItem = unknown>
 extends Component<SplitSelectionPanelProps<TItem>> {
     private draggingKey: string | null = null
+    private pendingDrag: {key: string; clientX: number; clientY: number} | null = null
+    private suppressClick = false
+    private suppressClickTimer: ReturnType<typeof setTimeout> | null = null
     private announcement = ''
 
     initialize(): void {
@@ -63,17 +66,14 @@ extends Component<SplitSelectionPanelProps<TItem>> {
                 data-split-key={criterion.key}
                 data-active={activeKeys.has(criterion.key) ? '' : null}
                 data-dragging={this.draggingKey === criterion.key ? '' : null}
+                onPointerDown={(event: PointerEvent) => this.startDragging(criterion.key, event)}
+                onClick={(event: MouseEvent) => this.suppressDraggedClick(event)}
             >
                 <button
                     type="button"
                     data-part="drag-handle"
                     aria-label={`Reorder ${criterion.label}`}
                     title="Drag to reorder; use Alt+Arrow keys from the keyboard"
-                    onPointerDown={(event: PointerEvent) => {
-                        event.preventDefault()
-                        this.draggingKey = criterion.key
-                        this.update()
-                    }}
                     onKeyDown={(event: KeyboardEvent) => {
                         if (!event.altKey || (event.key !== 'ArrowUp' && event.key !== 'ArrowDown')) {
                             return
@@ -192,6 +192,13 @@ extends Component<SplitSelectionPanelProps<TItem>> {
     `
 
     private pointerMove(event: PointerEvent): void {
+        if (this.draggingKey == null && this.pendingDrag != null) {
+            const {clientX, clientY, key} = this.pendingDrag
+            if (Math.hypot(event.clientX - clientX, event.clientY - clientY) < 4) return
+            this.draggingKey = key
+            this.pendingDrag = null
+            this.update()
+        }
         if (this.draggingKey == null || typeof document.elementFromPoint !== 'function') return
         const target = document.elementFromPoint(event.clientX, event.clientY)
             ?.closest<HTMLElement>('[data-split-key]')
@@ -209,11 +216,34 @@ extends Component<SplitSelectionPanelProps<TItem>> {
     }
 
     private stopDragging(): void {
-        if (this.draggingKey == null) return
+        if (this.draggingKey == null && this.pendingDrag == null) return
         const key = this.draggingKey
+        const dragged = key != null
         this.draggingKey = null
+        this.pendingDrag = null
+        if (!dragged) return
+        this.suppressClick = true
+        if (this.suppressClickTimer != null) clearTimeout(this.suppressClickTimer)
+        this.suppressClickTimer = setTimeout(() => {
+            this.suppressClick = false
+            this.suppressClickTimer = null
+        }, 0)
         this.update()
         queueMicrotask(() => this.focusHandle(key))
+    }
+
+    private startDragging(key: string, event: PointerEvent): void {
+        if (event.button !== 0) return
+        this.pendingDrag = {key, clientX: event.clientX, clientY: event.clientY}
+    }
+
+    private suppressDraggedClick(event: MouseEvent): void {
+        if (!this.suppressClick) return
+        this.suppressClick = false
+        if (this.suppressClickTimer != null) clearTimeout(this.suppressClickTimer)
+        this.suppressClickTimer = null
+        event.preventDefault()
+        event.stopPropagation()
     }
 
     private announce(message: string): void {

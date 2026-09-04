@@ -42,10 +42,10 @@
       --dialog-shadow: 0 1.25rem 4rem color-mix(in oklch, var(--palette-dark) 35%, transparent);
       --dialog-backdrop-background: color-mix(in oklch, var(--palette-dark) 55%, transparent);
 
-      --header-background: var(--shiny-primary-gradient);
+      --header-background: radial-gradient(140% 75% at 40% 15%, #fff2, #fff2 47%, #fff0 55%, #fff0), var(--shiny-primary-gradient);
       --header-color: var(--palette-contrast-light);
-      --header-border: 1px solid color-mix(in oklch, var(--palette-primary-900) 72%, var(--palette-dark));
-      --header-shadow: var(--shiny-raised-shadow);
+      --header-border: 0 solid transparent;
+      --header-shadow: inset 2px -2px 2px 0 #fff7, inset -2px 3px 3px -1px #0006, -1px 1px 2px 0 #0005;
       --section-header-background: var(--header-background);
       --section-header-color: var(--header-color);
       --section-header-border: var(--header-border);
@@ -372,15 +372,14 @@
       --colored-dark: var(--palette-primary-dark);
       --colored-contrast: var(--palette-contrast-light);
       color: var(--colored-contrast);
-      background: var(--colored-base);
-      border: 1px solid color-mix(in oklch, var(--colored-dark) 78%, var(--palette-dark));
-      border-radius: var(--radius-md);
-      box-shadow: var(--shiny-raised-shadow);
+      background: linear-gradient(to bottom, var(--colored-light) 0%, var(--colored-base) 65%, var(--colored-base) 65%, var(--colored-dark) 100%);
+      border-color: color-mix(in oklch, var(--colored-dark) 72%, currentColor);
+      box-shadow: inset 2px -2px 2px 0 #fff7, inset -2px 3px 3px -1px #0006, -1px 1px 2px 0 #0005;
     }
 
     :where(.coloredinner) {
       color: var(--colored-contrast);
-      background: var(--colored-base);
+      background: transparent;
     }
 
     :where([aria-selected="true"], [aria-pressed="true"]) {
@@ -463,54 +462,6 @@
         border-color: CanvasText;
         forced-color-adjust: auto;
       }
-    }
-
-    :where(button, .buttonlike, [role="tab"], [role="radio"], [role="checkbox"]) {
-      position: relative;
-      isolation: isolate;
-      overflow: hidden;
-      transition: filter var(--motion-fast), transform var(--motion-fast);
-    }
-
-    :where(.coloredlike, .coloredshell) {
-      background: radial-gradient(140% 75% at 30% 10%, color-mix(in oklch, var(--palette-light) 48%, transparent) 0 50%, transparent 51%), linear-gradient(to bottom, var(--colored-light) 0%, var(--colored-base) 48%, var(--colored-dark) 100%);
-    }
-
-    :where(.coloredinner) {
-      background: linear-gradient(to bottom, transparent 0 55%, color-mix(in oklch, var(--colored-dark) 35%, transparent));
-    }
-
-    :where(button, .buttonlike, [role="tab"], [role="radio"], [role="checkbox"])::before,
-    :where(header, th, .headerlike)::after,
-    :where(.inputshell)::before {
-      content: "";
-      position: absolute;
-      inset: 1px;
-      border-radius: inherit;
-      background: var(--shiny-highlight);
-      pointer-events: none;
-    }
-
-    :where(button, .buttonlike, [role="tab"], [role="radio"], [role="checkbox"])::before {
-      z-index: -1;
-    }
-
-    :where(header, .headerlike) {
-      position: relative;
-      isolation: isolate;
-      overflow: clip;
-    }
-
-    :where(.inputshell) {
-      position: relative;
-      isolation: isolate;
-      overflow: hidden;
-    }
-
-    :where(header, th, .headerlike)::after {
-      inset: 0;
-      z-index: -1;
-      border: 1px solid color-mix(in oklch, var(--palette-light) 22%, transparent);
     }
 
     :where(.selectshell) > select {
