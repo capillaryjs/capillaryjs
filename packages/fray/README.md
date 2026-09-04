@@ -221,7 +221,7 @@ not a framework identity class. The default application runtime therefore
 produces DOM such as:
 
 ```html
-<fray-panel data-fray-component="panel">
+<fray-panel class="panellike" data-fray-component="panel">
     <fray-textbox data-fray-component="textbox">
         <input type="text">
     </fray-textbox>
@@ -233,8 +233,10 @@ Native semantics remain native: `Button` renders `button`, `Toggle` renders
 `fieldset`, `Sidebar` renders `aside`, and table header components render
 `thead`/`th`. `Tab` is a declarative child consumed by `TabPanel` and has no
 independent root. The
-`data-fray-component` attribute keeps diagnostics unambiguous without taking
-ownership of the consumer's `class`/`className`.
+`data-fray-component` keeps diagnostics unambiguous. It is not a structural or
+theme selector. Fray may merge public presentation traits such as `panellike`
+with an application-supplied `class`/`className`; those traits describe a
+reusable capability, not component identity.
 
 Element naming is an immutable application-runtime setting:
 
@@ -680,7 +682,7 @@ Fray's styling system has three physically and conceptually separate layers:
 | --- | --- | --- | --- |
 | Structure | `styles/structural.css` | Generated component layout, flow, sizing, positioning, accessibility mechanics, stable hooks, and variable consumption | Loaded once; remains stable during presentation changes |
 | Theme | `themes/<name>/theme.css` | Typography, spacing, geometry, depth, surface treatment, semantic family mappings, and exceptional pseudo/native rendering | Loaded separately and independently replaceable |
-| Colors | `colors/<name>/colors.css` | Palette primitives and semantic color roles | Loaded separately and independently replaceable |
+| Colors | `colors/<name>/colors.css` | Primary, secondary, and neutral ramps plus contrast/color primitives; no UI-semantic roles | Loaded separately and independently replaceable |
 
 Component authors place only structure and mechanics in `static css`: display,
 flow, sizing, positioning, overflow, stable state hooks, and consumption of
@@ -708,7 +710,7 @@ CSS custom properties are Fray's primary theme integration protocol:
 
 ```text
 colors.css
-  --fray-color-* palette/semantic roles
+  --palette-primary-* / --palette-secondary-* / --palette-neutral-*
                   │
                   ▼
 theme.css
@@ -732,39 +734,44 @@ that should look different. `frayThemeVariableCatalog` exports this contract in
 machine-readable form, including every variable's layer, family, value kind,
 purpose, and optional fallback.
 
-A custom component should consume the same hierarchy rather than forcing every
-theme to learn a new selector:
+A custom component can apply the public trait matching the treatment it needs
+and optionally consume the same variable hierarchy:
 
 ```css
-acme-grid > header {
-  color: var(
-    --acme-grid-header-color,
-    var(--fray-table-header-color, var(--fray-header-color))
-  );
-  background: var(
-    --acme-grid-header-background,
-    var(--fray-table-header-background, var(--fray-header-background))
-  );
+acme-grid.datacomponentlike > header {
+  color: var(--table-header-color, var(--header-color));
+  background: var(--table-header-background, var(--header-background));
 }
 ```
 
-That component immediately follows compatible Fray themes while retaining a
-consumer/component-specific escape hatch.
+Complete traits use the `like` suffix. A component whose outer and content
+regions are distinct uses `shell` and `inner`, for example `buttonshell` with
+`buttoninner`, or `datacomponentshell` with `datacomponentinner`. Other public
+families include `inputlike`, `headerlike`, `coloredlike`, `panellike`, and
+`toolbarlike`; the panel and toolbar families also expose
+`panelshell`/`panelinner` and `toolbarshell`/`toolbarinner`. Wrappers are not
+introduced solely to carry a split trait.
 
-Variables are preferred, not mandatory. Some visual treatments require actual
-selectors and pseudo-elements. Shiny uses theme-scoped stable
-`data-fray-component`, `data-part`, role, and ARIA-state hooks to layer
-highlights over headers and button-like controls, draw custom dropdown arrows
-and checkbox surfaces, and style native progress pseudo-parts. These rules must
-not depend on application classes or generated IDs, must never intercept
-pointer events, and must yield to native representation under forced colors.
+Themes directly target native elements, public traits, native pseudo-parts,
+and native/ARIA state. They never target `data-fray-component` or `data-part`.
+Every theme seeds inherited variables with a zero-specificity
+`:root`/`[data-theme]` boundary rule. Presentation selectors use `@scope` with
+nested theme roots and `[data-theme-exclude]` limits, a named cascade layer,
+and low-specificity `:where()` selectors. Shiny's highlights and
+select/progress decoration follow that contract and yield to native
+representation under forced colors.
+
+`coloredlike` defaults to the primary palette. Components can provide
+`--colored-base`, `--colored-light`, `--colored-dark`, and
+`--colored-contrast`; the active theme decides whether those inputs become a
+flat color, gradient, other polish, or no special treatment.
 
 ### Runtime selection
 
 `replaceFrayStylesheet` maintains one
 `link[data-fray-stylesheet="theme"]` and one
 `link[data-fray-stylesheet="colors"]`. Replacing either link also sets the
-corresponding `data-fray-theme` or `data-fray-color` root attribute. The
+corresponding `data-theme` or `data-color` root attribute. The
 `ThemePicker` and `ColorPicker` controls expose the same operation through the
 normal Fray value-control contract.
 

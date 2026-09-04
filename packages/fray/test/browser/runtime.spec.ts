@@ -4,6 +4,16 @@ import {readFile} from 'node:fs/promises'
 import {fileURLToPath} from 'node:url'
 
 const lightThemePath = fileURLToPath(new URL('../../themes/light.css', import.meta.url))
+const modernThemePaths = ['minimal', 'java', 'shiny'].map((name) => ({
+    name,
+    path: fileURLToPath(new URL(`../../themes/${name}/theme.css`, import.meta.url)),
+}))
+const colorPaths = [
+    'iceblue', 'ocean', 'green', 'gray', 'orange', 'purple', 'red', 'yellow',
+].map((name) => ({
+    name,
+    path: fileURLToPath(new URL(`../../colors/${name}/colors.css`, import.meta.url)),
+}))
 
 test.beforeEach(async ({page}) => {
     await page.goto('/')
@@ -39,7 +49,7 @@ test('Sidebar keeps its labelled header and toolbar outside the scrolling conten
 
         const before = await sidebar.evaluate((element) => {
             const contentElement = element.querySelector<HTMLElement>('[data-part="content"]')
-            const header = element.querySelector<HTMLElement>('[data-part="header"]')
+            const header = element.querySelector<HTMLElement>(':scope > header')
             if (contentElement == null || header == null) throw new Error('Missing Sidebar parts')
             return {
                 rootOverflow: getComputedStyle(element).overflow,
@@ -60,7 +70,7 @@ test('Sidebar keeps its labelled header and toolbar outside the scrolling conten
         await expect(content).toHaveJSProperty('scrollTop',
             before.contentScrollHeight - before.contentClientHeight)
         const headerOffsetTop = await sidebar.evaluate((element) => {
-            const header = element.querySelector<HTMLElement>('[data-part="header"]')
+            const header = element.querySelector<HTMLElement>(':scope > header')
             if (header == null) throw new Error('Missing Sidebar header')
             return header.getBoundingClientRect().top - element.getBoundingClientRect().top
         })
@@ -215,6 +225,76 @@ test('consumer theme variables override a later-loaded theme stylesheet', async 
     await page.addStyleTag({content: await readFile(lightThemePath, 'utf8')})
     await expect(page.locator('#accessibility-root button').first())
         .toHaveCSS('background-color', 'rgb(1, 2, 3)')
+})
+
+test('scopes every shipped theme and palette combination to opted-in content', async ({page}) => {
+    for (const {path} of [...modernThemePaths, ...colorPaths]) {
+        await page.addStyleTag({content: await readFile(path, 'utf8')})
+    }
+    await page.locator('body').evaluate((body) => {
+        body.insertAdjacentHTML('beforeend', `
+            <div id="theme-trait" class="coloredlike">Trait</div>
+            <div data-theme-exclude>
+                <div id="excluded-theme-trait" class="coloredlike">Excluded</div>
+            </div>
+            <div id="theme-island" data-theme="shiny" data-color="red">
+                <div id="island-theme-trait" class="coloredlike">Island</div>
+            </div>
+        `)
+    })
+
+    const paletteAnchors = new Set<string>()
+    const themeRadii = new Set<string>()
+    for (const {name: theme} of modernThemePaths) {
+        for (const {name: color} of colorPaths) {
+            const values = await page.evaluate(({theme, color}) => {
+                document.documentElement.dataset.theme = theme
+                document.documentElement.dataset.color = color
+                const root = getComputedStyle(document.documentElement)
+                const trait = getComputedStyle(document.querySelector('#theme-trait')!)
+                return {
+                    primary: root.getPropertyValue('--palette-primary-500').trim(),
+                    secondary: root.getPropertyValue('--palette-secondary-500').trim(),
+                    neutral950: root.getPropertyValue('--palette-neutral-950').trim(),
+                    radius: root.getPropertyValue('--radius-md').trim(),
+                    traitBackground: trait.background,
+                    traitColor: trait.color,
+                }
+            }, {theme, color})
+            expect(values.primary, `${theme}/${color} primary`).not.toBe('')
+            expect(values.secondary, `${theme}/${color} secondary`).not.toBe('')
+            expect(values.neutral950, `${theme}/${color} neutral`).not.toBe('')
+            expect(values.radius, `${theme}/${color} theme`).not.toBe('')
+            expect(values.traitBackground, `${theme}/${color} coloredlike`).not.toBe('')
+            expect(values.traitColor, `${theme}/${color} coloredlike contrast`).not.toBe('')
+            paletteAnchors.add(values.primary)
+            themeRadii.add(values.radius)
+        }
+    }
+    expect(paletteAnchors.size).toBe(colorPaths.length)
+    expect(themeRadii.size).toBe(modernThemePaths.length)
+
+    const boundaries = await page.evaluate(() => {
+        document.documentElement.dataset.theme = 'minimal'
+        document.documentElement.dataset.color = 'iceblue'
+        const root = getComputedStyle(document.documentElement)
+        const excluded = getComputedStyle(document.querySelector('#excluded-theme-trait')!)
+        const island = getComputedStyle(document.querySelector('#theme-island')!)
+        const islandTrait = getComputedStyle(document.querySelector('#island-theme-trait')!)
+        return {
+            rootPrimary: root.getPropertyValue('--palette-primary-500').trim(),
+            islandPrimary: island.getPropertyValue('--palette-primary-500').trim(),
+            islandRadius: island.getPropertyValue('--radius-md').trim(),
+            excludedBackgroundImage: excluded.backgroundImage,
+            excludedBackgroundColor: excluded.backgroundColor,
+            islandTraitBackground: islandTrait.background,
+        }
+    })
+    expect(boundaries.islandPrimary).not.toBe(boundaries.rootPrimary)
+    expect(boundaries.islandRadius).toBe('0.35rem')
+    expect(boundaries.excludedBackgroundImage).toBe('none')
+    expect(boundaries.excludedBackgroundColor).toBe('rgba(0, 0, 0, 0)')
+    expect(boundaries.islandTraitBackground).not.toBe('')
 })
 
 test('keeps 1,000-row stable table operations inside the documented budget',

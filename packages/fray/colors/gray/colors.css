@@ -1,29 +1,57 @@
 @charset "utf-8";
 
-:where(:root), [data-fray-color="gray"] {
-  --fray-color-canvas: #f5f6f7;
-  --fray-color-surface: #ffffff;
-  --fray-color-surface-muted: #eceff1;
-  --fray-color-surface-raised: #ffffff;
-  --fray-color-surface-inset: #dde1e4;
-  --fray-color-text: #25292d;
-  --fray-color-text-muted: #626a72;
-  --fray-color-border: #c3c8cd;
-  --fray-color-border-strong: #858d95;
-  --fray-color-primary: #5d6873;
-  --fray-color-primary-hover: #4d5862;
-  --fray-color-primary-active: #3d464e;
-  --fray-color-primary-soft: #e1e6eb;
-  --fray-color-on-primary: #ffffff;
-  --fray-color-focus: #1769aa;
-  --fray-color-selection: #5d6873;
-  --fray-color-on-selection: #ffffff;
-  --fray-color-disabled: #e4e7e9;
-  --fray-color-on-disabled: #6c737a;
-  --fray-color-error: #b3261e;
-  --fray-color-on-error: #ffffff;
-  --fray-color-success: #287a3c;
-  --fray-color-on-success: #ffffff;
-  --fray-color-highlight: #ffffff;
-  --fray-color-shadow: #20252a;
+@layer palette {
+  :where(:root:not([data-color]), [data-color="gray"]) {
+      --palette-light: #ffffff;
+      --palette-dark: #111827;
+      --palette-contrast-light: var(--palette-light);
+      --palette-contrast-dark: var(--palette-dark);
+      --palette-red: #b3261e;
+      --palette-green: #287a3c;
+
+      --palette-primary-500: #5d6873;
+      --palette-primary-50: color-mix(in oklch, var(--palette-primary-500) 8%, var(--palette-light));
+      --palette-primary-100: color-mix(in oklch, var(--palette-primary-500) 16%, var(--palette-light));
+      --palette-primary-200: color-mix(in oklch, var(--palette-primary-500) 32%, var(--palette-light));
+      --palette-primary-300: color-mix(in oklch, var(--palette-primary-500) 50%, var(--palette-light));
+      --palette-primary-400: color-mix(in oklch, var(--palette-primary-500) 72%, var(--palette-light));
+      --palette-primary-600: color-mix(in oklch, var(--palette-primary-500) 85%, var(--palette-dark));
+      --palette-primary-700: color-mix(in oklch, var(--palette-primary-500) 72%, var(--palette-dark));
+      --palette-primary-800: color-mix(in oklch, var(--palette-primary-500) 58%, var(--palette-dark));
+      --palette-primary-900: color-mix(in oklch, var(--palette-primary-500) 42%, var(--palette-dark));
+      --palette-primary-950: color-mix(in oklch, var(--palette-primary-500) 28%, var(--palette-dark));
+      --palette-primary: var(--palette-primary-500);
+      --palette-primary-light: var(--palette-primary-200);
+      --palette-primary-dark: var(--palette-primary-800);
+
+      --palette-secondary-500: #1769aa;
+      --palette-secondary-50: color-mix(in oklch, var(--palette-secondary-500) 8%, var(--palette-light));
+      --palette-secondary-100: color-mix(in oklch, var(--palette-secondary-500) 16%, var(--palette-light));
+      --palette-secondary-200: color-mix(in oklch, var(--palette-secondary-500) 32%, var(--palette-light));
+      --palette-secondary-300: color-mix(in oklch, var(--palette-secondary-500) 50%, var(--palette-light));
+      --palette-secondary-400: color-mix(in oklch, var(--palette-secondary-500) 72%, var(--palette-light));
+      --palette-secondary-600: color-mix(in oklch, var(--palette-secondary-500) 85%, var(--palette-dark));
+      --palette-secondary-700: color-mix(in oklch, var(--palette-secondary-500) 72%, var(--palette-dark));
+      --palette-secondary-800: color-mix(in oklch, var(--palette-secondary-500) 58%, var(--palette-dark));
+      --palette-secondary-900: color-mix(in oklch, var(--palette-secondary-500) 42%, var(--palette-dark));
+      --palette-secondary-950: color-mix(in oklch, var(--palette-secondary-500) 28%, var(--palette-dark));
+      --palette-secondary: var(--palette-secondary-500);
+      --palette-secondary-light: var(--palette-secondary-200);
+      --palette-secondary-dark: var(--palette-secondary-800);
+
+      --palette-neutral-500: #858d95;
+      --palette-neutral-50: color-mix(in oklch, var(--palette-neutral-500) 6%, var(--palette-light));
+      --palette-neutral-100: color-mix(in oklch, var(--palette-neutral-500) 13%, var(--palette-light));
+      --palette-neutral-200: color-mix(in oklch, var(--palette-neutral-500) 26%, var(--palette-light));
+      --palette-neutral-300: color-mix(in oklch, var(--palette-neutral-500) 43%, var(--palette-light));
+      --palette-neutral-400: color-mix(in oklch, var(--palette-neutral-500) 68%, var(--palette-light));
+      --palette-neutral-600: color-mix(in oklch, var(--palette-neutral-500) 84%, var(--palette-dark));
+      --palette-neutral-700: color-mix(in oklch, var(--palette-neutral-500) 67%, var(--palette-dark));
+      --palette-neutral-800: color-mix(in oklch, var(--palette-neutral-500) 50%, var(--palette-dark));
+      --palette-neutral-900: color-mix(in oklch, var(--palette-neutral-500) 32%, var(--palette-dark));
+      --palette-neutral-950: color-mix(in oklch, var(--palette-neutral-500) 18%, var(--palette-dark));
+      --palette-neutral: var(--palette-neutral-500);
+      --palette-neutral-light: var(--palette-neutral-200);
+      --palette-neutral-dark: var(--palette-neutral-800);
+  }
 }

@@ -46,9 +46,9 @@ describe('style registry', () => {
             document.head.querySelectorAll('style[data-fray-structural-styles]').length,
             1,
         )
-        assert.match(second.textContent, /button\[data-fray-component="button"\]/)
-        assert.match(second.textContent, /fray-textbox > input:focus-visible/)
-        assert.match(second.textContent, /fray-textbox > input:disabled/)
+        assert.match(second.textContent, /button/)
+        assert.match(second.textContent, /fray-textbox > input/)
+        assert.doesNotMatch(second.textContent, /data-fray-component/)
         assert.doesNotMatch(second.textContent, /undefined/)
     })
 
@@ -63,17 +63,11 @@ describe('style registry', () => {
         assert.deepEqual(Object.keys(baseStyleDefinitions).sort(), [
             'after',
             'button',
-            'disabled',
-            'error',
             'input',
             'inputlike',
             'inputline',
-            'label',
             'labeledinput',
             'noselect',
-            'panel',
-            'sectionheader',
-            'toolbar',
             'uiline',
             'working',
         ])
@@ -90,9 +84,6 @@ describe('style registry', () => {
 
             static override hostName = 'probe'
             static override standaloneHostName = 'runtime-probe'
-            static override baseStyles = [
-                ['&', 'panel'],
-            ]
             static override css = '& { display: block; }'
         }
 
@@ -185,7 +176,7 @@ describe('supported theme bundles', () => {
                 assert.match(css, new RegExp(`${property.replaceAll('-', '\\-')}\\s*:`),
                     `${name} must define ${property}`)
             }
-            assert.match(css, /^:where\(:root\), \[data-fray-theme="(?:light|dark)"\]/)
+            assert.match(css, /\[data-theme="(?:light|dark)"\]/)
             assert.equal(new Set(declarations).size, declarations.length,
                 `${name} must not repeat custom-property declarations`)
             assert.doesNotMatch(css, /^\s*\.[a-z-]+\s*:/m)
@@ -208,8 +199,8 @@ describe('supported theme bundles', () => {
         const themeRequired = frayThemeVariableCatalog
             .filter(({layer, fallback}) => layer === 'theme' && fallback == null)
             .map(({name}) => name)
-        const colorRequired = frayThemeVariableCatalog
-            .filter(({layer}) => layer === 'color')
+        const paletteRequired = frayThemeVariableCatalog
+            .filter(({layer, fallback}) => layer === 'palette' && fallback == null)
             .map(({name}) => name)
 
         let allThemes = ''
@@ -217,21 +208,32 @@ describe('supported theme bundles', () => {
             const css = await readFile(fileURLToPath(option.href), 'utf8')
             allThemes += css
             for (const property of themeRequired) assert.match(css, new RegExp(`${property}:`))
-            assert.doesNotMatch(css, /^\s*--fray-color-[a-z0-9-]+\s*:/m)
-            assert.match(css, new RegExp(`\\[data-fray-theme="${option.value}"\\]`))
-            assert.doesNotMatch(css, /^\s*\.[a-z-]+\s*:/m)
+            assert.doesNotMatch(css, /^\s*--palette-[a-z0-9-]+\s*:/m)
+            assert.match(css, new RegExp(`\\[data-theme="${option.value}"\\]`))
+            assert.match(css, /@scope/)
+            for (const trait of ['buttonlike', 'inputlike', 'datacomponentlike',
+                'headerlike', 'coloredlike', 'panellike', 'toolbarlike',
+                'buttonshell', 'buttoninner', 'inputshell', 'inputinner',
+                'datacomponentshell', 'datacomponentinner', 'headershell',
+                'headerinner', 'panelshell', 'panelinner', 'toolbarshell',
+                'toolbarinner', 'coloredshell', 'coloredinner', 'selectshell']) {
+                assert.match(css, new RegExp(`\\.${trait}\\b`))
+            }
+            assert.doesNotMatch(css, /data-fray-component|data-part/)
+            assert.doesNotMatch(css, /--([a-z0-9-]+):\\s*var\\(--\\1\\)/)
         }
         for (const optionalOverride of [
-            '--fray-table-header-background',
-            '--fray-toggle-button-background',
-            '--fray-dropdown-trigger-background',
+            '--table-header-background',
+            '--toggle-button-background',
+            '--dropdown-trigger-background',
         ]) assert.match(allThemes, new RegExp(`${optionalOverride}:`))
 
         for (const option of frayColorOptions) {
             const css = await readFile(fileURLToPath(option.href), 'utf8')
-            for (const property of colorRequired) assert.match(css, new RegExp(`${property}:`))
-            assert.doesNotMatch(css, /^\s*--fray-(?!color-)[a-z0-9-]+\s*:/m)
-            assert.match(css, new RegExp(`\\[data-fray-color="${option.value}"\\]`))
+            for (const property of paletteRequired) assert.match(css, new RegExp(`${property}:`))
+            assert.doesNotMatch(css, /^\s*--(?!palette-)[a-z0-9-]+\s*:/m)
+            assert.match(css, new RegExp(`\\[data-color="${option.value}"\\]`))
+            assert.match(css, /:where\(:root:not\(\[data-color\]\)/)
         }
     })
 
@@ -242,9 +244,9 @@ describe('supported theme bundles', () => {
             if (definition.fallback != null) assert.ok(names.has(definition.fallback))
         }
         assert.ok(frayThemeVariableCatalog.some(({name}) =>
-            name === '--fray-table-header-background'))
+            name === '--table-header-background'))
         assert.ok(frayThemeVariableCatalog.some(({name}) =>
-            name === '--fray-toggle-button-background'))
+            name === '--toggle-button-background'))
     })
 
     test('replaces theme and color links independently', () => {
@@ -258,8 +260,8 @@ describe('supported theme bundles', () => {
         const colorLink = replaceFrayStylesheet('colors', colors, document)
         assert.notEqual(themeLink, colorLink)
         assert.equal(document.head.querySelectorAll('link[rel="stylesheet"]').length, 2)
-        assert.equal(document.documentElement.dataset.frayTheme, theme.value)
-        assert.equal(document.documentElement.dataset.frayColor, colors.value)
+        assert.equal(document.documentElement.dataset.theme, theme.value)
+        assert.equal(document.documentElement.dataset.color, colors.value)
 
         const replacement = frayThemeOptions[1]
         assert.ok(replacement)
@@ -274,7 +276,8 @@ describe('supported theme bundles', () => {
         assert.match(css, /Generated by scripts\/build-structural-css\.mjs/)
         assert.match(css, /fray-theme-picker/)
         assert.match(css, /fray-color-picker/)
-        assert.doesNotMatch(css, /^\s*--fray-color-[a-z0-9-]+\s*:/m)
+        assert.doesNotMatch(css, /^\s*--palette-[a-z0-9-]+\s*:/m)
+        assert.doesNotMatch(css, /data-fray-component/)
         assert.doesNotMatch(css, /#[0-9a-f]{3,8}\b/i)
     })
 

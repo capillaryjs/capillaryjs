@@ -6,6 +6,22 @@ Versioning.
 
 ## Unreleased
 
+### Added
+
+- Prefix-free public theme traits for complete and split custom-component
+  treatments, including data-component and colored visualization surfaces.
+- Primary, secondary, and neutral 50–950 palette ramps with documented
+  light/default/dark aliases and contrast endpoints.
+
+### Changed
+
+- Themes now target native elements, traits, and native/ARIA state inside
+  `@scope`; component and part diagnostics are no longer presentation hooks.
+- Color files now expose palette language only. Themes map that palette to
+  button, input, panel, status, selection, and visualization roles.
+- Theme/color root attributes and public custom properties are prefix-free;
+  see Change 005 migration guidance.
+
 ## 0.5.0 - 2026-09-03
 
 ### Added

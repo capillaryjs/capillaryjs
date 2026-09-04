@@ -43,7 +43,7 @@ caller-owned. Application classes and composition roots own service lifetimes.
 | `FrayRuntime`, `createFrayRuntime`, `defaultFrayRuntime` | Immutable application-scoped element naming, creation, mounting, and styles. | Fray runtime |
 | `ServiceScope`, `createServiceScope`, `defineService`, `provideService` | Typed application service declaration, composition, lazy resolution, and disposal. | Fray runtime |
 | `StyleRegistry`, `createStyleRegistry`, `styleRegistry` | Isolated or default idempotent structural-style collection/injection. | Fray styling |
-| `frayThemeVariableCatalog` | Machine-readable color/theme variable hierarchy and fallbacks. | Fray styling |
+| `frayThemeVariableCatalog` | Machine-readable palette/theme variable hierarchy and fallbacks. | Fray styling |
 | `frayThemeOptions`, `frayColorOptions`, `findFrayStylesheetOption`, `replaceFrayStylesheet` | Runtime-selectable treatment and palette catalogs and independent link replacement. | Fray styling |
 | `Button`, `Toolbar` | Action and action-layout primitives, including presentation-only busy state. | Fray controls |
 | `Textbox`, `Dropdown`, `Toggle`, `ThemePicker`, `ColorPicker` | Value controls, including runtime presentation selection. | Fray controls |

@@ -1,16 +1,15 @@
 # Fray structural, theme, and color CSS
 
-Fray deliberately separates three stylesheet responsibilities:
+Fray separates three stylesheet responsibilities:
 
-1. `@sylwellsoftware/fray/styles/structural.css` contains the generated layout,
-   flow, accessibility mechanics, stable selectors, and custom-property uses
-   for the default `fray-` component hosts.
-2. `@sylwellsoftware/fray/themes/<name>/theme.css` supplies geometry, surface
-   treatment, and semantic theme variables. Supported treatments are `shiny`,
-   `java`, and `minimal`.
-3. `@sylwellsoftware/fray/colors/<name>/colors.css` supplies palette and
-   semantic color variables. Supported palettes are `iceblue`, `ocean`,
-   `green`, `gray`, `orange`, `purple`, `red`, and `yellow`.
+1. `styles/structural.css` contains generated layout, flow, sizing,
+   positioning, overflow, interaction mechanics, and justified structural
+   hooks for the default component hosts.
+2. `themes/<name>/theme.css` contains typography, spacing, geometry, surfaces,
+   depth, native-element presentation, reusable trait presentation, and the
+   mapping from palette values to semantic UI variables.
+3. `colors/<name>/colors.css` contains primary, secondary, and neutral color
+   ramps and contrast/color primitives only.
 
 Load the three artifacts independently:
 
@@ -20,65 +19,68 @@ import '@sylwellsoftware/fray/colors/ocean/colors.css'
 import '@sylwellsoftware/fray/themes/shiny/theme.css'
 ```
 
-`ThemePicker` and `ColorPicker` use the exported `frayThemeOptions` and
-`frayColorOptions` catalogs by default. Each picker updates a separate
-`<link data-fray-stylesheet>` element and the corresponding
-`data-fray-theme`/`data-fray-color` root attribute. Applications may supply
-their own option catalogs and URLs. The defaults resolve against Fray's
-published package layout and therefore work for direct ESM/CDN loading. A
-bundler cannot expose a universal runtime URL for package CSS; bundled
-applications should import or emit each CSS asset as a URL and pass remapped
-options to the pickers.
+`ThemePicker` and `ColorPicker` replace separate
+`link[data-fray-stylesheet]` elements and update the `data-theme` and
+`data-color` root attributes. The link metadata retains its Fray prefix because
+it is operational/diagnostic metadata rather than theme vocabulary.
 
-## Variable hierarchy
+## Selectors and scope
 
-The public contract is exported as the machine-readable
-`frayThemeVariableCatalog`. Every entry records its layer, family, value kind,
-description, and optional fallback.
+Themes target native elements directly and expose reusable prefix-free traits:
 
-| Level | Representative variables | Purpose |
-| --- | --- | --- |
-| Palette | `--fray-color-primary`, `--fray-color-surface`, `--fray-color-text`, `--fray-color-border`, `--fray-color-focus` | Replaceable color-scheme primitives and semantic colors |
-| Global theme | `--fray-font-*`, `--fray-space-*`, `--fray-radius-*`, `--fray-ui-*` | Shared typography, rhythm, shape, and surface treatment |
-| Generic families | `--fray-header-*`, `--fray-button-*`, `--fray-input-*`, `--fray-panel-*`, `--fray-selection-*` | Defaults inherited by related controls |
-| Family variants | `--fray-table-header-*`, `--fray-panel-header-*`, `--fray-toggle-button-*`, `--fray-tab-button-*`, `--fray-dropdown-trigger-*` | Optional narrow overrides for a theme that differentiates one family member |
-| Component escape hatches | `--fray-checkbox-*`, `--fray-progress-*`, `--fray-dialog-*` | Behavior that is not meaningfully shared with a broader family |
+```text
+buttonlike          inputlike          datacomponentlike
+headerlike          coloredlike        panellike
+toolbarlike         selectshell
 
-Structural rules use the most-specific variable and fall back through the
-family. A custom table-like component can follow the same pattern:
+buttonshell         buttoninner
+inputshell          inputinner
+datacomponentshell  datacomponentinner
+headershell         headerinner
+panelshell          panelinner
+toolbarshell        toolbarinner
+coloredshell        coloredinner
+```
+
+`like` means a complete single-node treatment. `shell` means an independently
+rendered outer region; `inner` means an independently rendered content region.
+Components do not add wrappers solely to obtain these traits.
+
+Every theme uses a named cascade layer. A zero-specificity boundary rule seeds
+its inherited variables on `:root` or the matching `[data-theme]`. Presentation
+selectors live in `@scope`; nested theme roots and `[data-theme-exclude]` stop
+the outer theme's selectors. This separation is deliberate because scope
+limits do not stop custom-property inheritance. Low-specificity `:where()`
+groups let application CSS override both kinds of rule.
+
+Themes do not select `data-fray-component` or `data-part`. The former is
+diagnostic metadata. The latter is restricted to component-owned structural
+or behavioral mechanics that cannot be expressed through native structure,
+roles, ARIA state, or a justified public trait.
+
+## Variables
+
+The active color file supplies only `--palette-*`. The active theme maps those
+values to prefix-free semantic families such as `--ui-*`, `--header-*`,
+`--button-*`, `--input-*`, `--panel-*`, and `--selection-*`. Generated
+structural CSS may consume these variables where configurable host names make
+a direct theme selector inappropriate.
+
+Custom colored content can set:
 
 ```css
-my-grid > header {
-  color: var(
-    --my-grid-header-color,
-    var(--fray-table-header-color, var(--fray-header-color))
-  );
-  background: var(
-    --my-grid-header-background,
-    var(--fray-table-header-background, var(--fray-header-background))
-  );
+.severity-block {
+  --colored-light: #ffd7d2;
+  --colored-base: #c8332a;
+  --colored-dark: #721710;
+  --colored-contrast: white;
 }
 ```
 
-The component now adopts every compatible Fray theme without the theme knowing
-its selector. A theme can still specialize it by assigning
-`--my-grid-header-*` on the component host.
+An element carrying `coloredlike`, `coloredshell`, or `coloredinner` then lets
+each theme decide whether to use a flat fill, gradient, other treatment, or no
+special polish. When no values are supplied, the primary palette is used.
 
-## Selector exceptions
-
-Variables are preferred but not exclusive. A treatment may target stable
-`data-fray-component`, `data-part`, role, and ARIA-state hooks for effects that
-custom properties cannot create alone. Shiny uses scoped pseudo-elements and
-native progress/select pseudo-parts for layered highlights, dropdown arrows,
-checkbox surfaces, headers, and button-like controls. Those decorations use
-`pointer-events: none`, preserve native/ARIA state, and are disabled or reduced
-under forced-colors where the browser's representation is safer.
-
-Theme authors should not target application classes, generated IDs, or
-incidental DOM depth. Color values should remain in `colors.css` whenever
-practical; translucent white/black lighting used to construct a treatment is
-permitted in `theme.css`.
-
-The top-level `themes/light.css` and `themes/dark.css` exports are retained as
-legacy compatibility bundles. New integrations should use the separated paths
-above.
+`frayThemeVariableCatalog` publishes the palette and theme variable contract.
+The top-level `themes/light.css` and `themes/dark.css` files remain temporary
+compatibility bundles; new integrations use the separated files.

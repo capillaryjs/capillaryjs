@@ -1,15 +1,30 @@
 # Fray color palettes
 
-Each `<name>/colors.css` file defines the complete `--fray-color-*` contract
-without defining component geometry or treatment. It can therefore be replaced
-without rebuilding Fray components or replacing the active theme stylesheet.
+Each `<name>/colors.css` file defines a replaceable, prefix-free color
+language. It contains palette values only; it does not decide what a panel,
+button, input, selection, or application surface looks like.
 
-Palette files must provide canvas and surface colors, primary and muted text,
-ordinary and strong borders, primary/hover/active/soft accents, focus and
-selection colors, disabled colors, success/error roles, and highlight/shadow
-tints. The required list is available programmatically from
-`frayThemeVariableCatalog` entries whose `layer` is `color`.
+Every palette supplies three complete ramps:
 
-Palette names describe a color direction, not a theme. A theme may constrain
-which palettes it advertises, but the CSS contract itself keeps the two assets
-independently replaceable.
+```text
+--palette-primary-{50,100,200,300,400,500,600,700,800,900,950}
+--palette-secondary-{50,100,200,300,400,500,600,700,800,900,950}
+--palette-neutral-{50,100,200,300,400,500,600,700,800,900,950}
+```
+
+It also supplies `--palette-<family>`, `--palette-<family>-light`, and
+`--palette-<family>-dark` aliases; `--palette-light`, `--palette-dark`,
+`--palette-contrast-light`, and `--palette-contrast-dark`; and named hue
+primitives such as `--palette-red` and `--palette-green`. Additional numeric
+stops may be added without changing the existing contract.
+
+Themes map these values to semantic variables. For example, a theme may map a
+light-mode button to `--palette-neutral-100`, a selected item to
+`--palette-primary-600`, and an error to `--palette-red`. A different theme can
+use the same palette in entirely different places.
+
+Palette declarations use a zero-specificity boundary selector for `:root` or
+the matching `[data-color]` root. They select no descendants; the custom
+properties propagate through normal inheritance and a nested color root seeds
+its own palette. `frayThemeVariableCatalog` entries whose `layer` is `palette`
+expose the machine-readable required vocabulary.
