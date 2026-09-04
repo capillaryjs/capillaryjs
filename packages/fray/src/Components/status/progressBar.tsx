@@ -44,7 +44,7 @@ export class ProgressBar extends Component<ProgressBarProps> {
         return <Host className={componentClass(this.props) || null}>
             <div data-part="label-line">
                 <label htmlFor={this.progressId}>{this.props.label}</label>
-                <span data-part="value">{valueText}</span>
+                <output>{valueText}</output>
             </div>
             <progress
                 id={this.progressId}
@@ -70,16 +70,9 @@ export class ProgressBar extends Component<ProgressBarProps> {
             gap: var(--spacing-medium, 1rem);
         }
 
-        & > [data-part="label-line"] > label {
-            font-weight: 600;
-        }
-
         & > progress {
             width: 100%;
             min-height: 0.8rem;
-            color: var(--fray-progress-value-background, var(--ui-accent-color));
-            background: var(--fray-progress-track-background, transparent);
-            accent-color: var(--fray-color-primary, var(--ui-accent-color));
         }
 
         @media (forced-colors: active) {

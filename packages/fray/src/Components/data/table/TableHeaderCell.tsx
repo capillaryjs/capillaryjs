@@ -115,7 +115,7 @@ export class TableHeaderCell extends Component<TableHeaderCellProps> {
                     {label}
                     {direction === 'asc' ? ' ▲' : direction === 'desc' ? ' ▼' : ''}
                 </button>
-                : <span data-part="label">{label}</span>}
+                : <span>{label}</span>}
             {this.props.filterOptions == null
                 ? null
                 : <button
@@ -142,39 +142,24 @@ export class TableHeaderCell extends Component<TableHeaderCellProps> {
     static dependencies = [FilterPanel]
 
     static baseStyles = [
-        ['th[data-fray-component="table-header-cell"]', 'noselect'],
-        ['th[data-fray-component="table-header-cell"] > [data-part="sort"]', ['uiline', 'button']],
-        ['th[data-fray-component="table-header-cell"] > [data-part="filter-toggle"]', ['uiline', 'button']],
+        ['th[aria-sort]', 'noselect'],
+        ['th[aria-sort] > [data-part="sort"]', ['uiline', 'button']],
+        ['th[aria-sort] > [data-part="filter-toggle"]', ['uiline', 'button']],
     ]
 
     static css = css`
-        th[data-fray-component="table-header-cell"] {
+        th[aria-sort] {
             position: relative;
             text-align: start;
-            color: var(
-                --fray-table-header-color,
-                var(--fray-section-header-color, var(--fray-header-color))
-            );
-            background: var(
-                --fray-table-header-background,
-                var(--fray-section-header-background, var(--fray-header-background))
-            );
-            border-block-end: var(--fray-section-header-border, var(--fray-header-border));
-            box-shadow: var(--fray-section-header-shadow, var(--fray-header-shadow));
         }
 
-        th[data-fray-component="table-header-cell"] > [data-part="sort"],
-        th[data-fray-component="table-header-cell"] > [data-part="filter-toggle"] {
+        th[aria-sort] > [data-part="sort"],
+        th[aria-sort] > [data-part="filter-toggle"] {
             width: auto;
             font-family: inherit;
-            color: inherit;
-            background: var(
-                --fray-table-header-button-background,
-                var(--fray-button-background)
-            );
         }
 
-        th[data-fray-component="table-header-cell"] > [data-part="filter-toggle"] {
+        th[aria-sort] > [data-part="filter-toggle"] {
             margin-inline-start: var(--ui-padding-h);
             font-size: 0.75em;
         }

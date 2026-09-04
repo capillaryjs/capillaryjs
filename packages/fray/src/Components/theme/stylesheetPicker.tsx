@@ -1,6 +1,7 @@
 import {Component, css} from '../component.js'
 import type {ComponentProps, FrayChild} from '../component.js'
 import {
+    classNames,
     componentClass,
     controlId,
     createValueEmitter,
@@ -61,14 +62,13 @@ abstract class StylesheetPicker extends Component<StylesheetPickerProps> {
         const {label, ariaLabel, disabled = false, onChange} = this.props
         const Host = this.Host
         return <Host
-            className={componentClass(this.props) || null}
+            className={classNames('selectshell', componentClass(this.props))}
             data-kind={this.kind}
             data-disabled={disabled ? '' : null}
         >
             {label == null ? null : <label htmlFor={this.inputId}>{label}</label>}
             <select
                 id={this.inputId}
-                data-part="control"
                 value={selected.value}
                 disabled={disabled}
                 aria-label={label == null ? ariaLabel : null}
@@ -115,9 +115,7 @@ abstract class StylesheetPicker extends Component<StylesheetPickerProps> {
 
     static baseStyles = [
         ['&', ['labeledinput', 'inputline']],
-        ['& > label', ['label']],
         ['& > select', ['input', 'inputline']],
-        ['&[data-disabled]', ['disabled']],
     ]
 
     static css = css`

@@ -73,7 +73,6 @@ export class TabLine extends Component<TabLineProps> {
                 type="button"
                 role="tab"
                 disabled={Boolean(tab.disabled)}
-                data-part="tab"
                 aria-selected={Object.is(activeTabId, tab.id) ? 'true' : 'false'}
                 aria-controls={tabPanelId(baseId, tab.id)}
                 tabIndex={Object.is(activeTabId, tab.id) ? 0 : -1}
@@ -112,7 +111,7 @@ export class TabLine extends Component<TabLineProps> {
     static override standaloneHostName = 'tab-line'
 
     static baseStyles = [
-        ['& > [data-part="tab"]', ['uiline', 'button']],
+        ['& > button[role="tab"]', ['uiline', 'button']],
     ]
 
     static css = css`
@@ -120,19 +119,6 @@ export class TabLine extends Component<TabLineProps> {
             display: flex;
             flex-flow: row wrap;
             padding-top: 3px;
-            background: var(--fray-tabline-background, var(--tabline-bg));
-        }
-
-        & > [data-part="tab"] {
-            background: var(--fray-tab-button-background, var(--fray-button-background));
-            border-radius: var(--fray-radius-md, var(--ui-border-radius)) var(--fray-radius-md, var(--ui-border-radius)) 0 0;
-        }
-
-        & > [data-part="tab"][aria-selected="true"] {
-            background: var(
-                --fray-tab-button-background-active,
-                var(--fray-tab-active-background, var(--tab-bg-active))
-            );
         }
     `
 }

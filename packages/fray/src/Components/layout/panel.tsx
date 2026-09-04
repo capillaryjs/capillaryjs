@@ -1,6 +1,6 @@
 import {Component, css} from '../component.js'
 import type {ComponentProps, FrayChild} from '../component.js'
-import {componentClass, controlId} from '../controlUtils.js'
+import {classNames, componentClass, controlId} from '../controlUtils.js'
 
 export interface PanelProps extends ComponentProps {
     id?: string | number | null
@@ -35,7 +35,7 @@ export class Panel extends Component<PanelProps> {
         const Host = this.Host
         const title = header == null
             ? null
-            : <header data-part="header">
+            : <header>
                 {typeof header === 'string' || typeof header === 'number'
                     ? <h2 id={this.headerId}>{header}</h2>
                     : <div id={this.headerId}>{header}</div>}
@@ -44,7 +44,7 @@ export class Panel extends Component<PanelProps> {
         return <Host
             id={this.panelId}
             role={header == null ? null : 'region'}
-            className={componentClass(this.props) || null}
+            className={classNames('panellike', componentClass(this.props))}
             data-orientation={orientation}
             data-disabled={disabled ? '' : null}
             aria-disabled={disabled ? 'true' : null}
@@ -59,11 +59,6 @@ export class Panel extends Component<PanelProps> {
     static override hostName = 'panel'
     static override standaloneHostName = 'layout-panel'
 
-    static baseStyles = [
-        ['&', ['panel']],
-        ['& > [data-part="header"]', ['sectionheader']],
-    ]
-
     static css = css`
         & {
             display: flex;
@@ -72,22 +67,9 @@ export class Panel extends Component<PanelProps> {
             flex: 0 0 auto;
         }
 
-        & > [data-part="header"] h2 {
+        & > header h2 {
             margin: 0;
             font: inherit;
-        }
-
-        & > [data-part="header"] {
-            background: var(
-                --fray-panel-header-background,
-                var(--fray-section-header-background, var(--fray-header-background))
-            );
-            color: var(
-                --fray-panel-header-color,
-                var(--fray-section-header-color, var(--fray-header-color))
-            );
-            border: var(--fray-section-header-border, var(--fray-header-border));
-            box-shadow: var(--fray-section-header-shadow, var(--fray-header-shadow));
         }
 
         & > [data-part="content"] {

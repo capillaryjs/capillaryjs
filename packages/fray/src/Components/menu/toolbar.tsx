@@ -1,6 +1,6 @@
 import {Component, css} from '../component.js'
 import type {ComponentProps, FrayChild} from '../component.js'
-import {componentClass} from '../controlUtils.js'
+import {classNames, componentClass} from '../controlUtils.js'
 
 export interface ToolbarProps extends ComponentProps {
     id?: string
@@ -24,7 +24,7 @@ export class Toolbar extends Component<ToolbarProps> {
         return <Host
             id={id}
             role="toolbar"
-            className={componentClass(this.props) || null}
+            className={classNames('toolbarlike', componentClass(this.props))}
             data-orientation={orientation}
             aria-label={label}
             aria-orientation={orientation}
@@ -33,10 +33,6 @@ export class Toolbar extends Component<ToolbarProps> {
 
     static override hostName = 'toolbar'
     static override standaloneHostName = 'tool-bar'
-
-    static baseStyles = [
-        ['&', ['toolbar']],
-    ]
 
     static css = css`
         & {

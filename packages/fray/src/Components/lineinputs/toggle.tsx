@@ -90,7 +90,6 @@ export class Toggle<TValue extends Key = string> extends Component<ToggleProps<T
                     type="button"
                     role="radio"
                     disabled={disabled}
-                    data-part="option"
                     aria-checked={Object.is(selectedValue, value) ? 'true' : 'false'}
                     data-value={String(value)}
                     tabIndex={index === selectedIndex ? 0 : -1}
@@ -127,42 +126,22 @@ export class Toggle<TValue extends Key = string> extends Component<ToggleProps<T
     }
 
     static baseStyles = [
-        ['fieldset[data-fray-component="toggle"] > [data-part="options"]', ['uiline']],
-        ['fieldset[data-fray-component="toggle"] [data-part="option"]', ['uiline', 'button']],
+        ['fieldset:has(> [data-part="options"]) > [data-part="options"]', ['uiline']],
+        ['fieldset:has(> [data-part="options"]) [role="radio"]', ['uiline', 'button']],
     ]
 
     static css = css`
-        fieldset[data-fray-component="toggle"] {
+        fieldset:has(> [data-part="options"]) {
             margin: 0;
             padding: 0;
             border: 0;
         }
 
-        fieldset[data-fray-component="toggle"] > [data-part="options"] {
+        fieldset:has(> [data-part="options"]) > [data-part="options"] {
             display: flex;
             padding: 0;
         }
 
-        fieldset[data-fray-component="toggle"] [data-part="option"] {
-            background: var(--fray-toggle-button-background, var(--fray-button-background));
-            border-radius: 0;
-        }
-
-        fieldset[data-fray-component="toggle"] [data-part="option"]:first-child {
-            border-radius: var(--ui-border-radius) 0 0 var(--ui-border-radius);
-        }
-
-        fieldset[data-fray-component="toggle"] [data-part="option"]:last-child {
-            border-radius: 0 var(--ui-border-radius) var(--ui-border-radius) 0;
-        }
-
-        fieldset[data-fray-component="toggle"] [data-part="option"][aria-checked="true"] {
-            background: var(
-                --fray-toggle-button-background-checked,
-                var(--fray-selection-background, var(--toggle-selected-bg))
-            );
-            color: var(--fray-selection-color, var(--toggle-selected-text));
-        }
     `
 }
 

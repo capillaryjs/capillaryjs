@@ -106,7 +106,6 @@ export class Textbox extends Component<TextboxProps> {
             />
             {error == null ? null : <p
                 id={this.errorId}
-                data-part="error"
                 role="alert"
             >{String(error)}</p>}
         </Host>
@@ -117,10 +116,7 @@ export class Textbox extends Component<TextboxProps> {
 
     static baseStyles = [
         ['&', ['labeledinput', 'inputline']],
-        ['& > label', ['label']],
         ['& > input', ['input', 'inputline']],
-        ['&[data-disabled]', ['disabled']],
-        ['&[data-error]', ['error']],
     ]
 
     static css = css`
@@ -128,9 +124,8 @@ export class Textbox extends Component<TextboxProps> {
             cursor: text;
         }
 
-        & > [data-part="error"] {
+        & > [role="alert"] {
             margin: 0;
-            color: var(--fray-color-error, var(--error-color));
         }
     `
 }

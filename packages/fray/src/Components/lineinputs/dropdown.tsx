@@ -4,6 +4,7 @@ import {Component, css} from '../component.js'
 import type {FrayChild} from '../component.js'
 import {
     assertOptions,
+    classNames,
     componentClass,
     controlId,
     createValueEmitter,
@@ -85,7 +86,7 @@ export class Dropdown<TValue extends DropdownValue = string>
 
         const Host = this.Host
         return <Host
-            className={componentClass(this.props) || null}
+            className={classNames('selectshell', componentClass(this.props))}
             data-disabled={disabled ? '' : null}
             data-required={required ? '' : null}
             data-error={error == null ? null : ''}
@@ -127,7 +128,6 @@ export class Dropdown<TValue extends DropdownValue = string>
             </select>
             {error == null ? null : <p
                 id={this.errorId}
-                data-part="error"
                 role="alert"
             >{String(error)}</p>}
         </Host>
@@ -138,10 +138,7 @@ export class Dropdown<TValue extends DropdownValue = string>
 
     static baseStyles = [
         ['&', ['labeledinput', 'inputline']],
-        ['& > label', ['label']],
         ['& > select', ['input', 'inputline']],
-        ['&[data-disabled]', ['disabled']],
-        ['&[data-error]', ['error']],
     ]
 
     static css = css`

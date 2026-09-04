@@ -4,7 +4,7 @@ import type {ReadableEmitter} from '@sylwellsoftware/glue'
 import {Placeholder} from '../../Placeholder.js'
 import {Component, css} from '../../component.js'
 import type {ComponentProps, FrayChild} from '../../component.js'
-import {componentClass} from '../../controlUtils.js'
+import {classNames, componentClass} from '../../controlUtils.js'
 import type {ValueEmitter} from '../../controlUtils.js'
 import {
     createSelectionHandler,
@@ -104,10 +104,10 @@ export class ListView<TItem = unknown> extends Component<ListViewProps<TItem>> {
 
         const Host = this.Host
         return <Host
-            className={componentClass(this.props) || null}
+            className={classNames('datacomponentlike', componentClass(this.props))}
         >
             {status === FetchState.Error
-                ? <p role="alert" data-part="error">
+                ? <p role="alert">
                     {errorMessage(error, 'Unable to load items')}
                 </p>
                 : null}
@@ -121,12 +121,11 @@ export class ListView<TItem = unknown> extends Component<ListViewProps<TItem>> {
                 </div>
                 : null}
             {status === FetchState.Ready && rows.length === 0
-                ? <p role="status" data-part="empty">No items</p>
+                ? <p role="status">No items</p>
                 : null}
             {rows.length > 0
                 ? <div
                     role="listbox"
-                    data-part="list"
                     aria-label={this.props.label ?? 'Items'}
                     aria-busy={isLoading ? 'true' : null}
                     aria-multiselectable={this.props.multiSelect ? 'true' : null}
@@ -139,7 +138,6 @@ export class ListView<TItem = unknown> extends Component<ListViewProps<TItem>> {
                     return <div
                         key={String(key)}
                         role="option"
-                        data-part="row"
                         data-fray-selectable-row=""
                         data-index={index}
                         aria-selected={String(selected)}
@@ -185,7 +183,7 @@ export class ListView<TItem = unknown> extends Component<ListViewProps<TItem>> {
 
     static baseStyles = [
         ['&', 'inputlike'],
-        ['& > [data-part="list"] > [data-part="row"]', 'inputline'],
+        ['& > [role="listbox"] > [role="option"]', 'inputline'],
     ]
 
     static css = css`
@@ -196,37 +194,21 @@ export class ListView<TItem = unknown> extends Component<ListViewProps<TItem>> {
             min-height: 0;
         }
 
-        & > [data-part="list"],
+        & > [role="listbox"],
         & > [data-part="loading"] {
             display: flex;
             flex-direction: column;
         }
 
-        & > [data-part="list"] > [data-part="row"] {
+        & > [role="listbox"] > [role="option"] {
             cursor: default;
             user-select: none;
         }
 
-        & > [data-part="list"] > [data-part="row"]:hover,
-        & > [data-part="list"] > [data-part="row"]:focus-visible {
-            background: var(--button-background-hover);
-            outline: 2px solid var(--ui-accent-color);
-            outline-offset: -2px;
-        }
-
-        & > [data-part="list"] > [data-part="row"][aria-selected="true"] {
-            color: var(--toggle-selected-text);
-            background: var(--toggle-selected-bg);
-        }
-
-        & > [data-part="empty"],
-        & > [data-part="error"] {
+        & > [role="status"],
+        & > [role="alert"] {
             margin: 0;
             padding: var(--ui-padding);
-        }
-
-        & > [data-part="error"] {
-            color: var(--error-color);
         }
     `
 }

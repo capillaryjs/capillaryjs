@@ -1,6 +1,6 @@
 import {Component, css} from '../component.js'
 import type {ComponentProps, FrayChild} from '../component.js'
-import {componentClass} from '../controlUtils.js'
+import {classNames, componentClass} from '../controlUtils.js'
 
 export interface DescriptionItemProps extends ComponentProps {
     term: FrayChild
@@ -21,27 +21,21 @@ export class DescriptionItem extends Component<DescriptionItemProps> {
     }
 
     static css = css`
-        div[data-fray-component="description-item"] {
+        div:has(> dt + dd) {
             display: grid;
             grid-template-columns: minmax(7rem, 0.7fr) minmax(0, 1.3fr);
             gap: var(--spacing-small, 0.5rem);
             padding-block: var(--spacing-small, 0.5rem);
-            border-block-end: 1px solid var(--ui-border-color);
         }
 
-        div[data-fray-component="description-item"] > dt {
-            color: var(--ui-muted-text-color, var(--ui-text-color));
-            font-weight: 600;
-        }
-
-        div[data-fray-component="description-item"] > dd {
+        div:has(> dt + dd) > dd {
             min-width: 0;
             margin: 0;
             overflow-wrap: anywhere;
         }
 
         @media (max-width: 36rem) {
-            div[data-fray-component="description-item"] {
+            div:has(> dt + dd) {
                 grid-template-columns: minmax(0, 1fr);
                 gap: 0.15rem;
             }
@@ -57,7 +51,7 @@ export interface DescriptionListProps extends ComponentProps {
 export class DescriptionList extends Component<DescriptionListProps> {
     render(): FrayChild {
         return <dl
-            className={componentClass(this.props) || undefined}
+            className={classNames('datacomponentlike', componentClass(this.props))}
             data-fray-component="description-list"
             aria-label={this.props.label}
         >{this.props.children ?? []}</dl>
@@ -66,7 +60,7 @@ export class DescriptionList extends Component<DescriptionListProps> {
     static dependencies = [DescriptionItem]
 
     static css = css`
-        dl[data-fray-component="description-list"] {
+        dl:has(> div > dt + dd) {
             display: grid;
             margin: 0;
         }

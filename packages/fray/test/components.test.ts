@@ -105,6 +105,7 @@ describe('action and text controls', () => {
 
         const toolbar = requiredQuery<HTMLElement>('[role="toolbar"]')
         assert.equal(toolbar.localName, 'fray-toolbar')
+        assert.equal(toolbar.className, 'toolbarlike')
         assert.equal(toolbar.getAttribute('aria-label'), 'Document actions')
         assert.equal(toolbar.getAttribute('aria-orientation'), 'vertical')
         assert.equal(requiredQuery('button', toolbar).textContent, 'Save')
@@ -160,14 +161,16 @@ describe('choice controls', () => {
         ColorPicker.new({label: 'Colors', valueEmitter: colors}).attachTo(document.body)
 
         assert.equal(document.querySelectorAll('select').length, 2)
-        assert.equal(document.documentElement.dataset.frayTheme, 'minimal')
-        assert.equal(document.documentElement.dataset.frayColor, 'iceblue')
+        assert.ok([...document.querySelectorAll('fray-theme-picker, fray-color-picker')]
+            .every((picker) => picker.classList.contains('selectshell')))
+        assert.equal(document.documentElement.dataset.theme, 'minimal')
+        assert.equal(document.documentElement.dataset.color, 'iceblue')
         assert.equal(document.head.querySelectorAll('link[data-fray-stylesheet]').length, 2)
 
         theme.set('shiny')
         colors.set('purple')
-        assert.equal(document.documentElement.dataset.frayTheme, 'shiny')
-        assert.equal(document.documentElement.dataset.frayColor, 'purple')
+        assert.equal(document.documentElement.dataset.theme, 'shiny')
+        assert.equal(document.documentElement.dataset.color, 'purple')
         assert.equal(
             document.head.querySelector<HTMLLinkElement>(
                 'link[data-fray-stylesheet="theme"]',
@@ -195,6 +198,7 @@ describe('choice controls', () => {
         const select = requiredQuery<HTMLSelectElement>('select')
 
         assert.equal(select.parentElement?.localName, 'fray-dropdown')
+        assert.ok(select.parentElement?.classList.contains('selectshell'))
         assert.equal(select.value, '1')
         select.value = '2'
         select.dispatchEvent(new Event('change', {bubbles: true}))
@@ -272,6 +276,7 @@ describe('layout controls', () => {
         }).attachTo(document.body)
 
         const list = requiredQuery<HTMLDListElement>('dl[data-fray-component="description-list"]')
+        assert.ok(list.classList.contains('datacomponentlike'))
         assert.equal(list.getAttribute('aria-label'), 'Record details')
         assert.deepEqual([...list.querySelectorAll('dt')].map(({textContent}) => textContent), [
             'Severity',
@@ -319,7 +324,7 @@ describe('layout controls', () => {
         value.set(2)
         assert.equal(progress.value, 2)
         assert.equal(progress.getAttribute('aria-valuetext'), '50%')
-        assert.equal(requiredQuery('[data-part="value"]').textContent, '50%')
+        assert.equal(requiredQuery('output').textContent, '50%')
         progressBar.destroy()
         assert.equal(value.subscriberCount, 0)
     })
@@ -334,7 +339,7 @@ describe('layout controls', () => {
         const section = requiredQuery<HTMLElement>('fray-panel')
         const title = requiredQuery<HTMLElement>('h2')
         assert.equal(section.getAttribute('role'), 'region')
-        assert.equal(section.hasAttribute('class'), false)
+        assert.equal(section.className, 'panellike')
         assert.equal(section.getAttribute('aria-labelledby'), title.id)
         assert.equal(section.dataset.orientation, 'horizontal')
         assert.equal(requiredQuery('[data-part="content"]', section).textContent, 'Details')

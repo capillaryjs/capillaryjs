@@ -68,11 +68,11 @@ export class Button extends Component<ButtonProps> {
     }
 
     static baseStyles = [
-        ['button[data-fray-component="button"]', ['uiline', 'button']],
+        ['button', ['uiline', 'button']],
     ]
 
     static css = css`
-        button[data-fray-component="button"] {
+        button {
             font-family: inherit;
         }
     `

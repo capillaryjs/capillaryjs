@@ -3,7 +3,7 @@ import type {ReadableEmitter} from '@sylwellsoftware/glue'
 
 import {Component, css} from '../../component.js'
 import type {ComponentConstructor, ComponentProps, FrayChild} from '../../component.js'
-import {componentClass} from '../../controlUtils.js'
+import {classNames, componentClass} from '../../controlUtils.js'
 import {Checkbox} from '../../lineinputs/checkbox/Checkbox.js'
 import type {
     CheckboxProps,
@@ -68,7 +68,7 @@ export class FilterPanel extends Component<FilterPanelProps> {
 
         if (fetchState === FetchState.Error) {
             return <Host
-                className={componentClass(this.props) || null}
+                className={classNames('panellike', componentClass(this.props))}
                 role="alert"
                 data-state="error"
             >{errorMessage(error, 'Unable to load filter options')}</Host>
@@ -76,14 +76,14 @@ export class FilterPanel extends Component<FilterPanelProps> {
         if ((fetchState === FetchState.Initial || fetchState === FetchState.Loading)
             && values.length === 0) {
             return <Host
-                className={componentClass(this.props) || null}
+                className={classNames('panellike', componentClass(this.props))}
                 role="status"
                 data-state="loading"
             >Loading filter options…</Host>
         }
 
         return <Host
-            className={componentClass(this.props) || null}
+            className={classNames('panellike', componentClass(this.props))}
             role="group"
             aria-label={this.props.label ?? 'Filter options'}
         >
@@ -183,11 +183,6 @@ export class FilterPanel extends Component<FilterPanelProps> {
             padding: var(--ui-padding);
             flex-flow: column nowrap;
             align-items: stretch;
-            color: var(--panel-color);
-            background: var(--panel-bg);
-            border: var(--panel-border);
-            border-radius: var(--panel-radius);
-            box-shadow: var(--panel-shadow);
             overflow-y: auto;
         }
 

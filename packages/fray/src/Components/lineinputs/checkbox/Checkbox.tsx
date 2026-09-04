@@ -106,7 +106,6 @@ export class Checkbox<TValue extends CheckboxValue = FilterModeValue>
                 disabled={disabled}
                 name={name}
                 value={value == null ? undefined : String(value)}
-                data-part="control"
                 aria-checked={checked ? 'true' : 'false'}
                 aria-required={required ? 'true' : null}
                 aria-label={`${label}: ${stateName}`}
@@ -121,8 +120,8 @@ export class Checkbox<TValue extends CheckboxValue = FilterModeValue>
                     }
                 }}
             >
-                <span data-part="symbol" aria-hidden="true">{symbol}</span>
-                <span data-part="label">{label}</span>
+                <span className="inputshell" aria-hidden="true">{symbol}</span>
+                <span>{label}</span>
             </button>
         </Host>
     }
@@ -132,12 +131,11 @@ export class Checkbox<TValue extends CheckboxValue = FilterModeValue>
 
     static baseStyles = [
         ['&', ['inputline']],
-        ['& > [data-part="control"]', ['input', 'inputline']],
-        ['&[data-disabled]', ['disabled']],
+        ['& > [role="checkbox"]', ['input', 'inputline']],
     ]
 
     static css = css`
-        & > [data-part="control"] {
+        & > [role="checkbox"] {
             display: inline-flex;
             align-items: center;
             gap: 0.35em;
@@ -145,23 +143,12 @@ export class Checkbox<TValue extends CheckboxValue = FilterModeValue>
             font-family: inherit;
         }
 
-        & [data-part="symbol"] {
+        & .inputshell {
             display: inline-grid;
             width: 1em;
             height: 1em;
             line-height: 1;
             place-items: center;
-            color: var(--fray-checkbox-symbol-color, currentColor);
-            background: var(--fray-checkbox-box-background, transparent);
-            border: var(--fray-checkbox-box-border, var(--cbx-o-border));
-            border-radius: var(--cbx-border-radius, var(--fray-radius-sm));
-        }
-
-        & [data-part="control"][aria-checked="true"] [data-part="symbol"] {
-            background: var(
-                --fray-checkbox-box-background-checked,
-                var(--fray-selection-background)
-            );
         }
     `
 }

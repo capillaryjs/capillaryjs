@@ -29,7 +29,7 @@ export class Sidebar extends Component<SidebarProps> {
         } = this.props
         const title = header == null
             ? null
-            : <header data-part="header">
+            : <header>
                 {typeof header === 'string' || typeof header === 'number'
                     ? <h2 id={this.headerId}>{header}</h2>
                     : <div id={this.headerId}>{header}</div>}
@@ -48,13 +48,8 @@ export class Sidebar extends Component<SidebarProps> {
         </aside>
     }
 
-    static baseStyles = [
-        ['aside[data-fray-component="sidebar"]', ['panel']],
-        ['aside[data-fray-component="sidebar"] > [data-part="header"]', ['sectionheader']],
-    ]
-
     static css = css`
-        aside[data-fray-component="sidebar"] {
+        aside {
             display: flex;
             flex-direction: column;
             min-width: 0;
@@ -62,17 +57,17 @@ export class Sidebar extends Component<SidebarProps> {
             overflow: hidden;
         }
 
-        aside[data-fray-component="sidebar"] > [data-part="header"],
-        aside[data-fray-component="sidebar"] > [data-part="toolbar"] {
+        aside > header,
+        aside > [data-part="toolbar"] {
             flex: 0 0 auto;
         }
 
-        aside[data-fray-component="sidebar"] > [data-part="header"] h2 {
+        aside > header h2 {
             margin: 0;
             font: inherit;
         }
 
-        aside[data-fray-component="sidebar"] > [data-part="content"] {
+        aside > [data-part="content"] {
             flex: 1 1 auto;
             min-width: 0;
             min-height: 0;

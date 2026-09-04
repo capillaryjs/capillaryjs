@@ -3,7 +3,7 @@ import type {ReadableEmitter} from '@sylwellsoftware/glue'
 
 import {Component, css, isVNode} from '../../component.js'
 import type {ComponentProps, FrayChild, Key} from '../../component.js'
-import {componentClass, invoke} from '../../controlUtils.js'
+import {classNames, componentClass, invoke} from '../../controlUtils.js'
 import type {ValueEmitter} from '../../controlUtils.js'
 import {TreeItem} from './treeitem.js'
 import type {TreeItemProps, TreeNode} from './treeitem.js'
@@ -82,10 +82,10 @@ export class TreeView<TValue = unknown> extends Component<TreeViewProps<TValue>>
         this.focusedKey = active?.node.id ?? null
 
         const Host = this.Host
-        return <Host className={componentClass(this.props) || null}>
+        return <Host className={classNames('datacomponentlike', componentClass(this.props))}>
             {visible.length === 0
-                ? <p role="status" data-part="empty">No tree items</p>
-                : <div role="tree" aria-label={this.props.label} data-part="tree">
+                ? <p role="status">No tree items</p>
+                : <div role="tree" aria-label={this.props.label}>
                     {visible.map((item, index) => {
                         const {node, depth, position, setSize} = item
                         const hasChildren = (node.children?.length ?? 0) > 0
@@ -95,7 +95,6 @@ export class TreeView<TValue = unknown> extends Component<TreeViewProps<TValue>>
                         return <div
                             key={node.id}
                             role="treeitem"
-                            data-part="item"
                             data-index={index}
                             data-depth={depth}
                             aria-level={depth + 1}
@@ -151,12 +150,12 @@ export class TreeView<TValue = unknown> extends Component<TreeViewProps<TValue>>
             overflow: auto;
         }
 
-        & > [data-part="tree"] {
+        & > [role="tree"] {
             display: grid;
             align-content: start;
         }
 
-        & [data-part="item"] {
+        & [role="treeitem"] {
             display: flex;
             align-items: flex-start;
             gap: 0.35rem;
@@ -165,20 +164,6 @@ export class TreeView<TValue = unknown> extends Component<TreeViewProps<TValue>>
             padding-inline-start: calc(0.5rem + var(--tree-depth) * 1.1rem);
             cursor: default;
             user-select: none;
-        }
-
-        & [data-part="item"]:hover {
-            background: var(--button-background-hover);
-        }
-
-        & [data-part="item"]:focus-visible {
-            outline: 2px solid var(--ui-accent-color);
-            outline-offset: -2px;
-        }
-
-        & [data-part="item"][aria-selected="true"] {
-            color: var(--toggle-selected-text);
-            background: var(--toggle-selected-bg);
         }
 
         & [data-part="expander"] {
@@ -195,13 +180,13 @@ export class TreeView<TValue = unknown> extends Component<TreeViewProps<TValue>>
             overflow-wrap: anywhere;
         }
 
-        & > [data-part="empty"] {
+        & > [role="status"] {
             margin: 0;
             padding: var(--ui-padding, 0.75rem);
         }
 
         @media (forced-colors: active) {
-            & [data-part="item"][aria-selected="true"] {
+            & [role="treeitem"][aria-selected="true"] {
                 outline: 2px solid Highlight;
                 forced-color-adjust: auto;
             }

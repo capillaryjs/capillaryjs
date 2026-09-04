@@ -60,14 +60,14 @@ export class Dialog extends Component<DialogProps> {
             aria-modal="true"
             ref={(element: HTMLDialogElement | null) => this.dialogElement = element}
         >
-            <header data-part="header">
+            <header>
                 <h2 id={this.titleId}>{title}</h2>
             </header>
-            {description == null ? null : <p id={this.descriptionId} data-part="description">
+            {description == null ? null : <p id={this.descriptionId}>
                 {description}
             </p>}
             <div data-part="content">{children}</div>
-            {actions == null && !showCloseButton ? null : <footer data-part="actions">
+            {actions == null && !showCloseButton ? null : <footer>
                 {actions}
                 {showCloseButton ? <Button
                     label={closeLabel}
@@ -109,70 +109,36 @@ export class Dialog extends Component<DialogProps> {
     static dependencies = [Button]
 
     static css = css`
-        dialog[data-fray-component="dialog"] {
+        dialog {
             width: min(38rem, calc(100vw - 2rem));
             max-height: min(42rem, calc(100dvh - 2rem));
             padding: 0;
-            color: var(--fray-panel-color, var(--ui-text-color));
-            background: var(--fray-panel-background, var(--panel-bg));
-            border: var(--fray-panel-border, var(--panel-border));
-            border-radius: var(--fray-panel-radius, var(--panel-radius));
-            box-shadow: var(--fray-dialog-shadow, var(--fray-panel-shadow));
         }
 
-        dialog[data-fray-component="dialog"]::backdrop {
-            background: var(--fray-dialog-backdrop-background);
-        }
-
-        dialog[data-fray-component="dialog"] > [data-part] {
+        dialog > header,
+        dialog > p,
+        dialog > [data-part="content"],
+        dialog > footer {
             padding: var(--panel-padding, 0.75rem);
         }
 
-        dialog[data-fray-component="dialog"] > [data-part="header"] {
-            color: var(
-                --fray-dialog-header-color,
-                var(--fray-section-header-color, var(--fray-header-color))
-            );
-            background: var(
-                --fray-dialog-header-background,
-                var(--fray-section-header-background, var(--fray-header-background))
-            );
-            border-block-end: var(
-                --fray-section-header-border,
-                var(--fray-header-border)
-            );
-        }
-
-        dialog[data-fray-component="dialog"] > [data-part="header"] h2,
-        dialog[data-fray-component="dialog"] > [data-part="description"] {
+        dialog > header h2,
+        dialog > p {
             margin: 0;
         }
 
-        dialog[data-fray-component="dialog"] > [data-part="content"] {
+        dialog > [data-part="content"] {
             overflow: auto;
         }
 
-        dialog[data-fray-component="dialog"] > [data-part="actions"] {
+        dialog > footer {
             display: flex;
             justify-content: flex-end;
             gap: var(--spacing-small, 0.5rem);
-            border-block-start: 1px solid var(--ui-border-color);
-        }
-
-        @media (prefers-reduced-motion: no-preference) {
-            dialog[data-fray-component="dialog"][open] {
-                animation: fray-dialog-enter 120ms ease-out;
-            }
-        }
-
-        @keyframes fray-dialog-enter {
-            from {
-                transform: translateY(0.4rem);
-            }
         }
 
         @media (forced-colors: active) {
-            dialog[data-fray-component="dialog"] {
+            dialog {
                 border: 2px solid CanvasText;
             }
         }

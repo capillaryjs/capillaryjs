@@ -235,6 +235,7 @@ describe('stable data components', () => {
         }).attachTo(document.body)
 
         assert.equal(requiredQuery('fray-tree-view').dataset.frayComponent, 'tree-view')
+        assert.ok(requiredQuery('fray-tree-view').classList.contains('datacomponentlike'))
         assert.equal(document.querySelectorAll('[role="treeitem"]').length, 2)
         let first = requiredQuery<HTMLElement>('[role="treeitem"]')
         first.focus()
@@ -316,6 +317,7 @@ describe('stable data components', () => {
 
         const rows = document.querySelectorAll('[role="option"]')
         assert.equal(requiredQuery('fray-list-view').dataset.frayComponent, 'list-view')
+        assert.ok(requiredQuery('fray-list-view').classList.contains('datacomponentlike'))
         requiredAt(rows, 1).dispatchEvent(new MouseEvent('click', {bubbles: true}))
         assert.equal(list.getSelectedItemEmitter(), selected)
         assert.equal(selected.get()?.id, 'b')
@@ -374,6 +376,7 @@ describe('stable data components', () => {
 
         assert.equal(requiredQuery('caption').textContent, 'People')
         assert.equal(requiredQuery('fray-data-table').dataset.frayComponent, 'data-table')
+        assert.ok(requiredQuery('fray-data-table').classList.contains('datacomponentlike'))
         assert.equal(requiredQuery('thead').dataset.frayComponent, 'table-header')
         assert.equal(
             requiredQuery('th').dataset.frayComponent,

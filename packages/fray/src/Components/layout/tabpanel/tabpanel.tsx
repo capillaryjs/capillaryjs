@@ -1,6 +1,7 @@
 import {Component, css, isVNode} from '../../component.js'
 import type {ComponentProps, FrayChild, Key} from '../../component.js'
 import {
+    classNames,
     componentClass,
     controlId,
     createValueEmitter,
@@ -84,7 +85,7 @@ export class TabPanel extends Component<TabPanelProps> {
         const Host = this.Host
         return <Host
             id={this.baseId}
-            className={componentClass(this.props) || null}
+            className={classNames('panellike', componentClass(this.props))}
         >
             <TabLine
                 key="tab-list"
@@ -117,9 +118,6 @@ export class TabPanel extends Component<TabPanelProps> {
             width: 100%;
             min-height: 0;
             overflow: hidden;
-            background: var(--fray-panel-background, var(--panel-bg, transparent));
-            border-radius: var(--fray-panel-radius, var(--panel-radius));
-            box-shadow: var(--fray-panel-shadow, var(--panel-shadow, none));
         }
 
         & > [data-part="content"] {
@@ -127,7 +125,6 @@ export class TabPanel extends Component<TabPanelProps> {
             flex-direction: column;
             flex: 1;
             overflow: auto;
-            background: var(--fray-panel-background, var(--panel-bg, transparent));
         }
     `
 }

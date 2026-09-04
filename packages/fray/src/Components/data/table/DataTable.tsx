@@ -4,7 +4,7 @@ import type {ReadableEmitter} from '@sylwellsoftware/glue'
 import {Placeholder} from '../../Placeholder.js'
 import {Component, css} from '../../component.js'
 import type {ComponentProps, FrayChild} from '../../component.js'
-import {componentClass} from '../../controlUtils.js'
+import {classNames, componentClass} from '../../controlUtils.js'
 import type {ValueEmitter} from '../../controlUtils.js'
 import type {CheckboxSymbol} from '../../lineinputs/checkbox/Checkbox.js'
 import type {FilterModeValue} from '../../../util/filterMode.js'
@@ -163,12 +163,12 @@ export class DataTable<TRow extends TableRow = TableRow>
         )
         const Host = this.Host
         return <Host
-            className={componentClass(this.props) || null}
+            className={classNames('datacomponentlike', componentClass(this.props))}
             data-loading={isLoading ? '' : null}
             data-error={status === FetchState.Error ? '' : null}
         >
-            {isLoading ? <p role="status" data-part="status">Loading rows…</p> : null}
-            {status === FetchState.Error ? <div data-part="error" role="alert">
+            {isLoading ? <p role="status">Loading rows…</p> : null}
+            {status === FetchState.Error ? <div role="alert">
                 <span>{errorMessage(error, 'Unable to load rows')}</span>
                 {typeof this.dataSource?.retry === 'function'
                     ? <button
@@ -177,7 +177,7 @@ export class DataTable<TRow extends TableRow = TableRow>
                     >Retry</button>
                     : null}
             </div> : null}
-            <table data-part="table" aria-busy={isLoading ? 'true' : null}>
+            <table aria-busy={isLoading ? 'true' : null}>
                 {this.props.caption == null ? null : <caption>{this.props.caption}</caption>}
                 <TableHeader
                     key="header"
@@ -285,7 +285,6 @@ export class DataTable<TRow extends TableRow = TableRow>
     static css = css`
         & {
             overflow: auto;
-            color: var(--ui-text-color);
         }
 
         & > table {
@@ -293,7 +292,7 @@ export class DataTable<TRow extends TableRow = TableRow>
             border-collapse: collapse;
         }
 
-        & thead:has([data-fray-component="filter-panel"]) {
+        & thead:has([aria-expanded="true"]) {
             position: relative;
             z-index: 1100;
         }
@@ -309,31 +308,6 @@ export class DataTable<TRow extends TableRow = TableRow>
             user-select: none;
         }
 
-        & tbody tr:nth-child(odd) {
-            background: var(--fray-table-row-background, transparent);
-        }
-
-        & tbody tr:nth-child(even) {
-            background: var(--fray-table-row-alt-background, transparent);
-        }
-
-        & tbody tr[data-fray-selectable-row]:hover {
-            background: var(--fray-row-hover-background, var(--button-background-hover));
-        }
-
-        & tbody tr[data-fray-selectable-row]:focus-visible {
-            outline: 2px solid var(--fray-color-focus, var(--ui-accent-color));
-            outline-offset: -2px;
-        }
-
-        & tbody tr[data-fray-selectable-row][aria-selected="true"] {
-            color: var(--fray-selection-color, var(--toggle-selected-text));
-            background: var(--fray-selection-background, var(--toggle-selected-bg));
-        }
-
-        & > [data-part="error"] {
-            color: var(--error-color);
-        }
     `
 }
 
