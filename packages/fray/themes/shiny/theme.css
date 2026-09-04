@@ -3,27 +3,31 @@
 @layer theme {
   :where(:root:not([data-theme]), [data-theme="shiny"]) {
       color-scheme: light;
-      --font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      --font-size: 0.875rem;
-      --line-height: 1.25;
-      --control-min-height: 2rem;
-      --space-xs: 0.25rem;
-      --space-sm: 0.5rem;
-      --space-md: 1rem;
-      --space-lg: 1.5rem;
-      --radius-sm: 0.2rem;
-      --radius-md: 0.35rem;
-      --radius-lg: 0.55rem;
+      --font-family: Arial, Helvetica, sans-serif;
+      --font-size: 0.75rem;
+      --line-height: 1.2;
+      --control-min-height: 1.5rem;
+      --space-xs: 0.1875rem;
+      --space-sm: 0.375rem;
+      --space-md: 0.625rem;
+      --space-lg: 1rem;
+      --radius-sm: 0.125rem;
+      --radius-md: 0.1875rem;
+      --radius-lg: 0.25rem;
       --motion-fast: 120ms;
 
-      --shiny-primary-gradient: linear-gradient(to bottom, var(--palette-primary-300), var(--palette-primary) 55%, var(--palette-primary-700));
-      --shiny-surface-gradient: linear-gradient(to bottom, var(--palette-light), var(--palette-neutral-100) 62%, var(--palette-neutral-200));
-      --shiny-highlight: radial-gradient(145% 90% at 35% 0%, color-mix(in oklch, var(--palette-light) 62%, transparent), transparent 58%);
+      --shiny-primary-gradient: linear-gradient(to bottom, var(--palette-primary-900) 0%, var(--palette-primary) 65%, var(--palette-primary) 66%, var(--palette-primary-300) 100%);
+      --shiny-surface-gradient: linear-gradient(to top, var(--palette-neutral-50) 0.55rem, var(--palette-neutral-50) 0.8rem, var(--palette-neutral-200) 100%);
+      --shiny-surface-gradient-hover: linear-gradient(to bottom, var(--palette-neutral-50) 0.55rem, var(--palette-neutral-50) 0.8rem, var(--palette-neutral-200) 100%);
+      --shiny-list-gradient: linear-gradient(to bottom, var(--palette-neutral-600), var(--palette-neutral-800));
+      --shiny-highlight: radial-gradient(140% 75% at 30% 10%, color-mix(in oklch, var(--palette-light) 66%, transparent) 0 50%, transparent 51%);
+      --shiny-raised-shadow: inset 2px -2px 2px color-mix(in oklch, var(--palette-light) 48%, transparent), inset -2px 3px 3px -1px color-mix(in oklch, var(--palette-dark) 40%, transparent), -1px 1px 2px color-mix(in oklch, var(--palette-dark) 42%, transparent);
+      --shiny-control-shadow: inset 1px -1px 3px 1px color-mix(in oklch, var(--palette-light) 92%, transparent), inset 0 0 3px color-mix(in oklch, var(--palette-dark) 46%, transparent), -1px 1px 2px -1px color-mix(in oklch, var(--palette-dark) 46%, transparent);
 
       --ui-background: var(--palette-neutral-50);
-      --ui-color: var(--palette-neutral-950);
+      --ui-color: var(--palette-primary-900);
       --ui-border: 1px solid var(--palette-neutral-300);
-      --ui-shadow: 0 2px 6px color-mix(in oklch, var(--palette-dark) 38%, transparent);
+      --ui-shadow: 0 1px 2.5px color-mix(in oklch, var(--palette-dark) 58%, transparent);
       --focus-ring: 0 0 0 2px var(--palette-primary-400);
       --focus-color: var(--palette-primary);
       --error-color: var(--palette-red);
@@ -31,17 +35,17 @@
       --success-color: var(--palette-green);
 
       --panel-background: var(--palette-neutral-50);
-      --panel-color: var(--palette-neutral-950);
+      --panel-color: var(--ui-color);
       --panel-border: 1px solid var(--palette-neutral-300);
-      --panel-shadow: 0 2px 8px color-mix(in oklch, var(--palette-dark) 34%, transparent);
-      --panel-radius: var(--radius-md);
+      --panel-shadow: 0 1px 2.5px color-mix(in oklch, var(--palette-dark) 58%, transparent);
+      --panel-radius: 0;
       --dialog-shadow: 0 1.25rem 4rem color-mix(in oklch, var(--palette-dark) 35%, transparent);
       --dialog-backdrop-background: color-mix(in oklch, var(--palette-dark) 55%, transparent);
 
       --header-background: var(--shiny-primary-gradient);
       --header-color: var(--palette-contrast-light);
-      --header-border: 0 solid transparent;
-      --header-shadow: 0 2px 4px color-mix(in oklch, var(--palette-dark) 42%, transparent);
+      --header-border: 1px solid color-mix(in oklch, var(--palette-primary-900) 72%, var(--palette-dark));
+      --header-shadow: var(--shiny-raised-shadow);
       --section-header-background: var(--header-background);
       --section-header-color: var(--header-color);
       --section-header-border: var(--header-border);
@@ -49,18 +53,18 @@
       --panel-header-background: var(--section-header-background);
       --panel-header-color: var(--section-header-color);
       --table-header-background: var(--palette-neutral-100);
-      --table-header-color: var(--header-color);
+      --table-header-color: var(--ui-color);
       --dialog-header-background: var(--section-header-background);
       --dialog-header-color: var(--section-header-color);
 
       --button-background: var(--shiny-surface-gradient);
-      --button-background-hover: linear-gradient(to bottom, var(--palette-primary-50), var(--palette-primary-100));
+      --button-background-hover: var(--shiny-surface-gradient-hover);
       --button-background-active: var(--shiny-primary-gradient);
       --button-background-disabled: var(--palette-neutral-200);
-      --button-color: var(--palette-neutral-950);
-      --button-border: 1px solid var(--palette-neutral-500);
-      --button-shadow: 0 1px 2px color-mix(in oklch, var(--palette-dark) 48%, transparent), inset 0 1px 0 color-mix(in oklch, var(--palette-light) 72%, transparent);
-      --button-shadow-active: inset 0 2px 3px color-mix(in oklch, var(--palette-dark) 45%, transparent);
+      --button-color: var(--ui-color);
+      --button-border: 1px solid var(--palette-light);
+      --button-shadow: -1px 1px 2px 1px color-mix(in oklch, var(--palette-dark) 50%, transparent), inset 0 1px 0 color-mix(in oklch, var(--palette-light) 72%, transparent);
+      --button-shadow-active: -1px 1px 2px 0 color-mix(in oklch, var(--palette-dark) 58%, transparent), inset 1px 1px 2px color-mix(in oklch, var(--palette-dark) 34%, transparent);
       --toggle-button-background: var(--button-background);
       --toggle-button-background-checked: var(--selection-background);
       --tab-button-background: var(--button-background);
@@ -70,9 +74,9 @@
       --table-header-button-background: var(--button-background);
 
       --input-background: var(--palette-light);
-      --input-color: var(--palette-neutral-950);
+      --input-color: var(--ui-color);
       --input-border: 1px solid var(--palette-neutral-500);
-      --input-shadow: none;
+      --input-shadow: inset -1px 1px 3px -2px color-mix(in oklch, var(--palette-dark) 58%, transparent);
       --input-background-disabled: var(--palette-neutral-200);
       --input-color-disabled: var(--palette-neutral-700);
 
@@ -83,14 +87,14 @@
       --table-row-alt-background: var(--palette-neutral-100);
       --checkbox-box-background: var(--input-background);
       --checkbox-box-background-checked: var(--selection-background);
-      --checkbox-box-border: 1px solid var(--palette-neutral-500);
+      --checkbox-box-border: 0 solid transparent;
       --checkbox-symbol-color: var(--selection-color);
       --radio-background: var(--button-background);
       --radio-background-checked: var(--selection-background);
       --toolbar-background: var(--shiny-surface-gradient);
-      --toolbar-color: var(--palette-neutral-950);
-      --toolbar-border: 0 solid transparent;
-      --toolbar-shadow: none;
+      --toolbar-color: var(--ui-color);
+      --toolbar-border: 1px solid var(--palette-neutral-300);
+      --toolbar-shadow: 0 1px 2px color-mix(in oklch, var(--palette-dark) 30%, transparent);
       --tabline-background: var(--palette-neutral-100);
       --tab-active-background: var(--palette-neutral-50);
       --progress-track-background: var(--palette-neutral-200);
@@ -123,7 +127,7 @@
       --toggle-selected-bg: var(--selection-background);
       --toggle-selected-text: var(--selection-color);
       --panel-bg: var(--panel-background);
-      --panel-padding: var(--space-md);
+      --panel-padding: var(--space-sm);
       --toolbar-bg: var(--toolbar-background);
       --toolbar-radius: var(--radius-md);
       --sectionheader-bg: var(--section-header-background);
@@ -225,19 +229,29 @@
 
     :where(.checkboxshell) {
       color: var(--input-color);
-      background: var(--checkbox-box-background);
+      background: var(--shiny-highlight), var(--shiny-surface-gradient);
       border: var(--checkbox-box-border);
       border-radius: var(--radius-sm);
+      box-shadow: var(--shiny-control-shadow);
     }
 
     :where(input[type="checkbox"]:checked + .checkboxshell) {
       color: var(--checkbox-symbol-color);
-      background: var(--checkbox-box-background-checked);
+      background: var(--shiny-highlight), var(--shiny-primary-gradient);
+      box-shadow: inset 0 0 3px color-mix(in oklch, var(--palette-primary-950) 72%, transparent), -1px 1px 2px -1px color-mix(in oklch, var(--palette-dark) 54%, transparent);
     }
 
     :where([role="checkbox"][aria-checked="true"] .inputshell) {
       color: var(--checkbox-symbol-color);
-      background: var(--checkbox-box-background-checked);
+      background: var(--shiny-highlight), var(--shiny-primary-gradient);
+      box-shadow: inset 0 0 3px color-mix(in oklch, var(--palette-primary-950) 72%, transparent), -1px 1px 2px -1px color-mix(in oklch, var(--palette-dark) 54%, transparent);
+    }
+
+    :where(input[type="checkbox"]:disabled + .checkboxshell),
+    :where([role="checkbox"][aria-disabled="true"] .inputshell) {
+      color: var(--palette-neutral-600);
+      background: var(--palette-neutral-200);
+      box-shadow: inset 0 0 2px color-mix(in oklch, var(--palette-dark) 25%, transparent);
     }
 
     :where(.inputinner) {
@@ -270,7 +284,12 @@
       color: var(--header-color);
       background: var(--header-background);
       border: var(--header-border);
+      border-radius: var(--radius-md);
       box-shadow: var(--header-shadow);
+    }
+
+    :where(header, .headerlike) {
+      padding: var(--space-xs) var(--space-sm);
     }
 
     :where(th > button) {
@@ -354,7 +373,9 @@
       --colored-contrast: var(--palette-contrast-light);
       color: var(--colored-contrast);
       background: var(--colored-base);
-      border-color: color-mix(in oklch, var(--colored-dark) 72%, currentColor);
+      border: 1px solid color-mix(in oklch, var(--colored-dark) 78%, var(--palette-dark));
+      border-radius: var(--radius-md);
+      box-shadow: var(--shiny-raised-shadow);
     }
 
     :where(.coloredinner) {
@@ -370,10 +391,13 @@
     :where([role="tab"]) {
       background: var(--tab-button-background);
       border-radius: var(--radius-md) var(--radius-md) 0 0;
+      box-shadow: inset 0 -3px 3px -3px color-mix(in oklch, var(--palette-dark) 68%, transparent);
     }
     :where([role="tab"][aria-selected="true"]) {
       color: var(--button-color);
       background: var(--tab-button-background-active);
+      box-shadow: -1px -1px 2px color-mix(in oklch, var(--palette-dark) 35%, transparent);
+      transform: translateY(-2px);
     }
     :where([role="radio"]) { background: var(--toggle-button-background); }
     :where([role="radio"][aria-checked="true"]) {
@@ -389,7 +413,24 @@
     }
 
     :where([role="option"], [role="treeitem"], tbody tr[tabindex]):hover {
+      color: var(--ui-color);
       background: var(--row-hover-background);
+    }
+
+    :where([role="option"]:not([aria-selected="true"]):not(:hover)) {
+      margin: 2px;
+      color: var(--palette-contrast-light);
+      background: var(--shiny-list-gradient);
+      border: 1px solid var(--palette-neutral-600);
+      border-radius: var(--radius-md);
+      box-shadow: inset 1px 1px 2px color-mix(in oklch, var(--palette-light) 28%, transparent), -1px 1px 2px color-mix(in oklch, var(--palette-dark) 42%, transparent);
+    }
+
+    :where([role="option"][aria-selected="true"]) {
+      margin: 2px;
+      border: 1px solid var(--palette-primary-700);
+      border-radius: var(--radius-md);
+      box-shadow: var(--shiny-raised-shadow);
     }
 
     :where([role="option"], [role="treeitem"], tbody tr[tabindex]):focus-visible {
@@ -432,11 +473,11 @@
     }
 
     :where(.coloredlike, .coloredshell) {
-      background: linear-gradient(135deg, var(--colored-light), var(--colored-base) 55%, var(--colored-dark));
+      background: radial-gradient(140% 75% at 30% 10%, color-mix(in oklch, var(--palette-light) 48%, transparent) 0 50%, transparent 51%), linear-gradient(to bottom, var(--colored-light) 0%, var(--colored-base) 48%, var(--colored-dark) 100%);
     }
 
     :where(.coloredinner) {
-      background: color-mix(in oklch, var(--colored-dark) 30%, transparent);
+      background: linear-gradient(to bottom, transparent 0 55%, color-mix(in oklch, var(--colored-dark) 35%, transparent));
     }
 
     :where(button, .buttonlike, [role="tab"], [role="radio"], [role="checkbox"])::before,

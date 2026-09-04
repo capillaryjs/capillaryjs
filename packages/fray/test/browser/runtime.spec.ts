@@ -325,7 +325,7 @@ test('scopes every shipped theme and palette combination to opted-in content', a
         }
     })
     expect(boundaries.islandPrimary).not.toBe(boundaries.rootPrimary)
-    expect(boundaries.islandRadius).toBe('0.35rem')
+    expect(boundaries.islandRadius).toBe('0.1875rem')
     expect(boundaries.excludedBackgroundImage).toBe('none')
     expect(boundaries.excludedBackgroundColor).toBe('rgba(0, 0, 0, 0)')
     expect(boundaries.islandTraitBackground).not.toBe('')
