@@ -188,7 +188,6 @@ class App extends Component {
             <Panel header="Tarball consumer">
                 {this.textbox}
                 <Button
-                    id="consumer-counter"
                     label={\`Count: \${this.count.get()}\`}
                     onClick={() => this.count.set(this.count.get() + 1)}
                 />
@@ -237,9 +236,11 @@ async function verifyBrowserRuntime() {
             const pageErrors = []
             page.on('pageerror', (error) => pageErrors.push(error))
             await page.goto('http://127.0.0.1:4176/', {waitUntil: 'networkidle'})
-            await expectText(page, '#consumer-counter', 'Count: 0')
-            await page.getByRole('button', {name: 'Count: 0'}).click()
-            await expectText(page, '#consumer-counter', 'Count: 1')
+            const counter = page.getByRole('button', {name: 'Count: 0'})
+            assert(await counter.textContent() === 'Count: 0', 'Counter button did not initialize')
+            await counter.click()
+            const updatedCounter = page.getByRole('button', {name: 'Count: 1'})
+            assert(await updatedCounter.textContent() === 'Count: 1', 'Counter button did not update')
             await expectText(page, '#h-output', 'Hello, Ada.')
             await expectText(page, '#endpoint-output', 'Derived total: 2')
             const peerIdentity = await page.locator('main').getAttribute('data-peer-identity')
