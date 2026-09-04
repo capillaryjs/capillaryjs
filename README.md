@@ -1,30 +1,83 @@
 # Glue + Fray
 
 Glue, Fray, and the optional Fray Visualization package are a TypeScript-first
-stack for explicit reactive applications.
-Glue supplies platform-neutral state, derivation, live-query, and diagnostic
-primitives. Fray supplies browser-native rendering, accessible components, TSX,
-and independently replaceable structural, theme, and color stylesheets.
+stack for building reactive web applications without forcing the application
+into a framework-specific state model.
 
 ## Why this stack exists
 
-Application interfaces mostly work with meaningful values: data retrieved from
-a service, values entered or selected by a user, and values derived from those
-sources. State is real, but developers should not have to build and synchronize
-a second, framework-shaped state model merely to let the interface react.
+Many JavaScript frameworks make simple application relationships feel more
+complicated than they really are.
 
-Glue keeps state with the concept that owns it. An input exposes a writable
-value, a calculation exposes a derived value, and a live query exposes its
-result together with loading and error state. Developers declare the
-relationships; Glue keeps them current. Fray renders those same values through
-native browser semantics and explicit component lifecycles instead of adding a
-second reactive model.
+A value entered by the user becomes framework state. A calculated value
+becomes another piece of state or a memo. Data from the server becomes query
+state. Keeping those things synchronized often means effects, stores, hooks,
+binding layers, selectors, or other abstractions whose main purpose is to
+satisfy the framework rather than describe the application.
 
-For example, a table header can write a sort emitter, a query can subscribe to
-that argument and retrieve fresh rows, and the table can observe the query
-result. The flow says exactly what the application means. Domain policy,
-mutation authority, service construction, transport, and lifetime ownership
-remain explicit application choices.
+Over time, that can create a second model of the application: one shaped around
+the framework instead of around the problem being solved. The developer is no
+longer only thinking about filters, queries, calculations, tables, and forms,
+but also about how those ideas have been translated into the framework's
+particular vocabulary and lifecycle.
+
+Glue and Fray are built around the opposite idea: the code should stay as close
+as possible to the way the developer already thinks about the application.
+
+Imagine a page with a table, a search box, a few filters, and a total at the
+bottom. You might describe it like this:
+
+> The table gets its data from this endpoint. These controls are its filters.
+> Clicking a column changes the sort order. When any of those things change,
+> the table updates. The total is calculated from the same result.
+
+That description already contains most of the application model.
+
+In Glue, concepts such as queries, filters, mappings, and derived values are
+first-class things that developers work with directly. They can be connected
+in the same relationships that exist in the application itself: filters affect
+queries, results can be transformed or combined, and components can observe the
+parts they need.
+
+The point is not that Glue introduces a new vocabulary for these things. The
+point is that it tries not to replace the vocabulary the developer already has.
+
+The same idea carries into Fray.
+
+A button should normally be a button. A table should be a table. A heading,
+input, list, fieldset, or section should use the browser concept that already
+expresses what it is. Component boundaries should remain readable, and styling
+should describe real shared characteristics rather than depend on opaque
+generated identifiers whose main purpose is to connect implementation details
+to CSS.
+
+In other words, the separation between HTML and CSS should remain meaningful.
+HTML expresses structure and semantics. CSS expresses presentation, reusable
+traits, and cross-cutting concerns. Structural layout, visual themes, and color
+choices are kept distinct so they can evolve independently without turning the
+markup into a collection of styling hooks.
+
+This is the principle that ties Glue and Fray together: abstractions should help
+the code describe the application more directly, not force the developer to
+translate the application into a model invented by the framework.
+
+The goal is not to eliminate abstraction. It is to make the abstractions line
+up closely enough with the developer's mental model that the implementation
+still feels like the application they intended to build.
+
+The names reflect that idea too.
+
+Glue is the connective layer: it joins the application's queries, filters,
+mappings, derived relationships, and other reactive pieces into an explicit
+graph.
+
+Fray comes from the image of threads or filaments: a lightweight structure
+through which those relationships become visible and interactive in the
+browser.
+
+There is a deliberate tension between the names. Glue binds things together;
+Fray exposes the individual threads. Together they describe the stack fairly
+well: one connects the application's relationships, the other presents them.
 
 ## The architecture
 
