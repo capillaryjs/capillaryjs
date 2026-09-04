@@ -26,6 +26,7 @@ export interface CategoryHidePanelProps<TItem> extends ComponentProps {
 /** Show/hide controls with live counts against the unfiltered item source. */
 export class CategoryHidePanel<TItem = unknown>
 extends Component<CategoryHidePanelProps<TItem>> {
+    static override liveProps: readonly string[] = []
     render(): FrayChild {
         const {
             criteria,

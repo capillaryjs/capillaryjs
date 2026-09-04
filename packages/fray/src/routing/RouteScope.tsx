@@ -9,6 +9,7 @@ export interface RouteScopeProps extends ComponentProps {
 
 /** Context carrier used by route-aware controls and advanced compositions. */
 export class RouteScope extends Component<RouteScopeProps> {
+    static override liveProps: readonly string[] = []
     private closeScope: (() => void) | null = null
 
     initialize(): void {

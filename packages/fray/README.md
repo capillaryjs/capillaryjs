@@ -481,7 +481,7 @@ Glue values have explicit behavior at each template boundary:
 | --- | --- |
 | `{emitter}` | Render the current value and patch only that child range on emission. |
 | `<Child source={emitter} />` | Pass the emitter object unchanged; the child owns how it consumes it. |
-| `prop={live(emitter)}` | Subscribe a scalar DOM or component prop one way to the emitter's current value. |
+| `prop={live(emitter)}` | Subscribe a DOM property or a component-declared live prop one way to the emitter's current value. |
 | `<input bind:value={emitter} />` | Bind a writable string emitter and native `value` two ways. |
 | `<input bind:checked={emitter} />` | Bind a writable boolean emitter and native `checked` two ways. |
 | `this.read(emitter)` | Read during `render()` and rerender the component while that dependency is used. |
@@ -493,6 +493,16 @@ reconciled after every render, so conditional dependencies are also released.
 The component still owns and disposes emitters it creates. Direct rendering
 uses only an emitter's value; use `snapshot()` when loading and error state
 must affect the markup.
+
+Component props do not implicitly unwrap emitters. A raw emitter prop passes
+the emitter object to the component, while `live(emitter)` passes its current
+value and subscribes at the renderer boundary. Every class component has an
+explicit live-prop contract and rejects `live()` outside its allowlist in both
+typed templates and at runtime. `live()` is reserved for small render-time
+state such as availability, validation, and busy/pressed state. Identity,
+callbacks, initial values, structural collections, and emitter ownership are
+ordinary props. A data prop documented as accepting a readable emitter is a
+separate input-source contract, not a `live()` prop.
 
 This complete example uses mutable and derived emitters, direct emitter
 children, raw emitter props, native two-way bindings, a one-way live property,
@@ -699,10 +709,10 @@ sibling-local `key` through the common component props.
 | `Toolbar` | `label`, `orientation`, `id`, `children` | None | Stateless named toolbar; orientation is horizontal or vertical. |
 | `Textbox` | `label` or `ariaLabel`, value props, `disabled`, `required`, `readOnly`, `error`, native text constraints, `inputRef` | `onInput(value, event)`, `onChange(value, event)` | String `valueEmitter`; external emitter changes patch the native input without replacing it. |
 | `Dropdown<T>` | `options`, `label` or `ariaLabel`, value props, `disabled`, `required`, `error`, `placeholder`, `name` | `onChange(value, event)` | Typed string/number `valueEmitter`; `options` may be an array or readable emitter. |
-| `RadioButton` | `label`, `name`, `value`, `checked`, `disabled`, `required` | `onChange(checked, event)` | Native radio input with a label; use a shared `name` to associate standalone buttons. |
-| `RadioGroup<T>` | `options`, `label` or `ariaLabel`, value props, `name`, `disabled`, `required` | `onChange(value, event)` | Native radio inputs with one selected `valueEmitter` option. |
-| `Toggle<T>` | `options`, `label` or `ariaLabel`, value props, `disabled`, `required` | `onChange(value, event)` | One selected value; arrow keys, Home, and End move and select within the radio group. |
-| `Checkbox<T>` | `symbols`, `label`, value props, `disabled`, `required`, `name` | `onChange(value, event)` | Two-state semantic value by default; click/Space advances and arrow keys move in either direction. |
+| `RadioButton` | `label`, `name`, `value`, `checked`, `disabled`, `required`, `error` | `onChange(checked, event)` | Native radio input with a label; `checked`, `disabled`, `required`, and `error` support `live()`. |
+| `RadioGroup<T>` | Plain-array `options`, `label` or `ariaLabel`, value props, `name`, `disabled`, `required`, `error` | `onChange(value, event)` | Native radio inputs with one selected `valueEmitter`; `disabled`, `required`, and `error` support `live()`. |
+| `Toggle<T>` | `options`, `label` or `ariaLabel`, value props, `disabled`, `required`, `error` | `onChange(value, event)` | One selected value; `disabled`, `required`, and `error` support `live()`. |
+| `Checkbox<T>` | `symbols`, `label`, value props, `disabled`, `required`, `error`, `name` | `onChange(value, event)` | Two-state semantic value by default; `disabled`, `required`, and `error` support `live()`. |
 | `TriCheckbox` | Checkbox props except `symbols` | `onChange(value, event)` | Cycles deny → neutral → prefer using `FilterMode`. |
 | `QuadCheckbox` | Checkbox props except `symbols` | `onChange(value, event)` | Cycles deny → neutral → prefer → require using `FilterMode`. |
 | `Panel` | `header`, `toolbar`, `orientation`, `disabled`, `id`, `children` | None | Stateless labelled section when a header exists; `disabled` describes the region but does not mutate descendant controls. |
@@ -715,6 +725,37 @@ sibling-local `key` through the common component props.
 | `Tab` | `id`, `label`, `disabled`, optional literal `route`, `children` | None | Declarative content marker consumed by `TabPanel`; a route annotation binds tab activation to the current route scope. |
 | `TabLine` | `tabs`, `label`, `baseId`, value props | `onChange(id, event)` | Active-tab `valueEmitter`; arrow keys skip disabled tabs, with Home/End support. |
 | `TabPanel` | `tabs` or `Tab` children, `label`, `id`, value props | `onChange(id, event)` | Owns or consumes the active-tab emitter, wires the selected tabpanel, and contextually registers annotated tabs when a router is present. |
+
+### Live binding and data-source contracts
+
+Use `live()` only for the props listed here. All other component props reject
+`live()` in TSX, `h()`, and at runtime. Form-control errors render an alert,
+set invalid state, and associate the control or group with that message.
+
+| Component | `live()` props | Dedicated reactive input/state props |
+| --- | --- | --- |
+| `Button` | `disabled`, `pressed`, `busy` | None |
+| `Textbox` | `disabled`, `required`, `readOnly`, `error` | `valueEmitter` |
+| `Dropdown` | `disabled`, `required`, `error` | `options` may be an array or readable emitter; `valueEmitter` |
+| `RadioButton` | `checked`, `disabled`, `required`, `error` | None |
+| `RadioGroup` | `disabled`, `required`, `error` | `valueEmitter`; `options` is always an ordinary array |
+| `Toggle` | `disabled`, `required`, `error` | `valueEmitter`; `options` is always an ordinary array |
+| `Checkbox`, `TriCheckbox`, `QuadCheckbox` | `disabled`, `required`, `error` | `valueEmitter` |
+| `ThemePicker`, `ColorPicker` | `disabled` | `valueEmitter` |
+| `Dialog` | `showCloseButton` | `valueEmitter` controls open state |
+| `Panel` | `disabled` | None |
+| `ProgressBar` | None | `valueEmitter` |
+| `ListView` | None | `items` may be an array or readable emitter; selection emitters are outputs |
+| `TreeView` | None | `nodes` may be an array or readable emitter; selected/expanded emitters are outputs |
+| `DataTable` | None | `data` may be an array or readable emitter; `dataSource`/`rest` and selection emitters are explicit source/state contracts |
+| `FilterPanel` | None | `options` may be an array or readable emitter |
+| Layout, tab, description, toolbar, placeholder, and routing components | None | Their ordinary structural/configuration props require an owner rerender when changed |
+
+Readable data sources carry their own fetch state and error through Glue's
+`getFetchState()` and `getError()` APIs. `ListView`, `DataTable`, `FilterPanel`,
+and `TreeView` surface those source failures as data-loading errors. This is
+separate from a control's `error` prop, which represents validation or other
+application-level input feedback.
 
 Invalid option arrays, duplicate tab IDs, unsupported orientations, malformed
 emitters, and non-function callbacks fail with descriptive errors.
@@ -769,6 +810,80 @@ h(Toggle, {
     onChange: (value) => console.log(value),
 })
 ```
+
+### RadioGroup
+
+`RadioGroup` deliberately has a narrow reactive contract. Its selectable
+`options` are ordinary structural input, its `valueEmitter` is a stable raw
+writable state channel, and only `disabled`, `required`, and `error` accept one-way
+`live()` bindings.
+
+| Prop | Role | `live()` support |
+| --- | --- | --- |
+| `options` | Selectable value/label tuples supplied by the owner | No |
+| `disabled` | Current availability state | Yes, with a readable boolean emitter |
+| `required` | Current form-requirement state | Yes, with a readable boolean emitter |
+| `error` | Current validation message and invalid state | Yes, with a readable error emitter |
+| `valueEmitter` | Stable writable selected-value channel | Pass the emitter raw; do not wrap it |
+| `value`, `defaultValue`, `initialValue` | Initial value when no `valueEmitter` is supplied | No |
+| `id`, `label`, `ariaLabel`, `name` | Ordinary identity and presentation input | No `live()` binding |
+| `onChange` | Action callback | No |
+
+Static and live availability state can be combined without changing the option
+contract:
+
+```tsx
+const selectedView = new Emitter<'list' | 'grid'>('list')
+const unavailable = new Emitter(false)
+const mustChoose = new Emitter(true)
+
+<RadioGroup
+    label="View"
+    options={[
+        ['list', 'List'],
+        ['grid', 'Grid'],
+    ]}
+    valueEmitter={selectedView}
+    disabled={live(unavailable)}
+    required={live(mustChoose)}
+/>
+```
+
+`live(optionsEmitter)` and a raw options emitter are both unsupported. When an
+application genuinely owns a changing option vocabulary, its owning class
+component must make that structural rerender explicit:
+
+```tsx
+interface ViewChooserProps extends ComponentProps {
+    options: ReadableEmitter<readonly RadioOption[]>
+}
+
+class ViewChooser extends Component<ViewChooserProps> {
+    render() {
+        return <RadioGroup
+            label="View"
+            options={this.read(this.props.options)}
+        />
+    }
+}
+```
+
+Calling `optionsEmitter.get()` directly in `render()` only reads a snapshot and
+does not subscribe. `this.read(optionsEmitter)` rerenders the owner when the
+array changes; normal vnode reconciliation then supplies the new ordinary
+array prop to `RadioGroup`. The owner remains responsible for deciding what an
+option removal means for its selected-value emitter. Fray does not silently
+select, clear, or otherwise rewrite that state.
+
+`label` is a `FrayChild`, so it may still contain an emitter that is rendered
+and subscribed as child content. That fine-grained child behavior is distinct
+from making the `label` property itself a `live()` binding. The same is true of
+an individual `RadioOption` label: its rendered content may be reactive without
+making the option array or its selectable values live.
+
+Because `live()` subscriptions belong to a parent render record, pass live
+props through JSX or `h()`. Direct `new RadioGroup(...)` construction accepts
+resolved booleans and ordinary arrays only.
 
 ### Checkbox variants
 

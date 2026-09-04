@@ -1,4 +1,4 @@
-import {Emitter} from '@sylwellsoftware/glue'
+import {Emitter, FetchState} from '@sylwellsoftware/glue'
 import type {ReadableEmitter} from '@sylwellsoftware/glue'
 
 import {Component, css, isVNode} from '../../component.js'
@@ -28,6 +28,7 @@ interface VisibleNode<TValue> {
 
 /** Single-select ARIA tree with controlled expansion and selection. */
 export class TreeView<TValue = unknown> extends Component<TreeViewProps<TValue>> {
+    static override liveProps: readonly string[] = []
     readonly nodesEmitter: ReadableEmitter<readonly TreeNode<TValue>[], unknown>
     readonly selectedKeyEmitter: ValueEmitter<Key | null>
     readonly expandedKeysEmitter: ValueEmitter<Key[]>
@@ -72,6 +73,8 @@ export class TreeView<TValue = unknown> extends Component<TreeViewProps<TValue>>
     render(): FrayChild {
         const nodes = this.nodesEmitter.get()
         assertTreeNodes(nodes)
+        const fetchState = this.nodesEmitter.getFetchState()
+        const sourceError = this.nodesEmitter.getError()
         const expanded = new Set(this.expandedKeysEmitter.get())
         const visible = flattenVisible(nodes, expanded)
         const selected = this.selectedKeyEmitter.get()
@@ -83,7 +86,10 @@ export class TreeView<TValue = unknown> extends Component<TreeViewProps<TValue>>
 
         const Host = this.Host
         return <Host className={classNames('datacomponentlike', componentClass(this.props))}>
-            {visible.length === 0
+            {fetchState === FetchState.Error
+                ? <p role="alert">{errorMessage(sourceError, 'Unable to load tree items')}</p>
+                : null}
+            {fetchState !== FetchState.Error && visible.length === 0
                 ? <p role="status">No tree items</p>
                 : <div role="tree" aria-label={this.props.label}>
                     {visible.map((item, index) => {
@@ -305,6 +311,11 @@ export class TreeView<TValue = unknown> extends Component<TreeViewProps<TValue>>
             .startsWith(this.typeahead))
         if (match != null) this.focusRow(match.node.id)
     }
+}
+
+function errorMessage(error: unknown, fallback: string): string {
+    if (error instanceof Error) return error.message
+    return error == null ? fallback : String(error)
 }
 
 function extractDeclarativeNodes<TValue>(children: ComponentProps['children']): TreeNode<TValue>[] {

@@ -11,6 +11,7 @@ import {
     ListView,
     Panel,
     ProgressBar,
+    RadioGroup,
     RouteLink,
     RouteQuery,
     RouteValue,
@@ -27,6 +28,7 @@ import {
     defineRouteParameter,
     defineService,
     h,
+    live,
     provideService,
     routeParameter,
     routeTarget,
@@ -46,6 +48,17 @@ const textbox = new Textbox({label: 'Name', valueEmitter: textboxValue})
 textbox.valueEmitter.get().toUpperCase()
 
 const numericValue = new Emitter(1)
+const radioOptions = new Emitter([['one', 'One']] as const)
+const radioDisabled = new Emitter(false)
+const radioError = new Emitter<unknown>(null)
+const radio = h(RadioGroup, {
+    options: radioOptions.get(),
+    disabled: live(radioDisabled),
+    required: live(radioDisabled),
+    error: live(radioError),
+})
+// @ts-expect-error h() rejects live RadioGroup options.
+const invalidLiveRadioOptions = h(RadioGroup, {options: live(radioOptions)})
 const numericDropdown = new Dropdown<number>({
     options: [{value: 1, label: 'One'}],
     valueEmitter: numericValue,
@@ -206,5 +219,7 @@ const invalidKey: Key = {id: 'not-a-key'}
 const invalidRef: Ref<HTMLInputElement> = {current: 'not-an-input'}
 
 void textbox
+void radio
+void invalidLiveRadioOptions
 void invalidKey
 void invalidRef

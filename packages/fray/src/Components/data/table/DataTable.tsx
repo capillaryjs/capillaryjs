@@ -76,6 +76,7 @@ export type DataTableProps<TRow extends TableRow = TableRow> =
 /** Accessible table over an explicit local, caller-query, or REST data source. */
 export class DataTable<TRow extends TableRow = TableRow>
     extends Component<DataTableProps<TRow>> {
+    static override liveProps: readonly string[] = []
     readonly columns: readonly TableColumn<TRow>[]
     readonly rowKey: ItemKeyGetter<TRow>
     readonly sortEmitter: ValueEmitter<TableSort | null>

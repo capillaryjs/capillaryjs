@@ -9,6 +9,7 @@ export interface DescriptionItemProps extends ComponentProps {
 
 /** A term/value group with standards-valid `dl` children. */
 export class DescriptionItem extends Component<DescriptionItemProps> {
+    static override liveProps: readonly string[] = []
     render(): FrayChild {
         const {term, value, children = []} = this.props
         return <div
@@ -49,6 +50,7 @@ export interface DescriptionListProps extends ComponentProps {
 
 /** Semantic description-list container for compact record summaries. */
 export class DescriptionList extends Component<DescriptionListProps> {
+    static override liveProps: readonly string[] = []
     render(): FrayChild {
         return <dl
             className={classNames('datacomponentlike', componentClass(this.props))}

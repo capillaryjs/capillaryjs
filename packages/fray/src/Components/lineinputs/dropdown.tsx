@@ -1,7 +1,7 @@
 import {Emitter} from '@sylwellsoftware/glue'
 import type {ReadableEmitter} from '@sylwellsoftware/glue'
 import {Component, css} from '../component.js'
-import type {FrayChild} from '../component.js'
+import type {FrayChild, LivePropContract} from '../component.js'
 import {
     assertOptions,
     classNames,
@@ -20,8 +20,10 @@ export interface DropdownOption<TValue extends DropdownValue = string> {
     disabled?: boolean
 }
 
+const dropdownLiveProps = ['disabled', 'required', 'error'] as const
+
 export interface DropdownProps<TValue extends DropdownValue = string>
-    extends ValueControlProps<TValue> {
+    extends ValueControlProps<TValue>, LivePropContract<(typeof dropdownLiveProps)[number]> {
     id?: string | number | null
     options?: readonly DropdownOption<TValue>[]
         | ReadableEmitter<readonly DropdownOption<TValue>[], unknown>
@@ -37,6 +39,7 @@ export interface DropdownProps<TValue extends DropdownValue = string>
 
 export class Dropdown<TValue extends DropdownValue = string>
     extends Component<DropdownProps<TValue>> {
+    static override liveProps = dropdownLiveProps
     readonly inputId: string
     readonly errorId: string
     readonly optionsEmitter: ReadableEmitter<readonly DropdownOption<TValue>[], unknown>

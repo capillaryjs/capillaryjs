@@ -14,6 +14,7 @@ export interface BlockGraphProps<TItem> extends ComponentProps {
 
 /** Accessible nested proportional mosaic backed by an explicit selection model. */
 export class BlockGraph<TItem = unknown> extends Component<BlockGraphProps<TItem>> {
+    static override liveProps: readonly string[] = []
     render(): FrayChild {
         const {
             model,

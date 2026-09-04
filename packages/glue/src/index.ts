@@ -73,3 +73,6 @@ export type {
     QueryEndpointOptions,
     RestEndpointOptions,
 } from './queryhandling/endpoints.js'
+export type {
+    NonEmptyArray
+} from './utilities.js'

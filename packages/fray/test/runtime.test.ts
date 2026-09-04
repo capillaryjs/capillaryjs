@@ -4,7 +4,7 @@ import {Window} from 'happy-dom'
 
 import {Emitter, FetchState} from '@sylwellsoftware/glue'
 import {Component, Fragment, h, live} from '../src/Components/component.js'
-import type {ComponentProps, FrayChild} from '../src/Components/component.js'
+import type {ComponentProps, FrayChild, LivePropContract} from '../src/Components/component.js'
 import {createPrebuiltElement, jsx} from '../src/jsx-runtime.js'
 import {requiredAt, requiredQuery} from './testUtils.js'
 
@@ -90,7 +90,7 @@ describe('Component lifecycle', () => {
         const label = new Emitter('alpha')
         const calls = {initialize: 0, destroy: 0}
 
-        interface ChildProps extends ComponentProps {
+        interface ChildProps extends ComponentProps, LivePropContract<'label'> {
             label: string
         }
 
@@ -511,7 +511,13 @@ describe('Glue template bindings', () => {
             label: string
         }
 
-        class Child extends Component<ChildProps> {
+        interface LiveChildProps extends ComponentProps, LivePropContract<'label'> {
+            label: string
+        }
+
+        class LiveChild extends Component<LiveChildProps> {
+            static override liveProps = ['label'] as const
+
             render() {
                 childRenders += 1
                 return h('span', null, this.props.label)
@@ -523,7 +529,7 @@ describe('Glue template bindings', () => {
                 parentRenders += 1
                 return h('div', null,
                     h('button', {disabled: live(disabled)}, 'Action'),
-                    h(Child, {label: live(label)}))
+                    h(LiveChild, {label: live(label)}))
             }
         }
 

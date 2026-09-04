@@ -14,11 +14,14 @@ import {
 import type {LineChartModel, LineGraphRange} from '../lineChart.js'
 import type {HistoryShape} from '../series.js'
 
+type Source<TValue> = TValue | ReadableEmitter<TValue>
+
 export interface LineGraphProps extends ComponentProps {
-    readonly shapes$: ReadableEmitter<readonly HistoryShape[]>
-    readonly stacked$: ReadableEmitter<boolean>
-    readonly smooth$: ReadableEmitter<boolean>
-    readonly range$: ReadableEmitter<LineGraphRange>
+    /** Snapshot data or a readable source that drives the graph. */
+    readonly shapes$: Source<readonly HistoryShape[]>
+    readonly stacked$: Source<boolean>
+    readonly smooth$: Source<boolean>
+    readonly range$: Source<LineGraphRange>
     readonly label?: string
     readonly emptyMessage?: string
     readonly formatDate?: (date: CivilDate) => string
@@ -27,20 +30,34 @@ export interface LineGraphProps extends ComponentProps {
 
 /** Responsive SVG history line/area chart with pointer and keyboard readout. */
 export class LineGraph extends Component<LineGraphProps> {
+    static override liveProps: readonly string[] = []
     private readonly cursorDate$ = new Emitter<CivilDate | null>(null, {
         owner: this,
         purpose: 'line graph cursor date',
     })
+    private readonly shapes$: ReadableEmitter<readonly HistoryShape[]>
+    private readonly stacked$: ReadableEmitter<boolean>
+    private readonly smooth$: ReadableEmitter<boolean>
+    private readonly range$: ReadableEmitter<LineGraphRange>
+    private readonly ownedSources: Emitter<unknown>[] = []
     private chartHost: HTMLDivElement | null = null
     private observedWidth = 960
     private currentModel: LineChartModel | null = null
     private resizeObserver: ResizeObserver | null = null
 
+    constructor(props: LineGraphProps) {
+        super(props)
+        this.shapes$ = this.source(props.shapes$, 'line graph shapes')
+        this.stacked$ = this.source(props.stacked$, 'line graph stacked state')
+        this.smooth$ = this.source(props.smooth$, 'line graph smooth state')
+        this.range$ = this.source(props.range$, 'line graph range')
+    }
+
     render(): FrayChild {
-        const shapes = this.snapshot(this.props.shapes$)
-        const stacked = this.snapshot(this.props.stacked$)
-        const smooth = this.snapshot(this.props.smooth$)
-        const range = this.snapshot(this.props.range$)
+        const shapes = this.snapshot(this.shapes$)
+        const stacked = this.snapshot(this.stacked$)
+        const smooth = this.snapshot(this.smooth$)
+        const range = this.snapshot(this.range$)
         const cursorDate = this.read(this.cursorDate$)
         const label = this.props.label ?? 'History chart'
         const state = [shapes, stacked, smooth, range].some(({fetchState}) =>
@@ -128,6 +145,8 @@ export class LineGraph extends Component<LineGraphProps> {
         this.resizeObserver = null
         this.chartHost = null
         this.cursorDate$.dispose()
+        for (const source of this.ownedSources) source.dispose()
+        this.ownedSources.length = 0
     }
 
     static css = css`
@@ -240,6 +259,16 @@ export class LineGraph extends Component<LineGraphProps> {
         this.resizeObserver.observe(this.chartHost)
     }
 
+    private source<TValue>(
+        input: Source<TValue>,
+        purpose: string,
+    ): ReadableEmitter<TValue> {
+        if (isReadableEmitter<TValue>(input)) return input
+        const source = new Emitter(input, {owner: this, purpose})
+        this.ownedSources.push(source as Emitter<unknown>)
+        return source
+    }
+
     private pointerMove(event: PointerEvent): void {
         const model = this.currentModel
         const host = this.chartHost
@@ -274,7 +303,7 @@ export class LineGraph extends Component<LineGraphProps> {
         const host = this.chartHost
         const model = this.currentModel
         if (host == null || model == null) return
-        const smooth = this.props.smooth$.get()
+        const smooth = this.smooth$.get()
         const svg = createSvg('svg')
         svg.setAttribute('viewBox', `0 0 ${model.width} ${model.height}`)
         svg.setAttribute('role', 'img')
@@ -350,6 +379,13 @@ export class LineGraph extends Component<LineGraphProps> {
         }
         host.replaceChildren(svg)
     }
+}
+
+function isReadableEmitter<TValue>(value: unknown): value is ReadableEmitter<TValue> {
+    return value != null
+        && (typeof value === 'object' || typeof value === 'function')
+        && typeof Reflect.get(value, 'get') === 'function'
+        && typeof Reflect.get(value, 'subscribe') === 'function'
 }
 
 const SVG_NAMESPACE = 'http://www.w3.org/2000/svg'

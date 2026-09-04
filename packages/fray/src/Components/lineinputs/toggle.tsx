@@ -1,5 +1,5 @@
 import {Component, css} from '../component.js'
-import type {FrayChild, Key} from '../component.js'
+import type {FrayChild, Key, LivePropContract} from '../component.js'
 import {
     assertOptions,
     componentClass,
@@ -14,22 +14,27 @@ export type ToggleOption<TValue extends Key = string> = readonly [
     label: FrayChild,
 ]
 
+const toggleLiveProps = ['disabled', 'required', 'error'] as const
+
 export interface ToggleProps<TValue extends Key = string>
-    extends ValueControlProps<TValue> {
+    extends ValueControlProps<TValue>, LivePropContract<(typeof toggleLiveProps)[number]> {
     id?: string | number | null
     options?: readonly ToggleOption<TValue>[]
     label?: FrayChild
     ariaLabel?: string
     disabled?: boolean
     required?: boolean
+    error?: unknown
     onChange?: (value: TValue, event: Event | null) => void
 }
 
 /** Mutually exclusive button group with radio-group semantics. */
 export class Toggle<TValue extends Key = string> extends Component<ToggleProps<TValue>> {
+    static override liveProps = toggleLiveProps
     readonly valueEmitter: ValueEmitter<TValue>
     readonly groupId: string
     readonly legendId: string
+    readonly errorId: string
 
     constructor(props: ToggleProps<TValue> = {}) {
         super(props)
@@ -46,6 +51,7 @@ export class Toggle<TValue extends Key = string> extends Component<ToggleProps<T
         )
         this.groupId = controlId('toggle', props.id)
         this.legendId = `${this.groupId}-label`
+        this.errorId = `${this.groupId}-error`
     }
 
     initialize(): void {
@@ -64,6 +70,7 @@ export class Toggle<TValue extends Key = string> extends Component<ToggleProps<T
             label,
             disabled = false,
             required = false,
+            error = null,
         } = this.props
         validateToggleOptions(options)
         const selectedValue = this.valueEmitter.get()
@@ -76,7 +83,10 @@ export class Toggle<TValue extends Key = string> extends Component<ToggleProps<T
             className={componentClass(this.props) || undefined}
             data-fray-component="toggle"
             data-disabled={disabled ? '' : null}
+            data-error={error == null ? null : ''}
             aria-required={required ? 'true' : null}
+            aria-invalid={error == null ? null : 'true'}
+            aria-describedby={error == null ? null : this.errorId}
         >
             {label == null ? null : <legend id={this.legendId}>{label}</legend>}
             <div
@@ -98,6 +108,7 @@ export class Toggle<TValue extends Key = string> extends Component<ToggleProps<T
                         this.handleKeyDown(event, index, options)}
                 >{optionLabel}</button>)}
             </div>
+            {error == null ? null : <p id={this.errorId} role="alert">{String(error)}</p>}
         </fieldset>
     }
 

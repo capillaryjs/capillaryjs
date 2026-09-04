@@ -1,5 +1,5 @@
 import {Component, css} from '../component.js'
-import type {FrayChild, Ref} from '../component.js'
+import type {FrayChild, LivePropContract, Ref} from '../component.js'
 import {
     componentClass,
     controlId,
@@ -8,7 +8,10 @@ import {
 } from '../controlUtils.js'
 import type {ValueControlProps, ValueEmitter} from '../controlUtils.js'
 
-export interface TextboxProps extends ValueControlProps<string> {
+const textboxLiveProps = ['disabled', 'required', 'readOnly', 'error'] as const
+
+export interface TextboxProps extends ValueControlProps<string>,
+    LivePropContract<(typeof textboxLiveProps)[number]> {
     id?: string | number | null
     label?: FrayChild
     placeholder?: string
@@ -30,6 +33,7 @@ export interface TextboxProps extends ValueControlProps<string> {
 }
 
 export class Textbox extends Component<TextboxProps> {
+    static override liveProps = textboxLiveProps
     readonly inputId: string
     readonly errorId: string
     readonly valueEmitter: ValueEmitter<string>

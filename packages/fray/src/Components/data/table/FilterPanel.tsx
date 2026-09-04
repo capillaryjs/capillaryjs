@@ -35,6 +35,7 @@ export interface FilterPanelProps extends ComponentProps {
 
 /** Filter choices whose option data is always supplied by the caller. */
 export class FilterPanel extends Component<FilterPanelProps> {
+    static override liveProps: readonly string[] = []
     readonly optionsEmitter: ReadableEmitter<FilterOptions, unknown> | null
     private readonly optionStateEmitters = new Map<FilterValue, Emitter<FilterModeValue>>()
     private staleOptionValues = new Set<FilterValue>()

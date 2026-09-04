@@ -34,6 +34,7 @@ export interface TableHeaderCellProps extends ComponentProps, TableColumnBase {
 }
 
 export class TableHeaderCell extends Component<TableHeaderCellProps> {
+    static override liveProps: readonly string[] = []
     private filterVisible = false
 
     initialize(): void {

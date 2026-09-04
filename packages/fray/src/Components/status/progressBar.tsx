@@ -15,6 +15,7 @@ export interface ProgressBarProps extends ComponentProps {
 
 /** Labelled native progress indicator with determinate and indeterminate modes. */
 export class ProgressBar extends Component<ProgressBarProps> {
+    static override liveProps: readonly string[] = []
     readonly progressId: string
 
     constructor(props: ProgressBarProps) {

@@ -11,6 +11,7 @@ export interface TabProps extends ComponentProps {
 
 /** Declarative content marker consumed by TabPanel. */
 export class Tab extends Component<TabProps> {
+    static override liveProps: readonly string[] = []
     render(): FrayChild {
         return this.props.children ?? []
     }

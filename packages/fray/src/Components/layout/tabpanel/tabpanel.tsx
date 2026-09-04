@@ -42,6 +42,7 @@ interface NormalizedTab {
 }
 
 export class TabPanel extends Component<TabPanelProps> {
+    static override liveProps: readonly string[] = []
     readonly valueEmitter: ValueEmitter<Key | null>
     readonly activeTabEmitter: ValueEmitter<Key | null>
     readonly baseId: string

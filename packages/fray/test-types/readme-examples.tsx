@@ -10,6 +10,7 @@ import {
     Button,
     Component,
     Panel,
+    RadioGroup,
     Sidebar,
     Textbox,
     createFrayRuntime,
@@ -18,6 +19,7 @@ import {
 } from '@sylwellsoftware/fray'
 import type {
     ComponentProps,
+    RadioOption,
     WritableEmitter,
 } from '@sylwellsoftware/fray'
 
@@ -118,6 +120,33 @@ class Results extends Component<ResultsProps> {
     }
 }
 
+const selectedView = new Emitter<'list' | 'grid'>('list')
+const unavailable = new Emitter(false)
+const mustChoose = new Emitter(true)
+const radioExample = <RadioGroup
+    label="View"
+    options={[
+        ['list', 'List'],
+        ['grid', 'Grid'],
+    ]}
+    valueEmitter={selectedView}
+    disabled={live(unavailable)}
+    required={live(mustChoose)}
+/>
+
+interface ViewChooserProps extends ComponentProps {
+    options: ReadableEmitter<readonly RadioOption[]>
+}
+
+class ViewChooser extends Component<ViewChooserProps> {
+    render() {
+        return <RadioGroup
+            label="View"
+            options={this.read(this.props.options)}
+        />
+    }
+}
+
 class ChangeApp extends Component {
     readonly title = new Emitter('Add native Glue template bindings')
     readonly approved = new Emitter(false)
@@ -182,3 +211,6 @@ export function mountReadmeExamples(parent: ParentNode): void {
     runtime.mount(runtime.create(Counter), parent)
     runtime.mount(runtime.create(ChangeApp), parent)
 }
+
+void radioExample
+void ViewChooser

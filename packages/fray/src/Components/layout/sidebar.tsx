@@ -11,6 +11,7 @@ export interface SidebarProps extends ComponentProps {
 
 /** Labelled side region whose content owns vertical scrolling. */
 export class Sidebar extends Component<SidebarProps> {
+    static override liveProps: readonly string[] = []
     readonly sidebarId: string
     readonly headerId: string
 

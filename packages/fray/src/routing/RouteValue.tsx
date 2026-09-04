@@ -21,6 +21,7 @@ export interface RouteValueProps<TValue> extends ComponentProps {
 
 /** Bind one dynamic child path segment to an application-owned value. */
 export class RouteValue<TValue> extends Component<RouteValueProps<TValue>> {
+    static override liveProps: readonly string[] = []
     private registration: (RouteRegistration & {
         contextFor(value: TValue): ResolvedRoute
     }) | null = null

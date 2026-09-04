@@ -81,10 +81,28 @@ export interface EmitterSnapshot<TValue, TError = unknown> {
     readonly error: TError | null
 }
 
+declare const livePropContract: unique symbol
+
+/** Type-only declaration of the component props that accept `live()` bindings. */
+export interface LivePropContract<TName extends string> {
+    readonly [livePropContract]?: TName
+}
+
+/** Components opt in to every supported `live()` prop through LivePropContract. */
+type DefaultLivePropName<_TProps extends ComponentProps> = never
+
+type DeclaredLivePropName<TProps extends ComponentProps> =
+    typeof livePropContract extends keyof TProps
+        ? Extract<Exclude<TProps[typeof livePropContract], undefined>, keyof TProps>
+        : DefaultLivePropName<TProps>
+
 export type TemplateProps<TProps extends ComponentProps> = {
-    [TName in keyof TProps]: TName extends 'key' | 'children'
+    [TName in keyof TProps as TName extends typeof livePropContract ? never : TName]:
+        TName extends 'key' | 'children'
         ? TProps[TName]
-        : TProps[TName] | LiveBinding<Exclude<TProps[TName], undefined>>
+        : TName extends DeclaredLivePropName<TProps>
+            ? TProps[TName] | LiveBinding<Exclude<TProps[TName], undefined>>
+            : TProps[TName]
 }
 
 export type BaseStyleNames = string | readonly string[]
@@ -264,6 +282,8 @@ export function css(strings: TemplateStringsArray, ...values: unknown[]): string
 export class Component<TProps extends ComponentProps = ComponentProps> {
     static dependencies: ComponentDependency[] = []
     static requiredServices: readonly ServiceKey<unknown>[] = []
+    /** Component `live()` bindings are opt-in; subclasses declare their allowlist. */
+    static liveProps: readonly string[] | null = []
     static css = ''
     static hostName: string | null = null
     static standaloneHostName: string | null = null
@@ -822,6 +842,7 @@ function createRecord(value: NormalizedChild, owner: Component): RenderRecord {
 
     if (isComponentClass(type)) {
         const sourceProps = props as ComponentProps
+        assertSupportedComponentLiveProps(type, sourceProps)
         const resolvedProps = resolveLivePropValues(sourceProps)
         const instance = new type(resolvedProps as never)
         instance._setRuntime(owner._runtime)
@@ -954,7 +975,27 @@ function subscribeComponentLiveProps(
 }
 
 function patchComponentLiveProps(record: ComponentRecord, sourceProps: ComponentProps): void {
+    assertSupportedComponentLiveProps(record.type, sourceProps)
     subscribeComponentLiveProps(record, sourceProps)
+}
+
+function assertSupportedComponentLiveProps(
+    componentType: Function,
+    sourceProps: ComponentProps,
+): void {
+    const declared = Reflect.get(componentType, 'liveProps') as unknown
+    if (declared == null) return
+    if (!Array.isArray(declared) || declared.some((name) => typeof name !== 'string')) {
+        throw new TypeError(`${componentType.name || 'Component'}.liveProps must be an array`)
+    }
+    const supported = new Set<string>(declared)
+    for (const [name, value] of Object.entries(sourceProps)) {
+        if (isLiveBinding(value) && !supported.has(name)) {
+            throw new TypeError(
+                `${componentType.name || 'Component'} prop "${name}" does not support live()`,
+            )
+        }
+    }
 }
 
 function subscribeFunctionLiveProps(record: FunctionRecord): void {

@@ -1,6 +1,6 @@
 import {Button} from '../menu/button.js'
 import {Component, css} from '../component.js'
-import type {ComponentProps, FrayChild, Ref} from '../component.js'
+import type {ComponentProps, FrayChild, LivePropContract, Ref} from '../component.js'
 import {
     componentClass,
     controlId,
@@ -9,7 +9,10 @@ import {
 } from '../controlUtils.js'
 import type {ValueControlProps, ValueEmitter} from '../controlUtils.js'
 
-export interface DialogProps extends ValueControlProps<boolean> {
+const dialogLiveProps = ['showCloseButton'] as const
+
+export interface DialogProps extends ValueControlProps<boolean>,
+    LivePropContract<(typeof dialogLiveProps)[number]> {
     id?: string | number | null
     title: FrayChild
     description?: FrayChild
@@ -22,6 +25,7 @@ export interface DialogProps extends ValueControlProps<boolean> {
 
 /** Controlled modal built on the native dialog element. */
 export class Dialog extends Component<DialogProps> {
+    static override liveProps = dialogLiveProps
     readonly openEmitter: ValueEmitter<boolean>
     readonly dialogId: string
     readonly titleId: string

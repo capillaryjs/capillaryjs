@@ -39,6 +39,7 @@ export type ListViewProps<TItem = unknown> = ListViewCommonProps<TItem> & (
 
 /** Accessible listbox with stable-key selection. */
 export class ListView<TItem = unknown> extends Component<ListViewProps<TItem>> {
+    static override liveProps: readonly string[] = []
     readonly itemsEmitter: ReadableEmitter<readonly TItem[], unknown>
     readonly items$: ReadableEmitter<readonly TItem[], unknown>
     readonly selectedItemsEmitter: ValueEmitter<TItem[]>

@@ -18,6 +18,7 @@ export interface SplitSelectionPanelProps<TItem> extends ComponentProps {
 /** Ordered enablement, presets, pointer reordering, and keyboard reordering. */
 export class SplitSelectionPanel<TItem = unknown>
 extends Component<SplitSelectionPanelProps<TItem>> {
+    static override liveProps: readonly string[] = []
     private draggingKey: string | null = null
     private pendingDrag: {key: string; clientX: number; clientY: number} | null = null
     private suppressClick = false

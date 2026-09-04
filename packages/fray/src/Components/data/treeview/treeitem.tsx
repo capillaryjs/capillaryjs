@@ -18,6 +18,7 @@ export interface TreeItemProps<TValue = unknown> extends ComponentProps {
 
 /** Declarative tree-node marker consumed by TreeView. */
 export class TreeItem<TValue = unknown> extends Component<TreeItemProps<TValue>> {
+    static override liveProps: readonly string[] = []
     render(): FrayChild {
         return this.props.children ?? []
     }

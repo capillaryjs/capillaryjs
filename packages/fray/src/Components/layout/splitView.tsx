@@ -13,6 +13,7 @@ export interface SplitViewProps extends ComponentProps {
 
 /** Two-pane layout with explicit overflow ownership and no resizing behavior. */
 export class SplitView extends Component<SplitViewProps> {
+    static override liveProps: readonly string[] = []
     render(): FrayChild {
         const {
             primary = null,

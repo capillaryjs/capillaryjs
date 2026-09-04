@@ -7,6 +7,7 @@ export interface PlaceholderProps extends ComponentProps {
 
 /** Deterministic loading placeholder for data components. */
 export class Placeholder extends Component<PlaceholderProps> {
+    static override liveProps: readonly string[] = []
     render() {
         const width = normalizeWidth(this.props.width ?? 65)
         const Host = this.Host

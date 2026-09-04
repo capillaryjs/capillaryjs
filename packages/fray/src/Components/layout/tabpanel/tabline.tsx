@@ -25,6 +25,7 @@ export interface TabLineProps extends ValueControlProps<Key | null> {
 }
 
 export class TabLine extends Component<TabLineProps> {
+    static override liveProps: readonly string[] = []
     readonly valueEmitter: ValueEmitter<Key | null>
     readonly activeTabEmitter: ValueEmitter<Key | null>
 

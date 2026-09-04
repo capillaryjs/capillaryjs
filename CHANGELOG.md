@@ -6,6 +6,22 @@ Versioning.
 
 ## Unreleased
 
+### Added
+
+- Explicit component-specific `live()` prop allowlists, enforced consistently
+  by typed JSX/`h()` authoring and the runtime renderer.
+
+### Changed
+
+- Interactive controls now expose consistent live availability and validation
+  contracts: `Textbox`/`Dropdown` accept live disabled, required, and error
+  state; checkboxes, radio controls, and toggles accept live disabled, required,
+  and error state; standalone radios also accept live checked state.
+- `RadioGroup.options` remains an ordinary array supplied through explicit owner
+  renders, and raw `valueEmitter` behavior is unchanged.
+- `LineGraph` now accepts static values as well as readable sources for its
+  shapes, stacked, smooth, and range inputs.
+
 ## 0.7.0 - 2026-09-04
 
 ### Added

@@ -48,6 +48,12 @@ new LineGraph({
     smooth$: new Emitter(false),
     range$: new Emitter({minX: '2026-01-01', maxX: '2026-12-31'}),
 })
+new LineGraph({
+    shapes$: builder.buildCumulative(),
+    stacked$: false,
+    smooth$: false,
+    range$: {minX: '2026-01-01', maxX: '2026-12-31'},
+})
 
 // @ts-expect-error Criteria require stable keys.
 staticCriterion<Item>({label: 'Missing key', categories: []})

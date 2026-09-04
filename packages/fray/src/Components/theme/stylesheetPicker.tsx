@@ -1,5 +1,5 @@
 import {Component, css} from '../component.js'
-import type {ComponentProps, FrayChild} from '../component.js'
+import type {ComponentProps, FrayChild, LivePropContract} from '../component.js'
 import {
     classNames,
     componentClass,
@@ -19,7 +19,10 @@ import type {
     FrayStylesheetOption,
 } from '../../styling/theme.js'
 
-export interface StylesheetPickerProps extends ValueControlProps<string> {
+const stylesheetPickerLiveProps = ['disabled'] as const
+
+export interface StylesheetPickerProps extends ValueControlProps<string>,
+    LivePropContract<(typeof stylesheetPickerLiveProps)[number]> {
     id?: string | number | null
     label?: FrayChild
     ariaLabel?: string
@@ -30,6 +33,7 @@ export interface StylesheetPickerProps extends ValueControlProps<string> {
 }
 
 abstract class StylesheetPicker extends Component<StylesheetPickerProps> {
+    static override liveProps = stylesheetPickerLiveProps
     readonly valueEmitter: ValueEmitter<string>
     readonly inputId: string
     private readonly kind: FrayStylesheetKind

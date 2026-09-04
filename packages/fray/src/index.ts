@@ -47,6 +47,7 @@ export type {
     EmitterSnapshot,
     Key,
     LiveBinding,
+    LivePropContract,
     Ref,
     TemplateProps,
     VNode,

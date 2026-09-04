@@ -102,9 +102,11 @@ for (const finding of findings) history.addOne(finding.detected, finding.severit
 const shapes = history.buildCumulative()
 ```
 
-`LineGraph` accepts reactive `shapes$`, `stacked$`, `smooth$`, and `range$`
-inputs. Arrow keys move the readout by a day, Shift+Arrow by a week, Home/End
-jump to range bounds, and Escape clears the pinned cursor.
+`LineGraph` accepts either static values or readable emitters for `shapes$`,
+`stacked$`, `smooth$`, and `range$`. An emitter drives loading/error state and
+incremental redraws; a static value is wrapped as an owned ready source. Arrow
+keys move the readout by a day, Shift+Arrow by a week, Home/End jump to range
+bounds, and Escape clears the pinned cursor.
 
 ## Styling boundary
 

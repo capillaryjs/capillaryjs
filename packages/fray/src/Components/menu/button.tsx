@@ -1,8 +1,11 @@
 import {Component, css} from '../component.js'
-import type {ComponentProps, FrayChild} from '../component.js'
+import type {ComponentProps, FrayChild, LivePropContract} from '../component.js'
 import {componentClass, invoke} from '../controlUtils.js'
 
-export interface ButtonProps extends ComponentProps {
+const buttonLiveProps = ['disabled', 'pressed', 'busy'] as const
+
+export interface ButtonProps extends ComponentProps,
+    LivePropContract<(typeof buttonLiveProps)[number]> {
     label?: FrayChild
     type?: 'button' | 'reset' | 'submit'
     disabled?: boolean
@@ -19,6 +22,7 @@ export interface ButtonProps extends ComponentProps {
 
 /** Native actionable button primitive. */
 export class Button extends Component<ButtonProps> {
+    static override liveProps = buttonLiveProps
     constructor(props: ButtonProps = {}) {
         super(props)
         if (props.onClick != null && typeof props.onClick !== 'function') {

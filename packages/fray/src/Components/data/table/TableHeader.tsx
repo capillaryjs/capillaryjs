@@ -21,6 +21,7 @@ export interface TableHeaderProps<TRow extends TableRow = TableRow> extends Comp
 
 export class TableHeader<TRow extends TableRow = TableRow>
     extends Component<TableHeaderProps<TRow>> {
+    static override liveProps: readonly string[] = []
     render(): FrayChild {
         return <thead data-fray-component="table-header">
             <tr>

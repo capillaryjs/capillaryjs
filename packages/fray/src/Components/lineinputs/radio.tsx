@@ -1,5 +1,10 @@
 import {Component, css} from '../component.js'
-import type {ComponentProps, FrayChild, Key} from '../component.js'
+import type {
+    ComponentProps,
+    FrayChild,
+    Key,
+    LivePropContract,
+} from '../component.js'
 import {
     assertOptions,
     componentClass,
@@ -14,7 +19,11 @@ export type RadioOption<TValue extends Key = string> = readonly [
     label: FrayChild,
 ]
 
-export interface RadioButtonProps extends ComponentProps {
+const radioButtonLiveProps = ['checked', 'disabled', 'required', 'error'] as const
+const radioGroupLiveProps = ['disabled', 'required', 'error'] as const
+
+export interface RadioButtonProps extends ComponentProps,
+    LivePropContract<(typeof radioButtonLiveProps)[number]> {
     id?: string | number | null
     label?: FrayChild
     name?: string
@@ -22,16 +31,20 @@ export interface RadioButtonProps extends ComponentProps {
     checked?: boolean
     disabled?: boolean
     required?: boolean
+    error?: unknown
     onChange?: (checked: boolean, event: Event) => void
 }
 
 /** A native radio input with its associated label and visual control shell. */
 export class RadioButton extends Component<RadioButtonProps> {
+    static override liveProps = radioButtonLiveProps
     readonly inputId: string
+    readonly errorId: string
 
     constructor(props: RadioButtonProps = {}) {
         super(props)
         this.inputId = controlId('radio', props.id)
+        this.errorId = `${this.inputId}-error`
     }
 
     render(): FrayChild {
@@ -40,12 +53,14 @@ export class RadioButton extends Component<RadioButtonProps> {
             checked = false,
             disabled = false,
             required = false,
+            error = null,
         } = this.props
         const Host = this.Host
         return <Host
             className={componentClass(this.props) || null}
             data-disabled={disabled ? '' : null}
             data-required={required ? '' : null}
+            data-error={error == null ? null : ''}
         >
             <label htmlFor={this.inputId}>
                 <input
@@ -56,12 +71,15 @@ export class RadioButton extends Component<RadioButtonProps> {
                     checked={checked}
                     disabled={disabled}
                     required={required}
+                    aria-invalid={error == null ? null : 'true'}
+                    aria-describedby={error == null ? null : this.errorId}
                     onChange={(event: Event) => invoke(this.props.onChange,
                         (event.currentTarget as HTMLInputElement).checked, event)}
                 />
                 <span className="radioshell" aria-hidden="true" />
                 <span>{label}</span>
             </label>
+            {error == null ? null : <p id={this.errorId} role="alert">{String(error)}</p>}
         </Host>
     }
 
@@ -134,14 +152,20 @@ export class RadioButton extends Component<RadioButtonProps> {
 }
 
 export interface RadioGroupProps<TValue extends Key = string>
-    extends ValueControlProps<TValue> {
+    extends ValueControlProps<TValue>,
+        LivePropContract<(typeof radioGroupLiveProps)[number]> {
     id?: string | number | null
+    /** Ordinary option data; an owning render must resolve any reactive source. */
     options?: readonly RadioOption<TValue>[]
     label?: FrayChild
     ariaLabel?: string
     name?: string
+    /** Accepts a boolean or `live(booleanEmitter)` in JSX/`h()` templates. */
     disabled?: boolean
+    /** Accepts a boolean or `live(booleanEmitter)` in JSX/`h()` templates. */
     required?: boolean
+    /** Validation error; accepts an ordinary value or `live(errorEmitter)`. */
+    error?: unknown
     onChange?: (value: TValue, event: Event | null) => void
 }
 
@@ -149,10 +173,12 @@ export interface RadioGroupProps<TValue extends Key = string>
 export class RadioGroup<TValue extends Key = string>
     extends Component<RadioGroupProps<TValue>> {
     static dependencies = [RadioButton]
+    static override liveProps = radioGroupLiveProps
 
     readonly valueEmitter: ValueEmitter<TValue>
     readonly groupId: string
     readonly legendId: string
+    readonly errorId: string
 
     constructor(props: RadioGroupProps<TValue> = {}) {
         super(props)
@@ -162,6 +188,7 @@ export class RadioGroup<TValue extends Key = string>
         this.valueEmitter = createValueEmitter(this, props, firstValue, 'radio group value')
         this.groupId = controlId('radio-group', props.id)
         this.legendId = `${this.groupId}-label`
+        this.errorId = `${this.groupId}-error`
     }
 
     initialize(): void {
@@ -175,7 +202,7 @@ export class RadioGroup<TValue extends Key = string>
     }
 
     render(): FrayChild {
-        const {options = [], label, disabled = false, required = false} = this.props
+        const {options = [], label, disabled = false, required = false, error = null} = this.props
         validateRadioOptions(options)
         const selectedValue = this.valueEmitter.get()
         const Host = this.Host
@@ -183,8 +210,14 @@ export class RadioGroup<TValue extends Key = string>
             className={componentClass(this.props) || null}
             data-disabled={disabled ? '' : null}
             data-required={required ? '' : null}
+            data-error={error == null ? null : ''}
         >
-            <fieldset disabled={disabled} aria-required={required ? 'true' : null}>
+            <fieldset
+                disabled={disabled}
+                aria-required={required ? 'true' : null}
+                aria-invalid={error == null ? null : 'true'}
+                aria-describedby={error == null ? null : this.errorId}
+            >
                 {label == null ? null : <legend id={this.legendId}>{label}</legend>}
                 <div
                     data-part="options"
@@ -207,6 +240,7 @@ export class RadioGroup<TValue extends Key = string>
                     />)}
                 </div>
             </fieldset>
+            {error == null ? null : <p id={this.errorId} role="alert">{String(error)}</p>}
         </Host>
     }
 

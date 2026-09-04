@@ -12,6 +12,7 @@ export interface RouteQueryProps<TValue> extends ComponentProps {
 
 /** Synchronize one explicitly declared application value with a URL query key. */
 export class RouteQuery<TValue> extends Component<RouteQueryProps<TValue>> {
+    static override liveProps: readonly string[] = []
     private unregister: (() => void) | null = null
 
     initialize(): void {

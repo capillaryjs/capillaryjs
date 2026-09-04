@@ -274,6 +274,22 @@ describe('BlockGraph', () => {
 })
 
 describe('LineGraph', () => {
+    test('accepts static graph input values', () => {
+        const shapes = new SeriesBuilder([{key: 'open', label: 'Open', color: '#c33'}])
+            .addOne('2026-01-01', 'open')
+            .buildCumulative()
+        const graph = new LineGraph({
+            shapes$: shapes,
+            stacked$: false,
+            smooth$: false,
+            range$: {minX: '2026-01-01', maxX: '2026-01-05'},
+        })
+        graph.mount(document.body)
+
+        assert.equal(document.querySelectorAll('[data-part="series-line"]').length, 1)
+        graph.destroy()
+    })
+
     test('renders SVG series, generated legend, and pointer/keyboard cursor readout', () => {
         const shapes = new Emitter(new SeriesBuilder([
             {key: 'open', label: 'Open', color: '#c33'},

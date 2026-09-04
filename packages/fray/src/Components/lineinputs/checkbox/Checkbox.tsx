@@ -1,7 +1,8 @@
 import {Component, css} from '../../component.js'
-import type {ComponentProps, FrayChild} from '../../component.js'
+import type {ComponentProps, FrayChild, LivePropContract} from '../../component.js'
 import {
     componentClass,
+    controlId,
     createValueEmitter,
     describeState,
     invoke,
@@ -16,13 +17,17 @@ export type CheckboxSymbol<TValue extends CheckboxValue = FilterModeValue> = rea
     value: TValue,
 ]
 
+const checkboxLiveProps = ['disabled', 'required', 'error'] as const
+
 export interface CheckboxProps<TValue extends CheckboxValue = FilterModeValue>
-    extends ValueControlProps<TValue> {
+    extends ValueControlProps<TValue>, LivePropContract<(typeof checkboxLiveProps)[number]> {
+    id?: string | number | null
     symbols?: readonly CheckboxSymbol<TValue>[]
     initialSemanticState?: TValue
     label?: FrayChild
     disabled?: boolean
     required?: boolean
+    error?: unknown
     name?: string
     onChange?: (value: TValue, event: Event | null) => void
 }
@@ -30,6 +35,7 @@ export interface CheckboxProps<TValue extends CheckboxValue = FilterModeValue>
 /** Keyboard-operable semantic state cycler. */
 export class Checkbox<TValue extends CheckboxValue = FilterModeValue>
     extends Component<CheckboxProps<TValue>> {
+    static override liveProps = checkboxLiveProps
     static symbols: readonly CheckboxSymbol<FilterModeValue>[] = [
         ['☐', FilterMode.Neutral],
         ['✓', FilterMode.Prefer],
@@ -39,9 +45,13 @@ export class Checkbox<TValue extends CheckboxValue = FilterModeValue>
     readonly symbols: readonly CheckboxSymbol<TValue>[]
     readonly valueEmitter: ValueEmitter<TValue>
     readonly semanticStateEmitter: ValueEmitter<TValue>
+    readonly inputId: string
+    readonly errorId: string
 
     constructor(props: CheckboxProps<TValue> = {}) {
         super(props)
+        this.inputId = controlId('checkbox', props.id)
+        this.errorId = `${this.inputId}-error`
         const componentType = this.constructor as typeof Checkbox
         // Static members cannot carry the instance's generic state parameter;
         // subclasses validate the tuple values before this boundary is used.
@@ -81,6 +91,7 @@ export class Checkbox<TValue extends CheckboxValue = FilterModeValue>
             label = this.props.value ?? 'Option',
             disabled = false,
             required = false,
+            error = null,
         } = this.props
         const semanticState = this.valueEmitter.get()
         const semanticIndex = this.symbols.findIndex(([, state]) =>
@@ -96,10 +107,12 @@ export class Checkbox<TValue extends CheckboxValue = FilterModeValue>
             className={componentClass(this.props) || null}
             data-disabled={disabled ? '' : null}
             data-required={required ? '' : null}
+            data-error={error == null ? null : ''}
             data-state={stateName}
         >
             <label>
                 <input
+                    id={this.inputId}
                     type="checkbox"
                     checked={checked}
                     disabled={disabled}
@@ -108,6 +121,8 @@ export class Checkbox<TValue extends CheckboxValue = FilterModeValue>
                     value={this.props.value == null ? undefined : String(this.props.value)}
                     data-state={stateName}
                     aria-label={`${label}: ${stateName}`}
+                    aria-invalid={error == null ? null : 'true'}
+                    aria-describedby={error == null ? null : this.errorId}
                     onChange={(event: Event) => this.cycleState(1, event)}
                     onKeyDown={(event: KeyboardEvent) => {
                         if (event.key === 'ArrowRight' || event.key === 'ArrowDown') {
@@ -122,6 +137,7 @@ export class Checkbox<TValue extends CheckboxValue = FilterModeValue>
                 <span className="checkboxshell" aria-hidden="true">{symbol}</span>
                 <span>{label}</span>
             </label>
+            {error == null ? null : <p id={this.errorId} role="alert">{String(error)}</p>}
         </Host>
     }
 

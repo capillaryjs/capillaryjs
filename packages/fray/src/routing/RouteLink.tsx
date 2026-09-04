@@ -14,6 +14,7 @@ export interface RouteLinkProps extends ComponentProps {
 
 /** A native anchor that delegates unmodified same-context activation to the router. */
 export class RouteLink extends Component<RouteLinkProps> {
+    static override liveProps: readonly string[] = []
     initialize(): void {
         const router = this._runtime.router
         if (router == null) throw new Error('RouteLink requires a router in FrayRuntime')

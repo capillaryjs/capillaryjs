@@ -7,6 +7,7 @@ import {
     Button,
     Checkbox,
     ColorPicker,
+    Component,
     DescriptionItem,
     DescriptionList,
     Dropdown,
@@ -27,7 +28,9 @@ import {
     TriCheckbox,
     createFrayRuntime,
     h,
+    live,
 } from '../src/index.js'
+import type {RadioOption} from '../src/index.js'
 import {requiredAt, requiredQuery} from './testUtils.js'
 
 let window: Window
@@ -256,6 +259,118 @@ describe('choice controls', () => {
         assert.equal(value.get(), 'grid')
         assert.equal(requiredAt(radios, 1).checked, true)
         group.destroy()
+    })
+
+    test('RadioGroup binds only its declared live boolean props', () => {
+        const disabled = new Emitter(false)
+        const required = new Emitter(false)
+        const error = new Emitter<unknown>(null)
+        let parentRenders = 0
+
+        class RadioOwner extends Component {
+            render() {
+                parentRenders += 1
+                return h(RadioGroup, {
+                    label: 'View',
+                    options: [['list', 'List'], ['grid', 'Grid']],
+                    disabled: live(disabled),
+                    required: live(required),
+                    error: live(error),
+                })
+            }
+        }
+
+        const owner = RadioOwner.new().attachTo(document.body)
+        const host = requiredQuery<HTMLElement>('fray-radio-group')
+        const fieldset = requiredQuery<HTMLFieldSetElement>('fieldset')
+        const inputs = [...document.querySelectorAll<HTMLInputElement>('input[type="radio"]')]
+
+        assert.equal(parentRenders, 1)
+        assert.equal(host.hasAttribute('data-disabled'), false)
+        assert.equal(host.hasAttribute('data-required'), false)
+        assert.equal(fieldset.disabled, false)
+        assert.equal(fieldset.getAttribute('aria-required'), null)
+
+        disabled.set(true)
+        required.set(true)
+        error.set('Choose a view')
+
+        assert.equal(parentRenders, 1)
+        assert.equal(host.hasAttribute('data-disabled'), true)
+        assert.equal(host.hasAttribute('data-required'), true)
+        assert.equal(fieldset.disabled, true)
+        assert.equal(fieldset.getAttribute('aria-required'), 'true')
+        assert.equal(fieldset.getAttribute('aria-invalid'), 'true')
+        const alert = requiredQuery<HTMLElement>('[role="alert"]')
+        assert.equal(fieldset.getAttribute('aria-describedby'), alert.id)
+        assert.match(alert.textContent ?? '', /Choose a view/)
+        assert.ok(inputs.every((input) => input.disabled && input.required))
+
+        owner.destroy()
+        assert.equal(disabled.subscriberCount, 0)
+        assert.equal(required.subscriberCount, 0)
+        assert.equal(error.subscriberCount, 0)
+    })
+
+    test('RadioGroup rejects a live options binding at runtime', () => {
+        const options = new Emitter([
+            ['list', 'List'],
+            ['grid', 'Grid'],
+        ] as const)
+
+        class InvalidRadioOwner extends Component {
+            render() {
+                return h(RadioGroup, {
+                    options: live(options),
+                } as never)
+            }
+        }
+
+        const owner = new InvalidRadioOwner()
+        assert.throws(
+            () => owner.mount(),
+            /RadioGroup prop "options" does not support live\(\)/,
+        )
+        owner.destroy()
+        assert.equal(options.subscriberCount, 0)
+    })
+
+    test('an owner can explicitly rerender RadioGroup with changing options', () => {
+        const options = new Emitter<readonly RadioOption[]>([
+            ['list', 'List'],
+            ['grid', 'Grid'],
+        ])
+        let ownerRenders = 0
+
+        class RadioOwner extends Component {
+            render() {
+                ownerRenders += 1
+                return h(RadioGroup, {
+                    label: 'View',
+                    options: this.read(options),
+                })
+            }
+        }
+
+        const owner = RadioOwner.new().attachTo(document.body)
+        assert.equal(ownerRenders, 1)
+        assert.deepEqual(
+            [...document.querySelectorAll('fray-radio-button')]
+                .map(({textContent}) => textContent),
+            ['List', 'Grid'],
+        )
+
+        options.set([['cards', 'Cards']])
+
+        assert.equal(ownerRenders, 2)
+        assert.deepEqual(
+            [...document.querySelectorAll('fray-radio-button')]
+                .map(({textContent}) => textContent),
+            ['Cards'],
+        )
+
+        owner.destroy()
+        assert.equal(options.subscriberCount, 0)
     })
 
     test('RadioButton exposes a native standalone input', () => {

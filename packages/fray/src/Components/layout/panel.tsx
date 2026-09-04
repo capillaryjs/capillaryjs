@@ -1,8 +1,11 @@
 import {Component, css} from '../component.js'
-import type {ComponentProps, FrayChild} from '../component.js'
+import type {ComponentProps, FrayChild, LivePropContract} from '../component.js'
 import {classNames, componentClass, controlId} from '../controlUtils.js'
 
-export interface PanelProps extends ComponentProps {
+const panelLiveProps = ['disabled'] as const
+
+export interface PanelProps extends ComponentProps,
+    LivePropContract<(typeof panelLiveProps)[number]> {
     id?: string | number | null
     header?: FrayChild
     toolbar?: FrayChild
@@ -11,6 +14,7 @@ export interface PanelProps extends ComponentProps {
 }
 
 export class Panel extends Component<PanelProps> {
+    static override liveProps = panelLiveProps
     readonly panelId: string
     readonly headerId: string
 

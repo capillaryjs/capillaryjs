@@ -69,9 +69,14 @@ The package also exposes `./jsx-runtime`, `./jsx-dev-runtime`, generated
 legacy compatibility exports.
 
 `Component.read()` and `Component.snapshot()` are the supported render-time
-tracked-read APIs. `WritableEmitter`, `LiveBinding`, `EmitterSnapshot`,
-`TemplateProps`, component/vnode/ref types, and runtime/style option types are
-public declaration contracts for typed consumers.
+tracked-read APIs. `WritableEmitter`, `LiveBinding`, `LivePropContract`,
+`EmitterSnapshot`, `TemplateProps`, component/vnode/ref types, and
+runtime/style option types are public declaration contracts for typed
+consumers. A class component declares `static liveProps` together with
+`LivePropContract` metadata for one-way bindings consistently in typed JSX/`h()`
+authoring and at runtime. Every built-in component has an explicit allowlist;
+validation controls expose live availability/error state while value and data
+sources remain raw emitter contracts.
 
 Component subclasses author markup in TSX. A wrapped component renders its
 runtime-configured element with the protected `this.Host` function component;
@@ -92,7 +97,7 @@ Fray identity.
 TSX, classic JSX, and `h()` share one vnode renderer. A readable emitter is a
 fine-grained reactive child when used in child position, but remains the same
 object when passed as a normal component prop. `live()` opts a scalar DOM or
-component prop into one-way updates. `bind:value` and `bind:checked` are typed
+component-declared prop into one-way updates. `bind:value` and `bind:checked` are typed
 two-way native-control bindings. `read()` and `snapshot()` opt the surrounding
 component into rerendering for value/control-flow or value-state-error output.
 All renderer-created subscriptions are lifecycle-owned and cleaned up.

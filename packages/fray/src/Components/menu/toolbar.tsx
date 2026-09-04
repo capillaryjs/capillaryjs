@@ -9,6 +9,7 @@ export interface ToolbarProps extends ComponentProps {
 }
 
 export class Toolbar extends Component<ToolbarProps> {
+    static override liveProps: readonly string[] = []
     render(): FrayChild {
         const {
             children = [],
