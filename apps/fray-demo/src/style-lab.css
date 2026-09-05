@@ -30,16 +30,43 @@ nav {
     gap: 1rem;
 }
 
-.meridian-controls label,
-.meridian-controls span,
-.meridian-controls select {
-    display: inline-block;
+.meridian-workspace {
+    display: grid;
+    grid-template-columns: minmax(13rem, 17rem) minmax(0, 1fr);
+    align-items: start;
+    gap: 1.5rem;
 }
 
-.meridian-controls label {
+.meridian-scope {
+    block-size: min(34rem, calc(100vh - 4rem));
+}
+
+.sidebar-toolbar-note {
+    margin: 0;
+    color: var(--ui-muted-text-color);
+    font-size: 0.875em;
+}
+
+.scope-intro,
+.scope-selection,
+.scope-notes {
+    margin: 0;
+}
+
+.scope-sites {
     display: grid;
-    gap: 0.25rem;
-    width: fit-content;
+    gap: 0.5rem;
+}
+
+.scope-selection strong {
+    display: block;
+    margin-block-end: 0.125rem;
+}
+
+.meridian-content {
+    display: grid;
+    gap: 1.5rem;
+    min-width: 0;
 }
 
 .meridian-panels {
@@ -68,6 +95,15 @@ nav {
 }
 
 @media (max-width: 42rem) {
+    .meridian-workspace {
+        grid-template-columns: 1fr;
+    }
+
+    .meridian-scope {
+        block-size: auto;
+        max-block-size: none;
+    }
+
     .meridian-panels {
         grid-template-columns: 1fr;
     }

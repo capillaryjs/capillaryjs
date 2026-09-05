@@ -1,7 +1,7 @@
 @charset "utf-8";
 @import "../base.css";
 
-/* Deliberately partial: Panel is the first reviewed Shiny family. */
+/* Deliberately partial: Panel and Sidebar are the reviewed Shiny families. */
 @layer theme {
   :root {
     color-scheme: only light;
@@ -21,5 +21,16 @@
     --panel-header-background: var(--shiny-panel-header-background);
     --panel-header-color: var(--palette-contrast-light);
     --section-header-shadow: var(--shiny-panel-header-shadow);
+    --sidebar-background:
+      linear-gradient(135deg, rgb(255 255 255 / 0.4), transparent 55%),
+      var(--panel-background);
+    --sidebar-border: var(--panel-border);
+    --sidebar-shadow: var(--panel-shadow);
+    --sidebar-radius: 0;
+    --sidebar-header-background: var(--shiny-panel-header-background);
+    --sidebar-header-color: var(--palette-contrast-light);
+    --sidebar-header-shadow: var(--shiny-panel-header-shadow);
+    --sidebar-toolbar-background: color-mix(in oklch, var(--palette-primary-100) 72%, var(--palette-light));
+    --sidebar-toolbar-border: 1px solid color-mix(in oklch, var(--palette-primary) 24%, var(--palette-neutral-300));
   }
 }

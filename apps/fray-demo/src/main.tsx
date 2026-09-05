@@ -1,6 +1,7 @@
 import {
     Component,
     Panel,
+    Sidebar,
     createFrayRuntime,
     live,
 } from '@sylwellsoftware/fray'
@@ -55,11 +56,11 @@ class DemoApp extends Component {
             <main class="style-lab">
                 <header>
                     <p class="eyebrow">Fray · Meridian Change Office</p>
-                    <h1>Panel review</h1>
+                    <h1>Sidebar review</h1>
                     <p>
-                        Deterministic initial surfaces for the CSS overhaul.
-                        The scope control is native until its Fray replacement
-                        is introduced in a later reviewed iteration.
+                        Deterministic Meridian surfaces for the CSS overhaul.
+                        Scope remains native application control content inside
+                        its first Fray application region.
                     </p>
                 </header>
                 <nav aria-label="Style-lab sections">
@@ -67,47 +68,70 @@ class DemoApp extends Component {
                     <a href="#selection">Selection</a>
                     <a href="#harness">Harness</a>
                 </nav>
-                <section class="meridian-controls" aria-label="Meridian scope controls">
-                    <label>
-                        <span>Scope</span>
-                        <select bind:value={this.selectedScope}>
-                            {Object.entries(scopeLabels).map(([value, label]) =>
-                                <option value={value}>{label}</option>)}
-                        </select>
-                    </label>
-                </section>
-                <div class="meridian-panels">
-                    <Panel id="portfolio" header="Portfolio summary">
-                        <p><strong>{visibleChanges.length}</strong> visible changes in {scopeLabels[scope]}.</p>
-                        <p class="long-copy">
-                            This deliberately long deterministic explanation checks that Panel content
-                            remains readable when a portfolio summary needs more than a single line.
+                <div class="meridian-workspace">
+                    <Sidebar
+                        id="scope"
+                        class="meridian-scope"
+                        header="Scope"
+                        toolbar={<p class="sidebar-toolbar-note">Organisation coverage</p>}
+                    >
+                        <p class="scope-intro">Choose the part of Meridian affected by this review.</p>
+                        <div class="scope-sites" role="group" aria-label="Sites">
+                            {(Object.entries(scopeLabels) as [Scope, string][]).map(([value, label]) =>
+                                <button
+                                    type="button"
+                                    aria-pressed={scope === value}
+                                    onClick={() => this.selectedScope.set(value)}
+                                >
+                                    {label}
+                                </button>)}
+                        </div>
+                        <p class="scope-selection">
+                            <strong>{scopeLabels[scope]}</strong> currently exposes {visibleChanges.length} change
+                            {visibleChanges.length === 1 ? '' : 's'} for the portfolio review.
                         </p>
-                    </Panel>
-                    <Panel id="selection" header="Current selection" orientation="horizontal">
-                        {currentChange == null
-                            ? <p>No change is visible in this scope.</p>
-                            : <>
-                                <p><strong>{currentChange.id}</strong></p>
-                                <p>{currentChange.title}</p>
-                                <p>{currentChange.risk} risk</p>
-                            </>}
-                    </Panel>
+                        <p class="scope-notes">
+                            Scope applies throughout the Meridian Change Office: portfolio attention,
+                            register rows, selected-change detail, and later analysis stay aligned to the
+                            same organisational boundary. The deliberately longer guidance confirms that
+                            native content remains readable inside the Sidebar's own scrolling region.
+                        </p>
+                    </Sidebar>
+                    <div class="meridian-content">
+                        <div class="meridian-panels">
+                            <Panel id="portfolio" header="Portfolio summary">
+                                <p><strong>{visibleChanges.length}</strong> visible changes in {scopeLabels[scope]}.</p>
+                                <p class="long-copy">
+                                    This deliberately long deterministic explanation checks that Panel content
+                                    remains readable when a portfolio summary needs more than a single line.
+                                </p>
+                            </Panel>
+                            <Panel id="selection" header="Current selection" orientation="horizontal">
+                                {currentChange == null
+                                    ? <p>No change is visible in this scope.</p>
+                                    : <>
+                                        <p><strong>{currentChange.id}</strong></p>
+                                        <p>{currentChange.title}</p>
+                                        <p>{currentChange.risk} risk</p>
+                                    </>}
+                            </Panel>
+                        </div>
+                        <section class="panel-state-control" aria-label="Panel state control">
+                            <label>
+                                <input type="checkbox" bind:checked={this.panelDisabled}/>
+                                <span>Show disabled Panel state</span>
+                            </label>
+                        </section>
+                        <Panel
+                            id="harness"
+                            header="Demo harness"
+                            toolbar={<span class="panel-toolbar-note">Panel state only</span>}
+                            disabled={live(this.panelDisabled)}
+                        >
+                            <p>Selected scope: {scopeLabels[scope]}. The state control remains outside this region.</p>
+                        </Panel>
+                    </div>
                 </div>
-                <section class="panel-state-control" aria-label="Panel state control">
-                    <label>
-                        <input type="checkbox" bind:checked={this.panelDisabled}/>
-                        <span>Show disabled Panel state</span>
-                    </label>
-                </section>
-                <Panel
-                    id="harness"
-                    header="Demo harness"
-                    toolbar={<span class="panel-toolbar-note">Panel state only</span>}
-                    disabled={live(this.panelDisabled)}
-                >
-                    <p>Selected scope: {scopeLabels[scope]}. The state control remains outside this region.</p>
-                </Panel>
             </main>
         )
     }

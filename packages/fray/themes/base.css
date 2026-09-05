@@ -31,6 +31,19 @@
       --panel-border: 1px solid var(--palette-neutral-300);
       --panel-shadow: none;
       --panel-radius: var(--radius-md);
+      --sidebar-background: var(--panel-background);
+      --sidebar-color: var(--panel-color);
+      --sidebar-border: var(--panel-border);
+      --sidebar-shadow: var(--panel-shadow);
+      --sidebar-radius: var(--panel-radius);
+      --sidebar-header-background: var(--section-header-background);
+      --sidebar-header-color: var(--section-header-color);
+      --sidebar-header-border: var(--section-header-border);
+      --sidebar-header-shadow: var(--section-header-shadow);
+      --sidebar-toolbar-background: var(--toolbar-background);
+      --sidebar-toolbar-color: var(--toolbar-color);
+      --sidebar-toolbar-border: var(--toolbar-border);
+      --sidebar-toolbar-shadow: var(--toolbar-shadow);
       --dialog-shadow: 0 1.25rem 4rem color-mix(in oklch, var(--palette-dark) 35%, transparent);
       --dialog-backdrop-background: color-mix(in oklch, var(--palette-dark) 55%, transparent);
 
@@ -312,7 +325,6 @@
 
     fray-panel,
     .panellike,
-    aside[data-fray],
     dialog[data-fray] {
       color: var(--panel-color);
       background: var(--panel-background);
@@ -330,6 +342,40 @@
     }
 
     fray-panel[data-disabled] { opacity: 0.65; }
+
+    aside[data-fray] {
+      color: var(--sidebar-color);
+      background: var(--sidebar-background);
+      border: var(--sidebar-border);
+      border-radius: var(--sidebar-radius);
+      box-shadow: var(--sidebar-shadow);
+    }
+
+    aside[data-fray] > header[data-fray] {
+      padding: var(--space-sm);
+      color: var(--sidebar-header-color);
+      background: var(--sidebar-header-background);
+      border-block-end: var(--sidebar-header-border);
+      box-shadow: var(--sidebar-header-shadow);
+    }
+
+    aside[data-fray] > header[data-fray] + div[data-fray]:not(:last-child) {
+      padding: var(--space-sm);
+      color: var(--sidebar-toolbar-color);
+      background: var(--sidebar-toolbar-background);
+      border-block-end: var(--sidebar-toolbar-border);
+      box-shadow: var(--sidebar-toolbar-shadow);
+    }
+
+    aside[data-fray] > div[data-fray]:last-child {
+      padding: var(--space-md);
+    }
+
+    aside[data-fray] > div[data-fray]:last-child:focus-visible {
+      outline: 2px solid transparent;
+      outline-offset: -2px;
+      box-shadow: inset var(--focus-ring);
+    }
 
     .panelshell {
       border: var(--panel-border);
