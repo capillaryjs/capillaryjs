@@ -11,7 +11,7 @@ const sourceRoot = path.resolve(fileURLToPath(new URL('../..', import.meta.url))
 
 test('validates an explicit two-package plan in dependency order', () => {
     const fixture = createFixture()
-    const result = invoke(fixture, 'validate', 'glue-and-fray')
+    const result = invoke(fixture, 'validate', ['glue', 'fray'])
     assert.equal(result.status, 0, result.stderr)
     assert.match(result.stdout, /glue@0\.1\.0-alpha\.2[\s\S]*fray@0\.1\.0-alpha\.2/)
     assert.match(result.stdout, /order: @sylwellsoftware\/glue -> @sylwellsoftware\/fray/)
@@ -19,20 +19,20 @@ test('validates an explicit two-package plan in dependency order', () => {
 
 test('validates all three packages in dependency order', () => {
     const fixture = createFixture()
-    const result = invoke(fixture, 'validate', 'all')
+    const result = invoke(fixture, 'validate', ['glue', 'fray', 'fray-visualization'])
     assert.equal(result.status, 0, result.stderr)
     assert.match(result.stdout, /order: @sylwellsoftware\/glue -> @sylwellsoftware\/fray -> @sylwellsoftware\/fray-visualization/)
 })
 
 test('accepts the optional package-manager argument separator', () => {
     const fixture = createFixture()
-    const result = invoke(fixture, 'validate', 'glue-and-fray', {}, {separator: true})
+    const result = invoke(fixture, 'validate', ['glue', 'fray'], {}, {separator: true})
     assert.equal(result.status, 0, result.stderr)
 })
 
 test('refuses an already-public version before staging', () => {
     const fixture = createFixture({published: 'glue'})
-    const result = invoke(fixture, 'stage', 'glue-and-fray')
+    const result = invoke(fixture, 'stage', ['glue', 'fray'])
     assert.equal(result.status, 1)
     assert.match(result.stderr, /glue@0\.1\.0-alpha\.2 is already public/)
     assert.doesNotMatch(readFileSync(fixture.log, 'utf8'), /stage publish/)
@@ -40,7 +40,7 @@ test('refuses an already-public version before staging', () => {
 
 test('stages Glue before Fray with no publish or approval command', () => {
     const fixture = createFixture()
-    const result = invoke(fixture, 'stage', 'glue-and-fray', {
+    const result = invoke(fixture, 'stage', ['glue', 'fray'], {
         GITHUB_ACTIONS: 'true',
         GITHUB_REF: 'refs/heads/main',
     })
@@ -54,25 +54,24 @@ test('stages Glue before Fray with no publish or approval command', () => {
 
 test('refuses a Fray artifact with a stale Glue peer range', () => {
     const fixture = createFixture({stalePeer: true})
-    const result = invoke(fixture, 'validate', 'glue-and-fray')
+    const result = invoke(fixture, 'validate', ['glue', 'fray'])
     assert.equal(result.status, 1)
     assert.match(result.stderr, /peer-depend on the current Glue release line/)
 })
 
 test('refuses staging outside protected GitHub main or with a long-lived token', () => {
     const fixture = createFixture()
-    let result = invoke(fixture, 'stage', 'glue', {GITHUB_ACTIONS: 'true', GITHUB_REF: 'refs/heads/topic'})
+    let result = invoke(fixture, 'stage', ['glue'], {GITHUB_ACTIONS: 'true', GITHUB_REF: 'refs/heads/topic'})
     assert.equal(result.status, 1)
     assert.match(result.stderr, /only from main/)
-    result = invoke(fixture, 'stage', 'glue', {GITHUB_ACTIONS: 'true', GITHUB_REF: 'refs/heads/main', NPM_TOKEN: 'fixture'})
+    result = invoke(fixture, 'stage', ['glue'], {GITHUB_ACTIONS: 'true', GITHUB_REF: 'refs/heads/main', NPM_TOKEN: 'fixture'})
     assert.equal(result.status, 1)
     assert.match(result.stderr, /long-lived npm tokens/)
 })
 
 test('release workflow has the protected stage-only trust boundary', () => {
     const workflow = readFileSync(path.join(sourceRoot, '.github/workflows/release.yml'), 'utf8')
-    assert.match(workflow,
-        /run-name: Stage \$\{\{ inputs\.release_set }} \$\{\{ inputs\.version }} with \$\{\{ inputs\.tag }}/)
+    assert.match(workflow, /release_plan:/)
     assert.match(workflow, /environment: npm-release/)
     assert.match(workflow, /id-token: write/)
     assert.match(workflow, /node-version: 24/)
@@ -152,14 +151,17 @@ exit 0
     }
 }
 
-function invoke(fixture, command, releaseSet, extraEnv = {}, {separator = false} = {}) {
+function invoke(fixture, command, keys, extraEnv = {}, {separator = false} = {}) {
     const separatorArgument = separator ? ['--'] : []
+    const releasePlan = JSON.stringify({
+        schemaVersion: 1,
+        releaseDate: '2026-09-05',
+        packages: keys.map((key) => ({key, version: '0.1.0-alpha.2', tag: 'next'})),
+    })
     return spawnSync(process.execPath, [
         path.join(fixture.root, 'scripts', 'stage-release.mjs'),
         command, ...separatorArgument,
-        '--version', '0.1.0-alpha.2',
-        '--tag', 'next',
-        '--release-set', releaseSet,
+        '--release-plan', releasePlan,
     ], {
         cwd: fixture.root,
         encoding: 'utf8',

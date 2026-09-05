@@ -1,31 +1,13 @@
 name: Stage npm release
-run-name: Stage ${{ inputs.release_set }} ${{ inputs.version }} with ${{ inputs.tag }}
+run-name: Stage npm release plan
 
 on:
   workflow_dispatch:
     inputs:
-      version:
-        description: Exact package version already committed to the selected manifests
+      release_plan:
+        description: Canonical JSON release plan with package keys, exact versions, tags, and date
         required: true
         type: string
-      tag:
-        description: npm distribution tag (next for prereleases, latest for stable releases)
-        required: true
-        type: choice
-        options:
-          - next
-          - latest
-      release_set:
-        description: Explicit package set to stage
-        required: true
-        type: choice
-        options:
-          - all
-          - glue-and-fray
-          - fray-and-visualization
-          - glue
-          - fray
-          - fray-visualization
 
 permissions:
   contents: read
@@ -71,14 +53,10 @@ jobs:
 
       - name: Validate release plan and registry availability
         env:
-          RELEASE_VERSION: ${{ inputs.version }}
-          RELEASE_TAG: ${{ inputs.tag }}
-          RELEASE_SET: ${{ inputs.release_set }}
+          RELEASE_PLAN: ${{ inputs.release_plan }}
         run: >-
           corepack pnpm release:validate
-          --version "$RELEASE_VERSION"
-          --tag "$RELEASE_TAG"
-          --release-set "$RELEASE_SET"
+          --release-plan "$RELEASE_PLAN"
 
       - name: Retain the exact reviewed tarballs
         uses: actions/upload-artifact@v6
@@ -120,14 +98,10 @@ jobs:
 
       - name: Show and stage release plan
         env:
-          RELEASE_VERSION: ${{ inputs.version }}
-          RELEASE_TAG: ${{ inputs.tag }}
-          RELEASE_SET: ${{ inputs.release_set }}
+          RELEASE_PLAN: ${{ inputs.release_plan }}
         run: >-
           node scripts/stage-release.mjs stage
-          --version "$RELEASE_VERSION"
-          --tag "$RELEASE_TAG"
-          --release-set "$RELEASE_SET"
+          --release-plan "$RELEASE_PLAN"
 
       - name: Record human promotion instructions
         run: |
