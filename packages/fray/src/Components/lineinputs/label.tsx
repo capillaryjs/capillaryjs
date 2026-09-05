@@ -1,4 +1,4 @@
-import {Component, css} from '../component.js'
+import {Component} from '../component.js'
 import type {ComponentProps, FrayChild, LivePropContract} from '../component.js'
 import {componentClass} from '../controlUtils.js'
 
@@ -16,20 +16,12 @@ export class Label extends Component<LabelProps> {
 
     render(): FrayChild {
         const {text, htmlFor, children} = this.props
-        const Host = this.Host
-        return <Host
-            className={componentClass(this.props) || null}
-            for={htmlFor ?? null}
+        return <label
+            className={componentClass(this.props) || undefined}
+            htmlFor={htmlFor}
+            data-fray-component="label"
         >
             {text ?? children}
-        </Host>
+        </label>
     }
-
-    static override hostName = 'form-label'
-
-    static css = css`
-        & {
-            display: block;
-        }
-    `
 }

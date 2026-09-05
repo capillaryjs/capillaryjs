@@ -12,6 +12,7 @@ import {
     DescriptionList,
     Dropdown,
     FilterMode,
+    Label,
     Panel,
     ProgressBar,
     QuadCheckbox,
@@ -59,6 +60,31 @@ afterEach(() => {
 after(() => window.close())
 
 describe('action and text controls', () => {
+    test('Label keeps native association while supporting live and rich content', () => {
+        const text = new Emitter('Search the change register')
+        class LabelOwner extends Component {
+            render() {
+                return h(Label, {htmlFor: 'register-search', text: live(text)})
+            }
+        }
+        LabelOwner.new().attachTo(document.body)
+        const label = requiredQuery<HTMLLabelElement>('label')
+
+        assert.equal(label.htmlFor, 'register-search')
+        assert.equal(label.textContent, 'Search the change register')
+        assert.equal(label.dataset.frayComponent, 'label')
+
+        text.set('Search active Meridian changes')
+        assert.equal(label.textContent, 'Search active Meridian changes')
+
+        Label.new({
+            htmlFor: 'register-search',
+            children: h('strong', null, 'A deliberately long native-label description'),
+        }).attachTo(document.body)
+        assert.equal(requiredAt(document.querySelectorAll<HTMLLabelElement>('label'), 1).innerHTML,
+            '<strong data-fray="">A deliberately long native-label description</strong>')
+    })
+
     test('Button is a native, disableable action', () => {
         let calls = 0
         const button = Button.new({label: 'Save', onClick: () => calls += 1})

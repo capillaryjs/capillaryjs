@@ -88,6 +88,12 @@ nav {
     margin: 0;
 }
 
+.register-filter {
+    display: grid;
+    gap: 0.35rem;
+    max-inline-size: 22rem;
+}
+
 .register-list {
     display: grid;
     gap: 0.5rem;

@@ -2,6 +2,7 @@ import {
     Component,
     Checkbox,
     ColorPicker,
+    Label,
     Panel,
     Sidebar,
     SplitView,
@@ -50,6 +51,8 @@ class DemoApp extends Component {
     readonly demoFetchState = new Emitter<DemoFetchState>('automatic', {purpose: 'Meridian demo fetch-state harness'})
     readonly themeState = new Emitter<ThemeState>('shiny', {purpose: 'Meridian presentation theme'})
     readonly colorState = new Emitter('iceblue', {purpose: 'Meridian presentation palette'})
+    readonly registerFilterLabel = new Emitter('Search the change register', {purpose: 'Meridian Register filter label'})
+    readonly registerSearchDraft = new Emitter('', {purpose: 'Meridian Register search draft'})
     readonly forceDisabledState = new Emitter<CheckboxState>('off', {purpose: 'Meridian force disabled harness'})
     readonly forceRequiredState = new Emitter<CheckboxState>('off', {purpose: 'Meridian force required harness'})
     readonly includeCompletedState = new Emitter<'exclude' | 'include'>('exclude', {purpose: 'Meridian completed-change preference'})
@@ -88,15 +91,17 @@ class DemoApp extends Component {
         const currentChange = this.read(this.currentChange)
         const activeTab = this.read(this.activeTab)
         const demoFetchState = this.read(this.demoFetchState)
+        const forceDisabled = this.read(this.forceDisabled)
+        const registerSearchDraft = this.read(this.registerSearchDraft)
         return (
             <main class="style-lab">
                 <header>
                     <p class="eyebrow">Fray · Meridian Change Office</p>
-                    <h1>ColorPicker review</h1>
+                    <h1>Label review</h1>
                     <p>
                         Deterministic Meridian surfaces for the CSS overhaul.
-                        Theme and palette selection change independently of
-                        local Meridian control state and deterministic data.
+                        The Register filter form begins with a native field and
+                        a Fray Label before its Textbox replacement.
                     </p>
                     <div class="appearance-harness">
                         <ThemePicker
@@ -188,6 +193,23 @@ class DemoApp extends Component {
                                 secondaryLabel="Selected change preview"
                                 primary={<Panel header="Change register">
                                     <p class="register-intro">Visible changes in {scopeLabels[scope]}.</p>
+                                    <form class="register-filter" onSubmit={(event: Event) => event.preventDefault()}>
+                                        <Label
+                                            htmlFor="register-search"
+                                            text={live(this.registerFilterLabel)}
+                                        />
+                                        <input
+                                            id="register-search"
+                                            type="search"
+                                            value={registerSearchDraft}
+                                            placeholder="Search by title or change ID"
+                                            disabled={forceDisabled}
+                                            onInput={(event: Event) => this.registerSearchDraft.set(
+                                                (event.currentTarget as HTMLInputElement).value,
+                                                'Meridian Register search draft changed',
+                                            )}
+                                        />
+                                    </form>
                                     <div class="register-list" role="group" aria-label="Visible changes">
                                         {visibleChanges.map((change) =>
                                             <button
