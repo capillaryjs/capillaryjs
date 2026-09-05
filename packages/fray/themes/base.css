@@ -72,6 +72,15 @@
       --button-shadow-active: none;
       --toggle-button-background: var(--button-background);
       --toggle-button-background-checked: var(--selection-background);
+      --toggle-button-border-checked: var(--button-border);
+      --toggle-button-selected-inline-overlap: 0;
+      --toggle-button-selected-z-index: 0;
+      --toggle-button-shadow: none;
+      --toggle-button-shadow-checked: var(--button-shadow);
+      --toggle-group-shadow: none;
+      --toggle-inactive-shared-border-color: var(--palette-neutral-500);
+      --toggle-inactive-separator-background: transparent;
+      --toggle-inactive-separator-block-inset: 0;
       --tab-button-background: var(--button-background);
       --tab-button-background-active: var(--tab-active-background);
       --menu-button-background: var(--button-background);
@@ -440,10 +449,39 @@
       color: var(--button-color);
       background: var(--tab-button-background-active);
     }
-    [role="radio"][data-fray] { background: var(--toggle-button-background); }
+    [role="radiogroup"][data-fray] {
+      inline-size: fit-content;
+      border-radius: var(--radius-md);
+      box-shadow: var(--toggle-group-shadow);
+    }
+    [role="radio"][data-fray] {
+      position: relative;
+      background: var(--toggle-button-background);
+      box-shadow: var(--toggle-button-shadow);
+    }
     [role="radio"][aria-checked="true"][data-fray] {
+      position: relative;
+      z-index: var(--toggle-button-selected-z-index);
+      margin-inline: var(--toggle-button-selected-inline-overlap);
       color: var(--selection-color);
       background: var(--toggle-button-background-checked);
+      border: var(--toggle-button-border-checked);
+      box-shadow: var(--toggle-button-shadow-checked);
+    }
+    [role="radio"][aria-checked="false"][data-fray]:has(+ [role="radio"][aria-checked="false"][data-fray]) {
+      border-inline-end-color: var(--toggle-inactive-shared-border-color);
+    }
+    [role="radio"][aria-checked="false"][data-fray] + [role="radio"][aria-checked="false"][data-fray] {
+      border-inline-start-color: var(--toggle-inactive-shared-border-color);
+    }
+    [role="radio"][aria-checked="false"][data-fray] + [role="radio"][aria-checked="false"][data-fray]::before {
+      content: "";
+      position: absolute;
+      inset-block: var(--toggle-inactive-separator-block-inset);
+      inset-inline-start: -1px;
+      inline-size: 1px;
+      background: var(--toggle-inactive-separator-background);
+      pointer-events: none;
     }
     [role="radiogroup"][data-fray] > [role="radio"][data-fray] { border-radius: 0; }
     [role="radiogroup"][data-fray] > [role="radio"][data-fray]:first-child {

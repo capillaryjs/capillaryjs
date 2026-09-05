@@ -95,6 +95,10 @@ nav {
     font-size: 0.875em;
 }
 
+.meridian-content fray-toggle[data-fray] {
+    max-width: 100%;
+}
+
 .panel-state-control label {
     display: inline-flex;
     align-items: center;

@@ -215,10 +215,22 @@ describe('supported theme bundles', () => {
         assert.match(shinyTheme, /--panel-header-background:/)
         assert.match(shinyTheme, /--section-header-shadow:\s*var\(--shiny-panel-header-shadow\)/)
         assert.match(shinyTheme, /--sidebar-header-background:\s*var\(--shiny-panel-header-background\)/)
-        assert.match(
-            shinyTheme,
-            /--tabline-background:\s*linear-gradient\(\s*to bottom,\s*color-mix\(in oklch, var\(--palette-primary\) 3%, var\(--palette-neutral-50\)\) 9px,\s*color-mix\(in oklch, var\(--palette-primary\) 3%, var\(--palette-neutral-50\)\) 13px,\s*color-mix\(in oklch, var\(--palette-primary\) 14%, var\(--palette-neutral-50\)\) 100%\s*\)/,
-        )
+        assert.match(shinyTheme, /--shiny-ui-gradient:\s*linear-gradient\(\s*to top,/)
+        assert.match(shinyTheme, /--shiny-ui-gradient-2:\s*linear-gradient\(\s*to bottom,/)
+        assert.match(shinyTheme, /--button-background:\s*var\(--shiny-ui-gradient-2\)/)
+        assert.match(shinyTheme, /--button-background-hover:\s*var\(--shiny-ui-gradient\)/)
+        assert.match(shinyTheme, /--button-border:\s*1px solid var\(--palette-light\)/)
+        assert.match(shinyTheme, /--button-shadow:\s*-1px 1px 2px 1px/)
+        assert.match(shinyTheme, /--tabline-background:\s*var\(--shiny-ui-gradient-2\)/)
+        assert.match(baseTheme, /\[role="radiogroup"\]\[data-fray\] \{\n\s+inline-size: fit-content/)
+        assert.match(shinyTheme, /--toggle-button-shadow:\s*none/)
+        assert.match(shinyTheme, /--toggle-button-background-checked:\s*radial-gradient/)
+        assert.match(shinyTheme, /--toggle-button-selected-inline-overlap:\s*-1px/)
+        assert.match(shinyTheme, /--toggle-button-selected-z-index:\s*1/)
+        assert.match(shinyTheme, /--toggle-group-shadow:\s*var\(--button-shadow\)/)
+        assert.match(shinyTheme, /--toggle-inactive-shared-border-color:\s*transparent/)
+        assert.match(shinyTheme, /--toggle-inactive-separator-background:\s*linear-gradient/)
+        assert.match(baseTheme, /\[role="radio"\]\[aria-checked="false"\]\[data-fray\] \+ \[role="radio"\]\[aria-checked="false"\]\[data-fray\]::before/)
         assert.doesNotMatch(shinyTheme, /fray-panel|aside\[data-fray\]|\.panellike|:where\(/)
     })
 

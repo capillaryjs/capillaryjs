@@ -32,11 +32,40 @@
     --sidebar-header-shadow: var(--shiny-panel-header-shadow);
     --sidebar-toolbar-background: color-mix(in oklch, var(--palette-primary-100) 72%, var(--palette-light));
     --sidebar-toolbar-border: 1px solid color-mix(in oklch, var(--palette-primary) 24%, var(--palette-neutral-300));
-    --tabline-background: linear-gradient(
+    --shiny-ui-gradient: linear-gradient(
+      to top,
+      color-mix(in oklch, var(--palette-primary) 3%, var(--palette-neutral-50)) 9px,
+      color-mix(in oklch, var(--palette-primary) 3%, var(--palette-neutral-50)) 13px,
+      color-mix(in oklch, var(--palette-primary) 14%, var(--palette-neutral-50)) 100%
+    );
+    --shiny-ui-gradient-2: linear-gradient(
       to bottom,
       color-mix(in oklch, var(--palette-primary) 3%, var(--palette-neutral-50)) 9px,
       color-mix(in oklch, var(--palette-primary) 3%, var(--palette-neutral-50)) 13px,
       color-mix(in oklch, var(--palette-primary) 14%, var(--palette-neutral-50)) 100%
     );
+    --button-background: var(--shiny-ui-gradient-2);
+    --button-background-hover: var(--shiny-ui-gradient);
+    --button-background-active: var(--shiny-ui-gradient);
+    --button-border: 1px solid var(--palette-light);
+    --button-shadow: -1px 1px 2px 1px rgb(0 0 0 / 0.5);
+    --button-shadow-active: -1px 1px 2px rgb(0 0 0 / 0.53);
+    --tabline-background: var(--shiny-ui-gradient-2);
+    --toggle-button-background-checked:
+      radial-gradient(140% 75% at 30% 10%, #fff4, #fff5 47%, #fff0 55%, #fff0),
+      linear-gradient(to bottom, var(--palette-primary-900) 0%, var(--palette-primary) 65%, var(--palette-primary) 66%, var(--palette-primary-400) 100%);
+    --toggle-button-shadow: none;
+    --toggle-button-border-checked: 0 solid transparent;
+    --toggle-button-selected-inline-overlap: -1px;
+    --toggle-button-selected-z-index: 1;
+    --toggle-button-shadow-checked: -1px 1px 2px rgb(0 0 0 / 0.53);
+    --toggle-group-shadow: var(--button-shadow);
+    --toggle-inactive-shared-border-color: transparent;
+    --toggle-inactive-separator-background: linear-gradient(
+      to bottom,
+      rgb(255 255 255 / 0.58),
+      rgb(0 0 0 / 0.18)
+    );
+    --toggle-inactive-separator-block-inset: 0.35rem;
   }
 }
