@@ -33,7 +33,6 @@ export class Toolbar extends Component<ToolbarProps> {
     }
 
     static override hostName = 'toolbar'
-    static override standaloneHostName = 'tool-bar'
 
     static css = css`
         & {

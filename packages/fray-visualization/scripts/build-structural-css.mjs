@@ -8,7 +8,7 @@ import {CategoryHidePanel} from '../src/components/CategoryHidePanel.tsx'
 import {LineGraph} from '../src/components/LineGraph.tsx'
 import {SplitSelectionPanel} from '../src/components/SplitSelectionPanel.tsx'
 
-const runtime = createFrayRuntime({elementNames: {prefix: 'fray'}})
+const runtime = createFrayRuntime()
 for (const component of [
     BlockGraph,
     CategoryHidePanel,

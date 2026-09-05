@@ -380,11 +380,11 @@ not a framework identity class. The default application runtime therefore
 produces DOM such as:
 
 ```html
-<fray-panel class="panellike" data-fray-component="panel">
-    <fray-textbox data-fray-component="textbox">
-        <input type="text">
+<fray-panel data-fray class="panellike" data-fray-component="panel">
+    <fray-textbox data-fray data-fray-component="textbox">
+        <input data-fray type="text">
     </fray-textbox>
-    <button data-fray-component="button">Save</button>
+    <button data-fray data-fray-component="button">Save</button>
 </fray-panel>
 ```
 
@@ -397,44 +397,24 @@ theme selector. Fray may merge public presentation traits such as `panellike`
 with an application-supplied `class`/`className`; those traits describe a
 reusable capability, not component identity.
 
-Element naming is an immutable application-runtime setting:
+Built-in host names are fixed public DOM: Fray adds its one required custom
+element hyphen and removes internal word separators from the component stem.
+For example, `Panel`, `ListView`, and `ThemePicker` render as `<fray-panel>`,
+`<fray-listview>`, and `<fray-themepicker>`. They cannot be prefixed, renamed,
+or made prefix-free at runtime. This lets distributed stylesheets target hosts
+directly and predictably.
 
-```ts
-const defaultNames = createFrayRuntime()
-// <fray-panel>, <fray-list-view>, ...
+Every element created by Fray's renderer also receives the boolean `data-fray`
+attribute. Themes can therefore target native Fray output without affecting
+other UI libraries: `button[data-fray]`, `input[data-fray]`, and
+`dialog[data-fray]`. The marker is renderer-owned and cannot be removed through
+component props. `data-fray-component` remains diagnostic metadata, not an
+ordinary styling selector.
 
-const productNames = createFrayRuntime({
-    elementNames: {prefix: 'acme'},
-})
-// <acme-panel>, <acme-list-view>, ...
-
-const prefixlessNames = createFrayRuntime({
-    elementNames: {prefix: null},
-})
-// <layout-panel>, <list-view>, <text-box>, ...
-
-const selectedOverrides = createFrayRuntime({
-    elementNames: {
-        prefix: null,
-        overrides: {'panel': 'change-panel'},
-    },
-})
-// <change-panel>, with standalone names for the other components
-```
-
-HTML custom-element names must contain a hyphen, so prefixless mode uses each
-component's standards-valid standalone name rather than invalid names such as
-`<panel>` or `<listview>`. Prefixes and overrides must be lowercase kebab-case;
-an exact override must itself be a non-reserved custom-element name.
-
-Each runtime owns its element-name mapping and structural-style registry.
 Create the runtime once at application startup, then create and mount the root
-through that runtime. Nested components inherit it automatically. A separate
-compiled Fray build is unnecessary. Two runtimes with different mappings can
-coexist in one document without their component-host selectors colliding.
-Styles still live in the document's global cascade because these hosts are
-deliberately unregistered light-DOM elements, not Web Components or Shadow DOM
-boundaries.
+through that runtime. Styles live in the document's global cascade because the
+hosts are deliberately unregistered light-DOM elements, not Web Components or
+Shadow DOM boundaries.
 
 ## Reactive templates
 
@@ -449,8 +429,8 @@ canonical vnode operation, but it is not the built-in component authoring
 format. The workspace lint gate rejects new `h()` templates under
 `packages/fray/src/Components`.
 
-Configured custom hosts are also available inside a TSX component through its
-protected `Host` template component:
+Custom hosts are available inside a TSX component through its protected `Host`
+template component:
 
 ```tsx
 interface BadgeProps extends ComponentProps {
@@ -466,12 +446,11 @@ class Badge extends Component<BadgeProps> {
     }
 
     static override hostName = 'badge'
-    static override standaloneHostName = 'ui-badge'
 }
 ```
 
-At runtime that template produces `<fray-badge>` by default,
-`<acme-badge>` under an `acme` prefix, or `<ui-badge>` in prefixless mode.
+At runtime that template produces `<fray-badge>`. `hostName` is a stable
+lowercase kebab-case component identity; Fray derives the fixed host spelling.
 Native-root components such as `Button` use their native tag directly in TSX
 instead of `Host`.
 
@@ -629,7 +608,7 @@ class ChangeApp extends Component {
     static dependencies = [Button, Panel, Preview, Results, Textbox]
 }
 
-const runtime = createFrayRuntime({elementNames: {prefix: 'acme'}})
+const runtime = createFrayRuntime()
 runtime.registerStyles(ChangeApp).injectStyles(document)
 runtime.mount(runtime.create(ChangeApp), document.querySelector('#app')!)
 ```

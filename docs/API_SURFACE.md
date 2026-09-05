@@ -40,11 +40,11 @@ caller-owned. Application classes and composition roots own service lifetimes.
 | `Component` | Browser component lifecycle and renderer. | Fray runtime |
 | `h`, `css`, `live` | Vnode/CSS authoring and explicit one-way emitter property binding. | Fray runtime |
 | `jsx`, `jsxs`, `jsxDEV`, `Fragment` | Automatic JSX runtime. | Fray runtime |
-| `FrayRuntime`, `createFrayRuntime`, `defaultFrayRuntime` | Immutable application-scoped element naming, services, optional router, creation, mounting, and styles. | Fray runtime |
+| `FrayRuntime`, `createFrayRuntime`, `defaultFrayRuntime` | Immutable application-scoped services, optional router, fixed host resolution, creation, mounting, and styles. | Fray runtime |
 | `ServiceScope`, `createServiceScope`, `defineService`, `provideService` | Typed application service declaration, composition, lazy resolution, and disposal. | Fray runtime |
 | `StyleRegistry`, `createStyleRegistry`, `styleRegistry` | Isolated or default idempotent structural-style collection/injection. | Fray styling |
 | `frayThemeVariableCatalog` | Machine-readable palette/theme variable hierarchy and fallbacks. | Fray styling |
-| `frayThemeOptions`, `frayColorOptions`, `findFrayStylesheetOption`, `replaceFrayStylesheet` | Runtime-selectable treatment and palette catalogs and independent link replacement. | Fray styling |
+| `frayThemeOptions`, `frayColorOptions`, `findFrayStylesheetOption`, `replaceFrayStylesheet`, `setFrayAppearance`, `getFrayAppearance` | Runtime-selectable treatment/palette catalogs, independent link replacement, and document appearance selection. | Fray styling |
 | `Button`, `Toolbar` | Action and action-layout primitives, including presentation-only busy state. | Fray controls |
 | `Textbox`, `Dropdown`, `Toggle`, `ThemePicker`, `ColorPicker`, `Label` | Value controls and accessible field labeling, including runtime presentation selection. | Fray controls |
 | `Checkbox`, `TriCheckbox`, `QuadCheckbox` | Multi-state controls. | Fray controls |
@@ -65,8 +65,8 @@ caller-owned. Application classes and composition roots own service lifetimes.
 
 The package also exposes `./jsx-runtime`, `./jsx-dev-runtime`, generated
 `./styles/structural.css`, replaceable `./themes/*/theme.css`, and replaceable
-`./colors/*/colors.css` subpaths. The older top-level light/dark stylesheets are
-legacy compatibility exports.
+`./colors/*/colors.css` subpaths. Built-in hosts have fixed `fray-<stem>`
+names; Fray-created elements carry `data-fray` for native presentation rules.
 
 `Component.read()` and `Component.snapshot()` are the supported render-time
 tracked-read APIs. `WritableEmitter`, `LiveBinding`, `LivePropContract`,

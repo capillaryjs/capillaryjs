@@ -180,7 +180,6 @@ export class ListView<TItem = unknown> extends Component<ListViewProps<TItem>> {
     static dependencies = [Placeholder]
 
     static override hostName = 'list-view'
-    static override standaloneHostName = 'list-view'
 
     static baseStyles = [
         ['&', 'inputlike'],

@@ -11,7 +11,6 @@ export type QuadCheckboxProps = Omit<CheckboxProps<FilterModeValue>, 'symbols'>
 // Should have at least one [✓] (if any are marked [✓])
 export class QuadCheckbox extends Checkbox<FilterModeValue> {
     static override hostName = 'quad-checkbox'
-    static override standaloneHostName = 'quad-checkbox'
 
     static symbols = [
         ['✖', FilterMode.Deny],

@@ -46,9 +46,7 @@
     },
     "./styles/structural.css": "./styles/structural.css",
     "./themes/*/theme.css": "./themes/*/theme.css",
-    "./colors/*/colors.css": "./colors/*/colors.css",
-    "./themes/light.css": "./themes/light.css",
-    "./themes/dark.css": "./themes/dark.css"
+    "./colors/*/colors.css": "./colors/*/colors.css"
   },
   "files": [
     "dist",

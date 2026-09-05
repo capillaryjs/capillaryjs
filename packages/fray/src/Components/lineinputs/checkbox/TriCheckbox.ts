@@ -7,7 +7,6 @@ export type TriCheckboxProps = Omit<CheckboxProps<FilterModeValue>, 'symbols'>
 
 export class TriCheckbox extends Checkbox<FilterModeValue> {
     static override hostName = 'tri-checkbox'
-    static override standaloneHostName = 'tri-checkbox'
 
     static symbols = [
         ['✖', FilterMode.Deny],

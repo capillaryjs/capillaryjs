@@ -137,7 +137,6 @@ export class Dropdown<TValue extends DropdownValue = string>
     }
 
     static override hostName = 'dropdown'
-    static override standaloneHostName = 'drop-down'
 
     static baseStyles = [
         ['&', ['labeledinput', 'inputline']],

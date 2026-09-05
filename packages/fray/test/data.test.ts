@@ -234,8 +234,8 @@ describe('stable data components', () => {
             expandedKeysEmitter: expanded,
         }).attachTo(document.body)
 
-        assert.equal(requiredQuery('fray-tree-view').dataset.frayComponent, 'tree-view')
-        assert.ok(requiredQuery('fray-tree-view').classList.contains('datacomponentlike'))
+        assert.equal(requiredQuery('fray-treeview').dataset.frayComponent, 'tree-view')
+        assert.ok(requiredQuery('fray-treeview').classList.contains('datacomponentlike'))
         assert.equal(document.querySelectorAll('[role="treeitem"]').length, 2)
         let first = requiredQuery<HTMLElement>('[role="treeitem"]')
         first.focus()
@@ -316,8 +316,8 @@ describe('stable data components', () => {
         }).attachTo(document.body)
 
         const rows = document.querySelectorAll('[role="option"]')
-        assert.equal(requiredQuery('fray-list-view').dataset.frayComponent, 'list-view')
-        assert.ok(requiredQuery('fray-list-view').classList.contains('datacomponentlike'))
+        assert.equal(requiredQuery('fray-listview').dataset.frayComponent, 'list-view')
+        assert.ok(requiredQuery('fray-listview').classList.contains('datacomponentlike'))
         requiredAt(rows, 1).dispatchEvent(new MouseEvent('click', {bubbles: true}))
         assert.equal(list.getSelectedItemEmitter(), selected)
         assert.equal(selected.get()?.id, 'b')
@@ -375,8 +375,8 @@ describe('stable data components', () => {
         }).attachTo(document.body)
 
         assert.equal(requiredQuery('caption').textContent, 'People')
-        assert.equal(requiredQuery('fray-data-table').dataset.frayComponent, 'data-table')
-        assert.ok(requiredQuery('fray-data-table').classList.contains('datacomponentlike'))
+        assert.equal(requiredQuery('fray-datatable').dataset.frayComponent, 'data-table')
+        assert.ok(requiredQuery('fray-datatable').classList.contains('datacomponentlike'))
         assert.equal(requiredQuery('thead').dataset.frayComponent, 'table-header')
         assert.equal(
             requiredQuery('th').dataset.frayComponent,
@@ -512,7 +512,7 @@ describe('stable data components', () => {
             onChange: (filters) => nextFilters = filters,
         }).attachTo(document.body)
 
-        assert.equal(requiredQuery('fray-filter-panel').dataset.frayComponent, 'filter-panel')
+        assert.equal(requiredQuery('fray-filterpanel').dataset.frayComponent, 'filter-panel')
         assert.equal(document.querySelectorAll('input[type="checkbox"]').length, 2)
         requiredQuery('input[type="checkbox"]')
             .dispatchEvent(new Event('change', {bubbles: true}))

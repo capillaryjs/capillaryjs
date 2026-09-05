@@ -1,9 +1,16 @@
 export type FrayStylesheetKind = 'theme' | 'colors'
+export type FrayAppearance = 'light' | 'dark' | 'system'
+export type FrayThemeAppearanceCapability = 'light' | 'dark' | 'adaptive'
 
 export interface FrayStylesheetOption {
     value: string
     label: string
     href: string
+}
+
+export interface FrayThemeOption extends FrayStylesheetOption {
+    /** Appearance modes the selected theme deliberately supports. */
+    appearance: FrayThemeAppearanceCapability
 }
 
 export type FrayThemeVariableLayer = 'palette' | 'theme'
@@ -148,9 +155,9 @@ export const frayThemeVariableCatalog = Object.freeze([
 ] satisfies readonly FrayThemeVariableDefinition[])
 
 export const frayThemeOptions = Object.freeze([
-    option('shiny', 'Shiny', distributedAssetUrl('themes/shiny/theme.css')),
-    option('java', 'Java', distributedAssetUrl('themes/java/theme.css')),
-    option('minimal', 'Minimal', distributedAssetUrl('themes/minimal/theme.css')),
+    themeOption('shiny', 'Shiny', distributedAssetUrl('themes/shiny/theme.css'), 'light'),
+    themeOption('java', 'Java', distributedAssetUrl('themes/java/theme.css'), 'light'),
+    themeOption('minimal', 'Minimal', distributedAssetUrl('themes/minimal/theme.css'), 'adaptive'),
 ])
 
 export const frayColorOptions = Object.freeze([
@@ -191,6 +198,34 @@ export function replaceFrayStylesheet(
     return link
 }
 
+/**
+ * Select how an adaptive Fray theme resolves its light and dark mappings.
+ * `system` removes the root attribute so the browser preference applies.
+ */
+export function setFrayAppearance(
+    appearance: FrayAppearance,
+    targetDocument: Document = globalThis.document,
+): void {
+    if (targetDocument?.documentElement == null) {
+        throw new TypeError('setFrayAppearance requires a document with a root')
+    }
+    if (appearance !== 'light' && appearance !== 'dark' && appearance !== 'system') {
+        throw new TypeError('Fray appearance must be light, dark, or system')
+    }
+    if (appearance === 'system') targetDocument.documentElement.removeAttribute('data-appearance')
+    else targetDocument.documentElement.dataset.appearance = appearance
+}
+
+export function getFrayAppearance(
+    targetDocument: Document = globalThis.document,
+): FrayAppearance {
+    if (targetDocument?.documentElement == null) {
+        throw new TypeError('getFrayAppearance requires a document with a root')
+    }
+    const appearance = targetDocument.documentElement.dataset.appearance
+    return appearance === 'light' || appearance === 'dark' ? appearance : 'system'
+}
+
 export function findFrayStylesheetOption(
     options: readonly FrayStylesheetOption[],
     value: string,
@@ -226,6 +261,15 @@ function paletteRamp(family: 'primary' | 'secondary' | 'neutral') {
 
 function option(value: string, label: string, href: string): FrayStylesheetOption {
     return Object.freeze({value, label, href})
+}
+
+function themeOption(
+    value: string,
+    label: string,
+    href: string,
+    appearance: FrayThemeAppearanceCapability,
+): FrayThemeOption {
+    return Object.freeze({value, label, href, appearance})
 }
 
 /**

@@ -165,6 +165,8 @@ const PROPERTY_PROPS = new Set([
     'value',
 ])
 
+const FRAY_RENDERER_ATTRIBUTE = 'data-fray'
+
 /** Mark an emitter as a one-way live value for a DOM or component property. */
 export function live<TValue>(emitter: ReadableEmitter<TValue, unknown>): LiveBinding<TValue> {
     assertReadableEmitter(emitter, 'live')
@@ -286,7 +288,6 @@ export class Component<TProps extends ComponentProps = ComponentProps> {
     static liveProps: readonly string[] | null = []
     static css = ''
     static hostName: string | null = null
-    static standaloneHostName: string | null = null
 
     static new<TConstructor extends ConcreteComponentConstructor>(
         this: TConstructor,
@@ -309,7 +310,6 @@ export class Component<TProps extends ComponentProps = ComponentProps> {
             baseStyles?: unknown
             dependencies?: ComponentDependency[]
             hostName?: string | null
-            standaloneHostName?: string | null
         },
         runtime: FrayRuntime = defaultFrayRuntime,
         seen: Set<ComponentDependency> = new Set(),
@@ -318,17 +318,16 @@ export class Component<TProps extends ComponentProps = ComponentProps> {
         seen.add(this)
 
         const hostName = this.hostName ?? null
-        const standaloneHostName = this.standaloneHostName ?? null
         if (this.css) {
             runtime.styleRegistry.registerCSS(hostName == null
                 ? this.css
-                : runtime.resolveHostCSS(this.css, hostName, standaloneHostName))
+                : runtime.resolveHostCSS(this.css, hostName))
         }
         const baseStyles = normalizeBaseStyles(this.baseStyles)
         for (const [selector, styleNames] of baseStyles) {
             runtime.styleRegistry.registerBaseStyle(hostName == null
                 ? selector
-                : runtime.resolveHostSelector(selector, hostName, standaloneHostName), styleNames)
+                : runtime.resolveHostSelector(selector, hostName), styleNames)
         }
         for (const dependency of this.dependencies ?? []) {
             dependency.registerStyles(runtime, seen)
@@ -376,10 +375,7 @@ export class Component<TProps extends ComponentProps = ComponentProps> {
         if (hostName == null) {
             throw new Error(`${this.constructor.name} does not declare a custom host name`)
         }
-        return h(this._runtime.resolveElementName(
-            hostName,
-            componentType.standaloneHostName,
-        ), {
+        return h(this._runtime.resolveElementName(hostName), {
             ...props,
             'data-fray-component': hostName,
         }, ...children)
@@ -1118,7 +1114,9 @@ function patchChildren(
 }
 
 function patchElementProps(record: ElementRecord, nextProps: ComponentProps): void {
-    const {children: _nextChildren, ...next} = nextProps
+    const next = Object.fromEntries(Object.entries(nextProps).filter(([key]) =>
+        key !== 'children' && normalizeAttributeName(key) !== FRAY_RENDERER_ATTRIBUTE,
+    )) as ComponentProps
     const previous = record.props
     const keys = new Set([...Object.keys(previous), ...Object.keys(next)])
 
@@ -1151,6 +1149,7 @@ function patchElementProps(record: ElementRecord, nextProps: ComponentProps): vo
             }
         }
     }
+    record.node.setAttribute(FRAY_RENDERER_ATTRIBUTE, '')
     record.props = {...next}
 }
 

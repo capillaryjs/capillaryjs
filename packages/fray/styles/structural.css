@@ -24,7 +24,7 @@
 button,
 th[aria-sort] > [data-part="sort"],
 th[aria-sort] > [data-part="filter-toggle"],
-fray-tab-line > button[role="tab"],
+fray-tabline > button[role="tab"],
 fieldset:has(> [data-part="options"]) > [data-part="options"],
 fieldset:has(> [data-part="options"]) [role="radio"] {
   box-sizing: border-box;
@@ -37,7 +37,7 @@ fieldset:has(> [data-part="options"]) [role="radio"] {
 button,
 th[aria-sort] > [data-part="sort"],
 th[aria-sort] > [data-part="filter-toggle"],
-fray-tab-line > button[role="tab"],
+fray-tabline > button[role="tab"],
 fieldset:has(> [data-part="options"]) [role="radio"] {
   box-sizing: border-box;
   cursor: default;
@@ -48,17 +48,17 @@ fieldset:has(> [data-part="options"]) [role="radio"] {
 button:disabled,
 th[aria-sort] > [data-part="sort"]:disabled,
 th[aria-sort] > [data-part="filter-toggle"]:disabled,
-fray-tab-line > button[role="tab"]:disabled,
+fray-tabline > button[role="tab"]:disabled,
 fieldset:has(> [data-part="options"]) [role="radio"]:disabled {
   cursor: not-allowed;
   pointer-events: none;
 }
 
 /* labeledinput */
-fray-color-picker,
+fray-colorpicker,
 fray-dropdown,
 fray-textbox,
-fray-theme-picker {
+fray-themepicker {
   display: flex;
   flex-flow: row nowrap;
   align-items: center;
@@ -66,15 +66,15 @@ fray-theme-picker {
 }
 
 /* inputline */
-fray-color-picker,
-fray-color-picker > select,
+fray-colorpicker,
+fray-colorpicker > select,
 fray-dropdown,
 fray-dropdown > select,
-fray-list-view > [role="listbox"] > [role="option"],
+fray-listview > [role="listbox"] > [role="option"],
 fray-textbox,
 fray-textbox > input,
-fray-theme-picker,
-fray-theme-picker > select {
+fray-themepicker,
+fray-themepicker > select {
   display: flex;
   flex-flow: row nowrap;
   position: relative;
@@ -83,10 +83,10 @@ fray-theme-picker > select {
 }
 
 /* input */
-fray-color-picker > select,
+fray-colorpicker > select,
 fray-dropdown > select,
 fray-textbox > input,
-fray-theme-picker > select {
+fray-themepicker > select {
   pointer-events: all;
   width: var(--input-width, 15rem);
   box-sizing: border-box;
@@ -127,7 +127,7 @@ th[aria-sort] {
 }
 
 /* inputlike */
-fray-list-view {
+fray-listview {
   pointer-events: all;
   box-sizing: border-box;
   white-space: nowrap;
@@ -137,22 +137,22 @@ button {
             font-family: inherit;
         }
 
-fray-check-box {
+fray-checkbox {
             display: inline-block;
         }
 
-        fray-check-box > label {
+        fray-checkbox > label {
             display: inline-flex;
             align-items: center;
             gap: 0.35em;
             cursor: pointer;
         }
 
-        fray-check-box[data-disabled] > label {
+        fray-checkbox[data-disabled] > label {
             cursor: not-allowed;
         }
 
-        fray-check-box input[type="checkbox"] {
+        fray-checkbox input[type="checkbox"] {
             position: absolute;
             width: 1px;
             height: 1px;
@@ -166,7 +166,7 @@ fray-check-box {
             font-size: var(--ui-font-size, inherit);
         }
 
-        fray-check-box input[type="checkbox"] + .checkboxshell {
+        fray-checkbox input[type="checkbox"] + .checkboxshell {
             position: relative;
             display: inline-grid;
             width: 1em;
@@ -185,50 +185,50 @@ fray-check-box {
             user-select: none;
         }
 
-        fray-check-box input[type="checkbox"]:checked + .checkboxshell {
+        fray-checkbox input[type="checkbox"]:checked + .checkboxshell {
             color: var(--checkbox-symbol-color, var(--selection-color, currentColor));
             background: var(--checkbox-box-background-checked,
                 var(--selection-background, var(--ui-accent-color, Highlight)));
         }
 
-        fray-check-box input[type="checkbox"]:focus-visible + .checkboxshell {
+        fray-checkbox input[type="checkbox"]:focus-visible + .checkboxshell {
             outline: 2px solid var(--focus-color, var(--ui-accent-color, Highlight));
             outline-offset: 1px;
         }
 
-        fray-check-box input[type="checkbox"]:disabled + .checkboxshell {
+        fray-checkbox input[type="checkbox"]:disabled + .checkboxshell {
             opacity: 0.6;
         }
 
-fray-color-picker {
+fray-colorpicker {
             position: relative;
         }
 
-        fray-color-picker > select {
+        fray-colorpicker > select {
             min-width: 8rem;
         }
 
-fray-data-table {
+fray-datatable {
             overflow: auto;
         }
 
-        fray-data-table > table {
+        fray-datatable > table {
             width: 100%;
             border-collapse: collapse;
         }
 
-        fray-data-table thead:has([aria-expanded="true"]) {
+        fray-datatable thead:has([aria-expanded="true"]) {
             position: relative;
             z-index: 1100;
         }
 
-        fray-data-table th,
-        fray-data-table td {
+        fray-datatable th,
+        fray-datatable td {
             padding: var(--ui-padding-v) var(--ui-padding-h);
             text-align: start;
         }
 
-        fray-data-table tbody tr[data-fray-selectable-row] {
+        fray-datatable tbody tr[data-fray-selectable-row] {
             cursor: default;
             user-select: none;
         }
@@ -265,7 +265,7 @@ th[aria-sort] {
             font-size: 0.75em;
         }
 
-fray-filter-panel {
+fray-filterpanel {
             position: fixed;
             z-index: 1100;
             inset-block-start: 0;
@@ -341,26 +341,26 @@ fray-dropdown {
             position: relative;
         }
 
-fray-list-view {
+fray-listview {
             display: flex;
             flex-direction: column;
             overflow-y: auto;
             min-height: 0;
         }
 
-        fray-list-view > [role="listbox"],
-        fray-list-view > [data-part="loading"] {
+        fray-listview > [role="listbox"],
+        fray-listview > [data-part="loading"] {
             display: flex;
             flex-direction: column;
         }
 
-        fray-list-view > [role="listbox"] > [role="option"] {
+        fray-listview > [role="listbox"] > [role="option"] {
             cursor: default;
             user-select: none;
         }
 
-        fray-list-view > [role="status"],
-        fray-list-view > [role="alert"] {
+        fray-listview > [role="status"],
+        fray-listview > [role="alert"] {
             margin: 0;
             padding: var(--ui-padding);
         }
@@ -393,44 +393,44 @@ fray-panel {
             flex-direction: column;
         }
 
-fray-progress-bar {
+fray-progressbar {
             display: grid;
             gap: var(--spacing-small, 0.5rem);
         }
 
-        fray-progress-bar > [data-part="label-line"] {
+        fray-progressbar > [data-part="label-line"] {
             display: flex;
             justify-content: space-between;
             gap: var(--spacing-medium, 1rem);
         }
 
-        fray-progress-bar > progress {
+        fray-progressbar > progress {
             width: 100%;
             min-height: 0.8rem;
         }
 
         @media (forced-colors: active) {
-            fray-progress-bar > progress {
+            fray-progressbar > progress {
                 forced-color-adjust: auto;
             }
         }
 
-fray-quad-checkbox {
+fray-quadcheckbox {
             display: inline-block;
         }
 
-        fray-quad-checkbox > label {
+        fray-quadcheckbox > label {
             display: inline-flex;
             align-items: center;
             gap: 0.35em;
             cursor: pointer;
         }
 
-        fray-quad-checkbox[data-disabled] > label {
+        fray-quadcheckbox[data-disabled] > label {
             cursor: not-allowed;
         }
 
-        fray-quad-checkbox input[type="checkbox"] {
+        fray-quadcheckbox input[type="checkbox"] {
             position: absolute;
             width: 1px;
             height: 1px;
@@ -444,7 +444,7 @@ fray-quad-checkbox {
             font-size: var(--ui-font-size, inherit);
         }
 
-        fray-quad-checkbox input[type="checkbox"] + .checkboxshell {
+        fray-quadcheckbox input[type="checkbox"] + .checkboxshell {
             position: relative;
             display: inline-grid;
             width: 1em;
@@ -463,18 +463,18 @@ fray-quad-checkbox {
             user-select: none;
         }
 
-        fray-quad-checkbox input[type="checkbox"]:checked + .checkboxshell {
+        fray-quadcheckbox input[type="checkbox"]:checked + .checkboxshell {
             color: var(--checkbox-symbol-color, var(--selection-color, currentColor));
             background: var(--checkbox-box-background-checked,
                 var(--selection-background, var(--ui-accent-color, Highlight)));
         }
 
-        fray-quad-checkbox input[type="checkbox"]:focus-visible + .checkboxshell {
+        fray-quadcheckbox input[type="checkbox"]:focus-visible + .checkboxshell {
             outline: 2px solid var(--focus-color, var(--ui-accent-color, Highlight));
             outline-offset: 1px;
         }
 
-        fray-quad-checkbox input[type="checkbox"]:disabled + .checkboxshell {
+        fray-quadcheckbox input[type="checkbox"]:disabled + .checkboxshell {
             opacity: 0.6;
         }
 
@@ -504,7 +504,7 @@ aside {
             overflow-y: auto;
         }
 
-fray-split-view {
+fray-splitview {
             display: grid;
             flex: 1 1 auto;
             min-width: 0;
@@ -512,39 +512,39 @@ fray-split-view {
             overflow: hidden;
         }
 
-        fray-split-view[data-direction="horizontal"] {
+        fray-splitview[data-direction="horizontal"] {
             grid-template-columns:
                 var(--split-primary-size, minmax(16rem, 0.8fr))
                 minmax(0, 1.2fr);
         }
 
-        fray-split-view[data-direction="vertical"] {
+        fray-splitview[data-direction="vertical"] {
             grid-template-rows:
                 var(--split-primary-size, minmax(12rem, 0.8fr))
                 minmax(0, 1.2fr);
         }
 
-        fray-split-view > [data-part] {
+        fray-splitview > [data-part] {
             min-width: 0;
             min-height: 0;
             overflow: auto;
         }
 
-        fray-split-view[data-direction="horizontal"] > [data-part="primary"] {
+        fray-splitview[data-direction="horizontal"] > [data-part="primary"] {
             border-inline-end: 1px solid var(--ui-border-color);
         }
 
-        fray-split-view[data-direction="vertical"] > [data-part="primary"] {
+        fray-splitview[data-direction="vertical"] > [data-part="primary"] {
             border-block-end: 1px solid var(--ui-border-color);
         }
 
-fray-tab-line {
+fray-tabline {
             display: flex;
             flex-flow: row wrap;
             padding-top: 3px;
         }
 
-fray-tab-panel {
+fray-tabpanel {
             display: flex;
             flex-direction: column;
             width: 100%;
@@ -552,7 +552,7 @@ fray-tab-panel {
             overflow: hidden;
         }
 
-        fray-tab-panel > [data-part="content"] {
+        fray-tabpanel > [data-part="content"] {
             display: flex;
             flex-direction: column;
             flex: 1;
@@ -567,11 +567,11 @@ fray-textbox input {
             margin: 0;
         }
 
-fray-theme-picker {
+fray-themepicker {
             position: relative;
         }
 
-        fray-theme-picker > select {
+        fray-themepicker > select {
             min-width: 8rem;
         }
 
@@ -599,7 +599,7 @@ fray-toolbar {
             align-items: stretch;
         }
 
-fray-tree-view {
+fray-treeview {
             display: flex;
             flex-direction: column;
             min-width: 0;
@@ -607,12 +607,12 @@ fray-tree-view {
             overflow: auto;
         }
 
-        fray-tree-view > [role="tree"] {
+        fray-treeview > [role="tree"] {
             display: grid;
             align-content: start;
         }
 
-        fray-tree-view [role="treeitem"] {
+        fray-treeview [role="treeitem"] {
             display: flex;
             align-items: flex-start;
             gap: 0.35rem;
@@ -623,48 +623,48 @@ fray-tree-view {
             user-select: none;
         }
 
-        fray-tree-view [data-part="expander"] {
+        fray-treeview [data-part="expander"] {
             flex: 0 0 1rem;
             text-align: center;
         }
 
-        fray-tree-view [data-part="expander"][data-expandable] {
+        fray-treeview [data-part="expander"][data-expandable] {
             cursor: pointer;
         }
 
-        fray-tree-view [data-part="label"] {
+        fray-treeview [data-part="label"] {
             min-width: 0;
             overflow-wrap: anywhere;
         }
 
-        fray-tree-view > [role="status"] {
+        fray-treeview > [role="status"] {
             margin: 0;
             padding: var(--ui-padding, 0.75rem);
         }
 
         @media (forced-colors: active) {
-            fray-tree-view [role="treeitem"][aria-selected="true"] {
+            fray-treeview [role="treeitem"][aria-selected="true"] {
                 outline: 2px solid Highlight;
                 forced-color-adjust: auto;
             }
         }
 
-fray-tri-checkbox {
+fray-tricheckbox {
             display: inline-block;
         }
 
-        fray-tri-checkbox > label {
+        fray-tricheckbox > label {
             display: inline-flex;
             align-items: center;
             gap: 0.35em;
             cursor: pointer;
         }
 
-        fray-tri-checkbox[data-disabled] > label {
+        fray-tricheckbox[data-disabled] > label {
             cursor: not-allowed;
         }
 
-        fray-tri-checkbox input[type="checkbox"] {
+        fray-tricheckbox input[type="checkbox"] {
             position: absolute;
             width: 1px;
             height: 1px;
@@ -678,7 +678,7 @@ fray-tri-checkbox {
             font-size: var(--ui-font-size, inherit);
         }
 
-        fray-tri-checkbox input[type="checkbox"] + .checkboxshell {
+        fray-tricheckbox input[type="checkbox"] + .checkboxshell {
             position: relative;
             display: inline-grid;
             width: 1em;
@@ -697,17 +697,17 @@ fray-tri-checkbox {
             user-select: none;
         }
 
-        fray-tri-checkbox input[type="checkbox"]:checked + .checkboxshell {
+        fray-tricheckbox input[type="checkbox"]:checked + .checkboxshell {
             color: var(--checkbox-symbol-color, var(--selection-color, currentColor));
             background: var(--checkbox-box-background-checked,
                 var(--selection-background, var(--ui-accent-color, Highlight)));
         }
 
-        fray-tri-checkbox input[type="checkbox"]:focus-visible + .checkboxshell {
+        fray-tricheckbox input[type="checkbox"]:focus-visible + .checkboxshell {
             outline: 2px solid var(--focus-color, var(--ui-accent-color, Highlight));
             outline-offset: 1px;
         }
 
-        fray-tri-checkbox input[type="checkbox"]:disabled + .checkboxshell {
+        fray-tricheckbox input[type="checkbox"]:disabled + .checkboxshell {
             opacity: 0.6;
         }

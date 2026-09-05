@@ -145,7 +145,6 @@ export class TreeView<TValue = unknown> extends Component<TreeViewProps<TValue>>
     static dependencies = [TreeItem]
 
     static override hostName = 'tree-view'
-    static override standaloneHostName = 'tree-view'
 
     static css = css`
         & {

@@ -8,6 +8,8 @@ and Semantic Versioning.
 
 ### Changed
 
+- Regenerated structural CSS against Fray's fixed one-hyphen component-host
+  contract.
 - `LineGraph` accepts static values as well as readable sources for shapes,
   stacked, smooth, and range inputs.
 - Enabled strict TypeScript compiler checking.

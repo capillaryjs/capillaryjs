@@ -26,7 +26,6 @@ export class Label extends Component<LabelProps> {
     }
 
     static override hostName = 'form-label'
-    static override standaloneHostName = 'form-label'
 
     static css = css`
         & {

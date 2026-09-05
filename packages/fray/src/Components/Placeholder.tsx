@@ -15,7 +15,6 @@ export class Placeholder extends Component<PlaceholderProps> {
     }
 
     static override hostName = 'placeholder'
-    static override standaloneHostName = 'loading-placeholder'
 
     static baseStyles = [
         ['&::after', ['after', 'working']],

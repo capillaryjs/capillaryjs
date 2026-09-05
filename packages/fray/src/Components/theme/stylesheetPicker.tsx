@@ -139,7 +139,6 @@ export class ThemePicker extends StylesheetPicker {
     }
 
     static override hostName = 'theme-picker'
-    static override standaloneHostName = 'theme-picker'
 }
 
 export class ColorPicker extends StylesheetPicker {
@@ -148,7 +147,6 @@ export class ColorPicker extends StylesheetPicker {
     }
 
     static override hostName = 'color-picker'
-    static override standaloneHostName = 'color-picker'
 }
 
 function validateOptions(

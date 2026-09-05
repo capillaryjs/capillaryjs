@@ -171,7 +171,6 @@ export class FilterPanel extends Component<FilterPanelProps> {
     static dependencies = [Checkbox]
 
     static override hostName = 'filter-panel'
-    static override standaloneHostName = 'filter-panel'
 
     static css = css`
         & {

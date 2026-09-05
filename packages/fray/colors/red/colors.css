@@ -2,7 +2,7 @@
 @import "../base.css";
 
 @layer palette {
-  :where(:root:not([data-color]), [data-color="red"]) {
+  :root {
       --palette-light: #ffffff;
       --palette-dark: #111827;
       --palette-contrast-light: var(--palette-light);

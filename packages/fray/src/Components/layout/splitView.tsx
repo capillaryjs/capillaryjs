@@ -49,7 +49,6 @@ export class SplitView extends Component<SplitViewProps> {
     }
 
     static override hostName = 'split-view'
-    static override standaloneHostName = 'split-view'
 
     static css = css`
         & {

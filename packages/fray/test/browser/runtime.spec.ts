@@ -3,7 +3,7 @@ import {AxeBuilder} from '@axe-core/playwright'
 import {readFile} from 'node:fs/promises'
 import {fileURLToPath} from 'node:url'
 
-const lightThemePath = fileURLToPath(new URL('../../themes/light.css', import.meta.url))
+const minimalThemePath = fileURLToPath(new URL('../../themes/minimal/theme.css', import.meta.url))
 const modernThemePaths = ['minimal', 'java', 'shiny'].map((name) => ({
     name,
     path: fileURLToPath(new URL(`../../themes/${name}/theme.css`, import.meta.url)),
@@ -18,7 +18,7 @@ const colorPaths = [
 test.beforeEach(async ({page}) => {
     await page.goto('/')
     await page.waitForFunction(() => globalThis.frayTestReady === true)
-    await page.addStyleTag({content: await readFile(lightThemePath, 'utf8')})
+    await page.addStyleTag({content: await readFile(minimalThemePath, 'utf8')})
 })
 
 test('stable controls expose names and no serious automated accessibility violations',
@@ -205,7 +205,7 @@ test('supports reduced motion and 200% configured text sizing', async ({page}) =
 
     await page.goto('/?fontScale=200')
     await page.waitForFunction(() => globalThis.frayTestReady === true)
-    await page.addStyleTag({content: await readFile(lightThemePath, 'utf8')})
+    await page.addStyleTag({content: await readFile(minimalThemePath, 'utf8')})
     const typography = await page.evaluate(() => {
         const style = getComputedStyle(document.documentElement)
         return {
@@ -256,7 +256,7 @@ test('consumer theme variables override a later-loaded theme stylesheet', async 
     `})
     await page.locator('#accessibility-root button').first()
         .evaluate((element) => element.classList.add('consumer-override'))
-    await page.addStyleTag({content: await readFile(lightThemePath, 'utf8')})
+    await page.addStyleTag({content: await readFile(minimalThemePath, 'utf8')})
     await expect(page.locator('#accessibility-root button').first())
         .toHaveCSS('background-color', 'rgb(1, 2, 3)')
 })

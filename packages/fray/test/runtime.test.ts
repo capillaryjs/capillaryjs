@@ -190,6 +190,22 @@ describe('Component lifecycle', () => {
 })
 
 describe('DOM patching', () => {
+    test('marks every renderer-created element and preserves the marker', () => {
+        class MarkerProbe extends Component {
+            render() {
+                return h('main', {'data-fray': false},
+                    h('button', {dataset: {fray: null}}, 'Save'),
+                )
+            }
+        }
+
+        MarkerProbe.new().attachTo(document.body)
+        const main = requiredQuery('main')
+        const button = requiredQuery('button')
+        assert.equal(main.hasAttribute('data-fray'), true)
+        assert.equal(button.hasAttribute('data-fray'), true)
+    })
+
     test('typing preserves node identity, focus, and cursor position', () => {
         const value = new Emitter('hello')
 
@@ -373,7 +389,7 @@ describe('vnode and JSX forms', () => {
         }
 
         App.new().attachTo(document.body)
-        assert.equal(document.body.innerHTML, '<p>Hello Ada!</p>')
+        assert.equal(document.body.innerHTML, '<p data-fray="">Hello Ada!</p>')
     })
 
     test('mounts a prebuilt instance only once', () => {

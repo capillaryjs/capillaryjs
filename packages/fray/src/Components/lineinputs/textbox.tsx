@@ -116,7 +116,6 @@ export class Textbox extends Component<TextboxProps> {
     }
 
     static override hostName = 'textbox'
-    static override standaloneHostName = 'text-box'
 
     static baseStyles = [
         ['&', ['labeledinput', 'inputline']],

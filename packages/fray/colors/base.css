@@ -1,7 +1,7 @@
 @charset "utf-8";
 
 @layer palette {
-  :where(:root, [data-color]) {
+  :root {
       --palette-primary-50: color-mix(in oklch, var(--palette-primary-500) 8%, var(--palette-light));
       --palette-primary-100: color-mix(in oklch, var(--palette-primary-500) 16%, var(--palette-light));
       --palette-primary-200: color-mix(in oklch, var(--palette-primary-500) 32%, var(--palette-light));

@@ -21,25 +21,15 @@ const RESERVED_CUSTOM_ELEMENT_NAMES = new Set([
     'missing-glyph',
 ])
 
-export interface FrayElementNameOptions {
-    /** Namespace prepended to component host names. Defaults to `fray`. */
-    prefix?: string | null
-    /** Complete standards-valid tag names keyed by stable component host name. */
-    overrides?: Readonly<Record<string, string>>
-}
-
 export interface FrayRuntimeOptions {
-    elementNames?: FrayElementNameOptions
     /** Service scope inherited by every component created or mounted here. */
     services?: ServiceScope
     /** Optional caller-owned browser router inherited by routed components. */
     router?: BrowserRouter
 }
 
-/** Immutable application scope for element naming and structural styles. */
+/** Immutable application scope for structural styles and browser services. */
 export class FrayRuntime {
-    readonly elementPrefix: string | null
-    readonly elementNameOverrides: Readonly<Record<string, string>>
     readonly styleRegistry: StyleRegistry
     readonly services: ServiceScope
     readonly router: BrowserRouter | null
@@ -52,26 +42,9 @@ export class FrayRuntime {
         if (options == null || typeof options !== 'object' || Array.isArray(options)) {
             throw new TypeError('FrayRuntime options must be an object')
         }
-        const elementNames = options.elementNames ?? {}
-        if (elementNames == null
-            || typeof elementNames !== 'object'
-            || Array.isArray(elementNames)) {
-            throw new TypeError('Fray elementNames must be an object')
+        if (Object.hasOwn(options, 'elementNames')) {
+            throw new TypeError('FrayRuntime no longer supports configurable element names')
         }
-        const prefix = elementNames.prefix === undefined ? 'fray' : elementNames.prefix
-        if (prefix !== null) assertNamePart(prefix, 'Fray element prefix')
-
-        const overrides = elementNames.overrides ?? {}
-        if (overrides == null || typeof overrides !== 'object' || Array.isArray(overrides)) {
-            throw new TypeError('Fray element-name overrides must be an object')
-        }
-        for (const [componentName, tagName] of Object.entries(overrides)) {
-            assertNamePart(componentName, 'Fray component host name')
-            assertCustomElementName(tagName)
-        }
-
-        this.elementPrefix = prefix
-        this.elementNameOverrides = Object.freeze({...overrides})
         this.styleRegistry = registry
         this.services = options.services ?? createServiceScope()
         if (!(this.services instanceof ServiceScope)) {
@@ -86,13 +59,10 @@ export class FrayRuntime {
         }
     }
 
-    resolveElementName(hostName: string, standaloneHostName: string | null = null): string {
+    /** Resolve a fixed one-hyphen public host name for a built-in component. */
+    resolveElementName(hostName: string): string {
         assertNamePart(hostName, 'Fray component host name')
-        const override = this.elementNameOverrides[hostName]
-        const resolved = override
-            ?? (this.elementPrefix == null
-                ? standaloneHostName ?? hostName
-                : `${this.elementPrefix}-${hostName}`)
+        const resolved = `fray-${hostName.replaceAll('-', '')}`
         assertCustomElementName(resolved)
         return resolved
     }
@@ -100,19 +70,17 @@ export class FrayRuntime {
     resolveHostSelector(
         selector: string,
         hostName: string,
-        standaloneHostName: string | null = null,
     ): string {
         if (typeof selector !== 'string') throw new TypeError('Host selector must be a string')
-        return selector.replaceAll('&', this.resolveElementName(hostName, standaloneHostName))
+        return selector.replaceAll('&', this.resolveElementName(hostName))
     }
 
     resolveHostCSS(
         cssText: string,
         hostName: string,
-        standaloneHostName: string | null = null,
     ): string {
         if (typeof cssText !== 'string') throw new TypeError('Host CSS must be a string')
-        return cssText.replaceAll('&', this.resolveElementName(hostName, standaloneHostName))
+        return cssText.replaceAll('&', this.resolveElementName(hostName))
     }
 
     create<TArgs extends unknown[], TComponent extends Component>(

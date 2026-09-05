@@ -1,0 +1,31 @@
+/* Application-owned layout only. Fray themes own component presentation. */
+
+body {
+    margin: 0;
+}
+
+main {
+    display: grid;
+    gap: 1.5rem;
+    width: min(72rem, calc(100% - 2rem));
+    margin: 2rem auto;
+}
+
+header,
+section {
+    max-width: 48rem;
+}
+
+.eyebrow {
+    margin: 0;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+nav {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+}

@@ -57,7 +57,6 @@ export class ProgressBar extends Component<ProgressBarProps> {
     }
 
     static override hostName = 'progress-bar'
-    static override standaloneHostName = 'progress-bar'
 
     static css = css`
         & {

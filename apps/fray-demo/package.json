@@ -1,6 +1,6 @@
 {
   "name": "@sylwellsoftware/fray-demo",
-  "private": false,
+  "private": true,
   "version": "0.1.0",
   "description": "Public iterative demo for Fray styling overhaul.",
   "type": "module",

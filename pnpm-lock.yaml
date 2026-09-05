@@ -32,6 +32,22 @@ importers:
 
   apps/dummy-server: {}
 
+  apps/fray-demo:
+    dependencies:
+      '@sylwellsoftware/fray':
+        specifier: workspace:^
+        version: link:../../packages/fray
+      '@sylwellsoftware/glue':
+        specifier: workspace:^
+        version: link:../../packages/glue
+    devDependencies:
+      typescript:
+        specifier: ^5.9.2
+        version: 5.9.3
+      vite:
+        specifier: ^6.4.3
+        version: 6.4.3(@types/node@26.4.1)(tsx@4.23.13)
+
   packages/fray:
     devDependencies:
       '@sylwellsoftware/glue':

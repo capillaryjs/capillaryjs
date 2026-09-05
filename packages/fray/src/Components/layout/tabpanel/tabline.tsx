@@ -115,7 +115,6 @@ export class TabLine extends Component<TabLineProps> {
     }
 
     static override hostName = 'tab-line'
-    static override standaloneHostName = 'tab-line'
 
     static baseStyles = [
         ['& > button[role="tab"]', ['uiline', 'button']],

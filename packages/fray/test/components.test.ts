@@ -67,6 +67,7 @@ describe('action and text controls', () => {
 
         assert.equal(element.type, 'button')
         assert.equal(element.dataset.frayComponent, 'button')
+        assert.equal(element.hasAttribute('data-fray'), true)
         assert.equal(element.hasAttribute('class'), false)
         assert.equal(element.textContent, 'Save')
         element.click()
@@ -166,7 +167,7 @@ describe('choice controls', () => {
         ColorPicker.new({label: 'Colors', valueEmitter: colors}).attachTo(document.body)
 
         assert.equal(document.querySelectorAll('select').length, 2)
-        assert.ok([...document.querySelectorAll('fray-theme-picker, fray-color-picker')]
+        assert.ok([...document.querySelectorAll('fray-themepicker, fray-colorpicker')]
             .every((picker) => picker.classList.contains('selectshell')))
         assert.equal(document.documentElement.dataset.theme, 'minimal')
         assert.equal(document.documentElement.dataset.color, 'iceblue')
@@ -248,11 +249,11 @@ describe('choice controls', () => {
         }).attachTo(document.body)
         const radios = [...document.querySelectorAll<HTMLInputElement>('input[type="radio"]')]
 
-        assert.equal(requiredQuery('fray-radio-group').dataset.frayComponent, 'radio-group')
+        assert.equal(requiredQuery('fray-radiogroup').dataset.frayComponent, 'radio-group')
         assert.equal(radios.length, 2)
         assert.equal(radios[0]?.checked, true)
         assert.equal(radios[0]?.name, radios[1]?.name)
-        assert.equal(requiredQuery('fray-radio-button').localName, 'fray-radio-button')
+        assert.equal(requiredQuery('fray-radiobutton').localName, 'fray-radiobutton')
 
         requiredAt(radios, 1).checked = true
         requiredAt(radios, 1).dispatchEvent(new Event('change', {bubbles: true}))
@@ -281,7 +282,7 @@ describe('choice controls', () => {
         }
 
         const owner = RadioOwner.new().attachTo(document.body)
-        const host = requiredQuery<HTMLElement>('fray-radio-group')
+        const host = requiredQuery<HTMLElement>('fray-radiogroup')
         const fieldset = requiredQuery<HTMLFieldSetElement>('fieldset')
         const inputs = [...document.querySelectorAll<HTMLInputElement>('input[type="radio"]')]
 
@@ -355,7 +356,7 @@ describe('choice controls', () => {
         const owner = RadioOwner.new().attachTo(document.body)
         assert.equal(ownerRenders, 1)
         assert.deepEqual(
-            [...document.querySelectorAll('fray-radio-button')]
+            [...document.querySelectorAll('fray-radiobutton')]
                 .map(({textContent}) => textContent),
             ['List', 'Grid'],
         )
@@ -364,7 +365,7 @@ describe('choice controls', () => {
 
         assert.equal(ownerRenders, 2)
         assert.deepEqual(
-            [...document.querySelectorAll('fray-radio-button')]
+            [...document.querySelectorAll('fray-radiobutton')]
                 .map(({textContent}) => textContent),
             ['Cards'],
         )
@@ -380,15 +381,15 @@ describe('choice controls', () => {
 
         assert.equal(input.name, 'setting')
         assert.equal(input.value, 'enabled')
-        assert.equal(input.parentElement?.parentElement?.localName, 'fray-radio-button')
+        assert.equal(input.parentElement?.parentElement?.localName, 'fray-radiobutton')
         radio.destroy()
     })
 
     test('Checkbox variants expose semantic state and keyboard cycling', () => {
         const basic = Checkbox.new({label: 'Basic'}).attachTo(document.body)
         const control = requiredQuery<HTMLInputElement>('input[type="checkbox"]')
-        assert.equal(requiredQuery('fray-check-box').dataset.frayComponent, 'check-box')
-        assert.equal(control.closest('fray-check-box'), requiredQuery('fray-check-box'))
+        assert.equal(requiredQuery('fray-checkbox').dataset.frayComponent, 'check-box')
+        assert.equal(control.closest('fray-checkbox'), requiredQuery('fray-checkbox'))
         assert.equal(control.nextElementSibling?.className, 'checkboxshell')
         assert.equal(control.nextElementSibling?.textContent, '☐')
         assert.equal(basic.valueEmitter.get(), FilterMode.Neutral)
@@ -396,7 +397,7 @@ describe('choice controls', () => {
         assert.equal(basic.valueEmitter.get(), FilterMode.Prefer)
         assert.equal(control.checked, true)
         assert.equal(control.nextElementSibling?.textContent, '✓')
-        assert.match((control.closest('fray-check-box') as HTMLElement | null)?.dataset.state ?? '',
+        assert.match((control.closest('fray-checkbox') as HTMLElement | null)?.dataset.state ?? '',
             /prefer/)
 
         assert.equal(control.closest('label')?.lastElementChild?.textContent, 'Basic')
@@ -404,7 +405,7 @@ describe('choice controls', () => {
         basic.destroy()
         document.body.replaceChildren()
         const tri = TriCheckbox.new({label: 'Tri'}).attachTo(document.body)
-        assert.equal(requiredQuery('fray-tri-checkbox').dataset.frayComponent, 'tri-checkbox')
+        assert.equal(requiredQuery('fray-tricheckbox').dataset.frayComponent, 'tri-checkbox')
         assert.equal(tri.valueEmitter.get(), FilterMode.Neutral)
         requiredQuery<HTMLInputElement>('input[type="checkbox"]').dispatchEvent(
             new KeyboardEvent('keydown', {key: 'ArrowLeft', bubbles: true}),
@@ -414,7 +415,7 @@ describe('choice controls', () => {
         tri.destroy()
         document.body.replaceChildren()
         const quad = QuadCheckbox.new({label: 'Quad'}).attachTo(document.body)
-        assert.equal(requiredQuery('fray-quad-checkbox').dataset.frayComponent, 'quad-checkbox')
+        assert.equal(requiredQuery('fray-quadcheckbox').dataset.frayComponent, 'quad-checkbox')
         const quadControl = requiredQuery<HTMLInputElement>('input[type="checkbox"]')
         quadControl.dispatchEvent(new Event('change', {bubbles: true}))
         quadControl.dispatchEvent(new Event('change', {bubbles: true}))
@@ -455,7 +456,7 @@ describe('layout controls', () => {
             secondary: h('p', null, 'Details'),
         }).attachTo(document.body)
 
-        const split = requiredQuery<HTMLElement>('fray-split-view')
+        const split = requiredQuery<HTMLElement>('fray-splitview')
         assert.equal(split.dataset.direction, 'horizontal')
         assert.equal(split.style.getPropertyValue('--split-primary-size'), '18rem')
         assert.equal(requiredQuery('[data-part="primary"]', split).textContent, 'Tree')
@@ -551,8 +552,8 @@ describe('layout controls', () => {
         }).attachTo(document.body)
 
         const tabs = [...document.querySelectorAll<HTMLElement>('[role="tab"]')]
-        assert.equal(requiredQuery('fray-tab-panel').dataset.frayComponent, 'tab-panel')
-        assert.equal(requiredQuery('fray-tab-line').dataset.frayComponent, 'tab-line')
+        assert.equal(requiredQuery('fray-tabpanel').dataset.frayComponent, 'tab-panel')
+        assert.equal(requiredQuery('fray-tabline').dataset.frayComponent, 'tab-line')
         let panel = requiredQuery<HTMLElement>('[role="tabpanel"]')
         assert.equal(requiredAt(tabs, 0).getAttribute('aria-selected'), 'true')
         assert.equal(requiredAt(tabs, 0).getAttribute('aria-controls'), panel.id)
@@ -574,25 +575,15 @@ describe('layout controls', () => {
         assert.equal(document.activeElement, requiredAt(tabs, 0))
     })
 
-    test('configured host names propagate through nested components', () => {
-        const namespaced = createFrayRuntime({elementNames: {prefix: 'acme'}})
-        const panel = namespaced.create(Panel, {
+    test('nested components use fixed Fray host names', () => {
+        const runtime = createFrayRuntime()
+        const panel = runtime.create(Panel, {
             children: [h(Textbox, {label: 'Name'})],
         })
-        namespaced.mount(panel, document.body)
-        assert.ok(document.querySelector('acme-panel'))
-        assert.ok(document.querySelector('acme-textbox'))
+        runtime.mount(panel, document.body)
+        assert.ok(document.querySelector('fray-panel'))
+        assert.ok(document.querySelector('fray-textbox'))
+        assert.ok(document.querySelector('fray-panel[data-fray]'))
         panel.destroy()
-        document.body.replaceChildren()
-
-        const compact = createFrayRuntime({elementNames: {prefix: null}})
-        const compactPanel = compact.create(Panel, {
-            children: [h(Textbox, {label: 'Name'}), h(Checkbox, {label: 'Enabled'})],
-        })
-        compact.mount(compactPanel, document.body)
-        assert.ok(document.querySelector('layout-panel'))
-        assert.ok(document.querySelector('text-box'))
-        assert.ok(document.querySelector('check-box > label > input[type="checkbox"]'))
-        compactPanel.destroy()
     })
 })

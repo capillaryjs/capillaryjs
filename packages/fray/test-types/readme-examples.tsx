@@ -43,7 +43,6 @@ class Badge extends Component<BadgeProps> {
     }
 
     static override hostName = 'badge'
-    static override standaloneHostName = 'ui-badge'
 }
 
 class Counter extends Component {
@@ -204,7 +203,7 @@ class ChangeApp extends Component {
 }
 
 export function mountReadmeExamples(parent: ParentNode): void {
-    const runtime = createFrayRuntime({elementNames: {prefix: 'fray'}})
+    const runtime = createFrayRuntime()
     runtime.registerStyles(Counter)
     runtime.registerStyles(ChangeApp)
     runtime.injectStyles(document)

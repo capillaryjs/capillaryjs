@@ -61,7 +61,6 @@ export class Panel extends Component<PanelProps> {
     }
 
     static override hostName = 'panel'
-    static override standaloneHostName = 'layout-panel'
 
     static css = css`
         & {

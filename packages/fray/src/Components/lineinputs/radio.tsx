@@ -84,7 +84,6 @@ export class RadioButton extends Component<RadioButtonProps> {
     }
 
     static override hostName = 'radio-button'
-    static override standaloneHostName = 'radio-button'
 
     static css = css`
         & {
@@ -245,7 +244,6 @@ export class RadioGroup<TValue extends Key = string>
     }
 
     static override hostName = 'radio-group'
-    static override standaloneHostName = 'radio-group'
 
     static css = css`
         & > fieldset {

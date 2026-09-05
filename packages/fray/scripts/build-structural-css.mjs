@@ -60,7 +60,7 @@ const components = [
     TriCheckbox,
 ]
 
-const runtime = createFrayRuntime({elementNames: {prefix: 'fray'}})
+const runtime = createFrayRuntime()
 for (const component of components) runtime.registerStyles(component)
 
 const outputPath = fileURLToPath(new URL('../styles/structural.css', import.meta.url))

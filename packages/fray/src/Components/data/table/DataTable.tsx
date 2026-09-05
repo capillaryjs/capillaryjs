@@ -281,7 +281,6 @@ export class DataTable<TRow extends TableRow = TableRow>
     static dependencies = [Placeholder, TableHeader]
 
     static override hostName = 'data-table'
-    static override standaloneHostName = 'data-table'
 
     static css = css`
         & {

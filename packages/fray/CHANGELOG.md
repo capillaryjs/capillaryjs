@@ -8,12 +8,17 @@ Versioning.
 
 ### Added
 
+- `data-fray` renderer ownership markers on every Fray-created element, fixed
+  one-hyphen `fray-<stem>` component hosts, a shared base theme stylesheet, and
+  the `setFrayAppearance()`/`getFrayAppearance()` document appearance API.
 - Explicit component-specific `live()` prop allowlists, enforced consistently
   by typed JSX/`h()` authoring and the runtime renderer.
 - `Label` component with a live `text` prop for accessible form field labeling.
 
 ### Changed
 
+- Minimal and Java now compose the shared base theme; native presentation rules
+  target Fray-owned elements directly rather than scoped theme islands.
 - Interactive controls now expose consistent live availability and validation
   contracts: `Textbox`/`Dropdown` accept live disabled, required, and error
   state; checkboxes, radio controls, and toggles accept live disabled, required,
@@ -21,6 +26,11 @@ Versioning.
 - `RadioGroup.options` remains an ordinary array supplied through explicit owner
   renders, and raw `valueEmitter` behavior is unchanged.
 - Enabled strict TypeScript compiler checking.
+
+### Removed
+
+- Configurable Fray component host prefixes and overrides, plus the obsolete
+  top-level `themes/light.css` and `themes/dark.css` compatibility bundles.
 
 ## 0.7.0 - 2026-09-04
 

@@ -169,7 +169,6 @@ export class TabPanel extends Component<TabPanelProps> {
     static dependencies = [RouteScope, TabLine, Tab]
 
     static override hostName = 'tab-panel'
-    static override standaloneHostName = 'tab-panel'
 
     static css = css`
         & {

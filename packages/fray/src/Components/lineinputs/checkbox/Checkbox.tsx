@@ -142,7 +142,6 @@ export class Checkbox<TValue extends CheckboxValue = FilterModeValue>
     }
 
     static override hostName = 'check-box'
-    static override standaloneHostName = 'check-box'
 
     static css = css`
         & {
