@@ -1,0 +1,20 @@
+{
+  "name": "@sylwellsoftware/fray-demo",
+  "private": false,
+  "version": "0.1.0",
+  "description": "Public iterative demo for Fray styling overhaul.",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -p tsconfig.json --noEmit && vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@sylwellsoftware/glue": "workspace:^",
+    "@sylwellsoftware/fray": "workspace:^"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.2",
+    "vite": "^6.4.3"
+  }
+}

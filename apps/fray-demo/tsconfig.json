@@ -1,0 +1,19 @@
+{
+  "extends": "../../../tsconfig.base.json",
+  "compilerOptions": {
+    "lib": ["ES2023", "DOM", "DOM.Iterable"],
+    "types": ["node"],
+    "baseUrl": "../../..",
+    "paths": {
+      "@sylwellsoftware/glue": ["framework/packages/glue/src/index.ts"],
+      "@sylwellsoftware/fray": ["framework/packages/fray/src/index.ts"],
+      "@sylwellsoftware/fray/jsx-runtime": ["framework/packages/fray/src/jsx-runtime.ts"],
+      "@sylwellsoftware/fray/jsx-dev-runtime": ["framework/packages/fray/src/jsx-dev-runtime.ts"]
+    },
+    "jsx": "react-jsx",
+    "jsxImportSource": "@sylwellsoftware/fray",
+    "noEmit": true,
+    "strict": true
+  },
+  "include": ["src/**/*.ts", "src/**/*.tsx"]
+}
