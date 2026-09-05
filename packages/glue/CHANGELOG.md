@@ -10,6 +10,10 @@ Versioning.
 
 - Exported `NonEmptyArray<T>` for public APIs that require one or more values.
 
+### Changed
+
+- Enabled strict TypeScript compiler checking.
+
 ## 0.7.0 - 2026-09-04
 
 - No public Glue API changes; version synchronized with the framework release.
