@@ -10,6 +10,7 @@ Versioning.
 
 - Explicit component-specific `live()` prop allowlists, enforced consistently
   by typed JSX/`h()` authoring and the runtime renderer.
+- `Label` component with a live `text` prop for accessible form field labeling.
 
 ### Changed
 
@@ -19,6 +20,7 @@ Versioning.
   and error state; standalone radios also accept live checked state.
 - `RadioGroup.options` remains an ordinary array supplied through explicit owner
   renders, and raw `valueEmitter` behavior is unchanged.
+- Enabled strict TypeScript compiler checking.
 
 ## 0.7.0 - 2026-09-04
 
