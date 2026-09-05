@@ -146,6 +146,7 @@ export class Toggle<TValue extends Key = string> extends Component<ToggleProps<T
             margin: 0;
             padding: 0;
             border: 0;
+            user-select: none;
         }
 
         fieldset:has(> [data-part="options"]) > [data-part="options"] {

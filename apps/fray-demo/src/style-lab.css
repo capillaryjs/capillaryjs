@@ -99,10 +99,11 @@ nav {
     max-width: 100%;
 }
 
-.panel-state-control label {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
+.harness-availability {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    color: var(--panel-color);
 }
 
 @media (max-width: 42rem) {

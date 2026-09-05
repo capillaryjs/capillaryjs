@@ -27,6 +27,7 @@ export const baseStyleDefinitions = {
         width: 'var(--input-width, 15rem)',
         'box-sizing': 'border-box',
         'white-space': 'nowrap',
+        'user-select': 'text',
     },
 
     inputlike: {
@@ -40,6 +41,7 @@ export const baseStyleDefinitions = {
         'flex-flow': 'row nowrap',
         'align-items': 'center',
         gap: '.5em',
+        'user-select': 'none',
     },
 
     working: {

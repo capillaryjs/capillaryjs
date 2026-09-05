@@ -168,6 +168,17 @@ test('stable controls remain operable through the real browser keyboard model', 
     const archived = page.getByRole('checkbox', {name: /Include archived/})
     const archivedShell = archived.locator('+ .checkboxshell')
     await expect(archivedShell).toBeVisible()
+    const checkboxMetrics = async () => archived.evaluate((input) => {
+        const host = input.closest('fray-checkbox')
+        const label = input.closest('label')
+        const shell = input.nextElementSibling
+        if (host == null || label == null || shell == null) throw new Error('Missing checkbox structure')
+        return [host, label, shell].map((element) => {
+            const {height, top, width} = element.getBoundingClientRect()
+            return {height, top, width}
+        })
+    })
+    const metricsBeforeToggle = await checkboxMetrics()
     const shellMetrics = await archivedShell.evaluate((element) => {
         const style = getComputedStyle(element)
         return {
@@ -183,6 +194,7 @@ test('stable controls remain operable through the real browser keyboard model', 
     await archived.press('Space')
     await expect(archived).toBeChecked()
     await expect(archivedShell).toHaveText('✓')
+    expect(await checkboxMetrics()).toEqual(metricsBeforeToggle)
 
     await page.keyboard.press('Tab')
     const summary = page.getByRole('tab', {name: 'Summary'})

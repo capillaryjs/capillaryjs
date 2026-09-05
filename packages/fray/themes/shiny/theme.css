@@ -20,6 +20,7 @@
     --panel-radius: 0;
     --panel-header-background: var(--shiny-panel-header-background);
     --panel-header-color: var(--palette-contrast-light);
+    --input-color-disabled: color-mix(in oklch, var(--palette-neutral-700) 48%, var(--palette-light));
     --section-header-shadow: var(--shiny-panel-header-shadow);
     --sidebar-background:
       linear-gradient(135deg, rgb(255 255 255 / 0.4), transparent 55%),
@@ -48,6 +49,7 @@
     --button-background-hover: var(--shiny-ui-gradient);
     --button-background-active: var(--shiny-ui-gradient);
     --button-border: 1px solid var(--palette-light);
+    --button-border-disabled: 1px solid color-mix(in oklch, var(--palette-light) 62%, var(--palette-neutral-500));
     --button-shadow: -1px 1px 2px 1px rgb(0 0 0 / 0.5);
     --button-shadow-active: -1px 1px 2px rgb(0 0 0 / 0.53);
     --tabline-background: var(--shiny-ui-gradient-2);
@@ -67,5 +69,18 @@
       rgb(0 0 0 / 0.18)
     );
     --toggle-inactive-separator-block-inset: 0.35rem;
+    --checkbox-box-background:
+      linear-gradient(to bottom, rgb(255 255 255 / 0.84), rgb(255 255 255 / 0.9)),
+      var(--palette-primary);
+    --checkbox-box-background-checked:
+      radial-gradient(140% 75% at 30% 10%, #fff5, #fff4 47%, #fff0 55%, #fff0),
+      linear-gradient(to bottom, var(--palette-primary-900), var(--palette-primary) 65%, var(--palette-primary-400));
+    --checkbox-box-border: 0 solid transparent;
+    --checkbox-box-shadow:
+      inset 1px -1px 1px rgb(255 255 255 / 1),
+      inset -1px 2px 3px rgb(0 0 0 / 0.13),
+      -1px 1px 2px rgb(0 0 0 / 0.33);
+    --checkbox-box-shadow-checked: var(--checkbox-box-shadow);
+    --checkbox-symbol-color: var(--palette-contrast-light);
   }
 }

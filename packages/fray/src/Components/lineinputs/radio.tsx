@@ -95,6 +95,7 @@ export class RadioButton extends Component<RadioButtonProps> {
             align-items: center;
             gap: 0.35em;
             cursor: pointer;
+            user-select: none;
         }
 
         &[data-disabled] > label {
@@ -250,6 +251,7 @@ export class RadioGroup<TValue extends Key = string>
             margin: 0;
             padding: 0;
             border: 0;
+            user-select: none;
         }
 
         & [data-part="options"] {

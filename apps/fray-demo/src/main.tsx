@@ -1,5 +1,6 @@
 import {
     Component,
+    Checkbox,
     Panel,
     Sidebar,
     SplitView,
@@ -17,6 +18,7 @@ import './style-lab.css'
 type Scope = 'all' | 'north-plant' | 'south-plant' | 'warehouse'
 type ChangeStatus = 'planned' | 'active' | 'completed'
 type DemoFetchState = 'automatic' | 'initial' | 'loading' | 'ready' | 'error'
+type CheckboxState = 'off' | 'on'
 
 type Change = {
     readonly id: string
@@ -43,15 +45,28 @@ const scopeLabels: Record<Scope, string> = {
 class DemoApp extends Component {
     readonly activeTab = new Emitter<'portfolio' | 'register' | 'change' | 'analysis' | null>('portfolio', {purpose: 'Meridian active work area'})
     readonly demoFetchState = new Emitter<DemoFetchState>('automatic', {purpose: 'Meridian demo fetch-state harness'})
+    readonly forceDisabledState = new Emitter<CheckboxState>('off', {purpose: 'Meridian force disabled harness'})
+    readonly forceRequiredState = new Emitter<CheckboxState>('off', {purpose: 'Meridian force required harness'})
+    readonly includeCompletedState = new Emitter<'exclude' | 'include'>('exclude', {purpose: 'Meridian completed-change preference'})
     readonly selectedScope = new Emitter<Scope>('all', {purpose: 'Meridian selected scope'})
     readonly statusFocus = new Emitter<'all' | ChangeStatus>('all', {purpose: 'Meridian change status focus'})
     readonly selectedChangeId = new Emitter<string | null>(null, {purpose: 'Meridian selected change'})
-    readonly panelDisabled = new Emitter(false, {purpose: 'Panel review disabled state'})
+    readonly forceDisabled = new DerivedEmitter(
+        [this.forceDisabledState] as const,
+        ([state]) => state === 'on',
+        {purpose: 'Meridian effective forced disabled state'},
+    )
+    readonly forceRequired = new DerivedEmitter(
+        [this.forceRequiredState] as const,
+        ([state]) => state === 'on',
+        {purpose: 'Meridian effective forced required state'},
+    )
     readonly visibleChanges = new DerivedEmitter(
-        [this.selectedScope, this.statusFocus] as const,
-        ([scope, statusFocus]) => changes.filter((change) =>
+        [this.selectedScope, this.statusFocus, this.includeCompletedState] as const,
+        ([scope, statusFocus, includeCompleted]) => changes.filter((change) =>
             (scope === 'all' || change.site === scope)
-            && (statusFocus === 'all' || change.status === statusFocus)),
+            && (statusFocus === 'all' || change.status === statusFocus)
+            && (includeCompleted === 'include' || change.status !== 'completed')),
         {purpose: 'Meridian visible changes'},
     )
     readonly currentChange = new DerivedEmitter(
@@ -72,11 +87,11 @@ class DemoApp extends Component {
             <main class="style-lab">
                 <header>
                     <p class="eyebrow">Fray · Meridian Change Office</p>
-                    <h1>Toggle review</h1>
+                    <h1>Checkbox review</h1>
                     <p>
                         Deterministic Meridian surfaces for the CSS overhaul.
-                        Toggle now drives the harness state and a live portfolio
-                        status focus without introducing server-owned controls.
+                        Checkbox now controls harness availability and a live
+                        preference without introducing server-owned controls.
                     </p>
                 </header>
                 <TabLine
@@ -131,6 +146,15 @@ class DemoApp extends Component {
                                     ['completed', 'Completed'],
                                 ]}
                                 valueEmitter={this.statusFocus}
+                                disabled={live(this.forceDisabled)}
+                            />
+                            <Checkbox
+                                id="include-completed"
+                                label="Include completed changes"
+                                symbols={[['', 'exclude'], ['✓', 'include']]}
+                                valueEmitter={this.includeCompletedState}
+                                disabled={live(this.forceDisabled)}
+                                required={live(this.forceRequired)}
                             />
                             <p class="long-copy">
                                 This deliberately long deterministic explanation checks that Panel content
@@ -171,17 +195,25 @@ class DemoApp extends Component {
                         {activeTab === 'change' ? <Panel id="change" header="Selected change">
                             <p>{currentChange == null ? 'No change is visible in this scope.' : `${currentChange.id}: ${currentChange.title}`}</p>
                         </Panel> : null}
-                        <section class="panel-state-control" aria-label="Panel state control">
-                            <label>
-                                <input type="checkbox" bind:checked={this.panelDisabled}/>
-                                <span>Show disabled Panel state</span>
-                            </label>
+                        <section class="harness-availability" aria-label="Harness availability controls">
+                            <Checkbox
+                                id="force-disabled"
+                                label="Force disabled"
+                                symbols={[['', 'off'], ['✓', 'on']]}
+                                valueEmitter={this.forceDisabledState}
+                            />
+                            <Checkbox
+                                id="force-required"
+                                label="Force required"
+                                symbols={[['', 'off'], ['✓', 'on']]}
+                                valueEmitter={this.forceRequiredState}
+                            />
                         </section>
                         <Panel
                             id="harness"
                             header="Demo harness"
-                            toolbar={<span class="panel-toolbar-note">Panel state only</span>}
-                            disabled={live(this.panelDisabled)}
+                            toolbar={<span class="panel-toolbar-note">Availability harness</span>}
+                            disabled={live(this.forceDisabled)}
                         >
                             <Toggle
                                 id="fetch-state"
@@ -194,6 +226,7 @@ class DemoApp extends Component {
                                     ['error', 'Error'],
                                 ]}
                                 valueEmitter={this.demoFetchState}
+                                disabled={live(this.forceDisabled)}
                             />
                             <p>
                                 Harness mode: <strong>{demoFetchState}</strong>. Selected scope:

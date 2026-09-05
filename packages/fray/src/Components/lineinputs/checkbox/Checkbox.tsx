@@ -145,7 +145,8 @@ export class Checkbox<TValue extends CheckboxValue = FilterModeValue>
 
     static css = css`
         & {
-            display: inline-block;
+            display: inline-flex;
+            line-height: 1;
         }
 
         & > label {
@@ -153,6 +154,7 @@ export class Checkbox<TValue extends CheckboxValue = FilterModeValue>
             align-items: center;
             gap: 0.35em;
             cursor: pointer;
+            user-select: none;
         }
 
         &[data-disabled] > label {

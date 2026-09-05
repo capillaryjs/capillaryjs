@@ -63,6 +63,7 @@ fray-themepicker {
   flex-flow: row nowrap;
   align-items: center;
   gap: .5em;
+  user-select: none;
 }
 
 /* inputline */
@@ -91,6 +92,7 @@ fray-themepicker > select {
   width: var(--input-width, 15rem);
   box-sizing: border-box;
   white-space: nowrap;
+  user-select: text;
 }
 
 /* after */
@@ -138,7 +140,8 @@ button {
         }
 
 fray-checkbox {
-            display: inline-block;
+            display: inline-flex;
+            line-height: 1;
         }
 
         fray-checkbox > label {
@@ -146,6 +149,7 @@ fray-checkbox {
             align-items: center;
             gap: 0.35em;
             cursor: pointer;
+            user-select: none;
         }
 
         fray-checkbox[data-disabled] > label {
@@ -416,7 +420,8 @@ fray-progressbar {
         }
 
 fray-quadcheckbox {
-            display: inline-block;
+            display: inline-flex;
+            line-height: 1;
         }
 
         fray-quadcheckbox > label {
@@ -424,6 +429,7 @@ fray-quadcheckbox {
             align-items: center;
             gap: 0.35em;
             cursor: pointer;
+            user-select: none;
         }
 
         fray-quadcheckbox[data-disabled] > label {
@@ -579,6 +585,7 @@ fieldset:has(> [data-part="options"]) {
             margin: 0;
             padding: 0;
             border: 0;
+            user-select: none;
         }
 
         fieldset:has(> [data-part="options"]) > [data-part="options"] {
@@ -650,7 +657,8 @@ fray-treeview {
         }
 
 fray-tricheckbox {
-            display: inline-block;
+            display: inline-flex;
+            line-height: 1;
         }
 
         fray-tricheckbox > label {
@@ -658,6 +666,7 @@ fray-tricheckbox {
             align-items: center;
             gap: 0.35em;
             cursor: pointer;
+            user-select: none;
         }
 
         fray-tricheckbox[data-disabled] > label {

@@ -102,6 +102,8 @@
       --checkbox-box-background: var(--input-background);
       --checkbox-box-background-checked: var(--selection-background);
       --checkbox-box-border: var(--input-border);
+      --checkbox-box-shadow: none;
+      --checkbox-box-shadow-checked: var(--checkbox-box-shadow);
       --checkbox-symbol-color: var(--selection-color);
       --radio-background: var(--button-background);
       --radio-background-checked: var(--selection-background);
@@ -203,6 +205,7 @@
     .buttonlike[aria-disabled="true"] {
       color: var(--input-color-disabled);
       background: var(--button-background-disabled);
+      border: var(--button-border-disabled);
       cursor: not-allowed;
       pointer-events: none;
     }
@@ -254,12 +257,16 @@
       background: var(--checkbox-box-background);
       border: var(--checkbox-box-border);
       border-radius: var(--radius-sm);
+      box-shadow: var(--checkbox-box-shadow);
     }
 
     input[data-fray][type="checkbox"]:checked + .checkboxshell {
       color: var(--checkbox-symbol-color);
       background: var(--checkbox-box-background-checked);
+      box-shadow: var(--checkbox-box-shadow-checked);
     }
+
+    fray-checkbox[data-fray][data-disabled] > label { color: var(--input-color-disabled); }
 
     [role="checkbox"][aria-checked="true"] .inputshell {
       color: var(--checkbox-symbol-color);
@@ -298,6 +305,7 @@
       background: var(--header-background);
       border: var(--header-border);
       box-shadow: var(--header-shadow);
+      user-select: none;
     }
 
     th[data-fray] > button[data-fray] {
@@ -467,6 +475,9 @@
       background: var(--toggle-button-background-checked);
       border: var(--toggle-button-border-checked);
       box-shadow: var(--toggle-button-shadow-checked);
+    }
+    [role="radio"][aria-checked="true"][data-fray]:hover {
+      background: var(--toggle-button-background-checked);
     }
     [role="radio"][aria-checked="false"][data-fray]:has(+ [role="radio"][aria-checked="false"][data-fray]) {
       border-inline-end-color: var(--toggle-inactive-shared-border-color);
