@@ -2,6 +2,7 @@ import {
     Component,
     Panel,
     Sidebar,
+    SplitView,
     createFrayRuntime,
     live,
 } from '@sylwellsoftware/fray'
@@ -36,6 +37,7 @@ const scopeLabels: Record<Scope, string> = {
 
 class DemoApp extends Component {
     readonly selectedScope = new Emitter<Scope>('all', {purpose: 'Meridian selected scope'})
+    readonly selectedChangeId = new Emitter<string | null>(null, {purpose: 'Meridian selected change'})
     readonly panelDisabled = new Emitter(false, {purpose: 'Panel review disabled state'})
     readonly visibleChanges = new DerivedEmitter(
         [this.selectedScope] as const,
@@ -43,8 +45,10 @@ class DemoApp extends Component {
         {purpose: 'Meridian visible changes'},
     )
     readonly currentChange = new DerivedEmitter(
-        [this.visibleChanges] as const,
-        ([visibleChanges]) => visibleChanges[0] ?? null,
+        [this.visibleChanges, this.selectedChangeId] as const,
+        ([visibleChanges, selectedChangeId]) => visibleChanges.find((change) => change.id === selectedChangeId)
+            ?? visibleChanges[0]
+            ?? null,
         {purpose: 'Meridian current change'},
     )
 
@@ -56,16 +60,16 @@ class DemoApp extends Component {
             <main class="style-lab">
                 <header>
                     <p class="eyebrow">Fray · Meridian Change Office</p>
-                    <h1>Sidebar review</h1>
+                    <h1>SplitView review</h1>
                     <p>
                         Deterministic Meridian surfaces for the CSS overhaul.
-                        Scope remains native application control content inside
-                        its first Fray application region.
+                        The Register now keeps its native change list and
+                        selected-change preview in one explicit two-pane layout.
                     </p>
                 </header>
                 <nav aria-label="Style-lab sections">
                     <a href="#portfolio">Portfolio</a>
-                    <a href="#selection">Selection</a>
+                    <a href="#register">Register</a>
                     <a href="#harness">Harness</a>
                 </nav>
                 <div class="meridian-workspace">
@@ -98,15 +102,33 @@ class DemoApp extends Component {
                         </p>
                     </Sidebar>
                     <div class="meridian-content">
-                        <div class="meridian-panels">
-                            <Panel id="portfolio" header="Portfolio summary">
-                                <p><strong>{visibleChanges.length}</strong> visible changes in {scopeLabels[scope]}.</p>
-                                <p class="long-copy">
-                                    This deliberately long deterministic explanation checks that Panel content
-                                    remains readable when a portfolio summary needs more than a single line.
-                                </p>
-                            </Panel>
-                            <Panel id="selection" header="Current selection" orientation="horizontal">
+                        <Panel id="portfolio" header="Portfolio summary">
+                            <p><strong>{visibleChanges.length}</strong> visible changes in {scopeLabels[scope]}.</p>
+                            <p class="long-copy">
+                                This deliberately long deterministic explanation checks that Panel content
+                                remains readable when a portfolio summary needs more than a single line.
+                            </p>
+                        </Panel>
+                        <div id="register">
+                            <SplitView
+                                class="meridian-register"
+                                primarySize="minmax(0, 0.9fr)"
+                                primaryLabel="Change register"
+                                secondaryLabel="Selected change preview"
+                                primary={<Panel header="Change register">
+                                    <p class="register-intro">Visible changes in {scopeLabels[scope]}.</p>
+                                    <div class="register-list" role="group" aria-label="Visible changes">
+                                        {visibleChanges.map((change) =>
+                                            <button
+                                                type="button"
+                                                aria-pressed={currentChange?.id === change.id}
+                                                onClick={() => this.selectedChangeId.set(change.id)}
+                                            >
+                                                <strong>{change.id}</strong> {change.title}
+                                            </button>)}
+                                    </div>
+                                </Panel>}
+                                secondary={<Panel id="selection" header="Selected change" orientation="horizontal">
                                 {currentChange == null
                                     ? <p>No change is visible in this scope.</p>
                                     : <>
@@ -114,7 +136,8 @@ class DemoApp extends Component {
                                         <p>{currentChange.title}</p>
                                         <p>{currentChange.risk} risk</p>
                                     </>}
-                            </Panel>
+                                </Panel>}
+                            />
                         </div>
                         <section class="panel-state-control" aria-label="Panel state control">
                             <label>

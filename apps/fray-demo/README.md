@@ -10,8 +10,7 @@ Run it from `framework`:
 pnpm --filter @sylwellsoftware/fray-demo dev
 ```
 
-The current review slice is `Sidebar`: the Meridian Scope region contains
-native site controls, which continue to drive the already-reviewed Portfolio,
-Current selection, and Demo harness Panels. Its scope, state graph, and
-verification matrix are recorded in
-[`docs/changes/009-css-overhaul/discussions/demo-app-concept/iterations/02-sidebar.md`](../../../docs/changes/009-css-overhaul/discussions/demo-app-concept/iterations/02-sidebar.md).
+The current review slice is `SplitView`: the Meridian Register keeps native
+change selection and its selected-change preview in two labelled panes. Its
+scope, state graph, and verification matrix are recorded in
+[`docs/changes/009-css-overhaul/discussions/demo-app-concept/iterations/03-splitview.md`](../../../docs/changes/009-css-overhaul/discussions/demo-app-concept/iterations/03-splitview.md).

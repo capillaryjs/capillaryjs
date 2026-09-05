@@ -446,7 +446,7 @@ describe('layout controls', () => {
         ])
     })
 
-    test('SplitView owns two labelled panes and validates direction', () => {
+    test('SplitView owns two panes, labels optional regions, and validates layout props', () => {
         SplitView.new({
             direction: 'horizontal',
             primarySize: '18rem',
@@ -464,6 +464,26 @@ describe('layout controls', () => {
             requiredQuery('[data-part="secondary"]', split).getAttribute('aria-label'),
             'Project details',
         )
+        assert.equal(requiredQuery('[data-part="primary"]', split).getAttribute('role'), 'region')
+
+        SplitView.new({
+            direction: 'vertical',
+            primarySize: '45%',
+            primary: 'Navigation',
+            children: 'Details from children',
+        }).attachTo(document.body)
+        const vertical = requiredQuery<HTMLElement>('fray-splitview[data-direction="vertical"]')
+        assert.equal(vertical.style.getPropertyValue('--split-primary-size'), '45%')
+        assert.equal(requiredQuery('[data-part="primary"]', vertical).textContent, 'Navigation')
+        assert.equal(requiredQuery('[data-part="secondary"]', vertical).textContent, 'Details from children')
+        assert.equal(requiredQuery('[data-part="primary"]', vertical).hasAttribute('role'), false)
+        assert.equal(requiredQuery('[data-part="secondary"]', vertical).hasAttribute('aria-label'), false)
+
+        SplitView.new().attachTo(document.body)
+        const empty = requiredAt([...document.querySelectorAll<HTMLElement>('fray-splitview')], 2)
+        assert.equal(requiredQuery('[data-part="primary"]', empty).textContent, '')
+        assert.equal(requiredQuery('[data-part="secondary"]', empty).textContent, '')
+        assert.throws(() => SplitView.new({primarySize: ''}).mount(), /primarySize/)
         assert.throws(() => SplitView.new({direction: 'diagonal' as 'horizontal'}).mount(),
             /direction/)
     })
