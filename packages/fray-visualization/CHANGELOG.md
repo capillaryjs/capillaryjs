@@ -10,6 +10,7 @@ and Semantic Versioning.
 
 - `LineGraph` accepts static values as well as readable sources for shapes,
   stacked, smooth, and range inputs.
+- Enabled strict TypeScript compiler checking.
 
 ## 0.7.0 - 2026-09-04
 
