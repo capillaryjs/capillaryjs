@@ -989,6 +989,11 @@ that should look different. `frayThemeVariableCatalog` exports this contract in
 machine-readable form, including every variable's layer, family, value kind,
 purpose, and optional fallback.
 
+Palette ramps normally mix their `500` anchor toward `--palette-light` and
+`--palette-dark`. A palette can opt into hue variation by overriding the
+catalogued `--palette-<family>-light-mix` and
+`--palette-<family>-dark-mix` endpoints for the relevant ramp instead.
+
 A custom component can apply the public trait matching the treatment it needs
 and optionally consume the same variable hierarchy:
 

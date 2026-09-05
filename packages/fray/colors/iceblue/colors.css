@@ -10,7 +10,10 @@
       --palette-red: #b3261e;
       --palette-green: #287a3c;
 
-      --palette-primary-500: #1769aa;
+      /* Preserve the legacy Shiny movement from navy through blue to cyan. */
+      --palette-primary-light-mix: #00b9e8;
+      --palette-primary-dark-mix: #00193f;
+      --palette-primary-500: #2989d8;
       --palette-secondary-500: #7137a8;
       --palette-neutral-500: #7892aa;
   }

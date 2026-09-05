@@ -196,6 +196,31 @@ describe('supported theme bundles', () => {
         }
     })
 
+    test('palette ramp derivation allows palette-controlled hue variation', async () => {
+        const [basePalette, iceBlue] = await Promise.all([
+            readFile(
+                fileURLToPath(new URL('../colors/base.css', import.meta.url)),
+                'utf8',
+            ),
+            readFile(
+                fileURLToPath(new URL('../colors/iceblue/colors.css', import.meta.url)),
+                'utf8',
+            ),
+        ])
+
+        for (const family of ['primary', 'secondary', 'neutral']) {
+            assert.match(basePalette, new RegExp(`--palette-${family}-light-mix:\\s*var\\(--palette-light\\)`))
+            assert.match(basePalette, new RegExp(`--palette-${family}-dark-mix:\\s*var\\(--palette-dark\\)`))
+            assert.match(basePalette, new RegExp(`--palette-${family}-400:[^;]*--palette-${family}-light-mix`))
+            assert.match(basePalette, new RegExp(`--palette-${family}-900:[^;]*--palette-${family}-dark-mix`))
+        }
+
+        assert.match(iceBlue, /--palette-primary-light-mix:\s*#00b9e8/)
+        assert.match(iceBlue, /--palette-primary-dark-mix:\s*#00193f/)
+        assert.match(iceBlue, /--palette-primary-500:\s*#2989d8/)
+        assert.doesNotMatch(iceBlue, /--palette-primary-(?:50|100|200|300|400|600|700|800|900|950):/)
+    })
+
     test('catalog fallbacks reference declared variables', () => {
         const names = new Set(frayThemeVariableCatalog.map(({name}) => name))
         assert.equal(names.size, frayThemeVariableCatalog.length)
@@ -206,6 +231,8 @@ describe('supported theme bundles', () => {
             name === '--table-header-background'))
         assert.ok(frayThemeVariableCatalog.some(({name}) =>
             name === '--toggle-button-background'))
+        assert.ok(frayThemeVariableCatalog.some(({name}) =>
+            name === '--palette-primary-light-mix'))
     })
 
     test('replaces theme and color links independently', () => {

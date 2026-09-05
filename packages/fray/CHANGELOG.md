@@ -18,6 +18,8 @@ Versioning.
 ### Changed
 
 - Regenerated structural CSS to match the fixed component host names.
+- Palette ramps can independently mix their primary, secondary, or neutral
+  light and dark sides toward palette-selected hue endpoints.
 - Minimal and Java now compose the shared base theme; native presentation rules
   target Fray-owned elements directly rather than scoped theme islands.
 - Interactive controls now expose consistent live availability and validation
