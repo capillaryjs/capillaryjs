@@ -32,5 +32,11 @@
     --sidebar-header-shadow: var(--shiny-panel-header-shadow);
     --sidebar-toolbar-background: color-mix(in oklch, var(--palette-primary-100) 72%, var(--palette-light));
     --sidebar-toolbar-border: 1px solid color-mix(in oklch, var(--palette-primary) 24%, var(--palette-neutral-300));
+    --tabline-background: linear-gradient(
+      to bottom,
+      color-mix(in oklch, var(--palette-primary) 3%, var(--palette-neutral-50)) 9px,
+      color-mix(in oklch, var(--palette-primary) 3%, var(--palette-neutral-50)) 13px,
+      color-mix(in oklch, var(--palette-primary) 14%, var(--palette-neutral-50)) 100%
+    );
   }
 }

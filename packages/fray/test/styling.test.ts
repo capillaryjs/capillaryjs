@@ -210,10 +210,15 @@ describe('supported theme bundles', () => {
         assert.match(baseTheme, /aside\[data-fray\] \{\n\s+color: var\(--sidebar-color\)/)
         assert.match(baseTheme, /aside\[data-fray\] > header\[data-fray\]/)
         assert.match(baseTheme, /aside\[data-fray\] > div\[data-fray\]:last-child:focus-visible/)
+        assert.match(baseTheme, /fray-tabline\[data-fray\] \{ background: var\(--tabline-background\); \}/)
         assert.match(shinyTheme, /@import "\.\.\/base\.css"/)
         assert.match(shinyTheme, /--panel-header-background:/)
         assert.match(shinyTheme, /--section-header-shadow:\s*var\(--shiny-panel-header-shadow\)/)
         assert.match(shinyTheme, /--sidebar-header-background:\s*var\(--shiny-panel-header-background\)/)
+        assert.match(
+            shinyTheme,
+            /--tabline-background:\s*linear-gradient\(\s*to bottom,\s*color-mix\(in oklch, var\(--palette-primary\) 3%, var\(--palette-neutral-50\)\) 9px,\s*color-mix\(in oklch, var\(--palette-primary\) 3%, var\(--palette-neutral-50\)\) 13px,\s*color-mix\(in oklch, var\(--palette-primary\) 14%, var\(--palette-neutral-50\)\) 100%\s*\)/,
+        )
         assert.doesNotMatch(shinyTheme, /fray-panel|aside\[data-fray\]|\.panellike|:where\(/)
     })
 

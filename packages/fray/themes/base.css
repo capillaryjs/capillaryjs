@@ -431,6 +431,7 @@
       background: var(--selection-background);
     }
 
+    fray-tabline[data-fray] { background: var(--tabline-background); }
     [role="tab"][data-fray] {
       background: var(--tab-button-background);
       border-radius: var(--radius-md) var(--radius-md) 0 0;

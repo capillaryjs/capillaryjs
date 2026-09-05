@@ -3,6 +3,7 @@ import {
     Panel,
     Sidebar,
     SplitView,
+    TabLine,
     createFrayRuntime,
     live,
 } from '@sylwellsoftware/fray'
@@ -36,6 +37,7 @@ const scopeLabels: Record<Scope, string> = {
 }
 
 class DemoApp extends Component {
+    readonly activeTab = new Emitter<'portfolio' | 'register' | 'change' | 'analysis' | null>('portfolio', {purpose: 'Meridian active work area'})
     readonly selectedScope = new Emitter<Scope>('all', {purpose: 'Meridian selected scope'})
     readonly selectedChangeId = new Emitter<string | null>(null, {purpose: 'Meridian selected change'})
     readonly panelDisabled = new Emitter(false, {purpose: 'Panel review disabled state'})
@@ -56,22 +58,28 @@ class DemoApp extends Component {
         const scope = this.read(this.selectedScope)
         const visibleChanges = this.read(this.visibleChanges)
         const currentChange = this.read(this.currentChange)
+        const activeTab = this.read(this.activeTab)
         return (
             <main class="style-lab">
                 <header>
                     <p class="eyebrow">Fray · Meridian Change Office</p>
-                    <h1>SplitView review</h1>
+                    <h1>TabLine review</h1>
                     <p>
                         Deterministic Meridian surfaces for the CSS overhaul.
                         The Register now keeps its native change list and
                         selected-change preview in one explicit two-pane layout.
                     </p>
                 </header>
-                <nav aria-label="Style-lab sections">
-                    <a href="#portfolio">Portfolio</a>
-                    <a href="#register">Register</a>
-                    <a href="#harness">Harness</a>
-                </nav>
+                <TabLine
+                    label="Meridian work areas"
+                    activeTabEmitter={this.activeTab}
+                    tabs={[
+                        {id: 'portfolio', label: 'Portfolio'},
+                        {id: 'register', label: 'Register'},
+                        {id: 'change', label: 'Change'},
+                        {id: 'analysis', label: 'Analysis', disabled: true},
+                    ]}
+                />
                 <div class="meridian-workspace">
                     <Sidebar
                         id="scope"
@@ -102,14 +110,14 @@ class DemoApp extends Component {
                         </p>
                     </Sidebar>
                     <div class="meridian-content">
-                        <Panel id="portfolio" header="Portfolio summary">
+                        {activeTab === 'portfolio' ? <Panel id="portfolio" header="Portfolio summary">
                             <p><strong>{visibleChanges.length}</strong> visible changes in {scopeLabels[scope]}.</p>
                             <p class="long-copy">
                                 This deliberately long deterministic explanation checks that Panel content
                                 remains readable when a portfolio summary needs more than a single line.
                             </p>
-                        </Panel>
-                        <div id="register">
+                        </Panel> : null}
+                        {activeTab === 'register' ? <div id="register">
                             <SplitView
                                 class="meridian-register"
                                 primarySize="minmax(0, 0.9fr)"
@@ -138,7 +146,10 @@ class DemoApp extends Component {
                                     </>}
                                 </Panel>}
                             />
-                        </div>
+                        </div> : null}
+                        {activeTab === 'change' ? <Panel id="change" header="Selected change">
+                            <p>{currentChange == null ? 'No change is visible in this scope.' : `${currentChange.id}: ${currentChange.title}`}</p>
+                        </Panel> : null}
                         <section class="panel-state-control" aria-label="Panel state control">
                             <label>
                                 <input type="checkbox" bind:checked={this.panelDisabled}/>
