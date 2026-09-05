@@ -40,6 +40,24 @@ test('stable controls expose names and no serious automated accessibility violat
             .toEqual([])
     })
 
+test('Panel exposes its labelled region and live disabled state',
+    async ({page}) => {
+        const root = page.locator('#panel-review-root')
+        const panel = root.getByRole('region', {name: 'Panel review probe'})
+
+        await expect(panel).toBeVisible()
+        await expect(panel).not.toHaveAttribute('data-disabled')
+        await expect(panel).not.toHaveAttribute('aria-disabled')
+
+        await page.evaluate(() => globalThis.frayTest.setPanelReviewDisabled(true))
+        await expect(panel).toHaveAttribute('data-disabled', '')
+        await expect(panel).toHaveAttribute('aria-disabled', 'true')
+
+        const {violations} = await new AxeBuilder({page}).include('#panel-review-root').analyze()
+        expect(violations.filter(({impact}) => impact === 'serious' || impact === 'critical'))
+            .toEqual([])
+    })
+
 test('Sidebar keeps its labelled header and toolbar outside the scrolling content',
     async ({page}) => {
         const sidebar = page.getByRole('complementary', {name: 'Scrollable requests'})

@@ -48,7 +48,7 @@ export class Panel extends Component<PanelProps> {
         return <Host
             id={this.panelId}
             role={header == null ? null : 'region'}
-            className={classNames('panellike', componentClass(this.props))}
+            className={classNames(componentClass(this.props))}
             data-orientation={orientation}
             data-disabled={disabled ? '' : null}
             aria-disabled={disabled ? 'true' : null}

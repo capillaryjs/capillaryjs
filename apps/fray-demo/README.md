@@ -10,5 +10,8 @@ Run it from `framework`:
 pnpm --filter @sylwellsoftware/fray-demo dev
 ```
 
-The lab starts with only the shared foundation. A component family is added
-only after the maintainer has selected its review scope and states.
+The current review slice is `Panel`: Portfolio summary, Current selection, and
+Demo harness use that one Fray component type; their inputs remain native until
+their own reviewed iterations. Its scope, state graph, and verification matrix
+are recorded in
+[`docs/changes/009-css-overhaul/discussions/demo-app-concept/iterations/01-panel.md`](../../../docs/changes/009-css-overhaul/discussions/demo-app-concept/iterations/01-panel.md).

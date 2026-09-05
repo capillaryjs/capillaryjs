@@ -25,6 +25,7 @@ import {
     createHistoryNavigation,
     defineRoute,
     h,
+    live,
     styleRegistry,
 } from '../../src/index.js'
 import {jsx} from '../../src/jsx-runtime.js'
@@ -271,6 +272,19 @@ Panel.new({
     ],
 }).attachTo(requiredElement('#record-primitives-root'))
 
+const panelReviewDisabled = new Emitter(false)
+class PanelReviewProbe extends Component {
+    render() {
+        return h(Panel, {
+            id: 'panel-review-probe',
+            header: 'Panel review probe',
+            disabled: live(panelReviewDisabled),
+            children: 'Static review content',
+        })
+    }
+}
+PanelReviewProbe.new().attachTo(requiredElement('#panel-review-root'))
+
 globalThis.frayTest = {
     setRevision(value) {
         revision.set(value)
@@ -306,6 +320,9 @@ globalThis.frayTest = {
     },
     setProgress(value) {
         primitiveProgress.set(value)
+    },
+    setPanelReviewDisabled(value) {
+        panelReviewDisabled.set(value)
     },
     destroyRouting() {
         return destroyRouting()

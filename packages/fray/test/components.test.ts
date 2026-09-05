@@ -497,10 +497,32 @@ describe('layout controls', () => {
         const section = requiredQuery<HTMLElement>('fray-panel')
         const title = requiredQuery<HTMLElement>('h2')
         assert.equal(section.getAttribute('role'), 'region')
-        assert.equal(section.className, 'panellike')
+        assert.equal(section.className, '')
         assert.equal(section.getAttribute('aria-labelledby'), title.id)
         assert.equal(section.dataset.orientation, 'horizontal')
         assert.equal(requiredQuery('[data-part="content"]', section).textContent, 'Details')
+    })
+
+    test('Panel tracks a live disabled state', () => {
+        const disabled = new Emitter(false)
+        class PanelOwner extends Component {
+            render() {
+                return h(Panel, {
+                    header: 'Review state',
+                    disabled: live(disabled),
+                    children: 'Panel content',
+                })
+            }
+        }
+        PanelOwner.new().attachTo(document.body)
+
+        const panel = requiredQuery<HTMLElement>('fray-panel')
+        assert.equal(panel.hasAttribute('data-disabled'), false)
+        assert.equal(panel.getAttribute('aria-disabled'), null)
+
+        disabled.set(true)
+        assert.equal(panel.hasAttribute('data-disabled'), true)
+        assert.equal(panel.getAttribute('aria-disabled'), 'true')
     })
 
     test('Sidebar labels a native aside and separates fixed controls from content', () => {

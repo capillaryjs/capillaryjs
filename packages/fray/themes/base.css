@@ -310,13 +310,26 @@
       background: var(--header-background);
     }
 
-    .panellike, aside[data-fray], dialog[data-fray] {
+    fray-panel,
+    .panellike,
+    aside[data-fray],
+    dialog[data-fray] {
       color: var(--panel-color);
       background: var(--panel-background);
       border: var(--panel-border);
       border-radius: var(--panel-radius);
       box-shadow: var(--panel-shadow);
     }
+
+    fray-panel > header[data-fray] {
+      padding: var(--space-sm);
+      color: var(--panel-header-color);
+      background: var(--panel-header-background);
+      border-block-end: var(--section-header-border);
+      box-shadow: var(--section-header-shadow);
+    }
+
+    fray-panel[data-disabled] { opacity: 0.65; }
 
     .panelshell {
       border: var(--panel-border);

@@ -4,15 +4,15 @@ body {
     margin: 0;
 }
 
-main {
+.style-lab {
     display: grid;
     gap: 1.5rem;
     width: min(72rem, calc(100% - 2rem));
     margin: 2rem auto;
 }
 
-header,
-section {
+.style-lab > header,
+.style-lab > section {
     max-width: 48rem;
 }
 
@@ -28,4 +28,47 @@ nav {
     display: flex;
     flex-wrap: wrap;
     gap: 1rem;
+}
+
+.meridian-controls label,
+.meridian-controls span,
+.meridian-controls select {
+    display: inline-block;
+}
+
+.meridian-controls label {
+    display: grid;
+    gap: 0.25rem;
+    width: fit-content;
+}
+
+.meridian-panels {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1rem;
+}
+
+.meridian-panels fray-panel {
+    min-height: 12rem;
+}
+
+.long-copy {
+    max-width: 42rem;
+}
+
+.panel-toolbar-note {
+    padding-inline: 0.5rem;
+    font-size: 0.875em;
+}
+
+.panel-state-control label {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+@media (max-width: 42rem) {
+    .meridian-panels {
+        grid-template-columns: 1fr;
+    }
 }

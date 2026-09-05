@@ -22,6 +22,7 @@ interface FrayBrowserTestAPI {
     readonly lifecycleCounts: {initialize: number; destroy: number}
     readonly childSubscribers: number
     setProgress(value: number | null): void
+    setPanelReviewDisabled(value: boolean): void
     destroyRouting(): number
     measureDataTable(rowCount: number): DataTableBenchmarkMetrics
 }

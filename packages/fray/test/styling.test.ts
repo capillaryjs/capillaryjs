@@ -157,13 +157,11 @@ describe('supported theme bundles', () => {
         for (const option of frayThemeOptions) {
             const css = await readFile(fileURLToPath(option.href), 'utf8')
             allThemes += css
-            const resolved = option.value === 'shiny' ? css : `${baseTheme}\n${css}`
+            const resolved = `${baseTheme}\n${css}`
             for (const property of themeRequired) assert.match(resolved, new RegExp(`${property}:`))
             assert.doesNotMatch(resolved, /^\s*--palette-[a-z0-9-]+\s*:/m)
-            if (option.value !== 'shiny') {
-                assert.match(css, /@import "\.\.\/base\.css"/)
-                assert.doesNotMatch(resolved, /@scope|:where\(/)
-            }
+            assert.match(css, /@import "\.\.\/base\.css"/)
+            assert.doesNotMatch(resolved, /@scope|:where\(/)
             for (const trait of ['buttonlike', 'inputlike', 'datacomponentlike',
                 'headerlike', 'coloredlike', 'panellike', 'toolbarlike',
                 'buttonshell', 'buttoninner', 'checkboxshell', 'inputshell', 'inputinner',
@@ -194,6 +192,25 @@ describe('supported theme bundles', () => {
             assert.match(css, /:root\s*\{/)
             assert.doesNotMatch(css, /:where|\[data-color/)
         }
+    })
+
+    test('base owns the Panel host treatment and Shiny overrides only its variables', async () => {
+        const baseTheme = await readFile(
+            fileURLToPath(new URL('../themes/base.css', import.meta.url)),
+            'utf8',
+        )
+        const shinyTheme = await readFile(
+            fileURLToPath(new URL('../themes/shiny/theme.css', import.meta.url)),
+            'utf8',
+        )
+
+        assert.match(baseTheme, /fray-panel\s*,/)
+        assert.match(baseTheme, /fray-panel > header\[data-fray\]/)
+        assert.match(baseTheme, /fray-panel\[data-disabled\]/)
+        assert.match(shinyTheme, /@import "\.\.\/base\.css"/)
+        assert.match(shinyTheme, /--panel-header-background:/)
+        assert.match(shinyTheme, /--section-header-shadow:\s*var\(--shiny-panel-header-shadow\)/)
+        assert.doesNotMatch(shinyTheme, /fray-panel|\.panellike|:where\(/)
     })
 
     test('palette ramp derivation allows palette-controlled hue variation', async () => {
