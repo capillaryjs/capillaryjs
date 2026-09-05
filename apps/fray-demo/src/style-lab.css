@@ -30,6 +30,10 @@ nav {
     gap: 1rem;
 }
 
+.appearance-harness {
+    margin-block-start: 1rem;
+}
+
 .meridian-workspace {
     display: grid;
     grid-template-columns: minmax(13rem, 17rem) minmax(0, 1fr);

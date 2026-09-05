@@ -5,6 +5,7 @@ import {
     Sidebar,
     SplitView,
     TabLine,
+    ThemePicker,
     Toggle,
     createFrayRuntime,
     live,
@@ -19,6 +20,7 @@ type Scope = 'all' | 'north-plant' | 'south-plant' | 'warehouse'
 type ChangeStatus = 'planned' | 'active' | 'completed'
 type DemoFetchState = 'automatic' | 'initial' | 'loading' | 'ready' | 'error'
 type CheckboxState = 'off' | 'on'
+type ThemeState = 'shiny' | 'java' | 'minimal'
 
 type Change = {
     readonly id: string
@@ -45,6 +47,7 @@ const scopeLabels: Record<Scope, string> = {
 class DemoApp extends Component {
     readonly activeTab = new Emitter<'portfolio' | 'register' | 'change' | 'analysis' | null>('portfolio', {purpose: 'Meridian active work area'})
     readonly demoFetchState = new Emitter<DemoFetchState>('automatic', {purpose: 'Meridian demo fetch-state harness'})
+    readonly themeState = new Emitter<ThemeState>('shiny', {purpose: 'Meridian presentation theme'})
     readonly forceDisabledState = new Emitter<CheckboxState>('off', {purpose: 'Meridian force disabled harness'})
     readonly forceRequiredState = new Emitter<CheckboxState>('off', {purpose: 'Meridian force required harness'})
     readonly includeCompletedState = new Emitter<'exclude' | 'include'>('exclude', {purpose: 'Meridian completed-change preference'})
@@ -87,12 +90,20 @@ class DemoApp extends Component {
             <main class="style-lab">
                 <header>
                     <p class="eyebrow">Fray · Meridian Change Office</p>
-                    <h1>Checkbox review</h1>
+                    <h1>ThemePicker review</h1>
                     <p>
                         Deterministic Meridian surfaces for the CSS overhaul.
-                        Checkbox now controls harness availability and a live
-                        preference without introducing server-owned controls.
+                        The presentation theme changes independently of local
+                        Meridian control state and deterministic data.
                     </p>
+                    <div class="appearance-harness">
+                        <ThemePicker
+                            id="meridian-theme"
+                            label="Theme"
+                            valueEmitter={this.themeState}
+                            disabled={live(this.forceDisabled)}
+                        />
+                    </div>
                 </header>
                 <TabLine
                     label="Meridian work areas"
