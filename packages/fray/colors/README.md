@@ -12,6 +12,8 @@ Every palette supplies three complete ramps:
 --palette-neutral-{50,100,200,300,400,500,600,700,800,900,950}
 ```
 
+These ramps are automatically derived from the base `500` values using `color-mix` in `colors/base.css`. A new palette only needs to provide the base values and `@import "../base.css"`.
+
 It also supplies `--palette-<family>`, `--palette-<family>-light`, and
 `--palette-<family>-dark` aliases; `--palette-light`, `--palette-dark`,
 `--palette-contrast-light`, and `--palette-contrast-dark`; and named hue

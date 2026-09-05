@@ -1,0 +1,47 @@
+@charset "utf-8";
+
+@layer palette {
+  :where(:root, [data-color]) {
+      --palette-primary-50: color-mix(in oklch, var(--palette-primary-500) 8%, var(--palette-light));
+      --palette-primary-100: color-mix(in oklch, var(--palette-primary-500) 16%, var(--palette-light));
+      --palette-primary-200: color-mix(in oklch, var(--palette-primary-500) 32%, var(--palette-light));
+      --palette-primary-300: color-mix(in oklch, var(--palette-primary-500) 50%, var(--palette-light));
+      --palette-primary-400: color-mix(in oklch, var(--palette-primary-500) 72%, var(--palette-light));
+      --palette-primary-600: color-mix(in oklch, var(--palette-primary-500) 85%, var(--palette-dark));
+      --palette-primary-700: color-mix(in oklch, var(--palette-primary-500) 72%, var(--palette-dark));
+      --palette-primary-800: color-mix(in oklch, var(--palette-primary-500) 58%, var(--palette-dark));
+      --palette-primary-900: color-mix(in oklch, var(--palette-primary-500) 42%, var(--palette-dark));
+      --palette-primary-950: color-mix(in oklch, var(--palette-primary-500) 28%, var(--palette-dark));
+      --palette-primary: var(--palette-primary-500);
+      --palette-primary-light: var(--palette-primary-200);
+      --palette-primary-dark: var(--palette-primary-800);
+
+      --palette-secondary-50: color-mix(in oklch, var(--palette-secondary-500) 8%, var(--palette-light));
+      --palette-secondary-100: color-mix(in oklch, var(--palette-secondary-500) 16%, var(--palette-light));
+      --palette-secondary-200: color-mix(in oklch, var(--palette-secondary-500) 32%, var(--palette-light));
+      --palette-secondary-300: color-mix(in oklch, var(--palette-secondary-500) 50%, var(--palette-light));
+      --palette-secondary-400: color-mix(in oklch, var(--palette-secondary-500) 72%, var(--palette-light));
+      --palette-secondary-600: color-mix(in oklch, var(--palette-secondary-500) 85%, var(--palette-dark));
+      --palette-secondary-700: color-mix(in oklch, var(--palette-secondary-500) 72%, var(--palette-dark));
+      --palette-secondary-800: color-mix(in oklch, var(--palette-secondary-500) 58%, var(--palette-dark));
+      --palette-secondary-900: color-mix(in oklch, var(--palette-secondary-500) 42%, var(--palette-dark));
+      --palette-secondary-950: color-mix(in oklch, var(--palette-secondary-500) 28%, var(--palette-dark));
+      --palette-secondary: var(--palette-secondary-500);
+      --palette-secondary-light: var(--palette-secondary-200);
+      --palette-secondary-dark: var(--palette-secondary-800);
+
+      --palette-neutral-50: color-mix(in oklch, var(--palette-neutral-500) 6%, var(--palette-light));
+      --palette-neutral-100: color-mix(in oklch, var(--palette-neutral-500) 13%, var(--palette-light));
+      --palette-neutral-200: color-mix(in oklch, var(--palette-neutral-500) 26%, var(--palette-light));
+      --palette-neutral-300: color-mix(in oklch, var(--palette-neutral-500) 43%, var(--palette-light));
+      --palette-neutral-400: color-mix(in oklch, var(--palette-neutral-500) 68%, var(--palette-light));
+      --palette-neutral-600: color-mix(in oklch, var(--palette-neutral-500) 84%, var(--palette-dark));
+      --palette-neutral-700: color-mix(in oklch, var(--palette-neutral-500) 67%, var(--palette-dark));
+      --palette-neutral-800: color-mix(in oklch, var(--palette-neutral-500) 50%, var(--palette-dark));
+      --palette-neutral-900: color-mix(in oklch, var(--palette-neutral-500) 32%, var(--palette-dark));
+      --palette-neutral-950: color-mix(in oklch, var(--palette-neutral-500) 18%, var(--palette-dark));
+      --palette-neutral: var(--palette-neutral-500);
+      --palette-neutral-light: var(--palette-neutral-200);
+      --palette-neutral-dark: var(--palette-neutral-800);
+  }
+}
