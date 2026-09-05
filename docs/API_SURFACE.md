@@ -46,7 +46,7 @@ caller-owned. Application classes and composition roots own service lifetimes.
 | `frayThemeVariableCatalog` | Machine-readable palette/theme variable hierarchy and fallbacks. | Fray styling |
 | `frayThemeOptions`, `frayColorOptions`, `findFrayStylesheetOption`, `replaceFrayStylesheet` | Runtime-selectable treatment and palette catalogs and independent link replacement. | Fray styling |
 | `Button`, `Toolbar` | Action and action-layout primitives, including presentation-only busy state. | Fray controls |
-| `Textbox`, `Dropdown`, `Toggle`, `ThemePicker`, `ColorPicker` | Value controls, including runtime presentation selection. | Fray controls |
+| `Textbox`, `Dropdown`, `Toggle`, `ThemePicker`, `ColorPicker`, `Label` | Value controls and accessible field labeling, including runtime presentation selection. | Fray controls |
 | `Checkbox`, `TriCheckbox`, `QuadCheckbox` | Multi-state controls. | Fray controls |
 | `FilterMode` | Semantic vocabulary used by multi-state controls. | Fray controls |
 | `Panel`, `Sidebar`, `SplitView`, `Tab`, `TabLine`, `TabPanel` | Region, sidebar, split-pane, and tab layout primitives. | Fray layout |
