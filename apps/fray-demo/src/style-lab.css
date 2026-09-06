@@ -1,6 +1,12 @@
 /* Application-owned Meridian layout only. Fray components own their presentation. */
 
+:root {
+    background: var(--ui-background);
+}
+
 body {
+    min-width: 20rem;
+    min-height: 100vh;
     margin: 0;
     color: var(--ui-color);
     background: var(--ui-background);
@@ -9,25 +15,27 @@ body {
     line-height: var(--line-height);
 }
 
-.style-lab {
-    display: grid;
-    gap: var(--space-lg);
-    width: min(76rem, calc(100% - 2rem));
-    margin: 3rem auto;
+button,
+input,
+select {
+    font: inherit;
 }
 
-.style-lab h1,
-.style-lab h2,
-.style-lab p,
-.style-lab dl {
+.meridian-app {
+    display: grid;
+    grid-template-rows: auto minmax(32rem, 1fr) auto;
+    gap: var(--space-md);
+    width: min(96rem, calc(100% - 2rem));
+    min-height: calc(100vh - 2rem);
+    margin: 1rem auto;
+}
+
+.meridian-app h1,
+.meridian-app h2,
+.meridian-app h3,
+.meridian-app p,
+.meridian-app dl {
     margin: 0;
-}
-
-.meridian-masthead,
-.work-area-heading,
-.demo-harness {
-    display: grid;
-    gap: var(--space-sm);
 }
 
 .eyebrow {
@@ -37,113 +45,347 @@ body {
     text-transform: uppercase;
 }
 
+.meridian-masthead {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-lg);
+    padding: var(--space-md) var(--space-lg);
+    background: var(--panel-background);
+    border: var(--panel-border);
+    border-radius: var(--panel-radius);
+    box-shadow: var(--panel-shadow);
+}
+
+.meridian-masthead > div {
+    display: grid;
+    gap: var(--space-xs);
+}
+
 .meridian-shell {
     display: grid;
-    grid-template-columns: minmax(13rem, 18rem) minmax(0, 1fr);
-    min-block-size: 34rem;
-}
-
-.meridian-scope {
-    min-block-size: 0;
-}
-
-.meridian-workspace {
-    display: flex;
+    grid-template-columns: minmax(15rem, 18rem) minmax(0, 1fr);
     min-width: 0;
     min-height: 0;
+    overflow: hidden;
 }
 
-.meridian-workspace > fray-tabpanel {
-    flex: 1;
-    min-width: 0;
-    min-height: 0;
-}
-
+.meridian-scope,
+.meridian-workspace,
+.meridian-workspace > fray-tabpanel,
 .meridian-workspace > fray-tabpanel > [role="tabpanel"] {
     min-width: 0;
     min-height: 0;
 }
 
+.meridian-workspace {
+    display: flex;
+}
+
+.meridian-workspace > fray-tabpanel {
+    flex: 1;
+}
+
+.scope-content {
+    display: grid;
+    align-content: start;
+    gap: var(--space-md);
+    padding: var(--space-md);
+}
+
 .work-area {
     display: grid;
     align-content: start;
-    gap: var(--space-lg);
+    gap: var(--space-md);
     min-height: 100%;
-    padding: var(--space-lg);
-    background: var(--ui-medium-bg-color);
+    padding: var(--space-md);
+    box-sizing: border-box;
 }
 
-.portfolio-grid {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: var(--space-lg);
-}
-
-.attention-queue {
+.work-area-heading {
     display: grid;
     gap: var(--space-xs);
-    margin: 0;
-    padding: 0;
-    list-style: none;
 }
 
-.meridian-register {
-    min-block-size: 22rem;
+.work-area-heading > p:last-child {
+    color: var(--ui-muted-text-color);
+}
+
+.portfolio-summary-grid,
+.portfolio-detail-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-md);
+}
+
+.portfolio-detail-grid {
+    min-height: 20rem;
+}
+
+.portfolio-detail-grid > fray-panel {
+    min-height: 0;
+}
+
+.metric-row {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--space-sm);
+}
+
+.metric-row p {
+    display: grid;
+    gap: var(--space-xs);
+    padding: var(--space-sm);
+    background: var(--palette-neutral-100);
+    border-radius: var(--radius-sm);
+}
+
+.metric-row strong {
+    font-size: 1.75rem;
+}
+
+.metric-row span,
+.supporting-copy,
+.attention-list small {
+    color: var(--ui-muted-text-color);
+}
+
+.attention-list {
+    min-height: 13rem;
+}
+
+.attention-item {
+    display: flex;
+    min-width: 0;
+    width: 100%;
+    gap: var(--space-sm);
+}
+
+.attention-item > span {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.attention-item > small {
+    margin-inline-start: auto;
+}
+
+.selected-change-callout {
+    display: grid;
+    gap: var(--space-sm);
+}
+
+.register-area {
+    grid-template-rows: auto auto minmax(24rem, 1fr);
+}
+
+.register-controls {
+    position: relative;
+    z-index: 2;
+}
+
+.register-filter-grid {
+    display: grid;
+    grid-template-columns: minmax(15rem, 2fr) minmax(10rem, 1fr) minmax(12rem, 1fr);
+    align-items: end;
+    gap: var(--space-md);
+}
+
+.semantic-filter-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: end;
+    gap: var(--space-md);
 }
 
 .advanced-risk-filter {
     position: relative;
-    z-index: 1;
     width: max-content;
+    z-index: 3;
 }
 
-.change-facts > dl {
+.meridian-register {
+    min-width: 0;
+    min-height: 24rem;
+}
+
+.compact-facts,
+.reactive-consequences {
     display: grid;
-    grid-template-columns: repeat(3, auto minmax(0, 1fr));
-    column-gap: var(--space-sm);
-    row-gap: var(--space-xs);
+    gap: var(--space-xs);
 }
 
+.compact-facts > div,
+.reactive-consequences > div {
+    display: grid;
+    grid-template-columns: minmax(5rem, auto) minmax(0, 1fr);
+    gap: var(--space-sm);
+}
+
+.compact-facts dt,
+.reactive-consequences dt,
 .change-facts dt {
     font-weight: 700;
 }
 
+.compact-facts dd,
+.reactive-consequences dd,
 .change-facts dd {
+    min-width: 0;
     margin: 0;
 }
 
-.demo-harness {
-    border-top: 1px solid var(--ui-border-color);
-    padding-top: var(--space-md);
+.change-layout {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-md);
 }
 
-.demo-harness label {
+.change-facts > dl {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(5rem, auto) minmax(0, 1fr));
+    gap: var(--space-xs) var(--space-md);
+}
+
+.asset-list {
+    display: grid;
+    gap: var(--space-xs);
+    margin: 0;
+    padding-inline-start: 1.25rem;
+}
+
+.future-content {
+    color: var(--ui-muted-text-color);
+}
+
+.analysis-layout {
+    display: grid;
+    grid-template-columns: minmax(16rem, 1fr) minmax(24rem, 2fr);
+    gap: var(--space-md);
+    min-height: 30rem;
+}
+
+.analysis-layout .history-panel {
+    grid-column: 1 / -1;
+}
+
+.feature-placeholder {
+    display: grid;
+    align-content: center;
+    justify-items: center;
+    gap: var(--space-xs);
+    min-height: 8rem;
+    padding: var(--space-md);
+    color: var(--ui-muted-text-color);
+    background: var(--palette-neutral-100);
+    border: 1px dashed var(--ui-border-color);
+    border-radius: var(--radius-md);
+    box-sizing: border-box;
+    text-align: center;
+}
+
+.feature-placeholder span {
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+.feature-placeholder strong {
+    color: var(--ui-color);
+}
+
+.feature-placeholder.compact {
+    min-height: 0;
+    padding: var(--space-sm) var(--space-md);
+}
+
+.meridian-masthead .feature-placeholder {
+    max-width: 22rem;
+}
+
+.demo-harness {
+    display: grid;
+    grid-template-columns: auto minmax(25rem, 1fr) minmax(22rem, 1fr) minmax(18rem, auto);
+    align-items: center;
+    gap: var(--space-md);
+    padding: var(--space-md);
+    background: var(--panel-background);
+    border: var(--panel-border);
+    border-radius: var(--panel-radius);
+    box-shadow: var(--panel-shadow);
+}
+
+.harness-heading {
+    display: grid;
+    gap: var(--space-xs);
+}
+
+.harness-switches {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-xs) var(--space-md);
+}
+
+.harness-switches label {
     display: flex;
     align-items: center;
-    gap: var(--space-sm);
+    gap: var(--space-xs);
 }
 
-.native-toolbar {
-    padding: var(--space-sm) var(--space-md);
-    background: var(--ui-medium-bg-color);
-}
-
-@media (max-width: 42rem) {
-    .style-lab {
-        margin-block: 1rem;
+@media (max-width: 72rem) {
+    .meridian-app {
+        grid-template-rows: auto auto auto;
     }
 
+    .demo-harness {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .register-filter-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 50rem) {
+    .meridian-app {
+        width: min(100% - 1rem, 96rem);
+        margin-block: 0.5rem;
+    }
+
+    .meridian-masthead,
     .meridian-shell,
-    .portfolio-grid,
-    .change-facts > dl {
-        grid-template-columns: auto minmax(0, 1fr);
+    .portfolio-summary-grid,
+    .portfolio-detail-grid,
+    .change-layout,
+    .analysis-layout,
+    .demo-harness,
+    .register-filter-grid {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .meridian-masthead {
+        display: grid;
+    }
+
+    .meridian-shell {
+        overflow: visible;
     }
 
     .meridian-scope {
-        min-block-size: 16rem;
+        min-height: 22rem;
     }
 
-    .advanced-risk-filter {
-        width: auto;
+    .analysis-layout .history-panel {
+        grid-column: auto;
+    }
+
+    .change-facts > dl {
+        grid-template-columns: minmax(5rem, auto) minmax(0, 1fr);
+    }
+
+    .harness-switches {
+        grid-template-columns: minmax(0, 1fr);
     }
 }

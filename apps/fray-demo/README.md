@@ -1,8 +1,8 @@
 # Fray style lab
 
 This public, non-publishable workspace application is Fray's deterministic CSS
-review harness. It has been reset to a native application shell so Change 009
-can approve one Fray component at a time.
+review harness. It composes the approved Change 009 components into the
+Meridian Change Office reference application.
 
 Run it from `framework`:
 
@@ -16,22 +16,17 @@ component dependencies, an external `colors.css` link, and an external
 `theme.css` link. The runtime-injected structural stylesheet is the only inline
 Fray stylesheet. `style-lab.css` is separate application-owned page layout.
 
-The current Meridian Change Office registers `Button`, `Checkbox`, `DataTable`,
-`DescriptionItem`, `DescriptionList`, `Dialog`, `Dropdown`, `FilterPanel`, `Panel`,
-`Placeholder`, `ProgressBar`, `QuadCheckbox`, `RadioButton`,
-`RadioGroup`, `Sidebar`, `SplitView`, `TabPanel`, `Textbox`, `Toggle`,
-`Toolbar`, `TableHeader`, `TableHeaderCell`, and `TriCheckbox`, so their structural CSS remains reachable and
-unrelated component CSS remains absent. Application-owned scope, status,
-search, risk, and attention state update Portfolio, Register, and Change
-together. Sidebar scope uses RadioGroup; TabPanel now owns the work-area
-switching, preserves inactive work areas, and registers the application-owned
-`#/portfolio`, `#/register`, and `#/change` routes; SplitView belongs in
-Register; DataTable now supplies its selectable Change Register, with
-application-owned sort and filter emitters; ProgressBar presents Portfolio
-completion; and FilterPanel reports Meridian's application-owned advanced
-risk-map replacements as well as the table Risk filter. Native
-review-harness controls exercise documented availability and validation states
-outside the application shell.
+The application has a persistent masthead, scope sidebar, routed Portfolio,
+Register, Change, and Analysis work areas, and a bottom review harness.
+Application policy and reactive state live in `src/app/model`; each shell area
+and screen is an independent application component under `src/app/components`
+or `src/app/screens`. `main.tsx` is bootstrap only.
+
+Only approved public Fray types are instantiated. The pending `TreeView`,
+`TreeItem`, `CategoryHidePanel`, `SplitSelectionPanel`, `BlockGraph`, and
+`LineGraph` roles remain visible as named application placeholders, as do the
+future header appearance controls. This preserves the intended overall layout
+without importing unreviewed component CSS.
 
 The retired Meridian iterations remain historical evidence under
 [`docs/changes/009-css-overhaul/discussions/demo-app-concept/iterations/`](../../../docs/changes/009-css-overhaul/discussions/demo-app-concept/iterations/).
