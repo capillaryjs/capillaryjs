@@ -2,7 +2,7 @@ import assert from 'node:assert/strict'
 import {after, afterEach, before, describe, test} from 'node:test'
 import {Window} from 'happy-dom'
 
-import {Emitter} from '@sylwellsoftware/glue'
+import {Emitter, FetchState} from '@sylwellsoftware/glue'
 import {
     Button,
     Checkbox,
@@ -144,13 +144,15 @@ describe('action and text controls', () => {
     })
 
     test('Textbox supports internal state, callbacks, labels, and errors', () => {
+        const inputs: string[] = []
         const changes: string[] = []
         const textbox = Textbox.new({
             label: 'Name',
             defaultValue: 'Ada',
             required: true,
             error: 'Use a full name',
-            onInput: (value) => changes.push(value),
+            onInput: (value) => inputs.push(value),
+            onChange: (value) => changes.push(value),
         }).attachTo(document.body)
         const input = requiredQuery<HTMLInputElement>('input')
         const label = requiredQuery<HTMLLabelElement>('label')
@@ -168,6 +170,10 @@ describe('action and text controls', () => {
         input.value = 'Ada Lovelace'
         input.dispatchEvent(new Event('input', {bubbles: true}))
         assert.equal(textbox.valueEmitter.get(), 'Ada Lovelace')
+        assert.deepEqual(inputs, ['Ada Lovelace'])
+        assert.deepEqual(changes, [])
+
+        input.dispatchEvent(new Event('change', {bubbles: true}))
         assert.deepEqual(changes, ['Ada Lovelace'])
     })
 
@@ -182,6 +188,59 @@ describe('action and text controls', () => {
         assert.equal(valueEmitter.subscriberCount, 1)
         textbox.destroy()
         assert.equal(valueEmitter.subscriberCount, 0)
+    })
+
+    test('Textbox forwards native input modes and live availability', () => {
+        const value = new Emitter('CR-104')
+        const disabled = new Emitter(false)
+        const required = new Emitter(false)
+        const readOnly = new Emitter(false)
+        const error = new Emitter<string | null>(null)
+        class TextboxOwner extends Component {
+            render() {
+                return h(Textbox, {
+                    label: 'Search changes',
+                    valueEmitter: value,
+                    type: 'search',
+                    placeholder: 'Search by title or change ID',
+                    minLength: 2,
+                    maxLength: 80,
+                    pattern: '[A-Za-z0-9 -]*',
+                    autoComplete: 'off',
+                    inputMode: 'search',
+                    disabled: live(disabled),
+                    required: live(required),
+                    readOnly: live(readOnly),
+                    error: live(error),
+                })
+            }
+        }
+        TextboxOwner.new().attachTo(document.body)
+        const input = requiredQuery<HTMLInputElement>('input')
+
+        assert.equal(input.type, 'search')
+        assert.equal(input.placeholder, 'Search by title or change ID')
+        assert.equal(input.getAttribute('minlength'), '2')
+        assert.equal(input.getAttribute('maxlength'), '80')
+        assert.equal(input.pattern, '[A-Za-z0-9 -]*')
+        assert.equal(input.getAttribute('autocomplete'), 'off')
+        assert.equal(input.getAttribute('inputmode'), 'search')
+        value.set('A deliberately very long external Meridian search value')
+        assert.equal(input.value, 'A deliberately very long external Meridian search value')
+        value.setWithState(value.get(), FetchState.Loading)
+        assert.equal(input.value, 'A deliberately very long external Meridian search value')
+        assert.equal(input.parentElement?.hasAttribute('data-loading'), false)
+
+        disabled.set(true)
+        required.set(true)
+        readOnly.set(true)
+        error.set('Search is temporarily unavailable')
+        assert.equal(input.disabled, true)
+        assert.equal(input.required, true)
+        assert.equal(input.readOnly, true)
+        assert.equal(input.getAttribute('aria-invalid'), 'true')
+        assert.equal(requiredQuery<HTMLElement>('[role="alert"]').textContent,
+            'Search is temporarily unavailable')
     })
 })
 

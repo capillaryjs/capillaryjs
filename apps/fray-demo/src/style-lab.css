@@ -94,6 +94,12 @@ nav {
     max-inline-size: 22rem;
 }
 
+.register-search-event {
+    margin: 0;
+    color: var(--ui-muted-text-color);
+    font-size: 0.875em;
+}
+
 .register-list {
     display: grid;
     gap: 0.5rem;

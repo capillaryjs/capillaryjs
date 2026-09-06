@@ -2,17 +2,17 @@ import {
     Component,
     Checkbox,
     ColorPicker,
-    Label,
     Panel,
     Sidebar,
     SplitView,
     TabLine,
     ThemePicker,
+    Textbox,
     Toggle,
     createFrayRuntime,
     live,
 } from '@sylwellsoftware/fray'
-import {DerivedEmitter, Emitter} from '@sylwellsoftware/glue'
+import {DerivedEmitter, Emitter, FetchState} from '@sylwellsoftware/glue'
 import '../../../packages/fray/styles/structural.css'
 import '../../../packages/fray/colors/iceblue/colors.css'
 import '../../../packages/fray/themes/shiny/theme.css'
@@ -53,6 +53,7 @@ class DemoApp extends Component {
     readonly colorState = new Emitter('iceblue', {purpose: 'Meridian presentation palette'})
     readonly registerFilterLabel = new Emitter('Search the change register', {purpose: 'Meridian Register filter label'})
     readonly registerSearchDraft = new Emitter('', {purpose: 'Meridian Register search draft'})
+    readonly registerSearchEvent = new Emitter('No search interaction yet.', {purpose: 'Meridian Register search interaction'})
     readonly forceDisabledState = new Emitter<CheckboxState>('off', {purpose: 'Meridian force disabled harness'})
     readonly forceRequiredState = new Emitter<CheckboxState>('off', {purpose: 'Meridian force required harness'})
     readonly includeCompletedState = new Emitter<'exclude' | 'include'>('exclude', {purpose: 'Meridian completed-change preference'})
@@ -70,11 +71,16 @@ class DemoApp extends Component {
         {purpose: 'Meridian effective forced required state'},
     )
     readonly visibleChanges = new DerivedEmitter(
-        [this.selectedScope, this.statusFocus, this.includeCompletedState] as const,
-        ([scope, statusFocus, includeCompleted]) => changes.filter((change) =>
-            (scope === 'all' || change.site === scope)
-            && (statusFocus === 'all' || change.status === statusFocus)
-            && (includeCompleted === 'include' || change.status !== 'completed')),
+        [this.selectedScope, this.statusFocus, this.includeCompletedState, this.registerSearchDraft] as const,
+        ([scope, statusFocus, includeCompleted, search]) => {
+            const normalizedSearch = search.trim().toLocaleLowerCase()
+            return changes.filter((change) =>
+                (scope === 'all' || change.site === scope)
+                && (statusFocus === 'all' || change.status === statusFocus)
+                && (includeCompleted === 'include' || change.status !== 'completed')
+                && (normalizedSearch === ''
+                    || `${change.id} ${change.title}`.toLocaleLowerCase().includes(normalizedSearch)))
+        },
         {purpose: 'Meridian visible changes'},
     )
     readonly currentChange = new DerivedEmitter(
@@ -92,16 +98,17 @@ class DemoApp extends Component {
         const activeTab = this.read(this.activeTab)
         const demoFetchState = this.read(this.demoFetchState)
         const forceDisabled = this.read(this.forceDisabled)
-        const registerSearchDraft = this.read(this.registerSearchDraft)
+        const registerFilterLabel = this.read(this.registerFilterLabel)
+        const registerSearchEvent = this.read(this.registerSearchEvent)
         return (
             <main class="style-lab">
                 <header>
                     <p class="eyebrow">Fray · Meridian Change Office</p>
-                    <h1>Label review</h1>
+                    <h1>Textbox review</h1>
                     <p>
                         Deterministic Meridian surfaces for the CSS overhaul.
-                        The Register filter form begins with a native field and
-                        a Fray Label before its Textbox replacement.
+                        The Register search now uses a Fray Textbox to update
+                        the existing Meridian views as its value changes.
                     </p>
                     <div class="appearance-harness">
                         <ThemePicker
@@ -194,21 +201,25 @@ class DemoApp extends Component {
                                 primary={<Panel header="Change register">
                                     <p class="register-intro">Visible changes in {scopeLabels[scope]}.</p>
                                     <form class="register-filter" onSubmit={(event: Event) => event.preventDefault()}>
-                                        <Label
-                                            htmlFor="register-search"
-                                            text={live(this.registerFilterLabel)}
-                                        />
-                                        <input
+                                        <Textbox
                                             id="register-search"
+                                            label={registerFilterLabel}
                                             type="search"
-                                            value={registerSearchDraft}
+                                            valueEmitter={this.registerSearchDraft}
                                             placeholder="Search by title or change ID"
-                                            disabled={forceDisabled}
-                                            onInput={(event: Event) => this.registerSearchDraft.set(
-                                                (event.currentTarget as HTMLInputElement).value,
-                                                'Meridian Register search draft changed',
+                                            minLength={2}
+                                            maxLength={80}
+                                            pattern="[A-Za-z0-9 -]*"
+                                            disabled={live(this.forceDisabled)}
+                                            required={live(this.forceRequired)}
+                                            onInput={(value) => this.registerSearchEvent.set(
+                                                `Input observed: ${value || 'empty search'}.`,
+                                            )}
+                                            onChange={(value) => this.registerSearchEvent.set(
+                                                `Change observed: ${value || 'empty search'}.`,
                                             )}
                                         />
+                                        <p class="register-search-event">{registerSearchEvent}</p>
                                     </form>
                                     <div class="register-list" role="group" aria-label="Visible changes">
                                         {visibleChanges.map((change) =>
@@ -268,6 +279,20 @@ class DemoApp extends Component {
                                 ]}
                                 valueEmitter={this.demoFetchState}
                                 disabled={live(this.forceDisabled)}
+                                onChange={(state) => {
+                                    const search = this.registerSearchDraft.get()
+                                    if (state === 'automatic') {
+                                        this.registerSearchDraft.set(search,
+                                            'Meridian automatic search fetch state')
+                                        return
+                                    }
+                                    this.registerSearchDraft.setWithState(
+                                        search,
+                                        state === 'error' ? FetchState.Error : state,
+                                        state === 'error' ? new Error('Forced Register search state') : null,
+                                        'Meridian forced search fetch state',
+                                    )
+                                }}
                             />
                             <p>
                                 Harness mode: <strong>{demoFetchState}</strong>. Selected scope:

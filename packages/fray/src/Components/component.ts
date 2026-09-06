@@ -1350,6 +1350,10 @@ function normalizePropertyName(key: string): string {
 function normalizeAttributeName(key: string): string {
     if (key === 'className') return 'class'
     if (key === 'htmlFor') return 'for'
+    if (key === 'minLength') return 'minlength'
+    if (key === 'maxLength') return 'maxlength'
+    if (key === 'autoComplete') return 'autocomplete'
+    if (key === 'inputMode') return 'inputmode'
     if (/^aria[A-Z]/.test(key)) return camelToKebab(key)
     if (/^data[A-Z]/.test(key)) return camelToKebab(key)
     return key.replace(/[A-Z]/g, (letter) => `-${letter.toLowerCase()}`)

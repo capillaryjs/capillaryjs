@@ -20,6 +20,7 @@
     --panel-radius: 0;
     --panel-header-background: var(--shiny-panel-header-background);
     --panel-header-color: var(--palette-contrast-light);
+    --input-shadow: inset -1px 1px 3px -2px color-mix(in oklch, var(--palette-dark) 58%, transparent);
     --input-color-disabled: color-mix(in oklch, var(--palette-neutral-700) 48%, var(--palette-light));
     --section-header-shadow: var(--shiny-panel-header-shadow);
     --sidebar-background:

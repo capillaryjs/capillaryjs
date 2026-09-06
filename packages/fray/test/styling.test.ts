@@ -224,6 +224,7 @@ describe('supported theme bundles', () => {
         assert.match(shinyTheme, /--button-background-hover:\s*var\(--shiny-ui-gradient\)/)
         assert.match(shinyTheme, /--button-border:\s*1px solid var\(--palette-light\)/)
         assert.match(shinyTheme, /--button-shadow:\s*-1px 1px 2px 1px/)
+        assert.match(shinyTheme, /--input-shadow:\s*inset -1px 1px 3px -2px/)
         assert.match(shinyTheme, /--tabline-background:\s*var\(--shiny-ui-gradient-2\)/)
         assert.match(baseTheme, /\[role="radiogroup"\]\[data-fray\] \{\n\s+inline-size: fit-content/)
         assert.match(shinyTheme, /--toggle-button-shadow:\s*none/)
