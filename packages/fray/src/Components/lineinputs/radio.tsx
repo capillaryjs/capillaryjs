@@ -1,4 +1,4 @@
-import {Component, css} from '../component.js'
+import {Component, css, h} from '../component.js'
 import type {
     ComponentProps,
     FrayChild,
@@ -56,12 +56,7 @@ export class RadioButton extends Component<RadioButtonProps> {
             error = null,
         } = this.props
         const Host = this.Host
-        return <Host
-            className={componentClass(this.props) || null}
-            data-disabled={disabled ? '' : null}
-            data-required={required ? '' : null}
-            data-error={error == null ? null : ''}
-        >
+        return <Host className={componentClass(this.props) || null}>
             <label htmlFor={this.inputId}>
                 <input
                     id={this.inputId}
@@ -76,8 +71,8 @@ export class RadioButton extends Component<RadioButtonProps> {
                     onChange={(event: Event) => invoke(this.props.onChange,
                         (event.currentTarget as HTMLInputElement).checked, event)}
                 />
-                <span className="radioshell" aria-hidden="true" />
-                <span>{label}</span>
+                {h('fray-radioshell', {'aria-hidden': 'true'})}
+                {label}
             </label>
             {error == null ? null : <p id={this.errorId} role="alert">{String(error)}</p>}
         </Host>
@@ -87,22 +82,25 @@ export class RadioButton extends Component<RadioButtonProps> {
 
     static css = css`
         & {
-            display: inline-block;
+            display: inline-flex;
         }
 
         & > label {
-            display: inline-flex;
+            display: flex;
+            flex-flow: row nowrap;
             align-items: center;
-            gap: 0.35em;
+            height: 1.2em;
+            gap: .3em;
             cursor: pointer;
             user-select: none;
         }
 
-        &[data-disabled] > label {
+        & > label:has(> input[type="radio"]:disabled) {
+            color: #aaa;
             cursor: not-allowed;
         }
 
-        & input[type="radio"] {
+        & > label > input[type="radio"] {
             position: absolute;
             width: 1px;
             height: 1px;
@@ -114,39 +112,44 @@ export class RadioButton extends Component<RadioButtonProps> {
             border: 0;
         }
 
-        & input[type="radio"] + .radioshell {
+        & > label > input[type="radio"] + fray-radioshell {
             position: relative;
-            display: inline-grid;
+            display: flex;
             width: 1em;
             height: 1em;
             flex: 0 0 1em;
             box-sizing: border-box;
-            border: var(--radio-box-border, var(--input-border, 1px solid currentColor));
-            border-radius: 50%;
-            background: var(--radio-background, var(--ui-input-bg, transparent));
-            place-items: center;
+            border: var(--checkbox-box-border);
+            border-radius: 1em;
+            background: var(--checkbox-box-background);
+            box-shadow: var(--checkbox-box-shadow);
+            align-content: center;
+            justify-content: center;
+            align-items: center;
+            justify-items: center;
         }
 
-        & input[type="radio"]:checked + .radioshell {
-            background: var(--radio-background-checked,
-                var(--selection-background, var(--ui-accent-color, Highlight)));
+        & > label > input[type="radio"]:checked + fray-radioshell {
+            background: var(--checkbox-box-background-checked);
+            box-shadow: var(--checkbox-box-shadow-checked);
         }
 
-        & input[type="radio"]:checked + .radioshell::after {
-            width: 0.4em;
-            height: 0.4em;
+        & > label > input[type="radio"]:checked + fray-radioshell::after {
+            width: .4em;
+            height: .4em;
             content: "";
             border-radius: 50%;
-            background: var(--radio-dot-color, var(--selection-color, Canvas));
+            background: var(--checkbox-symbol-color);
         }
 
-        & input[type="radio"]:focus-visible + .radioshell {
-            outline: 2px solid var(--focus-color, var(--ui-accent-color, Highlight));
+        & > label > input[type="radio"]:focus-visible + fray-radioshell {
+            outline: 2px solid var(--focus-color);
             outline-offset: 1px;
         }
 
-        & input[type="radio"]:disabled + .radioshell {
+        & > label > input[type="radio"]:disabled + fray-radioshell {
             opacity: 0.6;
+            filter: saturate(0.6);
         }
     `
 }

@@ -1,4 +1,4 @@
-import {Component, css} from '../component.js'
+import {Component, css, h} from '../component.js'
 import type {ComponentProps, FrayChild} from '../component.js'
 import {classNames, componentClass} from '../controlUtils.js'
 
@@ -34,18 +34,16 @@ export class SplitView extends Component<SplitViewProps> {
             className={classNames(componentClass(this.props), direction)}
             style={primarySize == null ? undefined : {'--split-primary-size': primarySize}}
         >
-            <div
-                className="primary"
-                role={primaryLabel == null ? null : 'region'}
-                aria-label={primaryLabel}
-                tabIndex={0}
-            >{primary}</div>
-            <div
-                className="secondary"
-                role={secondaryLabel == null ? null : 'region'}
-                aria-label={secondaryLabel}
-                tabIndex={0}
-            >{secondary ?? this.props.children ?? []}</div>
+            {h('fray-primary', {
+                role: primaryLabel == null ? null : 'region',
+                'aria-label': primaryLabel,
+                tabIndex: 0,
+            }, primary)}
+            {h('fray-secondary', {
+                role: secondaryLabel == null ? null : 'region',
+                'aria-label': secondaryLabel,
+                tabIndex: 0,
+            }, secondary ?? this.props.children ?? [])}
         </Host>
     }
 
@@ -68,26 +66,26 @@ export class SplitView extends Component<SplitViewProps> {
             flex-direction: column;
         }
 
-        & > .primary {
+        & > fray-primary {
             flex: 0 1 var(--split-primary-size, 40%);
         }
 
-        & > .secondary {
+        & > fray-secondary {
             flex: 1;
         }
 
-        & > .primary,
-        & > .secondary {
+        & > fray-primary,
+        & > fray-secondary {
             min-width: 0;
             min-height: 0;
             overflow: auto;
         }
 
-        &.horizontal > .primary {
+        &.horizontal > fray-primary {
             border-inline-end: 1px solid var(--ui-border-color);
         }
 
-        &.vertical > .primary {
+        &.vertical > fray-primary {
             border-block-end: 1px solid var(--ui-border-color);
         }
     `

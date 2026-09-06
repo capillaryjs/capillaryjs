@@ -1,4 +1,4 @@
-/* Application-owned page layout only. Fray components own their presentation. */
+/* Application-owned Meridian layout only. Fray components own their presentation. */
 
 body {
     margin: 0;
@@ -8,17 +8,12 @@ body {
     font-size: var(--font-size);
     line-height: var(--line-height);
 }
+
 .style-lab {
     display: grid;
     gap: var(--space-lg);
-    width: min(64rem, calc(100% - 2rem));
+    width: min(76rem, calc(100% - 2rem));
     margin: 3rem auto;
-}
-
-.style-lab > header,
-.review-controls {
-    display: grid;
-    gap: var(--space-sm);
 }
 
 .style-lab h1,
@@ -28,6 +23,13 @@ body {
     margin: 0;
 }
 
+.meridian-masthead,
+.work-area-heading,
+.demo-harness {
+    display: grid;
+    gap: var(--space-sm);
+}
+
 .eyebrow {
     font-size: 0.75rem;
     font-weight: 700;
@@ -35,38 +37,93 @@ body {
     text-transform: uppercase;
 }
 
-.review-controls label {
-    display: flex;
-    align-items: center;
-    gap: var(--space-sm);
+.meridian-shell {
+    display: grid;
+    grid-template-columns: minmax(13rem, 18rem) minmax(0, 1fr);
+    min-block-size: 34rem;
 }
 
-.approved-grid {
+.meridian-scope {
+    min-block-size: 0;
+}
+
+.meridian-workspace {
+    display: grid;
+    grid-template-rows: auto minmax(0, 1fr);
+    min-width: 0;
+    min-height: 0;
+}
+
+.meridian-workspace > [role="tabpanel"] {
+    min-width: 0;
+    min-height: 0;
+}
+
+.work-area {
+    display: grid;
+    align-content: start;
+    gap: var(--space-lg);
+    min-height: 100%;
+    padding: var(--space-lg);
+    background: var(--ui-medium-bg-color);
+}
+
+.portfolio-grid {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: var(--space-lg);
 }
 
-.sidebar-example {
-    height: 18rem;
-}
-
-.approved-grid p,
-.sidebar-example p,
-.splitview-example p {
-    margin: 0;
-}
-
-.approved-grid ul,
+.scope-list,
 .change-register {
     display: grid;
     gap: var(--space-sm);
     margin: 0;
-    padding-inline-start: 1.25rem;
+    padding: var(--space-sm);
+    list-style: none;
 }
 
-.splitview-example {
-    height: 22rem;
+.change-register button {
+    width: 100%;
+    text-align: start;
+}
+
+.change-register button[aria-pressed="true"] {
+    font-weight: 700;
+}
+
+.meridian-register {
+    min-block-size: 22rem;
+}
+
+.change-facts {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--space-md);
+}
+
+.change-facts div {
+    display: grid;
+    gap: var(--space-xs);
+}
+
+.change-facts dt {
+    font-weight: 700;
+}
+
+.change-facts dd {
+    margin: 0;
+}
+
+.demo-harness {
+    border-top: 1px solid var(--ui-border-color);
+    padding-top: var(--space-md);
+}
+
+.demo-harness label {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
 }
 
 .native-toolbar {
@@ -79,7 +136,13 @@ body {
         margin-block: 1rem;
     }
 
-    .approved-grid {
+    .meridian-shell,
+    .portfolio-grid,
+    .change-facts {
         grid-template-columns: 1fr;
+    }
+
+    .meridian-scope {
+        min-block-size: 16rem;
     }
 }

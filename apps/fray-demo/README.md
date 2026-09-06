@@ -16,12 +16,15 @@ component dependencies, an external `colors.css` link, and an external
 `theme.css` link. The runtime-injected structural stylesheet is the only inline
 Fray stylesheet. `style-lab.css` is separate application-owned page layout.
 
-The current fourth slice introduces `SplitView` while retaining every approved
-component the page still displays: `Header`, `Panel`, and `Sidebar`. The root
-registers exactly those four types, so their CSS remains reachable and every
-other component's CSS remains absent. The lab covers SplitView's labelled,
-bounded horizontal panes and explicit primary size, alongside the earlier
-Panel/Sidebar states and native application content.
+The current Meridian Change Office registers `Button`, `Checkbox`, `Dropdown`,
+`Header`, `Panel`, `ProgressBar`, `RadioButton`, `Sidebar`, `SplitView`,
+`TabLine`, `Textbox`, `Toggle`, and `Toolbar`, so their structural CSS remains
+reachable and unrelated component CSS remains absent. Application-owned scope,
+status, search, risk, and attention state update Portfolio, Register, and
+Change together. Sidebar scope uses the native RadioButton group; TabLine is
+the work-area navigation; SplitView belongs in Register; ProgressBar presents
+Portfolio completion; and native review-harness controls exercise documented
+availability and validation states outside the application shell.
 
 The retired Meridian iterations remain historical evidence under
 [`docs/changes/009-css-overhaul/discussions/demo-app-concept/iterations/`](../../../docs/changes/009-css-overhaul/discussions/demo-app-concept/iterations/).

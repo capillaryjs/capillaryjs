@@ -53,26 +53,29 @@ export class Button extends Component<ButtonProps> {
         const content = busy ? (busyLabel ?? normalContent) : normalContent
         const unavailable = disabled || busy
 
-        return <button
-            id={id}
-            name={name}
-            value={value == null ? undefined : String(value)}
-            title={title}
-            type={type}
-            disabled={unavailable}
-            className={componentClass(this.props) || undefined}
-            data-fray-component="button"
-            aria-label={ariaLabel}
-            aria-pressed={pressed == null ? null : String(Boolean(pressed))}
-            aria-busy={busy ? 'true' : null}
-            onClick={(event: MouseEvent) => {
-                if (!unavailable) invoke(onClick, event)
-            }}
-        >{content}</button>
+        const Host = this.Host
+        return <Host className={componentClass(this.props) || null}>
+            <button
+                id={id}
+                name={name}
+                value={value == null ? undefined : String(value)}
+                title={title}
+                type={type}
+                disabled={unavailable}
+                aria-label={ariaLabel}
+                aria-pressed={pressed == null ? null : String(Boolean(pressed))}
+                aria-busy={busy ? 'true' : null}
+                onClick={(event: MouseEvent) => {
+                    if (!unavailable) invoke(onClick, event)
+                }}
+            >{content}</button>
+        </Host>
     }
 
+    static override hostName = 'button'
+
     static override css = css`
-        button {
+        & > button {
             min-height: var(--control-min-height, 2rem);
             padding: var(--space-xs) var(--space-sm);
             color: var(--button-color);
@@ -89,24 +92,24 @@ export class Button extends Component<ButtonProps> {
             white-space: nowrap;
         }
 
-        button:hover:not(:disabled, [aria-disabled="true"]) {
+        & > button:hover:not(:disabled, [aria-disabled="true"]) {
             background: var(--button-background-hover);
         }
 
-        button:active:not(:disabled, [aria-disabled="true"]) {
+        & > button:active:not(:disabled, [aria-disabled="true"]) {
             background: var(--button-background-active);
             border-style: var(--button-border-style-active);
             box-shadow: var(--button-shadow-active);
         }
 
-        button:focus-visible {
+        & > button:focus-visible {
             outline: 2px solid transparent;
             outline-offset: 1px;
             box-shadow: var(--focus-ring);
         }
 
-        button:disabled,
-        button[aria-disabled="true"] {
+        & > button:disabled,
+        & > button[aria-disabled="true"] {
             color: var(--input-color-disabled);
             background: var(--button-background-disabled);
             border: var(--button-border-disabled);

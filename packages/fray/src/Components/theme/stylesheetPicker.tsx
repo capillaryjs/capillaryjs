@@ -1,4 +1,4 @@
-import {css} from '../component.js'
+import {css, h} from '../component.js'
 import type {ComponentProps, FrayChild, LivePropContract} from '../component.js'
 import {
     componentClass,
@@ -67,11 +67,9 @@ abstract class StylesheetPicker extends SelectControl<StylesheetPickerProps> {
         const Host = this.Host
         return <Host
             className={componentClass(this.props)}
-            data-kind={this.kind}
-            data-disabled={disabled ? '' : null}
         >
             {label == null ? null : <label htmlFor={this.inputId}>{label}</label>}
-            <span class="selectshell">
+            {h('fray-selectshell', null,
                 <select
                     id={this.inputId}
                     value={selected.value}
@@ -89,8 +87,8 @@ abstract class StylesheetPicker extends SelectControl<StylesheetPickerProps> {
                         value={option.value}
                         selected={option.value === selected.value}
                     >{option.label}</option>)}
-                </select>
-            </span>
+                </select>,
+            )}
         </Host>
     }
 
@@ -120,7 +118,7 @@ abstract class StylesheetPicker extends SelectControl<StylesheetPickerProps> {
     }
 
     static override css = css`
-        & > .selectshell > select {
+        & > fray-selectshell > select {
             min-width: 8rem;
         }
     `

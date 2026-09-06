@@ -1,4 +1,4 @@
-import {Component, css} from '../../component.js'
+import {Component, css, h} from '../../component.js'
 import type {ComponentProps, FrayChild, LivePropContract} from '../../component.js'
 import {
     componentClass,
@@ -97,6 +97,9 @@ export class Checkbox<TValue extends CheckboxValue = FilterModeValue>
         const semanticIndex = this.symbols.findIndex(([, state]) =>
             Object.is(state, semanticState))
         const [symbol] = this.symbols[semanticIndex] ?? ['?', semanticState]
+        // Bank2 uses the conventional neutral marker only to select the empty
+        // checkbox surface; it is not visible glyph content.
+        const shellSymbol = symbol === '☐' ? null : symbol
         const stateName = describeState(semanticState)
         const checked = semanticState === FilterMode.Prefer
             || semanticState === FilterMode.Require
@@ -105,9 +108,6 @@ export class Checkbox<TValue extends CheckboxValue = FilterModeValue>
         const Host = this.Host
         return <Host
             className={componentClass(this.props) || null}
-            data-disabled={disabled ? '' : null}
-            data-required={required ? '' : null}
-            data-error={error == null ? null : ''}
             data-state={stateName}
         >
             <label>
@@ -119,7 +119,6 @@ export class Checkbox<TValue extends CheckboxValue = FilterModeValue>
                     required={required}
                     name={this.props.name}
                     value={this.props.value == null ? undefined : String(this.props.value)}
-                    data-state={stateName}
                     aria-label={`${label}: ${stateName}`}
                     aria-invalid={error == null ? null : 'true'}
                     aria-describedby={error == null ? null : this.errorId}
@@ -134,8 +133,8 @@ export class Checkbox<TValue extends CheckboxValue = FilterModeValue>
                         }
                     }}
                 />
-                <span className="checkboxshell" aria-hidden="true">{symbol}</span>
-                <span>{label}</span>
+                {h('fray-checkboxshell', {'aria-hidden': 'true'}, shellSymbol)}
+                {label}
             </label>
             {error == null ? null : <p id={this.errorId} role="alert">{String(error)}</p>}
         </Host>
@@ -168,11 +167,12 @@ export class Checkbox<TValue extends CheckboxValue = FilterModeValue>
             user-select: none;
         }
 
-        &[data-disabled] > label {
+        & > label:has(> input[type="checkbox"]:disabled) {
+            color: #aaa;
             cursor: not-allowed;
         }
 
-        & input[type="checkbox"] {
+        & > label > input[type="checkbox"] {
             position: absolute;
             width: 1px;
             height: 1px;
@@ -186,7 +186,7 @@ export class Checkbox<TValue extends CheckboxValue = FilterModeValue>
             font-size: var(--ui-font-size, inherit);
         }
 
-        & input[type="checkbox"] + .checkboxshell {
+        & > label > input[type="checkbox"] + fray-checkboxshell {
             position: relative;
             display: block;
             width: 1em;
@@ -199,23 +199,25 @@ export class Checkbox<TValue extends CheckboxValue = FilterModeValue>
             background: var(--checkbox-box-background, var(--ui-input-bg, transparent));
             border: var(--checkbox-box-border, var(--cbx-o-border, 1px solid currentColor));
             border-radius: var(--cbx-border-radius, var(--radius-sm, 0.2rem));
+            box-shadow: var(--checkbox-box-shadow);
             font-family: inherit;
             font-size: 1em;
             user-select: none;
         }
 
-        & input[type="checkbox"]:checked + .checkboxshell {
+        & > label > input[type="checkbox"]:checked + fray-checkboxshell {
             color: var(--checkbox-symbol-color, var(--selection-color, currentColor));
             background: var(--checkbox-box-background-checked,
                 var(--selection-background, var(--ui-accent-color, Highlight)));
+            box-shadow: var(--checkbox-box-shadow-checked);
         }
 
-        & input[type="checkbox"]:focus-visible + .checkboxshell {
+        & > label > input[type="checkbox"]:focus-visible + fray-checkboxshell {
             outline: 2px solid var(--focus-color, var(--ui-accent-color, Highlight));
             outline-offset: 1px;
         }
 
-        & input[type="checkbox"]:disabled + .checkboxshell {
+        & > label > input[type="checkbox"]:disabled + fray-checkboxshell {
             opacity: 0.6;
             filter: saturate(0.6);
         }

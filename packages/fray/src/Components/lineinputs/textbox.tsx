@@ -73,12 +73,7 @@ export class Textbox extends LabeledInputControl<TextboxProps> {
         const value = this.valueEmitter.get() ?? ''
 
         const Host = this.Host
-        return <Host
-            className={componentClass(this.props) || null}
-            data-disabled={disabled ? '' : null}
-            data-required={required ? '' : null}
-            data-error={error == null ? null : ''}
-        >
+        return <Host className={componentClass(this.props) || null}>
             {label == null ? null : <label htmlFor={this.inputId}>{label}</label>}
             <input
                 id={this.inputId}
@@ -119,8 +114,34 @@ export class Textbox extends LabeledInputControl<TextboxProps> {
     static override hostName = 'textbox'
 
     static override css = css`
-        & input {
+        & > input {
+            min-height: var(--control-min-height, 2rem);
+            width: var(--input-width, 15rem);
+            padding: var(--space-xs) var(--space-sm);
+            color: var(--input-color);
+            background: var(--input-background);
+            border: var(--input-border);
+            border-radius: var(--radius-md);
+            box-shadow: var(--input-shadow);
+            box-sizing: border-box;
+            font: inherit;
+            pointer-events: all;
+            user-select: text;
+            white-space: nowrap;
             cursor: text;
+        }
+
+        & > input:disabled {
+            color: var(--input-color-disabled);
+            background: var(--input-background-disabled);
+            border-color: var(--ui-input-border-disabled);
+            cursor: not-allowed;
+        }
+
+        & > input:focus-visible {
+            outline: 2px solid transparent;
+            outline-offset: 1px;
+            box-shadow: var(--focus-ring);
         }
 
         & > [role="alert"] {

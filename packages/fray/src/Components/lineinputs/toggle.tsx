@@ -1,4 +1,4 @@
-import {Component, css} from '../component.js'
+import {Component, css, h} from '../component.js'
 import type {FrayChild, Key, LivePropContract} from '../component.js'
 import {
     assertOptions,
@@ -55,7 +55,16 @@ export class Toggle<TValue extends Key = string> extends Component<ToggleProps<T
     }
 
     initialize(): void {
+        this.selectFirstAvailableOption(this.props.options ?? [])
         this.watch(this.valueEmitter)
+    }
+
+    setProps(nextProps: ToggleProps<TValue>): this {
+        const options = nextProps.options ?? []
+        validateToggleOptions(options)
+        super.setProps(nextProps)
+        this.selectFirstAvailableOption(options)
+        return this
     }
 
     selectOption(value: TValue, event: Event | null = null): void {
@@ -77,39 +86,32 @@ export class Toggle<TValue extends Key = string> extends Component<ToggleProps<T
         const selectedIndex = Math.max(0,
             options.findIndex(([value]) => Object.is(value, selectedValue)))
 
-        return <fieldset
-            id={this.groupId}
-            disabled={disabled}
-            className={componentClass(this.props) || undefined}
-            data-fray-component="toggle"
-            data-disabled={disabled ? '' : null}
-            data-error={error == null ? null : ''}
-            aria-required={required ? 'true' : null}
-            aria-invalid={error == null ? null : 'true'}
-            aria-describedby={error == null ? null : this.errorId}
-        >
-            {label == null ? null : <legend id={this.legendId}>{label}</legend>}
-            <div
-                data-part="options"
-                role="radiogroup"
-                aria-label={label == null ? this.props.ariaLabel : null}
-                aria-labelledby={label == null ? null : this.legendId}
-            >
-                {options.map(([value, optionLabel], index) => <button
-                    key={String(value)}
-                    type="button"
-                    role="radio"
-                    disabled={disabled}
-                    aria-checked={Object.is(selectedValue, value) ? 'true' : 'false'}
-                    data-value={String(value)}
-                    tabIndex={index === selectedIndex ? 0 : -1}
-                    onClick={(event: MouseEvent) => this.selectOption(value, event)}
-                    onKeyDown={(event: KeyboardEvent) =>
-                        this.handleKeyDown(event, index, options)}
-                >{optionLabel}</button>)}
-            </div>
-            {error == null ? null : <p id={this.errorId} role="alert">{String(error)}</p>}
-        </fieldset>
+        const Host = this.Host
+        return <Host id={this.groupId} className={componentClass(this.props) || null}>
+            {label == null ? null : h('fray-label', {id: this.legendId}, label)}
+            {h('fray-options', {
+                role: 'radiogroup',
+                'aria-label': label == null ? this.props.ariaLabel : null,
+                'aria-labelledby': label == null ? null : this.legendId,
+                'aria-required': required ? 'true' : null,
+                'aria-invalid': error == null ? null : 'true',
+                'aria-describedby': error == null ? null : this.errorId,
+            }, options.map(([value, optionLabel], index) => <button
+                key={String(value)}
+                type="button"
+                role="radio"
+                disabled={disabled}
+                aria-checked={Object.is(selectedValue, value) ? 'true' : 'false'}
+                tabIndex={index === selectedIndex ? 0 : -1}
+                onClick={(event: MouseEvent) => this.selectOption(value, event)}
+                onKeyDown={(event: KeyboardEvent) =>
+                    this.handleKeyDown(event, index, options)}
+            >{optionLabel}</button>))}
+            {error == null ? null : h('fray-error', {
+                id: this.errorId,
+                role: 'alert',
+            }, String(error))}
+        </Host>
     }
 
     handleKeyDown(
@@ -136,18 +138,29 @@ export class Toggle<TValue extends Key = string> extends Component<ToggleProps<T
         }
     }
 
+    private selectFirstAvailableOption(options: readonly ToggleOption<TValue>[]): void {
+        if (!options.some(([value]) => Object.is(value, this.valueEmitter.get()))) {
+            this.valueEmitter.set(options[0]?.[0] ?? null as unknown as TValue,
+                'toggle options changed')
+        }
+    }
+
+    static override hostName = 'toggle'
+
     static override css = css`
-        fieldset:has(> [data-part="options"]) {
-            margin: 0;
-            padding: 0;
-            border: 0;
-            user-select: none;
+        & {
+            display: inline-block;
+            inline-size: fit-content;
+            max-inline-size: 100%;
         }
 
-        fieldset:has(> [data-part="options"]) > [data-part="options"] {
+        & > fray-label,
+        & > fray-error {
+            display: block;
+        }
+
+        & > fray-options {
             display: flex;
-            padding: 0;
-            margin: 0;
             min-height: var(--control-min-height, 2rem);
             border-radius: var(--radius-md);
             box-shadow: var(--toggle-group-shadow);
@@ -156,7 +169,7 @@ export class Toggle<TValue extends Key = string> extends Component<ToggleProps<T
             user-select: none;
         }
 
-        fieldset:has(> [data-part="options"]) [role="radio"] {
+        & > fray-options > button[role="radio"] {
             position: relative;
             min-height: var(--control-min-height, 2rem);
             padding: var(--space-xs) var(--space-sm);
@@ -173,32 +186,57 @@ export class Toggle<TValue extends Key = string> extends Component<ToggleProps<T
             white-space: nowrap;
         }
 
-        fieldset:has(> [data-part="options"]) [role="radio"]:disabled {
-            cursor: not-allowed;
-            pointer-events: none;
+        & > fray-options > button[role="radio"]:hover:not(:disabled)[aria-checked="false"] {
+            background: var(--button-background-hover);
         }
 
-        fieldset:has(> [data-part="options"]) [role="radio"]:active:not(:disabled) {
-            border-style: var(--button-border-style-active);
-        }
-
-        fieldset:has(> [data-part="options"]) [role="radio"]:first-of-type {
-            border-radius: var(--ui-border-radius) 0 0 var(--ui-border-radius);
+        & > fray-options > button[role="radio"]:first-of-type {
+            border-radius: var(--radius-md) 0 0 var(--radius-md);
             border: var(--button-border);
             border-right: none;
         }
 
-        fieldset:has(> [data-part="options"]) [role="radio"]:last-of-type {
-            border-radius: 0 var(--ui-border-radius) var(--ui-border-radius) 0;
+        & > fray-options > button[role="radio"]:last-of-type {
+            border-radius: 0 var(--radius-md) var(--radius-md) 0;
             border: var(--button-border);
             border-left: none;
         }
 
-        fieldset:has(> [data-part="options"]) [role="radio"][aria-checked="false"]
+        & > fray-options > button[role="radio"][aria-checked="false"]
         + [role="radio"][aria-checked="false"] {
-            border-left: none;
+            border-inline-start: var(--button-border);
+            border-inline-start-color: var(--toggle-inactive-shared-border-color);
         }
 
+        & > fray-options > button[role="radio"][aria-checked="true"] {
+            color: var(--selection-color);
+            background: var(--toggle-button-background-checked);
+            border: var(--toggle-button-border-checked);
+            box-shadow: var(--toggle-button-shadow-checked);
+            margin-inline: var(--toggle-button-selected-inline-overlap);
+            z-index: var(--toggle-button-selected-z-index);
+        }
+
+        & > fray-options > button[role="radio"]:disabled {
+            color: var(--input-color-disabled);
+            background: var(--button-background-disabled);
+            border: var(--button-border-disabled);
+            cursor: not-allowed;
+        }
+
+        & > fray-options > button[role="radio"]:active:not(:disabled) {
+            border-style: var(--button-border-style-active);
+        }
+
+        & > fray-options > button[role="radio"][aria-checked="false"]
+        + [role="radio"][aria-checked="false"]::after {
+            content: '';
+            position: absolute;
+            inset-block: var(--toggle-inactive-separator-block-inset);
+            inline-size: 1px;
+            inset-inline-start: -1px;
+            background: var(--toggle-inactive-separator-background);
+        }
     `
 }
 

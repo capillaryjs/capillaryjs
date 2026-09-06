@@ -119,13 +119,16 @@ export class TabLine extends Component<TabLineProps> {
     static override css = css`
         & {
             display: flex;
+            background: var(--tabline-background);
             flex-flow: row wrap;
             padding-top: 3px;
+            padding-inline-start: var(--tabline-padding-inline-start);
             flex: 0 0 auto;
             z-index: 0;
         }
 
         & > button[role="tab"] {
+            position: relative;
             min-height: var(--control-min-height, 2rem);
             padding: var(--space-xs) var(--space-sm);
             color: var(--button-color);
@@ -137,6 +140,43 @@ export class TabLine extends Component<TabLineProps> {
             cursor: default;
             user-select: none;
             white-space: nowrap;
+        }
+
+        & > button[role="tab"]:hover:not(:disabled)[aria-selected="false"] {
+            background: var(--button-background-hover);
+        }
+
+        & > button[role="tab"]:not(:disabled)[aria-selected="true"] {
+            background: var(--tab-button-background-active);
+            box-shadow: var(--tab-button-shadow-active);
+            transform: translateY(calc(-1 * var(--tab-button-active-lift)));
+            z-index: 1;
+        }
+
+        & > button[role="tab"]:not(:disabled)[aria-selected="true"]::after {
+            content: '';
+            position: absolute;
+            inset-inline: 0;
+            block-size: var(--tab-button-active-bridge-block-size);
+            inset-block-end: calc(-1 * var(--tab-button-active-bridge-block-size));
+            background: var(--tab-button-background-active);
+        }
+
+        & > button[role="tab"]:not(:disabled)[aria-selected="false"]::after {
+            content: '';
+            position: absolute;
+            inset-inline: 0;
+            block-size: 1px;
+            inset-block-end: -1px;
+            box-shadow: var(--tab-button-inactive-bottom-shadow);
+            z-index: 1;
+        }
+
+        & > button[role="tab"]:disabled {
+            color: var(--input-color-disabled);
+            background: var(--button-background-disabled);
+            border: var(--button-border-disabled);
+            cursor: not-allowed;
         }
 
         & > button[role="tab"]:active:not(:disabled) {

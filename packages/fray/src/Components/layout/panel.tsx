@@ -1,7 +1,7 @@
-import {Component, css} from '../component.js'
+import {Component, css, h} from '../component.js'
 import type {ComponentProps, FrayChild, LivePropContract} from '../component.js'
 import {Header} from './header.js'
-import {classNames, componentClass, controlId} from '../controlUtils.js'
+import {componentClass, controlId} from '../controlUtils.js'
 
 const panelLiveProps = ['disabled'] as const
 
@@ -54,7 +54,7 @@ export class Panel extends Component<PanelProps> {
         >
             {title}
             {toolbar}
-            <div className={classNames('content', orientation)}>{children}</div>
+            {h('fray-content', {className: orientation}, children)}
         </Host>
     }
 
@@ -74,7 +74,7 @@ export class Panel extends Component<PanelProps> {
             flex: 0 0 auto;
         }
 
-        & > .content {
+        & > fray-content {
             display: flex;
             flex: 1;
             overflow: auto;
@@ -82,11 +82,11 @@ export class Panel extends Component<PanelProps> {
             gap: var(--spacing-medium, 1rem);
         }
 
-        & > .content.horizontal {
+        & > fray-content.horizontal {
             flex-direction: row;
         }
 
-        & > .content.vertical {
+        & > fray-content.vertical {
             flex-direction: column;
         }
 

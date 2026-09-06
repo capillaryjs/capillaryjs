@@ -693,7 +693,7 @@ sibling-local `key` through the common component props.
 | `Toolbar` | `label`, `orientation`, `id`, `children` | None | Stateless named toolbar; orientation is horizontal or vertical. |
 | `Textbox` | `label` or `ariaLabel`, value props, `disabled`, `required`, `readOnly`, `error`, native text constraints, `inputRef` | `onInput(value, event)`, `onChange(value, event)` | String `valueEmitter`; external emitter changes patch the native input without replacing it. |
 | `Dropdown<T>` | `options`, `label` or `ariaLabel`, value props, `disabled`, `required`, `error`, `placeholder`, `name` | `onChange(value, event)` | Typed string/number `valueEmitter`; `options` may be an array or readable emitter. |
-| `RadioButton` | `label`, `name`, `value`, `checked`, `disabled`, `required`, `error` | `onChange(checked, event)` | Native radio input with a label; `checked`, `disabled`, `required`, and `error` support `live()`. |
+| `RadioButton` | `label`, `name`, `value`, `checked`, `disabled`, `required`, `error` | `onChange(checked, event)` | Native radio input with a labelled fixed shell; `checked`, `disabled`, `required`, and `error` support `live()`. |
 | `RadioGroup<T>` | Plain-array `options`, `label` or `ariaLabel`, value props, `name`, `disabled`, `required`, `error` | `onChange(value, event)` | Native radio inputs with one selected `valueEmitter`; `disabled`, `required`, and `error` support `live()`. |
 | `Toggle<T>` | `options`, `label` or `ariaLabel`, value props, `disabled`, `required`, `error` | `onChange(value, event)` | One selected value; `disabled`, `required`, and `error` support `live()`. |
 | `Checkbox<T>` | `symbols`, `label`, value props, `disabled`, `required`, `error`, `name` | `onChange(value, event)` | Two-state semantic value by default; `disabled`, `required`, and `error` support `live()`. |
@@ -704,7 +704,7 @@ sibling-local `key` through the common component props.
 | `Sidebar` | `header`, `toolbar`, `ariaLabel`, `id`, `children` | None | Fixed `fray-sidebar` host containing a native complementary region with fixed header/toolbar parts and independently scrolling content. |
 | `SplitView` | `primary`, `secondary`, `direction`, `primarySize`, pane labels | None | Stateless, non-resizable two-pane flex layout with explicit overflow ownership and keyboard-focusable panes; `primarySize` is a flex-basis value. |
 | `DescriptionList` / `DescriptionItem` | list `label`; item `term`, `value` or children | None | Native `dl`/`dt`/`dd` record summary with responsive term/value wrapping. |
-| `ProgressBar` | `label`, `value` or `valueEmitter`, `max`, `valueText` | None | Labelled native progress; a null value is indeterminate. |
+| `ProgressBar` | `label`, `value` or `valueEmitter`, `max`, `valueText` | None | Native progress semantics with a clipped-label visual surface; a null value is indeterminate. |
 | `ThemePicker` | `label` or `ariaLabel`, theme `options`, value props, `targetDocument`, `disabled` | `onChange(value, option, event)` | String `valueEmitter`; replaces only the theme stylesheet link. |
 | `ColorPicker` | `label` or `ariaLabel`, color `options`, value props, `targetDocument`, `disabled` | `onChange(value, option, event)` | String `valueEmitter`; replaces only the color stylesheet link. |
 | `Tab` | `id`, `label`, `disabled`, optional literal `route`, `children` | None | Declarative content marker consumed by `TabPanel`; a route annotation binds tab activation to the current route scope. |

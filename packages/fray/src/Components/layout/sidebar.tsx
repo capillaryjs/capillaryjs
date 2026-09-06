@@ -1,4 +1,4 @@
-import {Component, css} from '../component.js'
+import {Component, css, h} from '../component.js'
 import type {ComponentProps, FrayChild} from '../component.js'
 import {Header} from './header.js'
 import {componentClass, controlId} from '../controlUtils.js'
@@ -44,8 +44,8 @@ export class Sidebar extends Component<SidebarProps> {
                 aria-labelledby={header == null ? null : this.headerId}
             >
                 {title}
-                {toolbar == null ? null : <div className="toolbar">{toolbar}</div>}
-                <div className="content" tabIndex={0}>{children}</div>
+                {toolbar == null ? null : h('fray-toolbarcontent', null, toolbar)}
+                {h('fray-content', {tabIndex: 0}, children)}
             </aside>
         </Host>
     }
@@ -70,11 +70,11 @@ export class Sidebar extends Component<SidebarProps> {
         }
 
         & > aside > fray-header,
-        & > aside > .toolbar {
+        & > aside > fray-toolbarcontent {
             flex: none;
         }
 
-        & > aside > .content {
+        & > aside > fray-content {
             flex: 1;
             min-height: 0;
             overflow: auto;

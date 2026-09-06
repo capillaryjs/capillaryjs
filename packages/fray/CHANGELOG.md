@@ -36,6 +36,11 @@ Versioning.
 - `RadioGroup.options` remains an ordinary array supplied through explicit owner
   renders, and raw `valueEmitter` behavior is unchanged.
 - Enabled strict TypeScript compiler checking.
+- Restarted the public component treatments for Button, Checkbox, Dropdown,
+  ProgressBar, RadioButton, TabLine, Textbox, Toggle, and Toolbar around fixed
+  light-DOM parts, native/ARIA state selectors, and reachable component-local
+  CSS. ProgressBar preserves native progress semantics while presenting its
+  label through the legacy-compatible clipped completed surface.
 
 ### Removed
 

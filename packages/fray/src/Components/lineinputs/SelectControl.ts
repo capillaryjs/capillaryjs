@@ -7,7 +7,7 @@ export abstract class SelectControl<
     TProps extends ComponentProps = ComponentProps,
 > extends LabeledInputControl<TProps> {
     static override css = css`
-        & > .selectshell {
+        & > fray-selectshell {
             display: flex;
             flex-flow: row nowrap;
             position: relative;
@@ -16,7 +16,7 @@ export abstract class SelectControl<
             box-sizing: border-box;
         }
 
-        & > .selectshell > select {
+        & > fray-selectshell > select {
             position: relative;
             z-index: 1;
             min-height: var(--control-min-height, 2rem);
@@ -35,7 +35,7 @@ export abstract class SelectControl<
             white-space: nowrap;
         }
 
-        & > .selectshell::after {
+        & > fray-selectshell::after {
             content: var(--dropdown-underlay-content);
             position: absolute;
             z-index: 0;
@@ -50,7 +50,7 @@ export abstract class SelectControl<
             pointer-events: none;
         }
 
-        & > .selectshell::before {
+        & > fray-selectshell::before {
             content: var(--dropdown-trigger-content);
             position: absolute;
             z-index: 2;
@@ -70,35 +70,35 @@ export abstract class SelectControl<
             pointer-events: none;
         }
 
-        & > .selectshell:has(> select:hover:not(:disabled))::before {
+        & > fray-selectshell:has(> select:hover:not(:disabled))::before {
             background: var(--dropdown-trigger-background-hover);
             box-shadow: var(--dropdown-trigger-shadow-hover);
         }
 
-        & > .selectshell:has(> select:disabled)::before {
+        & > fray-selectshell:has(> select:disabled)::before {
             color: var(--input-color-disabled);
             background: var(--dropdown-trigger-background-disabled);
             border: var(--dropdown-trigger-border-disabled);
         }
 
-        & > .selectshell:has(> select:disabled)::after {
+        & > fray-selectshell:has(> select:disabled)::after {
             background: var(--dropdown-underlay-background-disabled);
             border: var(--dropdown-underlay-border-disabled);
         }
 
-        & > .selectshell > select:focus-visible {
+        & > fray-selectshell > select:focus-visible {
             outline: 2px solid transparent;
             outline-offset: 1px;
             box-shadow: var(--focus-ring);
         }
 
         @media (forced-colors: active) {
-            & > .selectshell::before,
-            & > .selectshell::after {
+            & > fray-selectshell::before,
+            & > fray-selectshell::after {
                 display: none;
             }
 
-            & > .selectshell > select {
+            & > fray-selectshell > select {
                 appearance: auto;
                 padding-inline-end: var(--space-sm);
             }

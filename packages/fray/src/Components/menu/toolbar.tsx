@@ -1,6 +1,6 @@
 import {Component, css} from '../component.js'
 import type {ComponentProps, FrayChild} from '../component.js'
-import {classNames, componentClass} from '../controlUtils.js'
+import {componentClass} from '../controlUtils.js'
 
 export interface ToolbarProps extends ComponentProps {
     id?: string
@@ -25,8 +25,7 @@ export class Toolbar extends Component<ToolbarProps> {
         return <Host
             id={id}
             role="toolbar"
-            className={classNames('toolbarlike', componentClass(this.props))}
-            data-orientation={orientation}
+            className={componentClass(this.props) || null}
             aria-label={label}
             aria-orientation={orientation}
         >{children}</Host>
@@ -39,11 +38,19 @@ export class Toolbar extends Component<ToolbarProps> {
             display: flex;
             flex-wrap: wrap;
             align-items: center;
+            color: var(--toolbar-color);
+            background: var(--toolbar-background);
+            border: var(--toolbar-border);
+            box-shadow: var(--toolbar-shadow);
             gap: var(--spacing-small, 0.5rem);
             padding: var(--ui-padding);
         }
 
-        &[data-orientation="vertical"] {
+        & > * {
+            margin: 0;
+        }
+
+        &[aria-orientation="vertical"] {
             flex-direction: column;
             align-items: stretch;
         }

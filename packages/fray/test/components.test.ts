@@ -22,6 +22,7 @@ import {
     Sidebar,
     SplitView,
     Tab,
+    TabLine,
     TabPanel,
     Textbox,
     ThemePicker,
@@ -86,16 +87,18 @@ describe('action and text controls', () => {
             '<strong data-fray="">A deliberately long native-label description</strong>')
     })
 
-    test('Button is a native, disableable action', () => {
+    test('Button uses a fixed host around its native, disableable action', () => {
         let calls = 0
         const button = Button.new({label: 'Save', onClick: () => calls += 1})
             .attachTo(document.body)
-        const element = requiredQuery<HTMLButtonElement>('button')
+        const host = requiredQuery<HTMLElement>('fray-button')
+        const element = requiredQuery<HTMLButtonElement>('button', host)
 
         assert.equal(element.type, 'button')
-        assert.equal(element.dataset.frayComponent, 'button')
-        assert.equal(element.hasAttribute('data-fray'), true)
-        assert.equal(element.hasAttribute('class'), false)
+        assert.equal(host.dataset.frayComponent, 'button')
+        assert.equal(host.hasAttribute('data-fray'), true)
+        assert.equal(host.hasAttribute('class'), false)
+        assert.equal(element.hasAttribute('data-fray-component'), false)
         assert.equal(element.textContent, 'Save')
         element.click()
         assert.equal(calls, 1)
@@ -114,7 +117,8 @@ describe('action and text controls', () => {
             busyLabel: 'Refreshing…',
             onClick: () => calls += 1,
         }).attachTo(document.body)
-        const element = requiredQuery<HTMLButtonElement>('button')
+        const host = requiredQuery<HTMLElement>('fray-button')
+        const element = requiredQuery<HTMLButtonElement>('button', host)
         assert.equal(element.disabled, true)
         assert.equal(element.getAttribute('aria-busy'), 'true')
         assert.equal(element.textContent, 'Refreshing…')
@@ -122,7 +126,7 @@ describe('action and text controls', () => {
         assert.equal(calls, 0)
 
         button.setProps({label: 'Refresh', onClick: () => calls += 1})
-        assert.equal(requiredQuery('button'), element)
+        assert.equal(requiredQuery('button', host), element)
         assert.equal(element.disabled, false)
         assert.equal(element.hasAttribute('aria-busy'), false)
         element.click()
@@ -138,9 +142,11 @@ describe('action and text controls', () => {
 
         const toolbar = requiredQuery<HTMLElement>('[role="toolbar"]')
         assert.equal(toolbar.localName, 'fray-toolbar')
-        assert.equal(toolbar.className, 'toolbarlike')
+        assert.equal(toolbar.className, '')
         assert.equal(toolbar.getAttribute('aria-label'), 'Document actions')
         assert.equal(toolbar.getAttribute('aria-orientation'), 'vertical')
+        assert.equal(toolbar.hasAttribute('data-orientation'), false)
+        assert.equal(toolbar.querySelector('div'), null)
         assert.equal(requiredQuery('button', toolbar).textContent, 'Save')
     })
 
@@ -159,10 +165,14 @@ describe('action and text controls', () => {
         const label = requiredQuery<HTMLLabelElement>('label')
 
         assert.equal(input.parentElement?.localName, 'fray-textbox')
+        assert.equal(input.parentElement?.hasAttribute('data-disabled'), false)
+        assert.equal(input.parentElement?.hasAttribute('data-required'), false)
+        assert.equal(input.parentElement?.hasAttribute('data-error'), false)
         assert.equal(label.htmlFor, input.id)
         assert.equal(input.value, 'Ada')
         assert.equal(input.required, true)
         assert.equal(input.getAttribute('aria-invalid'), 'true')
+        assert.equal(input.parentElement?.hasAttribute('data-error'), false)
         assert.equal(
             input.getAttribute('aria-describedby'),
             requiredQuery<HTMLElement>('[role="alert"]').id,
@@ -254,7 +264,9 @@ describe('choice controls', () => {
 
         assert.equal(document.querySelectorAll('select').length, 2)
         assert.ok([...document.querySelectorAll('fray-themepicker, fray-colorpicker')]
-            .every((picker) => picker.querySelector(':scope > .selectshell > select') != null))
+            .every((picker) => picker.querySelector(':scope > fray-selectshell > select') != null))
+        assert.ok([...document.querySelectorAll('fray-themepicker, fray-colorpicker')]
+            .every((picker) => !picker.hasAttribute('data-kind') && !picker.hasAttribute('data-disabled')))
         assert.equal(document.documentElement.dataset.theme, 'minimal')
         assert.equal(document.documentElement.dataset.color, 'iceblue')
         assert.equal(document.head.querySelectorAll('link[data-fray-stylesheet]').length, 2)
@@ -289,8 +301,11 @@ describe('choice controls', () => {
         }).attachTo(document.body)
         const select = requiredQuery<HTMLSelectElement>('select')
 
-        assert.ok(select.parentElement?.classList.contains('selectshell'))
+        assert.equal(select.parentElement?.localName, 'fray-selectshell')
         assert.equal(select.parentElement?.parentElement?.localName, 'fray-dropdown')
+        assert.equal(select.parentElement?.parentElement?.hasAttribute('data-disabled'), false)
+        assert.equal(select.parentElement?.parentElement?.hasAttribute('data-required'), false)
+        assert.equal(select.parentElement?.parentElement?.hasAttribute('data-error'), false)
         assert.equal(select.value, '1')
         select.value = '2'
         select.dispatchEvent(new Event('change', {bubbles: true}))
@@ -302,6 +317,51 @@ describe('choice controls', () => {
         assert.equal(requiredAt(select.options, 0).textContent, 'Second')
     })
 
+    test('Dropdown uses its native select for live availability and validation', () => {
+        const value = new Emitter('all')
+        const disabled = new Emitter(false)
+        const required = new Emitter(false)
+        const error = new Emitter<string | null>(null)
+        class DropdownOwner extends Component {
+            render() {
+                return h(Dropdown, {
+                    label: 'Risk focus',
+                    valueEmitter: value,
+                    options: [
+                        {value: 'all', label: 'All risks'},
+                        {value: 'Critical', label: 'Critical'},
+                    ],
+                    disabled: live(disabled),
+                    required: live(required),
+                    error: live(error),
+                })
+            }
+        }
+        DropdownOwner.new().attachTo(document.body)
+        const host = requiredQuery<HTMLElement>('fray-dropdown')
+        const select = requiredQuery<HTMLSelectElement>('select', host)
+
+        assert.equal(host.querySelector('div, .selectshell'), null)
+        assert.equal(host.hasAttribute('data-disabled'), false)
+        assert.equal(host.hasAttribute('data-required'), false)
+        assert.equal(host.hasAttribute('data-error'), false)
+        assert.equal(select.disabled, false)
+        assert.equal(select.required, false)
+
+        disabled.set(true)
+        required.set(true)
+        error.set('Choose a permitted risk focus')
+        value.set('Critical')
+
+        assert.equal(select.disabled, true)
+        assert.equal(select.required, true)
+        assert.equal(select.value, 'Critical')
+        assert.equal(select.getAttribute('aria-invalid'), 'true')
+        const alert = requiredQuery<HTMLElement>('[role="alert"]', host)
+        assert.equal(select.getAttribute('aria-describedby'), alert.id)
+        assert.equal(alert.textContent, 'Choose a permitted risk focus')
+    })
+
     test('Toggle is a keyboard-operable radio group', () => {
         const value = new Emitter('a')
         const toggle = Toggle.new({
@@ -311,8 +371,15 @@ describe('choice controls', () => {
         }).attachTo(document.body)
         const radios = [...document.querySelectorAll<HTMLElement>('[role="radio"]')]
 
-        assert.equal(requiredQuery('fieldset').dataset.frayComponent, 'toggle')
-        assert.equal(document.querySelector('[role="radiogroup"]') != null, true)
+        const host = requiredQuery<HTMLElement>('fray-toggle')
+        const label = requiredQuery<HTMLElement>('fray-label', host)
+        const radiogroup = requiredQuery<HTMLElement>('fray-options[role="radiogroup"]', host)
+        assert.equal(host.dataset.frayComponent, 'toggle')
+        assert.equal(host.id.startsWith('fray-toggle-'), true)
+        assert.equal(label.textContent, 'Mode')
+        assert.equal(radiogroup.getAttribute('aria-labelledby'), label.id)
+        assert.equal(host.querySelector('fieldset, div'), null)
+        assert.equal(host.querySelector('[data-part]'), null)
         assert.deepEqual(radios.map((node) => node.getAttribute('aria-checked')),
             ['true', 'false', 'false'])
         requiredAt(radios, 0).focus()
@@ -323,7 +390,52 @@ describe('choice controls', () => {
         assert.equal(value.get(), 'b')
         assert.equal(document.activeElement, requiredAt(radios, 1))
         assert.equal(requiredAt(radios, 1).getAttribute('aria-checked'), 'true')
+        value.set('c')
+        assert.equal(requiredAt(radios, 2).getAttribute('aria-checked'), 'true')
+        toggle.setProps({
+            label: 'Mode',
+            options: [['d', 'Delta'], ['e', 'Epsilon']],
+            valueEmitter: value,
+        })
+        const replacedRadios = [...document.querySelectorAll<HTMLElement>('[role="radio"]')]
+        assert.equal(value.get(), 'd')
+        assert.deepEqual(replacedRadios.map((node) => node.getAttribute('aria-checked')),
+            ['true', 'false'])
         toggle.destroy()
+    })
+
+    test('Toggle follows live availability and validation state through native semantics', () => {
+        const disabled = new Emitter(false)
+        const required = new Emitter(false)
+        const error = new Emitter<unknown>(null)
+        class ToggleOwner extends Component {
+            render() {
+                return h(Toggle, {
+                    label: 'Status focus',
+                    options: [['all', 'All'], ['active', 'Active']],
+                    disabled: live(disabled),
+                    required: live(required),
+                    error: live(error),
+                })
+            }
+        }
+        ToggleOwner.new().attachTo(document.body)
+
+        const host = requiredQuery<HTMLElement>('fray-toggle')
+        const radiogroup = requiredQuery<HTMLElement>('fray-options[role="radiogroup"]', host)
+        const radios = [...host.querySelectorAll<HTMLButtonElement>('[role="radio"]')]
+        assert.equal(host.hasAttribute('data-disabled'), false)
+        assert.equal(host.hasAttribute('data-error'), false)
+        assert.equal(radiogroup.getAttribute('aria-required'), null)
+
+        disabled.set(true)
+        required.set(true)
+        error.set('Choose a status')
+        assert.equal(radiogroup.getAttribute('aria-required'), 'true')
+        assert.equal(radiogroup.getAttribute('aria-invalid'), 'true')
+        assert.equal(radios.every((radio) => radio.disabled), true)
+        assert.equal(requiredQuery<HTMLElement>('fray-error[role="alert"]', host).textContent,
+            'Choose a status')
     })
 
     test('RadioGroup renders native grouped radio inputs', () => {
@@ -464,29 +576,37 @@ describe('choice controls', () => {
         const radio = RadioButton.new({label: 'Enabled', name: 'setting', value: 'enabled'})
             .attachTo(document.body)
         const input = requiredQuery<HTMLInputElement>('input[type="radio"]')
+        const host = requiredQuery<HTMLElement>('fray-radiobutton')
 
         assert.equal(input.name, 'setting')
         assert.equal(input.value, 'enabled')
         assert.equal(input.parentElement?.parentElement?.localName, 'fray-radiobutton')
+        assert.equal(input.nextElementSibling?.localName, 'fray-radioshell')
+        assert.equal(host.querySelector('div, span, [data-disabled], [data-required], [data-error]'), null)
         radio.destroy()
     })
 
     test('Checkbox variants expose semantic state and keyboard cycling', () => {
         const basic = Checkbox.new({label: 'Basic'}).attachTo(document.body)
         const control = requiredQuery<HTMLInputElement>('input[type="checkbox"]')
-        assert.equal(requiredQuery('fray-checkbox').dataset.frayComponent, 'check-box')
-        assert.equal(control.closest('fray-checkbox'), requiredQuery('fray-checkbox'))
-        assert.equal(control.nextElementSibling?.className, 'checkboxshell')
-        assert.equal(control.nextElementSibling?.textContent, '☐')
+        const host = requiredQuery<HTMLElement>('fray-checkbox')
+        assert.equal(host.dataset.frayComponent, 'check-box')
+        assert.equal(control.closest('fray-checkbox'), host)
+        assert.equal(control.nextElementSibling?.localName, 'fray-checkboxshell')
+        assert.equal(control.nextElementSibling?.textContent, '')
+        assert.equal(host.querySelector('div, span, [data-state]'), null)
+        assert.equal(host.hasAttribute('data-disabled'), false)
+        assert.equal(host.hasAttribute('data-required'), false)
+        assert.equal(host.hasAttribute('data-error'), false)
+        assert.equal(host.dataset.state, 'neutral')
         assert.equal(basic.valueEmitter.get(), FilterMode.Neutral)
         control.dispatchEvent(new Event('change', {bubbles: true}))
         assert.equal(basic.valueEmitter.get(), FilterMode.Prefer)
         assert.equal(control.checked, true)
         assert.equal(control.nextElementSibling?.textContent, '✓')
-        assert.match((control.closest('fray-checkbox') as HTMLElement | null)?.dataset.state ?? '',
-            /prefer/)
-
-        assert.equal(control.closest('label')?.lastElementChild?.textContent, 'Basic')
+        assert.equal(host.dataset.state, 'prefer')
+        assert.equal(control.getAttribute('aria-label'), 'Basic: prefer')
+        assert.match(control.closest('label')?.textContent ?? '', /Basic/)
 
         basic.destroy()
         document.body.replaceChildren()
@@ -545,14 +665,15 @@ describe('layout controls', () => {
         const split = requiredQuery<HTMLElement>('fray-splitview')
         assert.equal(split.className, 'horizontal')
         assert.equal(split.style.getPropertyValue('--split-primary-size'), '18rem')
-        assert.equal(requiredQuery('.primary', split).textContent, 'Tree')
+        assert.equal(requiredQuery('fray-primary', split).textContent, 'Tree')
         assert.equal(
-            requiredQuery('.secondary', split).getAttribute('aria-label'),
+            requiredQuery('fray-secondary', split).getAttribute('aria-label'),
             'Project details',
         )
-        assert.equal(requiredQuery('.primary', split).getAttribute('role'), 'region')
-        assert.equal(requiredQuery<HTMLElement>('.primary', split).tabIndex, 0)
-        assert.equal(requiredQuery<HTMLElement>('.secondary', split).tabIndex, 0)
+        assert.equal(requiredQuery('fray-primary', split).getAttribute('role'), 'region')
+        assert.equal(requiredQuery<HTMLElement>('fray-primary', split).tabIndex, 0)
+        assert.equal(requiredQuery<HTMLElement>('fray-secondary', split).tabIndex, 0)
+        assert.equal(split.querySelector('div'), null)
 
         SplitView.new({
             direction: 'vertical',
@@ -562,15 +683,15 @@ describe('layout controls', () => {
         }).attachTo(document.body)
         const vertical = requiredQuery<HTMLElement>('fray-splitview.vertical')
         assert.equal(vertical.style.getPropertyValue('--split-primary-size'), '45%')
-        assert.equal(requiredQuery('.primary', vertical).textContent, 'Navigation')
-        assert.equal(requiredQuery('.secondary', vertical).textContent, 'Details from children')
-        assert.equal(requiredQuery('.primary', vertical).hasAttribute('role'), false)
-        assert.equal(requiredQuery('.secondary', vertical).hasAttribute('aria-label'), false)
+        assert.equal(requiredQuery('fray-primary', vertical).textContent, 'Navigation')
+        assert.equal(requiredQuery('fray-secondary', vertical).textContent, 'Details from children')
+        assert.equal(requiredQuery('fray-primary', vertical).hasAttribute('role'), false)
+        assert.equal(requiredQuery('fray-secondary', vertical).hasAttribute('aria-label'), false)
 
         SplitView.new().attachTo(document.body)
         const empty = requiredAt([...document.querySelectorAll<HTMLElement>('fray-splitview')], 2)
-        assert.equal(requiredQuery('.primary', empty).textContent, '')
-        assert.equal(requiredQuery('.secondary', empty).textContent, '')
+        assert.equal(requiredQuery('fray-primary', empty).textContent, '')
+        assert.equal(requiredQuery('fray-secondary', empty).textContent, '')
         assert.throws(() => SplitView.new({primarySize: ''}).mount(), /primarySize/)
         assert.throws(() => SplitView.new({direction: 'diagonal' as 'horizontal'}).mount(),
             /direction/)
@@ -584,15 +705,31 @@ describe('layout controls', () => {
             max: 4,
         }).attachTo(document.body)
         const progress = requiredQuery<HTMLProgressElement>('progress')
+        const host = requiredQuery<HTMLElement>('fray-progressbar')
+        assert.equal(host.querySelector('div'), null)
+        assert.equal(requiredQuery<HTMLLabelElement>('label', host).htmlFor, progress.id)
+        assert.equal(requiredQuery('fray-content', host).getAttribute('aria-hidden'), 'true')
+        assert.equal(requiredQuery('fray-label', host).textContent, 'Project refresh')
+        assert.equal(requiredQuery('fray-inverse', host).textContent, 'Project refresh')
         assert.equal(progress.hasAttribute('value'), false)
         assert.equal(progress.getAttribute('aria-valuetext'), 'In progress')
 
         value.set(2)
         assert.equal(progress.value, 2)
         assert.equal(progress.getAttribute('aria-valuetext'), '50%')
-        assert.equal(requiredQuery('output').textContent, '50%')
+        const visualProgress = requiredQuery<HTMLElement>('fray-progress', host)
+        assert.equal(visualProgress.style.getPropertyValue('--progress-width'), '50%')
+        assert.equal(visualProgress.style.getPropertyValue('--progress-inverse-width'), '200%')
         progressBar.destroy()
         assert.equal(value.subscriberCount, 0)
+
+        ProgressBar.new({
+            label: h('strong', null, 'Rich refresh label'),
+        }).attachTo(document.body)
+        const richHost = requiredQuery<HTMLElement>('fray-progressbar')
+        assert.equal(requiredQuery('label > strong', richHost).textContent, 'Rich refresh label')
+        assert.equal(requiredQuery('fray-label > strong', richHost).textContent, 'Rich refresh label')
+        assert.equal(requiredQuery('fray-inverse > strong', richHost).textContent, 'Rich refresh label')
     })
 
     test('Header renders native heading levels inside its component host', () => {
@@ -626,13 +763,14 @@ describe('layout controls', () => {
         const section = requiredQuery<HTMLElement>('fray-panel')
         const header = requiredQuery<HTMLElement>('fray-header', section)
         const title = requiredQuery<HTMLElement>('h2', header)
-        const content = requiredQuery<HTMLElement>('.content', section)
+        const content = requiredQuery<HTMLElement>('fray-content', section)
         assert.equal(section.getAttribute('role'), 'region')
         assert.equal(section.className, '')
         assert.equal(section.getAttribute('aria-labelledby'), title.id)
         assert.equal(section.hasAttribute('data-orientation'), false)
-        assert.equal(content.className, 'content horizontal')
+        assert.equal(content.className, 'horizontal')
         assert.equal(content.textContent, 'Details')
+        assert.equal(section.querySelector('div'), null)
     })
 
     test('Panel tracks a live disabled state', () => {
@@ -668,8 +806,8 @@ describe('layout controls', () => {
         const sidebar = requiredQuery<HTMLElement>('fray-sidebar')
         const region = requiredQuery<HTMLElement>('aside', sidebar)
         const heading = requiredQuery<HTMLElement>('h2', sidebar)
-        const toolbar = requiredQuery<HTMLElement>('.toolbar', region)
-        const content = requiredQuery<HTMLElement>('.content', region)
+        const toolbar = requiredQuery<HTMLElement>('fray-toolbarcontent', region)
+        const content = requiredQuery<HTMLElement>('fray-content', region)
         assert.equal(region.id, 'change-requests')
         assert.equal(region.getAttribute('aria-labelledby'), heading.id)
         assert.equal(region.hasAttribute('aria-label'), false)
@@ -680,6 +818,7 @@ describe('layout controls', () => {
         assert.equal(region.children[0], heading.parentElement)
         assert.equal(region.children[1], toolbar)
         assert.equal(region.children[2], content)
+        assert.equal(sidebar.querySelector('div'), null)
     })
 
     test('Sidebar uses ariaLabel when no visible header exists', () => {
@@ -729,6 +868,37 @@ describe('layout controls', () => {
         }))
         assert.equal(active.get(), 'first')
         assert.equal(document.activeElement, requiredAt(tabs, 0))
+    })
+
+    test('TabLine uses native disabled tabs and skips them while roving', () => {
+        const active = new Emitter('portfolio')
+        TabLine.new({
+            baseId: 'meridian-area',
+            valueEmitter: active,
+            tabs: [
+                {id: 'portfolio', label: 'Portfolio'},
+                {id: 'register', label: 'Register'},
+                {id: 'analysis', label: 'Analysis', disabled: true},
+            ],
+        }).attachTo(document.body)
+
+        const tabs = [...document.querySelectorAll<HTMLButtonElement>('[role="tab"]')]
+        assert.equal(requiredAt(tabs, 0).getAttribute('aria-selected'), 'true')
+        assert.equal(requiredAt(tabs, 0).tabIndex, 0)
+        assert.equal(requiredAt(tabs, 2).disabled, true)
+        assert.equal(requiredAt(tabs, 2).getAttribute('aria-selected'), 'false')
+        assert.equal(requiredAt(tabs, 2).tabIndex, -1)
+
+        requiredAt(tabs, 2).click()
+        assert.equal(active.get(), 'portfolio')
+
+        requiredAt(tabs, 0).focus()
+        requiredAt(tabs, 0).dispatchEvent(new KeyboardEvent('keydown', {
+            key: 'End',
+            bubbles: true,
+        }))
+        assert.equal(active.get(), 'register')
+        assert.equal(document.activeElement, requiredAt(tabs, 1))
     })
 
     test('nested components use fixed Fray host names', () => {

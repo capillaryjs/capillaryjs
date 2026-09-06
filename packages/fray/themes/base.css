@@ -184,8 +184,6 @@
     --checkbox-box-shadow: none;
     --checkbox-box-shadow-checked: var(--checkbox-box-shadow);
     --checkbox-symbol-color: var(--selection-color);
-    --radio-background: var(--button-background);
-    --radio-background-checked: var(--selection-background);
     --toggle-button-background: var(--button-background);
     --toggle-button-background-checked: var(--selection-background);
     --toggle-button-border-checked: var(--button-border);
@@ -200,6 +198,7 @@
 
     /* Navigation components */
     --tabline-background: var(--palette-neutral-100);
+    --tabline-padding-inline-start: 0px;
     --tab-active-background: var(--palette-neutral-50);
     --tab-button-background: var(--button-background);
     --tab-button-background-active: var(--tab-active-background);
@@ -219,7 +218,11 @@
 
     /* Status and graphical components */
     --progress-track-background: var(--palette-neutral-200);
+    --progress-track-color: var(--ui-text-color);
+    --progress-track-shadow: inset 0.15em 0.15em 0.35em -0.12em rgb(0 0 0 / 0.5);
     --progress-value-background: var(--palette-primary);
+    --progress-value-color: var(--palette-contrast-light);
+    --progress-value-shadow: none;
     --working-background-image: linear-gradient(-45deg, #0001 25%,  #fff1 25%, #fff1 50%, #0001 50%, #0001 75%, #fff1 75%, #fff1);
     --colored-base: var(--palette-primary);
     --colored-light: var(--palette-primary-light);
@@ -277,8 +280,6 @@
     --icon-filter-overlay: brightness(1) opacity(.25) hue-rotate(var(--icon-filter-hue)) saturate(.7);
     --tooltip-background: #ffa;
     --dd-btn-width: 1.5em;
-    --toggle-selected-bg: var(--selection-background);
-    --toggle-selected-text: var(--selection-color);
     --panel-bg: var(--panel-background);
     --panel-padding: var(--space-md);
     --toolbar-bg: var(--toolbar-background);

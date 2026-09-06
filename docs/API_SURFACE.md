@@ -57,7 +57,7 @@ caller-owned. Application classes and composition roots own service lifetimes.
 | `FilterState` helpers | Semantic multi-dimension matching, reactive derivation, and versioned plain-data persistence. | Fray data workflow |
 | `Dialog` | Controlled native modal behavior, focus containment/restoration, and cleanup. | Fray dialog |
 | `Placeholder` | Loading-content placeholder used by data components. | Fray data display |
-| `ProgressBar` | Labelled determinate or indeterminate native progress. | Fray status |
+| `ProgressBar` | Determinate or indeterminate native progress semantics with a clipped-label visual surface. | Fray status |
 | `defineRoute`, `defineRouteParameter`, `routeParameter`, `routeTarget`, `withRouteQuery`, route descriptor/target/codec types | Immutable relative route vocabulary, typed dynamic segments, explicit root chains, and query-bearing targets. | Fray routing |
 | `BrowserRouter`, `createBrowserRouter`, transition/issue/binding types | Progressive contextual discovery, ordered restoration, navigation, canonicalization, and structured fallback state. | Fray routing |
 | `NavigationAdapter`, `createHistoryNavigation`, `createHashNavigation`, `MemoryNavigationAdapter` | Injected URL placement and deterministic navigation-history seams. | Fray routing |
