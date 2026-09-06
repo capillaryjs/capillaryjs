@@ -182,6 +182,9 @@ export class Toggle<TValue extends Key = string> extends Component<ToggleProps<T
             box-shadow: var(--toggle-button-shadow);
             box-sizing: border-box;
             cursor: default;
+            font-family: inherit;
+            font-size: var(--ui-font-size);
+            line-height: calc(var(--ui-font-size) + var(--ui-padding) + var(--ui-padding));
             user-select: none;
             white-space: nowrap;
         }

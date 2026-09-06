@@ -57,6 +57,9 @@ Versioning.
 
 ### Fixed
 
+- Toggle and TabLine native buttons now honor configured UI text scaling;
+  Toggle's default selected surface also preserves AA text contrast, and the
+  Sidebar browser contract follows its fixed light-DOM content part.
 - `SplitView` panes are keyboard-focusable so their owned overflow remains
   operable without a pointing device.
 - `Panel` now composes `Header`, uses trait classes for content orientation, and

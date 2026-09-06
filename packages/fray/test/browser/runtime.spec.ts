@@ -61,12 +61,12 @@ test('Panel exposes its labelled region and live disabled state',
 test('Sidebar keeps its labelled header and toolbar outside the scrolling content',
     async ({page}) => {
         const sidebar = page.getByRole('complementary', {name: 'Scrollable requests'})
-        const content = sidebar.locator(':scope > .content')
+        const content = sidebar.locator(':scope > fray-content')
         await expect(sidebar).toBeVisible()
         await expect(sidebar.getByRole('toolbar', {name: 'Request actions'})).toBeVisible()
 
         const before = await sidebar.evaluate((element) => {
-            const contentElement = element.querySelector<HTMLElement>(':scope > .content')
+            const contentElement = element.querySelector<HTMLElement>(':scope > fray-content')
             const header = element.querySelector<HTMLElement>(':scope > fray-header')
             if (contentElement == null || header == null) throw new Error('Missing Sidebar parts')
             return {

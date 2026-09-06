@@ -141,6 +141,9 @@ export class TabLine extends Component<TabLineProps> {
             box-sizing: border-box;
             align-self: flex-end;
             cursor: default;
+            font-family: inherit;
+            font-size: var(--ui-font-size);
+            line-height: calc(var(--ui-font-size) + var(--ui-padding) + var(--ui-padding));
             margin-block-start: 3px;
             user-select: none;
             white-space: nowrap;

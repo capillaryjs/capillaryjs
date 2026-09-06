@@ -186,7 +186,7 @@
     --checkbox-symbol-color: var(--selection-color);
     --checkable-label-color-disabled: #aaa;
     --toggle-button-background: var(--button-background);
-    --toggle-button-background-checked: var(--selection-background);
+    --toggle-button-background-checked: var(--palette-primary-700);
     --toggle-button-border-checked: var(--button-border);
     --toggle-button-selected-inline-overlap: 0;
     --toggle-button-selected-z-index: 0;
