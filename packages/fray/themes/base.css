@@ -176,6 +176,12 @@
       font: inherit;
       cursor: default;
       user-select: none;
+      white-space: nowrap;
+    }
+
+    label[data-fray], legend[data-fray] {
+      user-select: none;
+      white-space: nowrap;
     }
 
     button[data-fray]:hover:not(:disabled, [aria-disabled="true"]),
@@ -306,6 +312,7 @@
       border: var(--header-border);
       box-shadow: var(--header-shadow);
       user-select: none;
+      white-space: nowrap;
     }
 
     th[data-fray] > button[data-fray] {
