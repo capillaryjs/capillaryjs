@@ -135,6 +135,7 @@ import {
 } from '@sylwellsoftware/fray-visualization'
 import '@sylwellsoftware/fray/styles/structural.css'
 import '@sylwellsoftware/fray-visualization/styles/structural.css'
+import '@sylwellsoftware/fray/themes/base.css'
 import '@sylwellsoftware/fray/colors/iceblue/colors.css'
 import '@sylwellsoftware/fray/themes/minimal/theme.css'
 

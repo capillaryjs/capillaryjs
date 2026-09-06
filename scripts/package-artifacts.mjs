@@ -42,7 +42,7 @@ const definitions = [
                 || isDistributionFile(path)
                 || path === 'styles/structural.css'
                 || /^colors\/(?:README\.md|[a-z]+\/colors\.css)$/.test(path)
-                || /^themes\/(?:README\.md|light\.css|dark\.css|[a-z]+\/theme\.css)$/.test(path)
+                || /^themes\/(?:README\.md|base\.css|[a-z]+\/theme\.css)$/.test(path)
         },
     },
     {
