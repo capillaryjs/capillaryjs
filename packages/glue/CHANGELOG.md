@@ -6,6 +6,8 @@ Versioning.
 
 ## Unreleased
 
+## 0.8.0 - 2026-09-06
+
 ### Added
 
 - Exported `NonEmptyArray<T>` for public APIs that require one or more values.

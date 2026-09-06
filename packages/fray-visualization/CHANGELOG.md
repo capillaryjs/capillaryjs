@@ -6,6 +6,8 @@ and Semantic Versioning.
 
 ## Unreleased
 
+## 0.8.0 - 2026-09-06
+
 ### Changed
 
 - Regenerated structural CSS against Fray's fixed one-hyphen component-host
