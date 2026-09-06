@@ -4,7 +4,7 @@ import type {ReadableEmitter} from '@sylwellsoftware/glue'
 import {Placeholder} from '../../Placeholder.js'
 import {Component, css} from '../../component.js'
 import type {ComponentProps, FrayChild} from '../../component.js'
-import {classNames, componentClass} from '../../controlUtils.js'
+import {componentClass} from '../../controlUtils.js'
 import type {ValueEmitter} from '../../controlUtils.js'
 import type {CheckboxSymbol} from '../../lineinputs/checkbox/Checkbox.js'
 import type {FilterModeValue} from '../../../util/filterMode.js'
@@ -164,20 +164,18 @@ export class DataTable<TRow extends TableRow = TableRow>
         )
         const Host = this.Host
         return <Host
-            className={classNames('datacomponentlike', componentClass(this.props))}
-            data-loading={isLoading ? '' : null}
-            data-error={status === FetchState.Error ? '' : null}
+            className={componentClass(this.props) || null}
         >
             {isLoading ? <p role="status">Loading rows…</p> : null}
-            {status === FetchState.Error ? <div role="alert">
-                <span>{errorMessage(error, 'Unable to load rows')}</span>
-                {typeof this.dataSource?.retry === 'function'
-                    ? <button
-                        type="button"
-                        onClick={() => this.dataSource?.retry?.('table retry')}
-                    >Retry</button>
-                    : null}
-            </div> : null}
+            {status === FetchState.Error
+                ? <p role="alert">{errorMessage(error, 'Unable to load rows')}</p>
+                : null}
+            {status === FetchState.Error && typeof this.dataSource?.retry === 'function'
+                ? <button
+                    type="button"
+                    onClick={() => this.dataSource?.retry?.('table retry')}
+                >Retry</button>
+                : null}
             <table aria-busy={isLoading ? 'true' : null}>
                 {this.props.caption == null ? null : <caption>{this.props.caption}</caption>}
                 <TableHeader
@@ -223,7 +221,6 @@ export class DataTable<TRow extends TableRow = TableRow>
         return <tr
             key={String(key)}
             data-fray-selectable-row=""
-            data-index={index}
             aria-selected={String(selected)}
             tabIndex={index === 0 ? 0 : -1}
         >
@@ -284,7 +281,12 @@ export class DataTable<TRow extends TableRow = TableRow>
 
     static css = css`
         & {
+            display: block;
             overflow: auto;
+        }
+
+        & > p {
+            margin: 0;
         }
 
         & > table {
@@ -313,9 +315,23 @@ export class DataTable<TRow extends TableRow = TableRow>
         }
 
         & tr td {
+            background: var(--ui-table-bg-color);
             line-height: calc(var(--ui-font-size) + var(--ui-padding));
             font-size: var(--ui-font-size);
             height: calc(var(--ui-font-size) + var(--ui-padding-h));
+        }
+
+        & > table > tbody > tr:nth-child(even) > td {
+            background: var(--ui-table-bg-color2);
+        }
+
+        & > table > tbody > tr[aria-selected="true"] > td {
+            color: var(--ui-select-text-color);
+            background: var(--ui-select-bg);
+        }
+
+        & > table > tbody > tr:nth-child(even)[aria-selected="true"] > td {
+            background: var(--ui-select-bg-dark);
         }
 
         & tr td fray-placeholder {

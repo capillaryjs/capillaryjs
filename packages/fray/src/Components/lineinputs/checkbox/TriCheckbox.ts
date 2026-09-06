@@ -6,10 +6,10 @@ import type {CheckboxProps, CheckboxSymbol} from './Checkbox.js'
 export type TriCheckboxProps = Omit<CheckboxProps<FilterModeValue>, 'symbols'>
 
 export class TriCheckbox extends Checkbox<FilterModeValue> {
-    static override hostName = 'tri-checkbox'
+    static override hostName = 'tricheckbox'
 
     static symbols = [
-        ['✖', FilterMode.Deny],
+        ['×', FilterMode.Deny],
         ['☐', FilterMode.Neutral],
         ['✓', FilterMode.Prefer],
     ] as const satisfies readonly CheckboxSymbol<FilterModeValue>[]

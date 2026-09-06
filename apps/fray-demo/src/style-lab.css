@@ -48,13 +48,18 @@ body {
 }
 
 .meridian-workspace {
-    display: grid;
-    grid-template-rows: auto minmax(0, 1fr);
+    display: flex;
     min-width: 0;
     min-height: 0;
 }
 
-.meridian-workspace > [role="tabpanel"] {
+.meridian-workspace > fray-tabpanel {
+    flex: 1;
+    min-width: 0;
+    min-height: 0;
+}
+
+.meridian-workspace > fray-tabpanel > [role="tabpanel"] {
     min-width: 0;
     min-height: 0;
 }
@@ -74,37 +79,29 @@ body {
     gap: var(--space-lg);
 }
 
-.scope-list,
-.change-register {
+.attention-queue {
     display: grid;
-    gap: var(--space-sm);
+    gap: var(--space-xs);
     margin: 0;
-    padding: var(--space-sm);
+    padding: 0;
     list-style: none;
-}
-
-.change-register button {
-    width: 100%;
-    text-align: start;
-}
-
-.change-register button[aria-pressed="true"] {
-    font-weight: 700;
 }
 
 .meridian-register {
     min-block-size: 22rem;
 }
 
-.change-facts {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: var(--space-md);
+.advanced-risk-filter {
+    position: relative;
+    z-index: 1;
+    width: max-content;
 }
 
-.change-facts div {
+.change-facts > dl {
     display: grid;
-    gap: var(--space-xs);
+    grid-template-columns: repeat(3, auto minmax(0, 1fr));
+    column-gap: var(--space-sm);
+    row-gap: var(--space-xs);
 }
 
 .change-facts dt {
@@ -138,11 +135,15 @@ body {
 
     .meridian-shell,
     .portfolio-grid,
-    .change-facts {
-        grid-template-columns: 1fr;
+    .change-facts > dl {
+        grid-template-columns: auto minmax(0, 1fr);
     }
 
     .meridian-scope {
         min-block-size: 16rem;
+    }
+
+    .advanced-risk-filter {
+        width: auto;
     }
 }

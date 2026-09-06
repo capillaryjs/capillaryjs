@@ -131,10 +131,17 @@ test('record-view primitives retain semantics, keyboard behavior, and dialog foc
         const dialog = page.getByRole('dialog', {name: 'Reset scenario?'})
         await expect(dialog).toBeVisible()
         await expect(dialog.getByRole('button', {name: 'Confirm reset'})).toBeFocused()
+        await dialog.getByRole('button', {name: 'Keep data'}).click()
+        await expect(dialog).toBeHidden()
+        await expect(opener).toBeFocused()
+
+        await opener.press('Enter')
+        await expect(dialog).toBeVisible()
         await dialog.press('Escape')
         await expect(dialog).toBeHidden()
         await expect(opener).toBeFocused()
 
+        await page.evaluate(() => globalThis.frayTest.setProgress(null))
         const {violations} = await new AxeBuilder({page})
             .include('#record-primitives-root')
             .analyze()
@@ -166,7 +173,7 @@ test('stable controls remain operable through the real browser keyboard model', 
 
     await page.keyboard.press('Tab')
     const archived = page.getByRole('checkbox', {name: /Include archived/})
-    const archivedShell = archived.locator('+ fray-checkboxshell')
+    const archivedShell = archived.locator('+ fray-checkshell')
     await expect(archivedShell).toBeVisible()
     const checkboxMetrics = async () => archived.evaluate((input) => {
         const host = input.closest('fray-checkbox')

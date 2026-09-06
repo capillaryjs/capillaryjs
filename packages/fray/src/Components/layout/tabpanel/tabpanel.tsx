@@ -1,7 +1,6 @@
 import {Component, css, isVNode} from '../../component.js'
 import type {ComponentProps, FrayChild, Key} from '../../component.js'
 import {
-    classNames,
     componentClass,
     controlId,
     createValueEmitter,
@@ -89,13 +88,13 @@ export class TabPanel extends Component<TabPanelProps> {
 
     render(): FrayChild {
         const tabs = extractTabs(this.props)
-        const selected = tabs.find(({id}) => Object.is(id, this.valueEmitter.get()))
+        const selectedId = (tabs.find(({id}) => Object.is(id, this.valueEmitter.get()))
             ?? tabs.find((tab) => !tab.disabled)
-            ?? null
+            ?? null)?.id
         const Host = this.Host
         return <Host
             id={this.baseId}
-            className={classNames('panellike', componentClass(this.props))}
+            className={componentClass(this.props) || null}
         >
             <TabLine
                 key="tab-list"
@@ -106,14 +105,17 @@ export class TabPanel extends Component<TabPanelProps> {
                 {...(this.props.onChange == null ? {} : {onChange: this.props.onChange})}
                 onSelectTab={(tab, event) => this.selectTab(tab, event)}
             />
-            {selected == null ? null : <div
-                key={String(selected.id)}
-                id={tabPanelId(this.baseId, selected.id)}
-                role="tabpanel"
-                data-part="content"
-                aria-labelledby={tabButtonId(this.baseId, selected.id)}
-                tabIndex={0}
-            >{this.routedContent(selected)}</div>}
+            {tabs.map((tab) => {
+                const selected = Object.is(selectedId, tab.id)
+                return <section
+                    key={String(tab.id)}
+                    id={tabPanelId(this.baseId, tab.id)}
+                    role="tabpanel"
+                    aria-labelledby={tabButtonId(this.baseId, tab.id)}
+                    tabIndex={selected ? 0 : -1}
+                    hidden={!selected}
+                >{this.routedContent(tab)}</section>
+            })}
         </Host>
     }
 
@@ -172,6 +174,9 @@ export class TabPanel extends Component<TabPanelProps> {
 
     static css = css`
         & {
+            background: var(--panel-background);
+            border-radius: var(--panel-radius);
+            box-shadow: var(--panel-shadow);
             display: flex;
             flex-direction: column;
             width: 100%;
@@ -179,12 +184,23 @@ export class TabPanel extends Component<TabPanelProps> {
             overflow: hidden;
         }
 
-        & > [data-part="content"] {
+        & > section[role="tabpanel"] {
             display: flex;
             flex-direction: column;
             flex: 1;
             overflow: auto;
+            padding: 3px;
             z-index: 2;
+        }
+
+        & > section[role="tabpanel"][hidden] {
+            display: none;
+        }
+
+        & > section[role="tabpanel"] > fray-toolbar[role="toolbar"]:first-child {
+            width: calc(100% + 6px);
+            margin-block-start: -3px;
+            margin-inline-start: -3px;
         }
     `
 }

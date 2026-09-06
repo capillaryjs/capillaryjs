@@ -215,12 +215,12 @@ fray-checkbox {
             user-select: none;
         }
 
-        fray-checkbox > label:has(> input[type="checkbox"]:disabled) {
-            color: #aaa;
+        fray-checkbox > label:has(> input:disabled) {
+            color: var(--checkable-label-color-disabled);
             cursor: not-allowed;
         }
 
-        fray-checkbox > label > input[type="checkbox"] {
+        fray-checkbox > label > input {
             position: absolute;
             width: 1px;
             height: 1px;
@@ -234,9 +234,9 @@ fray-checkbox {
             font-size: var(--ui-font-size, inherit);
         }
 
-        fray-checkbox > label > input[type="checkbox"] + fray-checkboxshell {
+        fray-checkbox > label > input + fray-checkshell {
             position: relative;
-            display: block;
+            display: grid;
             width: 1em;
             height: 1em;
             flex: 0 0 1em;
@@ -251,23 +251,36 @@ fray-checkbox {
             font-family: inherit;
             font-size: 1em;
             user-select: none;
+            place-items: center;
         }
 
-        fray-checkbox > label > input[type="checkbox"]:checked + fray-checkboxshell {
+        fray-checkbox > label > input:checked + fray-checkshell {
             color: var(--checkbox-symbol-color, var(--selection-color, currentColor));
             background: var(--checkbox-box-background-checked,
                 var(--selection-background, var(--ui-accent-color, Highlight)));
             box-shadow: var(--checkbox-box-shadow-checked);
         }
 
-        fray-checkbox > label > input[type="checkbox"]:focus-visible + fray-checkboxshell {
+        fray-checkbox > label > input:focus-visible + fray-checkshell {
             outline: 2px solid var(--focus-color, var(--ui-accent-color, Highlight));
             outline-offset: 1px;
         }
 
-        fray-checkbox > label > input[type="checkbox"]:disabled + fray-checkboxshell {
+        fray-checkbox > label > input:disabled + fray-checkshell {
             opacity: 0.6;
             filter: saturate(0.6);
+        }
+
+fray-checkbox > label > input[value="require"] + fray-checkshell {
+            color: var(--palette-contrast-light);
+            background: var(--palette-green);
+            box-shadow: var(--checkbox-box-shadow-checked);
+        }
+
+        fray-checkbox > label > input[value="deny"] + fray-checkshell {
+            color: var(--palette-contrast-light);
+            background: var(--palette-red);
+            box-shadow: var(--checkbox-box-shadow-checked);
         }
 
 section[data-fray-visualization="line-graph"] {

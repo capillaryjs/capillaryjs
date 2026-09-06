@@ -101,7 +101,6 @@ export class TableHeaderCell extends Component<TableHeaderCellProps> {
 
         return <th
             scope="col"
-            data-fray-component="table-header-cell"
             aria-sort={direction === 'asc'
                 ? 'ascending'
                 : direction === 'desc' ? 'descending' : 'none'}
@@ -110,22 +109,25 @@ export class TableHeaderCell extends Component<TableHeaderCellProps> {
             {this.props.sortable
                 ? <button
                     type="button"
-                    data-part="sort"
+                    class="sort"
+                    aria-label={`Sort ${String(label)}`}
                     onClick={() => this.toggleSort()}
                 >
                     {label}
-                    {direction === 'asc' ? ' ▲' : direction === 'desc' ? ' ▼' : ''}
+                    <span class="sortindicator" aria-hidden="true">
+                        {direction === 'asc' ? '▲' : direction === 'desc' ? '▼' : ''}
+                    </span>
                 </button>
                 : <span>{label}</span>}
             {this.props.filterOptions == null
                 ? null
                 : <button
                     type="button"
-                    data-part="filter-toggle"
+                    class="filter"
                     aria-label={filterLabel}
                     aria-expanded={String(this.filterVisible)}
                     onClick={(event: MouseEvent) => this.toggleFilterPanel(event)}
-                >Filter</button>}
+                >⛃</button>}
             {panel}
         </th>
     }
@@ -143,40 +145,58 @@ export class TableHeaderCell extends Component<TableHeaderCellProps> {
     static dependencies = [FilterPanel]
 
     static override css = css`
-        th[aria-sort] {
+        fray-datatable > table > thead > tr > th[aria-sort] {
             position: relative;
             padding-right: 24px;
             user-select: var(--noselect-user-select);
             cursor: var(--noselect-cursor);
         }
 
-        th[aria-sort] > [data-part="sort"],
-        th[aria-sort] > [data-part="filter-toggle"] {
-            width: auto;
-            min-height: var(--control-min-height, 2rem);
-            padding: var(--space-xs) var(--space-sm);
-            color: var(--button-color);
-            background: var(--button-background);
-            border: var(--button-border);
-            border-radius: var(--radius-md);
-            box-shadow: var(--button-shadow);
-            box-sizing: border-box;
-            cursor: default;
+        fray-datatable > table > thead > tr > th[aria-sort] > button.sort {
+            appearance: none;
+            display: block;
+            width: 100%;
+            padding: 0;
+            color: inherit;
+            background: transparent;
+            border: 0;
             font-family: inherit;
-            user-select: none;
-            white-space: nowrap;
+            font-size: inherit;
+            font-weight: inherit;
+            line-height: inherit;
+            text-align: inherit;
+            cursor: pointer;
         }
 
-        th[aria-sort] > [data-part="filter-toggle"] {
+        fray-datatable > table > thead > tr > th[aria-sort] > button.sort > span.sortindicator {
+            position: absolute;
+            right: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 1em;
+            text-align: center;
+        }
+
+        fray-datatable > table > thead > tr > th[aria-sort] > button.filter {
+            appearance: none;
             position: absolute;
             right: 2px;
             top: 50%;
             transform: translateY(-50%);
             width: 1em;
+            padding: 0;
+            color: inherit;
+            background: transparent;
+            border: 0;
+            font-family: inherit;
+            font-size: inherit;
+            line-height: inherit;
+            text-align: center;
+            cursor: pointer;
             opacity: 0.5;
         }
 
-        th[aria-sort] > [data-part="filter-toggle"]:hover {
+        fray-datatable > table > thead > tr > th[aria-sort] > button.filter:hover {
             opacity: 1;
         }
     `

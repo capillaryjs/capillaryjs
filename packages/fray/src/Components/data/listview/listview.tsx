@@ -4,7 +4,7 @@ import type {ReadableEmitter} from '@sylwellsoftware/glue'
 import {Placeholder} from '../../Placeholder.js'
 import {Component, css} from '../../component.js'
 import type {ComponentProps, FrayChild} from '../../component.js'
-import {classNames, componentClass} from '../../controlUtils.js'
+import {componentClass} from '../../controlUtils.js'
 import type {ValueEmitter} from '../../controlUtils.js'
 import {
     createSelectionHandler,
@@ -105,7 +105,7 @@ export class ListView<TItem = unknown> extends Component<ListViewProps<TItem>> {
 
         const Host = this.Host
         return <Host
-            className={classNames('datacomponentlike', componentClass(this.props))}
+            className={componentClass(this.props) || null}
         >
             {status === FetchState.Error
                 ? <p role="alert">
@@ -113,19 +113,21 @@ export class ListView<TItem = unknown> extends Component<ListViewProps<TItem>> {
                 </p>
                 : null}
             {isLoading && rows.length === 0
-                ? <div role="status" data-part="loading">
-                    <span>Loading items…</span>
-                    {Array.from({length: this.props.placeholderCount ?? 5}, (_, index) =>
-                        <div key={`placeholder-${index}`} data-part="placeholder-row">
-                            <Placeholder width={45 + index * 7} />
-                        </div>)}
-                </div>
+                ? <>
+                    <p role="status">Loading items…</p>
+                    <ul aria-hidden="true">
+                        {Array.from({length: this.props.placeholderCount ?? 5}, (_, index) =>
+                            <li key={`placeholder-${index}`}>
+                                <Placeholder width={45 + index * 7} />
+                            </li>)}
+                    </ul>
+                </>
                 : null}
             {status === FetchState.Ready && rows.length === 0
                 ? <p role="status">No items</p>
                 : null}
             {rows.length > 0
-                ? <div
+                ? <ul
                     role="listbox"
                     aria-label={this.props.label ?? 'Items'}
                     aria-busy={isLoading ? 'true' : null}
@@ -136,15 +138,14 @@ export class ListView<TItem = unknown> extends Component<ListViewProps<TItem>> {
                     const content = this.props.renderItem
                         ? this.props.renderItem(item, index)
                         : defaultItemLabel(item)
-                    return <div
+                    return <li
                         key={String(key)}
                         role="option"
                         data-fray-selectable-row=""
-                        data-index={index}
                         aria-selected={String(selected)}
                         tabIndex={index === 0 ? 0 : -1}
-                    >{content}</div>
-                })}</div>
+                    >{content}</li>
+                })}</ul>
                 : null}
         </Host>
     }
@@ -179,7 +180,7 @@ export class ListView<TItem = unknown> extends Component<ListViewProps<TItem>> {
 
     static dependencies = [Placeholder]
 
-    static override hostName = 'list-view'
+    static override hostName = 'listview'
 
     static override css = css`
         & {
@@ -187,32 +188,46 @@ export class ListView<TItem = unknown> extends Component<ListViewProps<TItem>> {
             flex-direction: column;
             overflow-y: auto;
             height: 100%;
-            color: var(--ui-color);
-            background: var(--ui-background);
-            border: var(--input-border);
-            border-radius: var(--radius-md);
+            padding: var(--ui-padding-v) var(--ui-padding-h);
+            color: var(--ui-text-color);
+            background: var(--ui-input-bg);
+            border: var(--ui-input-border);
+            border-radius: var(--ui-border-radius);
             box-shadow: var(--input-shadow);
             box-sizing: border-box;
+            pointer-events: all;
             user-select: none;
+            white-space: nowrap;
         }
 
         & > [role="listbox"],
-        & > [data-part="loading"] {
+        & > ul[aria-hidden="true"] {
             display: flex;
             flex-direction: column;
+            margin: 0;
+            padding: 0;
+            list-style: none;
         }
 
         & > [role="listbox"] > [role="option"] {
             display: flex;
             flex-flow: row nowrap;
             position: relative;
-            min-height: var(--control-min-height, 2rem);
+            min-height: calc(var(--ui-font-size) + var(--ui-padding-h) + var(--ui-padding-h));
+            line-height: calc(var(--ui-font-size) + var(--ui-padding) + var(--ui-padding));
+            font-size: var(--ui-font-size);
+            color: var(--ui-text-color);
+            border-radius: var(--ui-border-radius);
             box-sizing: border-box;
             user-select: none;
         }
 
-        & > [role="listbox"] > [role="option"]:last-child {
-            border-bottom: none;
+        & > [role="listbox"] > [role="option"]:hover {
+            background: var(--hover-bg-color, #f5f5f5);
+        }
+
+        & > [role="listbox"] > [role="option"][aria-selected="true"] {
+            background: var(--selected-bg-color, #e0e7ff);
         }
 
         & > [role="status"],

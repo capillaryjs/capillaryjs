@@ -1,5 +1,6 @@
-import {Component, css, h} from '../../component.js'
+import {css, h} from '../../component.js'
 import type {ComponentProps, FrayChild, LivePropContract} from '../../component.js'
+import {CheckableControl} from '../CheckableControl.js'
 import {
     componentClass,
     controlId,
@@ -34,7 +35,7 @@ export interface CheckboxProps<TValue extends CheckboxValue = FilterModeValue>
 
 /** Keyboard-operable semantic state cycler. */
 export class Checkbox<TValue extends CheckboxValue = FilterModeValue>
-    extends Component<CheckboxProps<TValue>> {
+    extends CheckableControl<CheckboxProps<TValue>> {
     static override liveProps = checkboxLiveProps
     static symbols: readonly CheckboxSymbol<FilterModeValue>[] = [
         ['☐', FilterMode.Neutral],
@@ -101,9 +102,7 @@ export class Checkbox<TValue extends CheckboxValue = FilterModeValue>
         // checkbox surface; it is not visible glyph content.
         const shellSymbol = symbol === '☐' ? null : symbol
         const stateName = describeState(semanticState)
-        const checked = semanticState === FilterMode.Prefer
-            || semanticState === FilterMode.Require
-            || (this.symbols.length === 2 && semanticIndex === 1)
+        const checked = isCheckedSemanticState(this.symbols, semanticState)
 
         const Host = this.Host
         return <Host
@@ -118,11 +117,21 @@ export class Checkbox<TValue extends CheckboxValue = FilterModeValue>
                     disabled={disabled}
                     required={required}
                     name={this.props.name}
-                    value={this.props.value == null ? undefined : String(this.props.value)}
+                    value={String(semanticState)}
                     aria-label={`${label}: ${stateName}`}
                     aria-invalid={error == null ? null : 'true'}
                     aria-describedby={error == null ? null : this.errorId}
-                    onChange={(event: Event) => this.cycleState(1, event)}
+                    onChange={(event: Event) => {
+                        this.cycleState(1, event)
+                        // A native checkbox toggles its binary checked property before
+                        // it emits change. Deny and Neutral both map to unchecked, so
+                        // a VDOM patch can otherwise see the same checked prop as its
+                        // previous render and leave that native toggle behind.
+                        ;(event.currentTarget as HTMLInputElement).checked = isCheckedSemanticState(
+                            this.symbols,
+                            this.valueEmitter.get(),
+                        )
+                    }}
                     onKeyDown={(event: KeyboardEvent) => {
                         if (event.key === 'ArrowRight' || event.key === 'ArrowDown') {
                             event.preventDefault()
@@ -133,7 +142,7 @@ export class Checkbox<TValue extends CheckboxValue = FilterModeValue>
                         }
                     }}
                 />
-                {h('fray-checkboxshell', {'aria-hidden': 'true'}, shellSymbol)}
+                {h('fray-checkshell', {'aria-hidden': 'true'}, shellSymbol)}
                 {label}
             </label>
             {error == null ? null : <p id={this.errorId} role="alert">{String(error)}</p>}
@@ -142,86 +151,20 @@ export class Checkbox<TValue extends CheckboxValue = FilterModeValue>
 
     static override hostName = 'check-box'
 
-    static css = css`
-        & {
-            display: inline-flex;
-            line-height: 1;
-        }
-
-        & > label {
-            display: flex;
-            flex-flow: row nowrap;
-            position: relative;
-            line-height: calc(var(--ui-font-size) + var(--ui-padding) + var(--ui-padding));
-            font-size: var(--ui-font-size);
-            height: calc(var(--ui-font-size) + var(--ui-padding-h) + var(--ui-padding-h));
-            color: var(--ui-text-color);
-            border-radius: var(--ui-border-radius);
-            box-sizing: border-box;
-            align-items: center;
-            gap: .3em;
-            align-content: center;
-            justify-content: center;
-            justify-items: center;
-            cursor: pointer;
-            user-select: none;
-        }
-
-        & > label:has(> input[type="checkbox"]:disabled) {
-            color: #aaa;
-            cursor: not-allowed;
-        }
-
-        & > label > input[type="checkbox"] {
-            position: absolute;
-            width: 1px;
-            height: 1px;
-            padding: 0;
-            margin: -1px;
-            overflow: hidden;
-            clip: rect(0 0 0 0);
-            white-space: nowrap;
-            border: 0;
-            font: inherit;
-            font-size: var(--ui-font-size, inherit);
-        }
-
-        & > label > input[type="checkbox"] + fray-checkboxshell {
-            position: relative;
-            display: block;
-            width: 1em;
-            height: 1em;
-            flex: 0 0 1em;
-            box-sizing: border-box;
-            text-align: center;
-            line-height: 120%;
-            color: var(--input-color, var(--ui-text-color, currentColor));
-            background: var(--checkbox-box-background, var(--ui-input-bg, transparent));
-            border: var(--checkbox-box-border, var(--cbx-o-border, 1px solid currentColor));
-            border-radius: var(--cbx-border-radius, var(--radius-sm, 0.2rem));
-            box-shadow: var(--checkbox-box-shadow);
-            font-family: inherit;
-            font-size: 1em;
-            user-select: none;
-        }
-
-        & > label > input[type="checkbox"]:checked + fray-checkboxshell {
-            color: var(--checkbox-symbol-color, var(--selection-color, currentColor));
-            background: var(--checkbox-box-background-checked,
-                var(--selection-background, var(--ui-accent-color, Highlight)));
+    static override css = css`
+        & > label > input[value="require"] + fray-checkshell {
+            color: var(--palette-contrast-light);
+            background: var(--palette-green);
             box-shadow: var(--checkbox-box-shadow-checked);
         }
 
-        & > label > input[type="checkbox"]:focus-visible + fray-checkboxshell {
-            outline: 2px solid var(--focus-color, var(--ui-accent-color, Highlight));
-            outline-offset: 1px;
-        }
-
-        & > label > input[type="checkbox"]:disabled + fray-checkboxshell {
-            opacity: 0.6;
-            filter: saturate(0.6);
+        & > label > input[value="deny"] + fray-checkshell {
+            color: var(--palette-contrast-light);
+            background: var(--palette-red);
+            box-shadow: var(--checkbox-box-shadow-checked);
         }
     `
+
 }
 
 function validateSymbols<TValue extends CheckboxValue>(
@@ -235,4 +178,14 @@ function validateSymbols<TValue extends CheckboxValue>(
             throw new TypeError('Checkbox symbols must be [symbol, state] tuples')
         }
     }
+}
+
+function isCheckedSemanticState<TValue extends CheckboxValue>(
+    symbols: readonly CheckboxSymbol<TValue>[],
+    semanticState: TValue,
+): boolean {
+    const semanticIndex = symbols.findIndex(([, state]) => Object.is(state, semanticState))
+    return semanticState === FilterMode.Prefer
+        || semanticState === FilterMode.Require
+        || (symbols.length === 2 && semanticIndex === 1)
 }

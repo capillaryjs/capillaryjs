@@ -311,9 +311,14 @@ export class Component<TProps extends ComponentProps = ComponentProps> {
         const styleChain = componentStyleChain(this)
         for (const owner of styleChain) {
             if (Object.hasOwn(owner, 'css') && owner.css) {
-                runtime.styleRegistry.registerCSS(concreteHostName == null
-                    ? owner.css
-                    : runtime.resolveHostCSS(owner.css, concreteHostName))
+                if (concreteHostName == null) {
+                    runtime.styleRegistry.registerCSS(owner.css)
+                } else {
+                    runtime.styleRegistry.registerHostCSS(
+                        owner.css,
+                        runtime.resolveElementName(concreteHostName),
+                    )
+                }
             }
         }
         for (const owner of styleChain) {

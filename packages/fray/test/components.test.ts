@@ -15,6 +15,7 @@ import {
     Header,
     Label,
     Panel,
+    Placeholder,
     ProgressBar,
     QuadCheckbox,
     RadioButton,
@@ -451,7 +452,10 @@ describe('choice controls', () => {
         assert.equal(radios.length, 2)
         assert.equal(radios[0]?.checked, true)
         assert.equal(radios[0]?.name, radios[1]?.name)
-        assert.equal(requiredQuery('fray-radiobutton').localName, 'fray-radiobutton')
+        const fieldset = requiredQuery<HTMLFieldSetElement>('fieldset')
+        assert.equal(requiredQuery('legend', fieldset).textContent, 'View')
+        assert.equal(fieldset.querySelector(':scope > div, [role="radiogroup"], [data-part]'), null)
+        assert.equal(requiredQuery('fray-radiobutton', fieldset).localName, 'fray-radiobutton')
 
         requiredAt(radios, 1).checked = true
         requiredAt(radios, 1).dispatchEvent(new Event('change', {bubbles: true}))
@@ -487,6 +491,7 @@ describe('choice controls', () => {
         assert.equal(parentRenders, 1)
         assert.equal(host.hasAttribute('data-disabled'), false)
         assert.equal(host.hasAttribute('data-required'), false)
+        assert.equal(host.hasAttribute('data-error'), false)
         assert.equal(fieldset.disabled, false)
         assert.equal(fieldset.getAttribute('aria-required'), null)
 
@@ -495,8 +500,9 @@ describe('choice controls', () => {
         error.set('Choose a view')
 
         assert.equal(parentRenders, 1)
-        assert.equal(host.hasAttribute('data-disabled'), true)
-        assert.equal(host.hasAttribute('data-required'), true)
+        assert.equal(host.hasAttribute('data-disabled'), false)
+        assert.equal(host.hasAttribute('data-required'), false)
+        assert.equal(host.hasAttribute('data-error'), false)
         assert.equal(fieldset.disabled, true)
         assert.equal(fieldset.getAttribute('aria-required'), 'true')
         assert.equal(fieldset.getAttribute('aria-invalid'), 'true')
@@ -567,6 +573,7 @@ describe('choice controls', () => {
                 .map(({textContent}) => textContent),
             ['Cards'],
         )
+        assert.equal(requiredQuery<HTMLInputElement>('input[type="radio"]').checked, true)
 
         owner.destroy()
         assert.equal(options.subscriberCount, 0)
@@ -581,7 +588,7 @@ describe('choice controls', () => {
         assert.equal(input.name, 'setting')
         assert.equal(input.value, 'enabled')
         assert.equal(input.parentElement?.parentElement?.localName, 'fray-radiobutton')
-        assert.equal(input.nextElementSibling?.localName, 'fray-radioshell')
+        assert.equal(input.nextElementSibling?.localName, 'fray-checkshell')
         assert.equal(host.querySelector('div, span, [data-disabled], [data-required], [data-error]'), null)
         radio.destroy()
     })
@@ -592,7 +599,7 @@ describe('choice controls', () => {
         const host = requiredQuery<HTMLElement>('fray-checkbox')
         assert.equal(host.dataset.frayComponent, 'check-box')
         assert.equal(control.closest('fray-checkbox'), host)
-        assert.equal(control.nextElementSibling?.localName, 'fray-checkboxshell')
+        assert.equal(control.nextElementSibling?.localName, 'fray-checkshell')
         assert.equal(control.nextElementSibling?.textContent, '')
         assert.equal(host.querySelector('div, span, [data-state]'), null)
         assert.equal(host.hasAttribute('data-disabled'), false)
@@ -611,7 +618,7 @@ describe('choice controls', () => {
         basic.destroy()
         document.body.replaceChildren()
         const tri = TriCheckbox.new({label: 'Tri'}).attachTo(document.body)
-        assert.equal(requiredQuery('fray-tricheckbox').dataset.frayComponent, 'tri-checkbox')
+        assert.equal(requiredQuery('fray-tricheckbox').dataset.frayComponent, 'tricheckbox')
         assert.equal(tri.valueEmitter.get(), FilterMode.Neutral)
         requiredQuery<HTMLInputElement>('input[type="checkbox"]').dispatchEvent(
             new KeyboardEvent('keydown', {key: 'ArrowLeft', bubbles: true}),
@@ -621,15 +628,51 @@ describe('choice controls', () => {
         tri.destroy()
         document.body.replaceChildren()
         const quad = QuadCheckbox.new({label: 'Quad'}).attachTo(document.body)
-        assert.equal(requiredQuery('fray-quadcheckbox').dataset.frayComponent, 'quad-checkbox')
+        assert.equal(requiredQuery('fray-quadcheckbox').dataset.frayComponent, 'quadcheckbox')
         const quadControl = requiredQuery<HTMLInputElement>('input[type="checkbox"]')
-        quadControl.dispatchEvent(new Event('change', {bubbles: true}))
-        quadControl.dispatchEvent(new Event('change', {bubbles: true}))
+        const nativeClick = () => {
+            quadControl.checked = !quadControl.checked
+            quadControl.dispatchEvent(new Event('change', {bubbles: true}))
+        }
+        nativeClick()
+        assert.equal(quad.valueEmitter.get(), FilterMode.Prefer)
+        assert.equal(quadControl.checked, true)
+        nativeClick()
         assert.equal(quad.valueEmitter.get(), FilterMode.Require)
+        assert.equal(quadControl.checked, true)
+        nativeClick()
+        assert.equal(quad.valueEmitter.get(), FilterMode.Deny)
+        assert.equal(quadControl.checked, false)
+        nativeClick()
+        assert.equal(quad.valueEmitter.get(), FilterMode.Neutral)
+        assert.equal(quadControl.checked, false)
+        quadControl.dispatchEvent(new KeyboardEvent('keydown', {key: 'ArrowLeft', bubbles: true}))
+        assert.equal(quad.valueEmitter.get(), FilterMode.Deny)
+        assert.equal(quadControl.checked, false)
     })
 })
 
 describe('layout controls', () => {
+    test('Placeholder renders one hidden fixed host with a bounded width', () => {
+        Placeholder.new({width: 4}).attachTo(document.body)
+        const lowerBound = requiredQuery<HTMLElement>('fray-placeholder')
+        assert.equal(lowerBound.style.width, '10%')
+        assert.equal(lowerBound.getAttribute('aria-hidden'), 'true')
+        assert.equal(lowerBound.querySelector('div, [data-part], [data-state]'), null)
+
+        document.body.replaceChildren()
+        Placeholder.new({width: '140'}).attachTo(document.body)
+        assert.equal(requiredQuery<HTMLElement>('fray-placeholder').style.width, '100%')
+
+        document.body.replaceChildren()
+        Placeholder.new().attachTo(document.body)
+        assert.equal(requiredQuery<HTMLElement>('fray-placeholder').style.width, '65%')
+        assert.throws(
+            () => Placeholder.new({width: 'not a width'}).attachTo(document.body),
+            /Placeholder width must be numeric/,
+        )
+    })
+
     test('DescriptionList renders native term/value semantics', () => {
         DescriptionList.new({
             label: 'Record details',
@@ -639,9 +682,11 @@ describe('layout controls', () => {
             ],
         }).attachTo(document.body)
 
-        const list = requiredQuery<HTMLDListElement>('dl[data-fray-component="description-list"]')
-        assert.ok(list.classList.contains('datacomponentlike'))
+        const host = requiredQuery('fray-descriptionlist')
+        const list = requiredQuery<HTMLDListElement>('dl', host)
+        assert.equal(host.querySelector('div, [data-fray-component]'), null)
         assert.equal(list.getAttribute('aria-label'), 'Record details')
+        assert.equal(list.querySelector('div'), null)
         assert.deepEqual([...list.querySelectorAll('dt')].map(({textContent}) => textContent), [
             'Severity',
             'Owner',
@@ -840,26 +885,35 @@ describe('layout controls', () => {
             id: 'settings',
             label: 'Settings sections',
             valueEmitter: active,
-            children: [
-                h(Tab, {id: 'first', label: 'First'}, h('p', null, 'First content')),
-                h(Tab, {id: 'second', label: 'Second'}, h('p', null, 'Second content')),
+            tabs: [
+                {id: 'first', label: 'First', content: h('p', null, 'First content')},
+                {id: 'second', label: 'Second', content: h('p', null, 'Second content')},
             ],
         }).attachTo(document.body)
 
         const tabs = [...document.querySelectorAll<HTMLElement>('[role="tab"]')]
         assert.equal(requiredQuery('fray-tabpanel').dataset.frayComponent, 'tab-panel')
         assert.equal(requiredQuery('fray-tabline').dataset.frayComponent, 'tab-line')
-        let panel = requiredQuery<HTMLElement>('[role="tabpanel"]')
+        const firstPanel = requiredQuery<HTMLElement>('#settings-panel-first')
+        const secondPanel = requiredQuery<HTMLElement>('#settings-panel-second')
         assert.equal(requiredAt(tabs, 0).getAttribute('aria-selected'), 'true')
-        assert.equal(requiredAt(tabs, 0).getAttribute('aria-controls'), panel.id)
-        assert.equal(panel.getAttribute('aria-labelledby'), requiredAt(tabs, 0).id)
-        assert.equal(panel.textContent, 'First content')
+        assert.equal(requiredAt(tabs, 0).getAttribute('aria-controls'), firstPanel.id)
+        assert.equal(firstPanel.getAttribute('aria-labelledby'), requiredAt(tabs, 0).id)
+        assert.equal(firstPanel.textContent, 'First content')
+        assert.equal(firstPanel.hidden, false)
+        assert.equal(secondPanel.hidden, true)
 
         requiredAt(tabs, 1).click()
-        panel = requiredQuery<HTMLElement>('[role="tabpanel"]')
         assert.equal(active.get(), 'second')
         assert.equal(requiredAt(tabs, 1).getAttribute('aria-selected'), 'true')
-        assert.equal(panel.textContent, 'Second content')
+        assert.equal(firstPanel.hidden, true)
+        assert.equal(secondPanel.hidden, false)
+        assert.equal(secondPanel.textContent, 'Second content')
+
+        active.set('first')
+        assert.equal(firstPanel.hidden, false)
+        assert.equal(secondPanel.hidden, true)
+        assert.equal(requiredQuery('#settings-panel-first'), firstPanel)
 
         requiredAt(tabs, 1).focus()
         requiredAt(tabs, 1).dispatchEvent(new KeyboardEvent('keydown', {

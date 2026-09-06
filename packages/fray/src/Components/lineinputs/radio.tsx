@@ -13,6 +13,7 @@ import {
     invoke,
 } from '../controlUtils.js'
 import type {ValueControlProps, ValueEmitter} from '../controlUtils.js'
+import {CheckableControl} from './CheckableControl.js'
 
 export type RadioOption<TValue extends Key = string> = readonly [
     value: TValue,
@@ -36,7 +37,7 @@ export interface RadioButtonProps extends ComponentProps,
 }
 
 /** A native radio input with its associated label and visual control shell. */
-export class RadioButton extends Component<RadioButtonProps> {
+export class RadioButton extends CheckableControl<RadioButtonProps> {
     static override liveProps = radioButtonLiveProps
     readonly inputId: string
     readonly errorId: string
@@ -71,7 +72,7 @@ export class RadioButton extends Component<RadioButtonProps> {
                     onChange={(event: Event) => invoke(this.props.onChange,
                         (event.currentTarget as HTMLInputElement).checked, event)}
                 />
-                {h('fray-radioshell', {'aria-hidden': 'true'})}
+                {h('fray-checkshell', {'aria-hidden': 'true'})}
                 {label}
             </label>
             {error == null ? null : <p id={this.errorId} role="alert">{String(error)}</p>}
@@ -80,76 +81,17 @@ export class RadioButton extends Component<RadioButtonProps> {
 
     static override hostName = 'radio-button'
 
-    static css = css`
-        & {
-            display: inline-flex;
+    static override css = css`
+        & > label > input[type="radio"] + fray-checkshell {
+            border-radius: 50%;
         }
 
-        & > label {
-            display: flex;
-            flex-flow: row nowrap;
-            align-items: center;
-            height: 1.2em;
-            gap: .3em;
-            cursor: pointer;
-            user-select: none;
-        }
-
-        & > label:has(> input[type="radio"]:disabled) {
-            color: #aaa;
-            cursor: not-allowed;
-        }
-
-        & > label > input[type="radio"] {
-            position: absolute;
-            width: 1px;
-            height: 1px;
-            padding: 0;
-            margin: -1px;
-            overflow: hidden;
-            clip: rect(0 0 0 0);
-            white-space: nowrap;
-            border: 0;
-        }
-
-        & > label > input[type="radio"] + fray-radioshell {
-            position: relative;
-            display: flex;
-            width: 1em;
-            height: 1em;
-            flex: 0 0 1em;
-            box-sizing: border-box;
-            border: var(--checkbox-box-border);
-            border-radius: 1em;
-            background: var(--checkbox-box-background);
-            box-shadow: var(--checkbox-box-shadow);
-            align-content: center;
-            justify-content: center;
-            align-items: center;
-            justify-items: center;
-        }
-
-        & > label > input[type="radio"]:checked + fray-radioshell {
-            background: var(--checkbox-box-background-checked);
-            box-shadow: var(--checkbox-box-shadow-checked);
-        }
-
-        & > label > input[type="radio"]:checked + fray-radioshell::after {
+        & > label > input[type="radio"]:checked + fray-checkshell::after {
             width: .4em;
             height: .4em;
             content: "";
             border-radius: 50%;
             background: var(--checkbox-symbol-color);
-        }
-
-        & > label > input[type="radio"]:focus-visible + fray-radioshell {
-            outline: 2px solid var(--focus-color);
-            outline-offset: 1px;
-        }
-
-        & > label > input[type="radio"]:disabled + fray-radioshell {
-            opacity: 0.6;
-            filter: saturate(0.6);
         }
     `
 }
@@ -180,7 +122,6 @@ export class RadioGroup<TValue extends Key = string>
 
     readonly valueEmitter: ValueEmitter<TValue>
     readonly groupId: string
-    readonly legendId: string
     readonly errorId: string
 
     constructor(props: RadioGroupProps<TValue> = {}) {
@@ -190,12 +131,19 @@ export class RadioGroup<TValue extends Key = string>
         const firstValue = options[0]?.[0] ?? null as unknown as TValue
         this.valueEmitter = createValueEmitter(this, props, firstValue, 'radio group value')
         this.groupId = controlId('radio-group', props.id)
-        this.legendId = `${this.groupId}-label`
         this.errorId = `${this.groupId}-error`
     }
 
     initialize(): void {
         this.watch(this.valueEmitter)
+    }
+
+    setProps(nextProps: RadioGroupProps<TValue>): this {
+        const options = nextProps.options ?? []
+        validateRadioOptions(options)
+        super.setProps(nextProps)
+        this.selectFirstAvailableOption(options)
+        return this
     }
 
     selectOption(value: TValue, event: Event | null = null): void {
@@ -211,37 +159,29 @@ export class RadioGroup<TValue extends Key = string>
         const Host = this.Host
         return <Host
             className={componentClass(this.props) || null}
-            data-disabled={disabled ? '' : null}
-            data-required={required ? '' : null}
-            data-error={error == null ? null : ''}
         >
             <fieldset
+                id={this.groupId}
                 disabled={disabled}
+                aria-label={label == null ? this.props.ariaLabel : null}
                 aria-required={required ? 'true' : null}
                 aria-invalid={error == null ? null : 'true'}
                 aria-describedby={error == null ? null : this.errorId}
             >
-                {label == null ? null : <legend id={this.legendId}>{label}</legend>}
-                <div
-                    data-part="options"
-                    role="radiogroup"
-                    aria-label={label == null ? this.props.ariaLabel : null}
-                    aria-labelledby={label == null ? null : this.legendId}
-                >
-                    {options.map(([value, optionLabel], index) => <RadioButton
-                        key={String(value)}
-                        id={`${this.groupId}-${index}`}
-                        name={this.props.name ?? this.groupId}
-                        value={value}
-                        label={optionLabel}
-                        checked={Object.is(selectedValue, value)}
-                        disabled={disabled}
-                        required={required}
-                        onChange={(checked, event) => {
-                            if (checked) this.selectOption(value, event)
-                        }}
-                    />)}
-                </div>
+                {label == null ? null : <legend>{label}</legend>}
+                {options.map(([value, optionLabel], index) => <RadioButton
+                    key={String(value)}
+                    id={`${this.groupId}-${index}`}
+                    name={this.props.name ?? this.groupId}
+                    value={value}
+                    label={optionLabel}
+                    checked={Object.is(selectedValue, value)}
+                    disabled={disabled}
+                    required={required}
+                    onChange={(checked, event) => {
+                        if (checked) this.selectOption(value, event)
+                    }}
+                />)}
             </fieldset>
             {error == null ? null : <p id={this.errorId} role="alert">{String(error)}</p>}
         </Host>
@@ -249,20 +189,30 @@ export class RadioGroup<TValue extends Key = string>
 
     static override hostName = 'radio-group'
 
-    static css = css`
+    static override css = css`
         & > fieldset {
+            display: flex;
+            flex-flow: row wrap;
+            gap: var(--space-sm, 0.5rem);
             margin: 0;
             padding: 0;
+            min-inline-size: 0;
             border: 0;
             user-select: none;
         }
 
-        & [data-part="options"] {
-            display: flex;
-            flex-flow: row wrap;
-            gap: var(--space-sm, 0.5rem);
+        & > fieldset > legend {
+            flex: 0 0 100%;
+            padding: 0;
         }
     `
+
+    private selectFirstAvailableOption(options: readonly RadioOption<TValue>[]): void {
+        if (!options.some(([value]) => Object.is(value, this.valueEmitter.get()))) {
+            this.valueEmitter.set(options[0]?.[0] ?? null as unknown as TValue,
+                'radio group options changed')
+        }
+    }
 }
 
 function validateRadioOptions<TValue extends Key>(

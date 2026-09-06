@@ -1,5 +1,5 @@
 import {Button} from '../menu/button.js'
-import {Component, css} from '../component.js'
+import {Component, css, h} from '../component.js'
 import type {ComponentProps, FrayChild, LivePropContract, Ref} from '../component.js'
 import {
     componentClass,
@@ -55,30 +55,31 @@ export class Dialog extends Component<DialogProps> {
             showCloseButton = true,
             children = [],
         } = this.props
-        return <dialog
-            id={this.dialogId}
-            className={componentClass(this.props) || undefined}
-            data-fray-component="dialog"
-            aria-labelledby={this.titleId}
-            aria-describedby={description == null ? null : this.descriptionId}
-            aria-modal="true"
-            ref={(element: HTMLDialogElement | null) => this.dialogElement = element}
-        >
-            <header>
-                <h2 id={this.titleId}>{title}</h2>
-            </header>
-            {description == null ? null : <p id={this.descriptionId}>
-                {description}
-            </p>}
-            <div data-part="content">{children}</div>
-            {actions == null && !showCloseButton ? null : <footer>
-                {actions}
-                {showCloseButton ? <Button
-                    label={closeLabel}
-                    onClick={() => this.requestClose()}
-                /> : null}
-            </footer>}
-        </dialog>
+        const Host = this.Host
+        return <Host className={componentClass(this.props) || null}>
+            <dialog
+                id={this.dialogId}
+                aria-labelledby={this.titleId}
+                aria-describedby={description == null ? null : this.descriptionId}
+                aria-modal="true"
+                ref={(element: HTMLDialogElement | null) => this.dialogElement = element}
+            >
+                <header>
+                    <h2 id={this.titleId}>{title}</h2>
+                </header>
+                {description == null ? null : <p id={this.descriptionId}>
+                    {description}
+                </p>}
+                {h('fray-content', null, children)}
+                {actions == null && !showCloseButton ? null : <footer>
+                    {actions}
+                    {showCloseButton ? <Button
+                        label={closeLabel}
+                        onClick={() => this.requestClose()}
+                    /> : null}
+                </footer>}
+            </dialog>
+        </Host>
     }
 
     afterMount(): void {
@@ -110,40 +111,80 @@ export class Dialog extends Component<DialogProps> {
         this.dialogElement = null
     }
 
-    static dependencies = [Button]
+    static override hostName = 'dialog'
+    static override dependencies = [Button]
 
-    static css = css`
-        dialog {
+    static override css = css`
+        & > dialog {
+            z-index: 2;
             width: min(38rem, calc(100vw - 2rem));
             max-height: min(42rem, calc(100dvh - 2rem));
             padding: 0;
+            color: var(--panel-color);
+            background: var(--panel-background);
+            border: var(--panel-border);
+            border-radius: var(--panel-radius);
+            box-shadow: var(--dialog-shadow);
+            overflow: hidden;
+            isolation: isolate;
         }
 
-        dialog > header,
-        dialog > p,
-        dialog > [data-part="content"],
-        dialog > footer {
+        & > dialog[open] {
+            display: flex;
+            flex-direction: column;
+        }
+
+        & > dialog::backdrop {
+            background: var(--dialog-backdrop-background);
+        }
+
+        & > dialog > header,
+        & > dialog > p,
+        & > dialog > fray-content,
+        & > dialog > footer {
             padding: var(--panel-padding, 0.75rem);
         }
 
-        dialog > header h2,
-        dialog > p {
+        & > dialog > header {
+            position: relative;
+            z-index: 1;
+            color: var(--dialog-header-color);
+            background: var(--dialog-header-background);
+            box-shadow: var(--section-header-shadow);
+        }
+
+        & > dialog > header h2,
+        & > dialog > p {
             margin: 0;
         }
 
-        dialog > [data-part="content"] {
+        & > dialog > header h2 {
+            font-size: 1.1em;
+            font-weight: 700;
+        }
+
+        & > dialog > fray-content {
+            position: relative;
+            z-index: 0;
+            display: block;
+            flex: 1 1 auto;
+            min-height: 0;
             overflow: auto;
         }
 
-        dialog > footer {
+        & > dialog > footer {
             display: flex;
             justify-content: flex-end;
             gap: var(--spacing-small, 0.5rem);
         }
 
         @media (forced-colors: active) {
-            dialog {
+            & > dialog {
                 border: 2px solid CanvasText;
+            }
+
+            & > dialog::backdrop {
+                background: Canvas;
             }
         }
     `
@@ -157,7 +198,7 @@ export class Dialog extends Component<DialogProps> {
         const dialog = this.dialogElement
         if (dialog == null) return
         const shouldOpen = this.openEmitter.get()
-        if (shouldOpen && !this.synchronizedOpen) {
+        if (shouldOpen && !dialog.open) {
             const active = document.activeElement
             this.restoreFocusTo = active instanceof HTMLElement ? active : null
             showModal(dialog)
@@ -165,11 +206,13 @@ export class Dialog extends Component<DialogProps> {
             focusInitial(dialog, this.props.initialFocusRef)
             return
         }
-        if (!shouldOpen && this.synchronizedOpen) {
+        if (!shouldOpen && dialog.open) {
             if (dialog.open && typeof dialog.close === 'function') dialog.close()
             else dialog.removeAttribute('open')
             this.finishClose()
+            return
         }
+        if (!shouldOpen && this.synchronizedOpen) this.finishClose()
     }
 
     private finishClose(): void {

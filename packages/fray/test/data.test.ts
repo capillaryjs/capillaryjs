@@ -292,16 +292,32 @@ describe('stable data components', () => {
         }).attachTo(document.body)
 
         open.set(true)
+        const host = requiredQuery<HTMLElement>('fray-dialog')
         const element = requiredQuery<HTMLDialogElement>('dialog')
+        assert.equal(host.dataset.frayComponent, 'dialog')
+        assert.equal(element.parentElement, host)
+        assert.ok(element.querySelector('fray-content'))
+        assert.equal(element.querySelector('[data-part="content"]'), null)
+        assert.equal(element.querySelector('div'), null)
         assert.equal(element.open, true)
         assert.equal(element.getAttribute('aria-modal'), 'true')
         assert.equal(document.activeElement?.textContent, 'Confirm reset')
 
-        element.dispatchEvent(new Event('cancel', {cancelable: true}))
+        const closeButton = Array.from(element.querySelectorAll('button'))
+            .find((button) => button.textContent === 'Close')
+        assert.ok(closeButton)
+        closeButton.dispatchEvent(new MouseEvent('click', {bubbles: true}))
         assert.equal(open.get(), false)
         assert.equal(element.open, false)
         assert.equal(document.activeElement, opener)
         assert.equal(closes, 1)
+
+        open.set(true)
+        element.dispatchEvent(new Event('cancel', {cancelable: true}))
+        assert.equal(open.get(), false)
+        assert.equal(element.open, false)
+        assert.equal(document.activeElement, opener)
+        assert.equal(closes, 2)
         dialog.destroy()
         assert.equal(open.subscriberCount, 0)
     })
@@ -316,8 +332,9 @@ describe('stable data components', () => {
         }).attachTo(document.body)
 
         const rows = document.querySelectorAll('[role="option"]')
-        assert.equal(requiredQuery('fray-listview').dataset.frayComponent, 'list-view')
-        assert.ok(requiredQuery('fray-listview').classList.contains('datacomponentlike'))
+        const host = requiredQuery('fray-listview')
+        assert.equal(host.querySelector('div, [data-part]'), null)
+        assert.equal(host.querySelector('[data-fray-selectable-row]')?.localName, 'li')
         requiredAt(rows, 1).dispatchEvent(new MouseEvent('click', {bubbles: true}))
         assert.equal(list.getSelectedItemEmitter(), selected)
         assert.equal(selected.get()?.id, 'b')
@@ -341,6 +358,9 @@ describe('stable data components', () => {
 
         assert.equal(document.querySelector('[role="listbox"]'), null)
         assert.match(requiredQuery('[role="status"]').textContent ?? '', /Loading items/)
+        assert.equal(requiredQuery('[role="status"]').localName, 'p')
+        assert.equal(requiredQuery('fray-listview').querySelector('div, [data-part]'), null)
+        assert.equal(requiredQuery('fray-placeholder').parentElement?.localName, 'li')
 
         items.setWithState([], FetchState.Ready)
         assert.equal(document.querySelector('[role="listbox"]'), null)
@@ -351,7 +371,10 @@ describe('stable data components', () => {
         assert.match(requiredQuery('[role="alert"]').textContent ?? '', /Projects unavailable/)
 
         items.setWithState([{id: 'retained'}], FetchState.Error, new Error('Refresh failed'))
-        assert.equal(requiredQuery('[role="listbox"]').getAttribute('aria-label'), 'Projects')
+        const listbox = requiredQuery('[role="listbox"]')
+        assert.equal(listbox.localName, 'ul')
+        assert.equal(listbox.getAttribute('aria-label'), 'Projects')
+        assert.equal(requiredQuery('[role="option"]', listbox).localName, 'li')
         assert.equal(document.querySelectorAll('[role="option"]').length, 1)
         assert.match(requiredQuery('[role="alert"]').textContent ?? '', /Refresh failed/)
 
@@ -376,13 +399,13 @@ describe('stable data components', () => {
 
         assert.equal(requiredQuery('caption').textContent, 'People')
         assert.equal(requiredQuery('fray-datatable').dataset.frayComponent, 'data-table')
-        assert.ok(requiredQuery('fray-datatable').classList.contains('datacomponentlike'))
-        assert.equal(requiredQuery('thead').dataset.frayComponent, 'table-header')
-        assert.equal(
-            requiredQuery('th').dataset.frayComponent,
-            'table-header-cell',
-        )
-        requiredQuery('[data-part="sort"]')
+        assert.equal(requiredQuery('fray-datatable').classList.contains('datacomponentlike'), false)
+        assert.equal(requiredQuery('thead').hasAttribute('data-fray-component'), false)
+        assert.equal(requiredQuery('th').hasAttribute('data-fray-component'), false)
+        assert.equal(requiredQuery('fray-datatable').querySelector('div, [data-part]'), null)
+        assert.equal(requiredQuery('button.sort').textContent, 'Name')
+        assert.equal(requiredQuery('button.filter').textContent, '⛃')
+        requiredQuery('button.sort')
             .dispatchEvent(new MouseEvent('click', {bubbles: true}))
         assert.deepEqual(
             [...document.querySelectorAll<HTMLTableRowElement>('tbody tr')]
@@ -489,6 +512,9 @@ describe('stable data components', () => {
             new Error('Service unavailable'),
         )
         assert.match(requiredQuery('[role="alert"]').textContent ?? '', /Service unavailable/)
+        assert.equal(requiredQuery('[role="alert"]').localName, 'p')
+        assert.equal(requiredQuery('[role="alert"]').parentElement?.localName, 'fray-datatable')
+        assert.equal(requiredQuery('button').parentElement?.localName, 'fray-datatable')
         assert.equal(requiredQuery('tbody').textContent, 'Stale Ada')
         requiredQuery<HTMLButtonElement>('button').click()
         assert.equal(retries, 1)
@@ -503,20 +529,80 @@ describe('stable data components', () => {
         dataSource.dispose()
     })
 
-    test('FilterPanel consumes injected options without fetching application data', () => {
+    test('FilterPanel reports caller-owned filter state through native group content', async () => {
         let nextFilters: Map<FilterValue, FilterModeValue> | undefined
-        FilterPanel.new({
+        const panel = FilterPanel.new({
             label: 'Departments',
             options: ['Ops', 'R&D'],
             filters: new Map(),
+            filterModes: [
+                ['☐', FilterMode.Neutral],
+                ['✓', FilterMode.Prefer],
+                ['+', FilterMode.Require],
+                ['×', FilterMode.Deny],
+            ],
             onChange: (filters) => nextFilters = filters,
         }).attachTo(document.body)
 
-        assert.equal(requiredQuery('fray-filterpanel').dataset.frayComponent, 'filter-panel')
+        const host = requiredQuery<HTMLElement>('fray-filterpanel')
+        assert.equal(host.dataset.frayComponent, 'filter-panel')
+        assert.equal(host.getAttribute('role'), 'group')
+        assert.equal(host.getAttribute('aria-label'), 'Departments')
+        assert.equal(host.querySelector('div, span'), null)
+        assert.equal(host.hasAttribute('data-state'), false)
+        await new Promise<void>((resolve) => setTimeout(resolve, 0))
+        assert.equal(host.style.insetBlockStart, '')
+        assert.equal(host.style.insetInlineEnd, '')
         assert.equal(document.querySelectorAll('input[type="checkbox"]').length, 2)
         requiredQuery('input[type="checkbox"]')
             .dispatchEvent(new Event('change', {bubbles: true}))
         assert.equal(nextFilters?.get('Ops'), FilterMode.Prefer)
+
+        const filterModes = [
+            ['☐', FilterMode.Neutral],
+            ['✓', FilterMode.Prefer],
+            ['+', FilterMode.Require],
+            ['×', FilterMode.Deny],
+        ] as const
+        const syncFilters = () => panel.setProps({
+            label: 'Departments',
+            options: ['Ops', 'R&D', 'People'],
+            filters: nextFilters ?? new Map(),
+            filterModes,
+            onChange: (filters) => nextFilters = filters,
+        })
+        syncFilters()
+        assert.equal(document.querySelectorAll('input[type="checkbox"]').length, 3)
+        const ops = requiredQuery<HTMLInputElement>('input[type="checkbox"]')
+        assert.equal(ops.checked, true)
+
+        ops.dispatchEvent(new Event('change', {bubbles: true}))
+        assert.equal(nextFilters?.get('Ops'), FilterMode.Require)
+        syncFilters()
+        ops.dispatchEvent(new Event('change', {bubbles: true}))
+        assert.equal(nextFilters?.get('Ops'), FilterMode.Deny)
+        syncFilters()
+        ops.dispatchEvent(new Event('change', {bubbles: true}))
+        assert.equal(nextFilters?.has('Ops'), false)
+
+        panel.setProps({label: 'Departments', options: []})
+        assert.equal(host.querySelector('p')?.textContent, 'No filter options')
+        panel.destroy()
+    })
+
+    test('FilterPanel exposes loading and error messages without losing retained choices', () => {
+        const options = new Emitter<readonly FilterValue[], Error>([], {fetchState: FetchState.Initial})
+        const panel = FilterPanel.new({options, label: 'Departments'}).attachTo(document.body)
+        assert.equal(requiredQuery('[role="status"]').textContent, 'Loading filter options…')
+
+        options.setWithState(['Ops'], FetchState.Loading)
+        assert.equal(requiredQuery<HTMLElement>('fray-filterpanel').getAttribute('aria-busy'), 'true')
+        assert.equal(document.querySelectorAll('input[type="checkbox"]').length, 1)
+
+        options.setWithState(['Ops'], FetchState.Error, new Error('Unavailable'))
+        assert.equal(requiredQuery('[role="alert"]').textContent, 'Unavailable')
+        assert.equal(document.querySelectorAll('input[type="checkbox"]').length, 1)
+        panel.destroy()
     })
 
     test('remote table serializer keeps table encoding outside Glue', () => {

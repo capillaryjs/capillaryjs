@@ -81,7 +81,7 @@ describe('routed Fray components', () => {
         await waitUntil(() => router.transition.get().state === 'idle')
 
         assert.equal(active.get(), 'second')
-        assert.equal(requiredQuery('[role="tabpanel"]').textContent, 'Second page')
+        assert.equal(visibleTabPanel().textContent, 'Second page')
         const links = [...document.querySelectorAll<HTMLAnchorElement>('a')]
         assert.equal(requiredAt(links, 0).href, 'https://example.test/first')
         assert.equal(requiredAt(links, 1).getAttribute('aria-current'), 'page')
@@ -124,7 +124,44 @@ describe('routed Fray components', () => {
         assert.equal(active.subscriberCount, 0)
         router.dispose()
     })
+
+    test('array tab definitions register and navigate contextual routes', async () => {
+        const portfolioRoute = defineRoute('meridian-portfolio', 'portfolio')
+        const registerRoute = defineRoute('meridian-register', 'register')
+        const active = new Emitter('portfolio')
+        const adapter = new MemoryNavigationAdapter('/register')
+        const router = createBrowserRouter({adapter})
+        const runtime = createFrayRuntime({router})
+        const panel = runtime.mount(runtime.create(TabPanel, {
+            id: 'meridian-work-area',
+            valueEmitter: active,
+            tabs: [
+                {id: 'portfolio', label: 'Portfolio', route: portfolioRoute, content: 'Portfolio'},
+                {id: 'register', label: 'Register', route: registerRoute, content: 'Register'},
+            ],
+        }), document.body)
+
+        await waitUntil(() => router.transition.get().state === 'idle')
+        assert.equal(active.get(), 'register')
+        assert.equal(visibleTabPanel().textContent, 'Register')
+
+        requiredAt(document.querySelectorAll<HTMLButtonElement>('[role="tab"]'), 0).click()
+        await waitUntil(() => router.transition.get().state === 'idle'
+            && active.get() === 'portfolio')
+        assert.equal(adapter.read(), '/portfolio')
+        assert.equal(visibleTabPanel().textContent, 'Portfolio')
+
+        panel.destroy()
+        assert.equal(active.subscriberCount, 0)
+        router.dispose()
+    })
 })
+
+function visibleTabPanel(): HTMLElement {
+    return [...document.querySelectorAll<HTMLElement>('[role="tabpanel"]')]
+        .find((panel) => !panel.hidden)
+        ?? requiredQuery('[role="tabpanel"]')
+}
 
 async function waitUntil(predicate: () => boolean): Promise<void> {
     for (let attempt = 0; attempt < 100; attempt += 1) {

@@ -3,7 +3,7 @@ import type {ReadableEmitter} from '@sylwellsoftware/glue'
 
 import {Component, css} from '../../component.js'
 import type {ComponentConstructor, ComponentProps, FrayChild} from '../../component.js'
-import {classNames, componentClass} from '../../controlUtils.js'
+import {componentClass} from '../../controlUtils.js'
 import {Checkbox} from '../../lineinputs/checkbox/Checkbox.js'
 import type {
     CheckboxProps,
@@ -39,7 +39,6 @@ export class FilterPanel extends Component<FilterPanelProps> {
     readonly optionsEmitter: ReadableEmitter<FilterOptions, unknown> | null
     private readonly optionStateEmitters = new Map<FilterValue, Emitter<FilterModeValue>>()
     private staleOptionValues = new Set<FilterValue>()
-    private placementTimer: ReturnType<typeof setTimeout> | null = null
 
     constructor(props: FilterPanelProps = {}) {
         super(props)
@@ -67,29 +66,31 @@ export class FilterPanel extends Component<FilterPanelProps> {
         )
         const Host = this.Host
 
-        if (fetchState === FetchState.Error) {
-            return <Host
-                className={classNames('panellike', componentClass(this.props))}
-                role="alert"
-                data-state="error"
-            >{errorMessage(error, 'Unable to load filter options')}</Host>
+        const isLoading = fetchState === FetchState.Initial || fetchState === FetchState.Loading
+        const hostClass = componentClass(this.props) || null
+        if (fetchState === FetchState.Error && values.length === 0) {
+            return <Host className={hostClass}>
+                <p role="alert">{errorMessage(error, 'Unable to load filter options')}</p>
+            </Host>
         }
-        if ((fetchState === FetchState.Initial || fetchState === FetchState.Loading)
-            && values.length === 0) {
-            return <Host
-                className={classNames('panellike', componentClass(this.props))}
-                role="status"
-                data-state="loading"
-            >Loading filter options…</Host>
+        if (isLoading && values.length === 0) {
+            return <Host className={hostClass}>
+                <p role="status">Loading filter options…</p>
+            </Host>
         }
 
         return <Host
-            className={classNames('panellike', componentClass(this.props))}
+            className={hostClass}
             role="group"
             aria-label={this.props.label ?? 'Filter options'}
+            aria-busy={isLoading ? 'true' : null}
         >
+            {fetchState === FetchState.Error
+                ? <p role="alert">{errorMessage(error, 'Unable to load filter options')}</p>
+                : null}
+            {isLoading ? <p role="status">Loading filter options…</p> : null}
             {values.length === 0
-                ? <span>No filter options</span>
+                ? <p>No filter options</p>
                 : values.map((option) => {
                     const value = optionValue(option)
                     const label = optionLabel(option)
@@ -112,22 +113,15 @@ export class FilterPanel extends Component<FilterPanelProps> {
         </Host>
     }
 
-    afterUpdate(dom: ChildNode | null): void {
+    afterUpdate(_dom: ChildNode | null): void {
         for (const value of this.staleOptionValues) {
             this.optionStateEmitters.get(value)?.dispose()
             this.optionStateEmitters.delete(value)
         }
         this.staleOptionValues.clear()
-        if (this.placementTimer != null) clearTimeout(this.placementTimer)
-        this.placementTimer = setTimeout(() => {
-            this.placementTimer = null
-            this.placeInsideViewport(dom)
-        }, 0)
     }
 
     onDestroy(): void {
-        if (this.placementTimer != null) clearTimeout(this.placementTimer)
-        this.placementTimer = null
         for (const emitter of this.optionStateEmitters.values()) emitter.dispose()
         this.optionStateEmitters.clear()
     }
@@ -146,28 +140,6 @@ export class FilterPanel extends Component<FilterPanelProps> {
         return emitter
     }
 
-    private placeInsideViewport(dom: ChildNode | null): void {
-        if (!(dom instanceof HTMLElement) || dom.parentElement == null) return
-        const viewport = dom.ownerDocument.defaultView
-        if (viewport == null || viewport.innerHeight <= 0) return
-        const anchor = dom.parentElement.getBoundingClientRect()
-        dom.style.removeProperty('max-height')
-        const panel = dom.getBoundingClientRect()
-        const spaceAbove = anchor.top
-        const spaceBelow = Math.max(0, viewport.innerHeight - anchor.bottom)
-        const placeAbove = panel.height > spaceBelow && spaceAbove > spaceBelow
-        if (placeAbove) {
-            dom.dataset.placement = 'above'
-            dom.style.insetBlockStart = `${Math.max(8, anchor.top - panel.height)}px`
-        } else {
-            delete dom.dataset.placement
-            dom.style.insetBlockStart = `${anchor.bottom}px`
-        }
-        dom.style.insetInlineEnd = `${Math.max(8, viewport.innerWidth - anchor.right)}px`
-        const available = placeAbove ? spaceAbove : spaceBelow
-        dom.style.maxHeight = `${Math.max(48, available - 8)}px`
-    }
-
     static dependencies = [Checkbox]
 
     static override hostName = 'filter-panel'
@@ -175,6 +147,11 @@ export class FilterPanel extends Component<FilterPanelProps> {
     static css = css`
         & {
             position: absolute;
+            background: white;
+            border: 1px solid #ccc;
+            padding: 8px;
+            min-width: 180px;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
             z-index: 1000;
             display: flex;
             flex-flow: column nowrap;
@@ -183,6 +160,9 @@ export class FilterPanel extends Component<FilterPanelProps> {
             top: 0;
         }
 
+        & > p {
+            margin: 0;
+        }
     `
 }
 

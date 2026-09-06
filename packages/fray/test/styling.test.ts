@@ -8,14 +8,23 @@ import {
     Button,
     Checkbox,
     Component,
+    DataTable,
+    DescriptionItem,
+    DescriptionList,
+    Dialog,
     Dropdown,
+    FilterPanel,
     Header,
+    ListView,
     Panel,
+    Placeholder,
     ProgressBar,
     RadioButton,
+    RadioGroup,
     Sidebar,
     SplitView,
     TabLine,
+    TabPanel,
     Textbox,
     Toggle,
     Toolbar,
@@ -95,6 +104,48 @@ describe('style registry', () => {
         assert.doesNotMatch(stylesheet, /&|fray-baseprobe/)
     })
 
+    test('coalesces one inherited host-relative template across concrete hosts', () => {
+        abstract class SharedCheckableProbe extends Component {
+            static override css = `
+                & > label { --shared-checkable-rule: normal; }
+
+                @media (forced-colors: active) {
+                    & > label { --shared-checkable-rule: forced; }
+                }
+
+                @keyframes shared-checkable-probe {
+                    from { opacity: 0; }
+                    to { opacity: 1; }
+                }
+            `
+        }
+        class CheckboxProbe extends SharedCheckableProbe {
+            static override hostName = 'checkbox-probe'
+        }
+        class RadioProbe extends SharedCheckableProbe {
+            static override hostName = 'radio-probe'
+        }
+
+        const runtime = createFrayRuntime()
+        runtime.registerStyles(CheckboxProbe)
+        runtime.registerStyles(RadioProbe)
+        const stylesheet = runtime.styleRegistry.generateCSS()
+
+        assert.match(stylesheet, /fray-checkboxprobe > label,\s*fray-radioprobe > label\s*\{[^}]*--shared-checkable-rule:\s*normal/)
+        assert.match(stylesheet, /@media \(forced-colors: active\)\s*\{[\s\S]*fray-checkboxprobe > label,\s*fray-radioprobe > label\s*\{[^}]*--shared-checkable-rule:\s*forced/)
+        assert.equal((stylesheet.match(/@keyframes shared-checkable-probe/g) ?? []).length, 1)
+    })
+
+    test('coalesces the shared checkable-control rules for Checkbox and RadioButton', () => {
+        const runtime = createFrayRuntime()
+        runtime.registerStyles(Checkbox)
+        runtime.registerStyles(RadioButton)
+        const stylesheet = runtime.styleRegistry.generateCSS()
+
+        assert.match(stylesheet, /fray-checkbox > label,\s*fray-radiobutton > label\s*\{[^}]*display:\s*flex/)
+        assert.match(stylesheet, /fray-checkbox > label > input \+ fray-checkshell,\s*fray-radiobutton > label > input \+ fray-checkshell\s*\{[^}]*box-shadow:\s*var\(--checkbox-box-shadow\)/)
+    })
+
     test('collects Button CSS only through its fixed host', () => {
         const runtime = createFrayRuntime()
         runtime.registerStyles(Button)
@@ -103,6 +154,106 @@ describe('style registry', () => {
         assert.match(stylesheet, /fray-button > button\s*\{[^}]*background:\s*var\(--button-background\)/)
         assert.match(stylesheet, /fray-button > button:focus-visible/)
         assert.doesNotMatch(stylesheet, /(?:^|\n)button\s*\{|data-fray-component|fray-panel|fray-sidebar/)
+    })
+
+    test('collects Dialog through its fixed host, native dialog, and fixed content part', () => {
+        const runtime = createFrayRuntime()
+        runtime.registerStyles(Dialog)
+        const stylesheet = runtime.styleRegistry.generateCSS()
+
+        assert.match(stylesheet, /fray-dialog > dialog\s*\{[^}]*z-index:\s*2[^}]*background:\s*var\(--panel-background\)[^}]*box-shadow:\s*var\(--dialog-shadow\)[^}]*isolation:\s*isolate/)
+        assert.doesNotMatch(stylesheet, /fray-dialog > dialog\s*\{[^}]*position:/)
+        assert.match(stylesheet, /fray-dialog > dialog\[open\]\s*\{[^}]*display:\s*flex[^}]*flex-direction:\s*column/)
+        assert.match(stylesheet, /fray-dialog > dialog::backdrop\s*\{[^}]*background:\s*var\(--dialog-backdrop-background\)/)
+        assert.match(stylesheet, /fray-dialog > dialog > fray-content\s*\{[^}]*position:\s*relative[^}]*z-index:\s*0[^}]*display:\s*block[^}]*overflow:\s*auto/)
+        assert.match(stylesheet, /fray-dialog > dialog > header\s*\{[^}]*position:\s*relative[^}]*z-index:\s*1[^}]*background:\s*var\(--dialog-header-background\)[^}]*box-shadow:\s*var\(--section-header-shadow\)/)
+        assert.match(stylesheet, /fray-button > button/)
+        assert.doesNotMatch(stylesheet, /(?:^|\n)dialog\s*\{|data-part|fray-panel|fray-dropdown/)
+    })
+
+    test('collects TabPanel through native panel sections without styling data hooks', () => {
+        const runtime = createFrayRuntime()
+        runtime.registerStyles(TabPanel)
+        const stylesheet = runtime.styleRegistry.generateCSS()
+
+        assert.match(stylesheet, /fray-tabpanel\s*\{[^}]*background:\s*var\(--panel-background\)[^}]*border-radius:\s*var\(--panel-radius\)[^}]*box-shadow:\s*var\(--panel-shadow\)/)
+        assert.match(stylesheet, /fray-tabpanel > section\[role="tabpanel"\]\s*\{[^}]*overflow:\s*auto[^}]*padding:\s*3px/)
+        assert.match(stylesheet, /fray-tabpanel > section\[role="tabpanel"\]\[hidden\]\s*\{[^}]*display:\s*none/)
+        assert.match(stylesheet, /fray-tabpanel > section\[role="tabpanel"\] > fray-toolbar\[role="toolbar"\]:first-child\s*\{[^}]*width:\s*calc\(100% \+ 6px\)[^}]*margin-block-start:\s*-3px/)
+        assert.match(stylesheet, /fray-tabline > button\[role="tab"\]/)
+        assert.doesNotMatch(stylesheet, /fray-tabpanel[^}]*data-part|fray-tabpanel > div/)
+    })
+
+    test('DescriptionItem emits direct native terms and values without structural CSS', () => {
+        const runtime = createFrayRuntime()
+        runtime.registerStyles(DescriptionItem)
+        const stylesheet = runtime.styleRegistry.generateCSS()
+
+        assert.doesNotMatch(stylesheet, /div:has\(> dt \+ dd\)|description-item|fray-descriptionitem/)
+    })
+
+    test('collects DescriptionList through its fixed host and native list surface', () => {
+        const runtime = createFrayRuntime()
+        runtime.registerStyles(DescriptionList)
+        const stylesheet = runtime.styleRegistry.generateCSS()
+
+        assert.match(stylesheet, /fray-descriptionlist\s*\{[^}]*display:\s*block/)
+        assert.match(stylesheet, /fray-descriptionlist > dl\s*\{[^}]*display:\s*grid[^}]*margin:\s*0/)
+        assert.doesNotMatch(stylesheet, /(?:^|\n)dl:has\(|data-fray-component|fray-panel|fray-sidebar/)
+    })
+
+    test('collects Placeholder through its fixed host and working texture only', () => {
+        const runtime = createFrayRuntime()
+        runtime.registerStyles(Placeholder)
+        const stylesheet = runtime.styleRegistry.generateCSS()
+
+        assert.match(stylesheet, /fray-placeholder\s*\{[^}]*width:\s*5em[^}]*height:\s*1em[^}]*background:\s*#ccc/)
+        assert.match(stylesheet, /fray-placeholder::after\s*\{[^}]*animation:\s*fray-placeholder-progress 0\.55s linear infinite[^}]*background-image:\s*var\(--working-background-image\)/)
+        assert.match(stylesheet, /@keyframes fray-placeholder-progress\s*\{[\s\S]*background-position:\s*2rem 0/)
+        assert.match(stylesheet, /@media \(prefers-reduced-motion: reduce\)\s*\{[\s\S]*fray-placeholder::after\s*\{[^}]*animation:\s*none/)
+        assert.doesNotMatch(stylesheet, /(?:^|\n)placeholder\s*\{|data-part|data-state|fray-panel|fray-sidebar/)
+    })
+
+    test('collects ListView through its fixed host and native list items', () => {
+        const runtime = createFrayRuntime()
+        runtime.registerStyles(ListView)
+        const stylesheet = runtime.styleRegistry.generateCSS()
+
+        assert.match(stylesheet, /fray-listview\s*\{[^}]*background:\s*var\(--ui-input-bg\)[^}]*pointer-events:\s*all[^}]*white-space:\s*nowrap/)
+        assert.match(stylesheet, /fray-listview > \[role="listbox"\],\s*fray-listview > ul\[aria-hidden="true"\]\s*\{[^}]*list-style:\s*none/)
+        assert.match(stylesheet, /fray-listview > \[role="listbox"\] > \[role="option"\]\s*\{[^}]*line-height:\s*calc\(var\(--ui-font-size\)/)
+        assert.match(stylesheet, /fray-listview > \[role="listbox"\] > \[role="option"\]:hover\s*\{[^}]*background:\s*var\(--hover-bg-color, #f5f5f5\)/)
+        assert.match(stylesheet, /fray-listview > \[role="listbox"\] > \[role="option"\]\[aria-selected="true"\]\s*\{[^}]*background:\s*var\(--selected-bg-color, #e0e7ff\)/)
+        assert.match(stylesheet, /fray-placeholder::after/)
+        assert.doesNotMatch(stylesheet, /fray-list-view|data-part|(?:^|\n)div\s*\{|fray-panel|fray-sidebar/)
+    })
+
+    test('collects FilterPanel through its fixed Bank2 floating surface and Checkbox dependency', () => {
+        const runtime = createFrayRuntime()
+        runtime.registerStyles(FilterPanel)
+        const stylesheet = runtime.styleRegistry.generateCSS()
+
+        assert.match(stylesheet, /fray-filterpanel\s*\{[^}]*position:\s*absolute[^}]*background:\s*white[^}]*border:\s*1px solid #ccc[^}]*padding:\s*8px[^}]*min-width:\s*180px[^}]*box-shadow:\s*0 2px 6px rgba\(0, 0, 0, 0\.15\)[^}]*left:\s*100%[^}]*top:\s*0/)
+        assert.match(stylesheet, /fray-filterpanel > p\s*\{[^}]*margin:\s*0/)
+        assert.match(stylesheet, /fray-checkbox > label > input \+ fray-checkshell/)
+        assert.doesNotMatch(stylesheet, /panellike|data-state|data-part|fray-table|fray-listview/)
+    })
+
+    test('collects the native DataTable family through the fixed table boundary', () => {
+        const runtime = createFrayRuntime()
+        runtime.registerStyles(DataTable)
+        const stylesheet = runtime.styleRegistry.generateCSS()
+
+        assert.match(stylesheet, /fray-datatable\s*\{[^}]*display:\s*block[^}]*overflow:\s*auto/)
+        assert.match(stylesheet, /fray-datatable > table > thead\s*\{[^}]*color:\s*var\(--table-header-color\)[^}]*background:\s*var\(--ui-gradient\)/)
+        assert.match(stylesheet, /fray-datatable > table > thead > tr > th\[aria-sort\]\s*\{[^}]*position:\s*relative/)
+        assert.match(stylesheet, /button\.sort > span\.sortindicator\s*\{[^}]*right:\s*20px[^}]*text-align:\s*center/)
+        assert.match(stylesheet, /button\.filter\s*\{[^}]*right:\s*2px[^}]*opacity:\s*0\.5/)
+        assert.match(stylesheet, /fray-datatable > table > tbody > tr\[aria-selected="true"\] > td\s*\{[^}]*background:\s*var\(--ui-select-bg\)/)
+        assert.match(stylesheet, /fray-datatable > table > tbody > tr:nth-child\(even\)\[aria-selected="true"\] > td\s*\{[^}]*background:\s*var\(--ui-select-bg-dark\)/)
+        assert.match(stylesheet, /fray-filterpanel\s*\{/)
+        assert.match(stylesheet, /fray-placeholder\s*\{/)
+        assert.doesNotMatch(stylesheet, /datacomponentlike|data-(?:loading|error|part)|fray-listview|fray-treeview|(?:^|\n)th\[aria-sort\]/)
     })
 
     test('select controls inherit shared fixed-shell CSS without recipes', () => {
@@ -125,11 +276,11 @@ describe('style registry', () => {
 
         assert.match(stylesheet, /fray-checkbox\s*\{[^}]*display:\s*inline-flex[^}]*line-height:\s*1/)
         assert.match(stylesheet, /fray-checkbox > label\s*\{[^}]*display:\s*flex/)
-        assert.match(stylesheet, /input\[type="checkbox"\] \+ fray-checkboxshell/)
-        assert.match(stylesheet, /label:has\(> input\[type="checkbox"\]:disabled\)\s*\{[^}]*color:\s*#aaa[^}]*cursor:\s*not-allowed/)
-        assert.match(stylesheet, /fray-checkboxshell\s*\{[^}]*box-shadow:\s*var\(--checkbox-box-shadow\)/)
-        assert.match(stylesheet, /input\[type="checkbox"\]:checked \+ fray-checkboxshell\s*\{[^}]*box-shadow:\s*var\(--checkbox-box-shadow-checked\)/)
-        assert.doesNotMatch(stylesheet, /\.checkboxshell|\[data-(?:disabled|required|error|state)\]|fray-checkbox\s*\{[^}]*width:\s*var\(--input-width/)
+        assert.match(stylesheet, /input \+ fray-checkshell/)
+        assert.match(stylesheet, /label:has\(> input:disabled\)\s*\{[^}]*color:\s*var\(--checkable-label-color-disabled\)[^}]*cursor:\s*not-allowed/)
+        assert.match(stylesheet, /fray-checkshell\s*\{[^}]*box-shadow:\s*var\(--checkbox-box-shadow\)/)
+        assert.match(stylesheet, /input:checked \+ fray-checkshell\s*\{[^}]*box-shadow:\s*var\(--checkbox-box-shadow-checked\)/)
+        assert.doesNotMatch(stylesheet, /\.checkboxshell|\[data-(?:disabled|required|error|state)\]|fray-checkboxshell|fray-checkbox\s*\{[^}]*width:\s*var\(--input-width/)
     })
 
     test('collects RadioButton through its fixed shell and native state selectors', () => {
@@ -138,13 +289,25 @@ describe('style registry', () => {
         const stylesheet = runtime.styleRegistry.generateCSS()
 
         assert.match(stylesheet, /fray-radiobutton\s*\{[^}]*display:\s*inline-flex/)
-        assert.match(stylesheet, /fray-radiobutton > label:has\(> input\[type="radio"\]:disabled\)\s*\{[^}]*color:\s*#aaa[^}]*cursor:\s*not-allowed/)
-        assert.match(stylesheet, /input\[type="radio"\] \+ fray-radioshell\s*\{[^}]*border-radius:\s*1em[^}]*background:\s*var\(--checkbox-box-background\)[^}]*box-shadow:\s*var\(--checkbox-box-shadow\)/)
-        assert.match(stylesheet, /input\[type="radio"\]:checked \+ fray-radioshell\s*\{[^}]*background:\s*var\(--checkbox-box-background-checked\)[^}]*box-shadow:\s*var\(--checkbox-box-shadow-checked\)/)
-        assert.match(stylesheet, /input\[type="radio"\]:checked \+ fray-radioshell::after\s*\{[^}]*border-radius:\s*50%[^}]*background:\s*var\(--checkbox-symbol-color\)/)
-        assert.match(stylesheet, /input\[type="radio"\]:disabled \+ fray-radioshell\s*\{[^}]*opacity:\s*0\.6[^}]*filter:\s*saturate\(0\.6\)/)
-        assert.match(stylesheet, /input\[type="radio"\]:focus-visible \+ fray-radioshell\s*\{[^}]*outline:\s*2px solid var\(--focus-color\)/)
-        assert.doesNotMatch(stylesheet, /\.radioshell|data-disabled|data-required|data-error|fray-radiogroup/)
+        assert.match(stylesheet, /fray-radiobutton > label:has\(> input:disabled\)\s*\{[^}]*color:\s*var\(--checkable-label-color-disabled\)[^}]*cursor:\s*not-allowed/)
+        assert.match(stylesheet, /input \+ fray-checkshell\s*\{[^}]*background:\s*var\(--checkbox-box-background,[^}]*box-shadow:\s*var\(--checkbox-box-shadow\)/)
+        assert.match(stylesheet, /input:checked \+ fray-checkshell\s*\{[^}]*background:\s*var\(--checkbox-box-background-checked,[^}]*box-shadow:\s*var\(--checkbox-box-shadow-checked\)/)
+        assert.match(stylesheet, /input\[type="radio"\] \+ fray-checkshell\s*\{[^}]*border-radius:\s*50%/)
+        assert.match(stylesheet, /input\[type="radio"\]:checked \+ fray-checkshell::after\s*\{[^}]*border-radius:\s*50%[^}]*background:\s*var\(--checkbox-symbol-color\)/)
+        assert.match(stylesheet, /input:disabled \+ fray-checkshell\s*\{[^}]*opacity:\s*0\.6[^}]*filter:\s*saturate\(0\.6\)/)
+        assert.match(stylesheet, /input:focus-visible \+ fray-checkshell\s*\{[^}]*outline:\s*2px solid var\(--focus-color,/)
+        assert.doesNotMatch(stylesheet, /\.radioshell|data-disabled|data-required|data-error|fray-radioshell|fray-radiogroup/)
+    })
+
+    test('collects RadioGroup through its native fieldset and RadioButton dependency', () => {
+        const runtime = createFrayRuntime()
+        runtime.registerStyles(RadioGroup)
+        const stylesheet = runtime.styleRegistry.generateCSS()
+
+        assert.match(stylesheet, /fray-radiogroup > fieldset\s*\{[^}]*display:\s*flex[^}]*flex-flow:\s*row wrap[^}]*gap:\s*var\(--space-sm, 0\.5rem\)[^}]*min-inline-size:\s*0/)
+        assert.match(stylesheet, /fray-radiogroup > fieldset > legend\s*\{[^}]*flex:\s*0 0 100%[^}]*padding:\s*0/)
+        assert.match(stylesheet, /fray-radiobutton > label > input\[type="radio"\] \+ fray-checkshell\s*\{[^}]*border-radius:\s*50%/)
+        assert.doesNotMatch(stylesheet, /data-part|data-disabled|data-required|data-error|fray-options|fray-toggle/)
     })
 
     test('collects ProgressBar through its fixed clipped-label parts and native semantics', () => {
@@ -239,10 +402,12 @@ describe('style registry', () => {
         const stylesheet = runtime.styleRegistry.generateCSS()
 
         assert.match(stylesheet, /fray-tabline\s*\{[^}]*background:\s*var\(--tabline-background\)/)
+        assert.match(stylesheet, /fray-tabline\s*\{[^}]*overflow:\s*hidden/)
         assert.match(stylesheet, /button\[role="tab"\]:hover:not\(:disabled\)\[aria-selected="false"\]/)
-        assert.match(stylesheet, /button\[role="tab"\]:not\(:disabled\)\[aria-selected="true"\]/)
+        assert.match(stylesheet, /button\[role="tab"\]:not\(:disabled\)\[aria-selected="true"\]\s*\{[^}]*min-height:\s*var\(--control-min-height, 2rem\)[^}]*margin-block-start:\s*0/)
         assert.match(stylesheet, /button\[role="tab"\]:not\(:disabled\)\[aria-selected="false"\]::after/)
         assert.match(stylesheet, /button\[role="tab"\]:disabled\s*\{[^}]*cursor:\s*not-allowed/)
+        assert.doesNotMatch(stylesheet, /button\[role="tab"\]:not\(:disabled\)\[aria-selected="true"\]::after|tab-button-active-(?:lift|bridge)/)
         assert.doesNotMatch(stylesheet, /fray-panel|fray-sidebar|fray-splitview|fray-dropdown/)
     })
 

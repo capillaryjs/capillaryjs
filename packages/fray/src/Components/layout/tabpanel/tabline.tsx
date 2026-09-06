@@ -121,6 +121,7 @@ export class TabLine extends Component<TabLineProps> {
             display: flex;
             background: var(--tabline-background);
             flex-flow: row wrap;
+            overflow: hidden;
             padding-top: 3px;
             padding-inline-start: var(--tabline-padding-inline-start);
             flex: 0 0 auto;
@@ -129,15 +130,18 @@ export class TabLine extends Component<TabLineProps> {
 
         & > button[role="tab"] {
             position: relative;
-            min-height: var(--control-min-height, 2rem);
-            padding: var(--space-xs) var(--space-sm);
+            min-height: calc(var(--control-min-height, 2rem) - 5px);
+            padding-block: 0;
+            padding-inline: var(--space-sm);
             color: var(--button-color);
             background: var(--tab-button-background);
-            border: var(--button-border);
+            border: none;
             border-radius: var(--radius-md) var(--radius-md) 0 0;
             box-shadow: var(--tab-button-shadow);
             box-sizing: border-box;
+            align-self: flex-end;
             cursor: default;
+            margin-block-start: 3px;
             user-select: none;
             white-space: nowrap;
         }
@@ -147,19 +151,12 @@ export class TabLine extends Component<TabLineProps> {
         }
 
         & > button[role="tab"]:not(:disabled)[aria-selected="true"] {
+            min-height: var(--control-min-height, 2rem);
+            padding-block-start: 3px;
             background: var(--tab-button-background-active);
             box-shadow: var(--tab-button-shadow-active);
-            transform: translateY(calc(-1 * var(--tab-button-active-lift)));
+            margin-block-start: 0;
             z-index: 1;
-        }
-
-        & > button[role="tab"]:not(:disabled)[aria-selected="true"]::after {
-            content: '';
-            position: absolute;
-            inset-inline: 0;
-            block-size: var(--tab-button-active-bridge-block-size);
-            inset-block-end: calc(-1 * var(--tab-button-active-bridge-block-size));
-            background: var(--tab-button-background-active);
         }
 
         & > button[role="tab"]:not(:disabled)[aria-selected="false"]::after {
@@ -179,9 +176,6 @@ export class TabLine extends Component<TabLineProps> {
             cursor: not-allowed;
         }
 
-        & > button[role="tab"]:active:not(:disabled) {
-            border-style: var(--button-border-style-active);
-        }
     `
 }
 

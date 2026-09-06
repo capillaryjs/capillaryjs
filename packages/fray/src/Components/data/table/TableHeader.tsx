@@ -1,4 +1,4 @@
-import {Component} from '../../component.js'
+import {Component, css} from '../../component.js'
 import type {ComponentProps, FrayChild} from '../../component.js'
 import type {ValueEmitter} from '../../controlUtils.js'
 import type {CheckboxSymbol} from '../../lineinputs/checkbox/Checkbox.js'
@@ -23,7 +23,7 @@ export class TableHeader<TRow extends TableRow = TableRow>
     extends Component<TableHeaderProps<TRow>> {
     static override liveProps: readonly string[] = []
     render(): FrayChild {
-        return <thead data-fray-component="table-header">
+        return <thead>
             <tr>
                 {this.props.columns.map((column) => <TableHeaderCell
                     key={String(column.field)}
@@ -50,4 +50,20 @@ export class TableHeader<TRow extends TableRow = TableRow>
     }
 
     static dependencies = [TableHeaderCell]
+
+    static css = css`
+        fray-datatable > table > thead {
+            color: var(--table-header-color);
+            background: var(--ui-gradient);
+        }
+
+        fray-datatable > table > thead > tr > th {
+            border: 2px groove #fff7;
+            border-left: none;
+        }
+
+        fray-datatable > table > thead > tr > th:last-child {
+            border-right: none;
+        }
+    `
 }

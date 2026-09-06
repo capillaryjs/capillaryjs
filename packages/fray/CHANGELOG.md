@@ -36,11 +36,17 @@ Versioning.
 - `RadioGroup.options` remains an ordinary array supplied through explicit owner
   renders, and raw `valueEmitter` behavior is unchanged.
 - Enabled strict TypeScript compiler checking.
-- Restarted the public component treatments for Button, Checkbox, Dropdown,
-  ProgressBar, RadioButton, TabLine, Textbox, Toggle, and Toolbar around fixed
-  light-DOM parts, native/ARIA state selectors, and reachable component-local
-  CSS. ProgressBar preserves native progress semantics while presenting its
-  label through the legacy-compatible clipped completed surface.
+- Restarted the public component treatments for Button, the Checkbox family,
+  DescriptionList/DescriptionItem, Dialog, Dropdown, FilterPanel, Header,
+  ListView, Panel, Placeholder, ProgressBar, RadioGroup/RadioButton, Sidebar,
+  SplitView, the DataTable/TableHeader family, TabLine/TabPanel, Textbox,
+  Toggle, and Toolbar around fixed light-DOM parts, native/ARIA state
+  selectors, and reachable component-local CSS. ProgressBar preserves native
+  progress semantics while presenting its label through the legacy-compatible
+  clipped completed surface.
+- Rebuilt the public style lab as the reactive Meridian Change Office workflow
+  so approved component CSS is exercised through application-owned scope,
+  filtering, selection, routing, and retained-screen state.
 
 ### Removed
 
@@ -59,6 +65,10 @@ Versioning.
   complementary `aside` region.
 - `SplitView` now uses class-owned direction and pane hooks, a simple two-pane
   flex layout, and its existing native/ARIA pane semantics.
+- FilterPanel retains its component-relative Bank2 anchor without a deferred
+  viewport offset that caused the panel to flicker out of view.
+- Multi-state Checkbox variants synchronize the native checked property after
+  every semantic transition.
 
 ## 0.7.0 - 2026-09-04
 

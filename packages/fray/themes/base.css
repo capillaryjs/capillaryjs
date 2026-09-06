@@ -184,6 +184,7 @@
     --checkbox-box-shadow: none;
     --checkbox-box-shadow-checked: var(--checkbox-box-shadow);
     --checkbox-symbol-color: var(--selection-color);
+    --checkable-label-color-disabled: #aaa;
     --toggle-button-background: var(--button-background);
     --toggle-button-background-checked: var(--selection-background);
     --toggle-button-border-checked: var(--button-border);
@@ -204,8 +205,6 @@
     --tab-button-background-active: var(--tab-active-background);
     --tab-button-shadow: var(--button-shadow);
     --tab-button-shadow-active: var(--button-shadow-active);
-    --tab-button-active-lift: 0px;
-    --tab-button-active-bridge-block-size: 0px;
     --tab-button-inactive-bottom-shadow: none;
 
     /* Data components */

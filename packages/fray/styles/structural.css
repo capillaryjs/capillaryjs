@@ -42,12 +42,16 @@ fray-button > button {
             pointer-events: none;
         }
 
-fray-checkbox {
+fray-checkbox,
+fray-quadcheckbox,
+fray-tricheckbox {
             display: inline-flex;
             line-height: 1;
         }
 
-        fray-checkbox > label {
+        fray-checkbox > label,
+        fray-quadcheckbox > label,
+        fray-tricheckbox > label {
             display: flex;
             flex-flow: row nowrap;
             position: relative;
@@ -66,12 +70,16 @@ fray-checkbox {
             user-select: none;
         }
 
-        fray-checkbox > label:has(> input[type="checkbox"]:disabled) {
-            color: #aaa;
+        fray-checkbox > label:has(> input:disabled),
+        fray-quadcheckbox > label:has(> input:disabled),
+        fray-tricheckbox > label:has(> input:disabled) {
+            color: var(--checkable-label-color-disabled);
             cursor: not-allowed;
         }
 
-        fray-checkbox > label > input[type="checkbox"] {
+        fray-checkbox > label > input,
+        fray-quadcheckbox > label > input,
+        fray-tricheckbox > label > input {
             position: absolute;
             width: 1px;
             height: 1px;
@@ -85,9 +93,11 @@ fray-checkbox {
             font-size: var(--ui-font-size, inherit);
         }
 
-        fray-checkbox > label > input[type="checkbox"] + fray-checkboxshell {
+        fray-checkbox > label > input + fray-checkshell,
+        fray-quadcheckbox > label > input + fray-checkshell,
+        fray-tricheckbox > label > input + fray-checkshell {
             position: relative;
-            display: block;
+            display: grid;
             width: 1em;
             height: 1em;
             flex: 0 0 1em;
@@ -102,26 +112,52 @@ fray-checkbox {
             font-family: inherit;
             font-size: 1em;
             user-select: none;
+            place-items: center;
         }
 
-        fray-checkbox > label > input[type="checkbox"]:checked + fray-checkboxshell {
+        fray-checkbox > label > input:checked + fray-checkshell,
+        fray-quadcheckbox > label > input:checked + fray-checkshell,
+        fray-tricheckbox > label > input:checked + fray-checkshell {
             color: var(--checkbox-symbol-color, var(--selection-color, currentColor));
             background: var(--checkbox-box-background-checked,
                 var(--selection-background, var(--ui-accent-color, Highlight)));
             box-shadow: var(--checkbox-box-shadow-checked);
         }
 
-        fray-checkbox > label > input[type="checkbox"]:focus-visible + fray-checkboxshell {
+        fray-checkbox > label > input:focus-visible + fray-checkshell,
+        fray-quadcheckbox > label > input:focus-visible + fray-checkshell,
+        fray-tricheckbox > label > input:focus-visible + fray-checkshell {
             outline: 2px solid var(--focus-color, var(--ui-accent-color, Highlight));
             outline-offset: 1px;
         }
 
-        fray-checkbox > label > input[type="checkbox"]:disabled + fray-checkboxshell {
+        fray-checkbox > label > input:disabled + fray-checkshell,
+        fray-quadcheckbox > label > input:disabled + fray-checkshell,
+        fray-tricheckbox > label > input:disabled + fray-checkshell {
             opacity: 0.6;
             filter: saturate(0.6);
         }
 
-fray-colorpicker {
+fray-checkbox > label > input[value="require"] + fray-checkshell,
+fray-quadcheckbox > label > input[value="require"] + fray-checkshell,
+fray-tricheckbox > label > input[value="require"] + fray-checkshell {
+            color: var(--palette-contrast-light);
+            background: var(--palette-green);
+            box-shadow: var(--checkbox-box-shadow-checked);
+        }
+
+        fray-checkbox > label > input[value="deny"] + fray-checkshell,
+        fray-quadcheckbox > label > input[value="deny"] + fray-checkshell,
+        fray-tricheckbox > label > input[value="deny"] + fray-checkshell {
+            color: var(--palette-contrast-light);
+            background: var(--palette-red);
+            box-shadow: var(--checkbox-box-shadow-checked);
+        }
+
+fray-colorpicker,
+fray-dropdown,
+fray-textbox,
+fray-themepicker {
             display: flex;
             flex-flow: row nowrap;
             position: relative;
@@ -135,12 +171,17 @@ fray-colorpicker {
             user-select: none;
         }
 
-        fray-colorpicker > label {
+        fray-colorpicker > label,
+        fray-dropdown > label,
+        fray-textbox > label,
+        fray-themepicker > label {
             user-select: none;
             white-space: nowrap;
         }
 
-fray-colorpicker > fray-selectshell {
+fray-colorpicker > fray-selectshell,
+fray-dropdown > fray-selectshell,
+fray-themepicker > fray-selectshell {
             display: flex;
             flex-flow: row nowrap;
             position: relative;
@@ -149,7 +190,9 @@ fray-colorpicker > fray-selectshell {
             box-sizing: border-box;
         }
 
-        fray-colorpicker > fray-selectshell > select {
+        fray-colorpicker > fray-selectshell > select,
+        fray-dropdown > fray-selectshell > select,
+        fray-themepicker > fray-selectshell > select {
             position: relative;
             z-index: 1;
             min-height: var(--control-min-height, 2rem);
@@ -168,7 +211,9 @@ fray-colorpicker > fray-selectshell {
             white-space: nowrap;
         }
 
-        fray-colorpicker > fray-selectshell::after {
+        fray-colorpicker > fray-selectshell::after,
+        fray-dropdown > fray-selectshell::after,
+        fray-themepicker > fray-selectshell::after {
             content: var(--dropdown-underlay-content);
             position: absolute;
             z-index: 0;
@@ -183,7 +228,9 @@ fray-colorpicker > fray-selectshell {
             pointer-events: none;
         }
 
-        fray-colorpicker > fray-selectshell::before {
+        fray-colorpicker > fray-selectshell::before,
+        fray-dropdown > fray-selectshell::before,
+        fray-themepicker > fray-selectshell::before {
             content: var(--dropdown-trigger-content);
             position: absolute;
             z-index: 2;
@@ -203,23 +250,31 @@ fray-colorpicker > fray-selectshell {
             pointer-events: none;
         }
 
-        fray-colorpicker > fray-selectshell:has(> select:hover:not(:disabled))::before {
+        fray-colorpicker > fray-selectshell:has(> select:hover:not(:disabled))::before,
+        fray-dropdown > fray-selectshell:has(> select:hover:not(:disabled))::before,
+        fray-themepicker > fray-selectshell:has(> select:hover:not(:disabled))::before {
             background: var(--dropdown-trigger-background-hover);
             box-shadow: var(--dropdown-trigger-shadow-hover);
         }
 
-        fray-colorpicker > fray-selectshell:has(> select:disabled)::before {
+        fray-colorpicker > fray-selectshell:has(> select:disabled)::before,
+        fray-dropdown > fray-selectshell:has(> select:disabled)::before,
+        fray-themepicker > fray-selectshell:has(> select:disabled)::before {
             color: var(--input-color-disabled);
             background: var(--dropdown-trigger-background-disabled);
             border: var(--dropdown-trigger-border-disabled);
         }
 
-        fray-colorpicker > fray-selectshell:has(> select:disabled)::after {
+        fray-colorpicker > fray-selectshell:has(> select:disabled)::after,
+        fray-dropdown > fray-selectshell:has(> select:disabled)::after,
+        fray-themepicker > fray-selectshell:has(> select:disabled)::after {
             background: var(--dropdown-underlay-background-disabled);
             border: var(--dropdown-underlay-border-disabled);
         }
 
-        fray-colorpicker > fray-selectshell > select:focus-visible {
+        fray-colorpicker > fray-selectshell > select:focus-visible,
+        fray-dropdown > fray-selectshell > select:focus-visible,
+        fray-themepicker > fray-selectshell > select:focus-visible {
             outline: 2px solid transparent;
             outline-offset: 1px;
             box-shadow: var(--focus-ring);
@@ -227,22 +282,34 @@ fray-colorpicker > fray-selectshell {
 
         @media (forced-colors: active) {
             fray-colorpicker > fray-selectshell::before,
-            fray-colorpicker > fray-selectshell::after {
+            fray-dropdown > fray-selectshell::before,
+            fray-themepicker > fray-selectshell::before,
+            fray-colorpicker > fray-selectshell::after,
+            fray-dropdown > fray-selectshell::after,
+            fray-themepicker > fray-selectshell::after {
                 display: none;
             }
 
-            fray-colorpicker > fray-selectshell > select {
+            fray-colorpicker > fray-selectshell > select,
+            fray-dropdown > fray-selectshell > select,
+            fray-themepicker > fray-selectshell > select {
                 appearance: auto;
                 padding-inline-end: var(--space-sm);
             }
         }
 
-fray-colorpicker > fray-selectshell > select {
+fray-colorpicker > fray-selectshell > select,
+fray-themepicker > fray-selectshell > select {
             min-width: 8rem;
         }
 
 fray-datatable {
+            display: block;
             overflow: auto;
+        }
+
+        fray-datatable > p {
+            margin: 0;
         }
 
         fray-datatable > table {
@@ -271,9 +338,23 @@ fray-datatable {
         }
 
         fray-datatable tr td {
+            background: var(--ui-table-bg-color);
             line-height: calc(var(--ui-font-size) + var(--ui-padding));
             font-size: var(--ui-font-size);
             height: calc(var(--ui-font-size) + var(--ui-padding-h));
+        }
+
+        fray-datatable > table > tbody > tr:nth-child(even) > td {
+            background: var(--ui-table-bg-color2);
+        }
+
+        fray-datatable > table > tbody > tr[aria-selected="true"] > td {
+            color: var(--ui-select-text-color);
+            background: var(--ui-select-bg);
+        }
+
+        fray-datatable > table > tbody > tr:nth-child(even)[aria-selected="true"] > td {
+            background: var(--ui-select-bg-dark);
         }
 
         fray-datatable tr td fray-placeholder {
@@ -285,6 +366,7 @@ fray-placeholder {
             display: block;
             width: 5em;
             height: 1em;
+            background: #ccc;
             border-radius: var(--ui-border-radius);
             position: relative;
         }
@@ -296,7 +378,7 @@ fray-placeholder {
             z-index: 1;
             inset: 0;
             margin: auto;
-            animation: fray-placeholder-progress 0.8s linear infinite;
+            animation: fray-placeholder-progress 0.55s linear infinite;
             background-repeat: repeat;
             background-size: 2rem 2rem;
             background-image: var(--working-background-image);
@@ -306,50 +388,93 @@ fray-placeholder {
             pointer-events: none;
         }
 
-        @keyframes progress {
+        @keyframes fray-placeholder-progress {
             from { background-position: 0rem 0; }
             to { background-position: 2rem 0; }
         }
 
-th[aria-sort] {
+        @media (prefers-reduced-motion: reduce) {
+            fray-placeholder::after {
+                animation: none;
+            }
+        }
+
+fray-datatable > table > thead {
+            color: var(--table-header-color);
+            background: var(--ui-gradient);
+        }
+
+        fray-datatable > table > thead > tr > th {
+            border: 2px groove #fff7;
+            border-left: none;
+        }
+
+        fray-datatable > table > thead > tr > th:last-child {
+            border-right: none;
+        }
+
+fray-datatable > table > thead > tr > th[aria-sort] {
             position: relative;
             padding-right: 24px;
             user-select: var(--noselect-user-select);
             cursor: var(--noselect-cursor);
         }
 
-        th[aria-sort] > [data-part="sort"],
-        th[aria-sort] > [data-part="filter-toggle"] {
-            width: auto;
-            min-height: var(--control-min-height, 2rem);
-            padding: var(--space-xs) var(--space-sm);
-            color: var(--button-color);
-            background: var(--button-background);
-            border: var(--button-border);
-            border-radius: var(--radius-md);
-            box-shadow: var(--button-shadow);
-            box-sizing: border-box;
-            cursor: default;
+        fray-datatable > table > thead > tr > th[aria-sort] > button.sort {
+            appearance: none;
+            display: block;
+            width: 100%;
+            padding: 0;
+            color: inherit;
+            background: transparent;
+            border: 0;
             font-family: inherit;
-            user-select: none;
-            white-space: nowrap;
+            font-size: inherit;
+            font-weight: inherit;
+            line-height: inherit;
+            text-align: inherit;
+            cursor: pointer;
         }
 
-        th[aria-sort] > [data-part="filter-toggle"] {
+        fray-datatable > table > thead > tr > th[aria-sort] > button.sort > span.sortindicator {
+            position: absolute;
+            right: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 1em;
+            text-align: center;
+        }
+
+        fray-datatable > table > thead > tr > th[aria-sort] > button.filter {
+            appearance: none;
             position: absolute;
             right: 2px;
             top: 50%;
             transform: translateY(-50%);
             width: 1em;
+            padding: 0;
+            color: inherit;
+            background: transparent;
+            border: 0;
+            font-family: inherit;
+            font-size: inherit;
+            line-height: inherit;
+            text-align: center;
+            cursor: pointer;
             opacity: 0.5;
         }
 
-        th[aria-sort] > [data-part="filter-toggle"]:hover {
+        fray-datatable > table > thead > tr > th[aria-sort] > button.filter:hover {
             opacity: 1;
         }
 
 fray-filterpanel {
             position: absolute;
+            background: white;
+            border: 1px solid #ccc;
+            padding: 8px;
+            min-width: 180px;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
             z-index: 1000;
             display: flex;
             flex-flow: column nowrap;
@@ -358,178 +483,89 @@ fray-filterpanel {
             top: 0;
         }
 
-div:has(> dt + dd) {
-            display: grid;
-            grid-template-columns: minmax(7rem, 0.7fr) minmax(0, 1.3fr);
-            gap: var(--spacing-small, 0.5rem);
-            padding-block: var(--spacing-small, 0.5rem);
-        }
-
-        div:has(> dt + dd) > dd {
-            min-width: 0;
+        fray-filterpanel > p {
             margin: 0;
-            overflow-wrap: anywhere;
         }
 
-        @media (max-width: 36rem) {
-            div:has(> dt + dd) {
-                grid-template-columns: minmax(0, 1fr);
-                gap: 0.15rem;
-            }
+fray-descriptionlist {
+            display: block;
         }
 
-dl:has(> div > dt + dd) {
+        fray-descriptionlist > dl {
             display: grid;
             margin: 0;
         }
 
-dialog {
+fray-dialog > dialog {
+            z-index: 2;
             width: min(38rem, calc(100vw - 2rem));
             max-height: min(42rem, calc(100dvh - 2rem));
             padding: 0;
+            color: var(--panel-color);
+            background: var(--panel-background);
+            border: var(--panel-border);
+            border-radius: var(--panel-radius);
+            box-shadow: var(--dialog-shadow);
+            overflow: hidden;
+            isolation: isolate;
         }
 
-        dialog > header,
-        dialog > p,
-        dialog > [data-part="content"],
-        dialog > footer {
+        fray-dialog > dialog[open] {
+            display: flex;
+            flex-direction: column;
+        }
+
+        fray-dialog > dialog::backdrop {
+            background: var(--dialog-backdrop-background);
+        }
+
+        fray-dialog > dialog > header,
+        fray-dialog > dialog > p,
+        fray-dialog > dialog > fray-content,
+        fray-dialog > dialog > footer {
             padding: var(--panel-padding, 0.75rem);
         }
 
-        dialog > header h2,
-        dialog > p {
+        fray-dialog > dialog > header {
+            position: relative;
+            z-index: 1;
+            color: var(--dialog-header-color);
+            background: var(--dialog-header-background);
+            box-shadow: var(--section-header-shadow);
+        }
+
+        fray-dialog > dialog > header h2,
+        fray-dialog > dialog > p {
             margin: 0;
         }
 
-        dialog > [data-part="content"] {
+        fray-dialog > dialog > header h2 {
+            font-size: 1.1em;
+            font-weight: 700;
+        }
+
+        fray-dialog > dialog > fray-content {
+            position: relative;
+            z-index: 0;
+            display: block;
+            flex: 1 1 auto;
+            min-height: 0;
             overflow: auto;
         }
 
-        dialog > footer {
+        fray-dialog > dialog > footer {
             display: flex;
             justify-content: flex-end;
             gap: var(--spacing-small, 0.5rem);
         }
 
         @media (forced-colors: active) {
-            dialog {
+            fray-dialog > dialog {
                 border: 2px solid CanvasText;
             }
-        }
 
-fray-dropdown {
-            display: flex;
-            flex-flow: row nowrap;
-            position: relative;
-            align-items: center;
-            gap: .5em;
-            min-height: var(--control-min-height, 2rem);
-            color: var(--ui-text-color);
-            font-size: var(--ui-font-size);
-            line-height: calc(var(--ui-font-size) + var(--ui-padding) + var(--ui-padding));
-            box-sizing: border-box;
-            user-select: none;
-        }
-
-        fray-dropdown > label {
-            user-select: none;
-            white-space: nowrap;
-        }
-
-fray-dropdown > fray-selectshell {
-            display: flex;
-            flex-flow: row nowrap;
-            position: relative;
-            isolation: isolate;
-            min-height: var(--control-min-height, 2rem);
-            box-sizing: border-box;
-        }
-
-        fray-dropdown > fray-selectshell > select {
-            position: relative;
-            z-index: 1;
-            min-height: var(--control-min-height, 2rem);
-            width: var(--input-width, 15rem);
-            padding: var(--space-xs) var(--space-sm);
-            padding-inline-end: var(--dropdown-padding-inline-end);
-            color: var(--input-color);
-            background: var(--dropdown-select-background);
-            border: var(--dropdown-select-border);
-            border-radius: var(--radius-md);
-            box-shadow: var(--dropdown-select-shadow);
-            box-sizing: border-box;
-            font: inherit;
-            appearance: var(--dropdown-appearance);
-            pointer-events: all;
-            white-space: nowrap;
-        }
-
-        fray-dropdown > fray-selectshell::after {
-            content: var(--dropdown-underlay-content);
-            position: absolute;
-            z-index: 0;
-            inset: 0;
-            background: var(--dropdown-underlay-background);
-            border: var(--dropdown-underlay-border);
-            border-radius: 0;
-            border-start-start-radius: var(--dropdown-underlay-start-radius);
-            border-end-start-radius: var(--dropdown-underlay-start-radius);
-            box-shadow: var(--dropdown-underlay-shadow);
-            box-sizing: border-box;
-            pointer-events: none;
-        }
-
-        fray-dropdown > fray-selectshell::before {
-            content: var(--dropdown-trigger-content);
-            position: absolute;
-            z-index: 2;
-            inset-block: 0;
-            inset-inline-end: 0;
-            display: grid;
-            inline-size: var(--dropdown-trigger-width);
-            place-items: center;
-            color: var(--dropdown-trigger-color);
-            background: var(--dropdown-trigger-background);
-            border: var(--dropdown-trigger-border);
-            border-radius: 0;
-            border-start-end-radius: var(--dropdown-trigger-end-radius);
-            border-end-end-radius: var(--dropdown-trigger-end-radius);
-            box-shadow: var(--dropdown-trigger-shadow);
-            box-sizing: border-box;
-            pointer-events: none;
-        }
-
-        fray-dropdown > fray-selectshell:has(> select:hover:not(:disabled))::before {
-            background: var(--dropdown-trigger-background-hover);
-            box-shadow: var(--dropdown-trigger-shadow-hover);
-        }
-
-        fray-dropdown > fray-selectshell:has(> select:disabled)::before {
-            color: var(--input-color-disabled);
-            background: var(--dropdown-trigger-background-disabled);
-            border: var(--dropdown-trigger-border-disabled);
-        }
-
-        fray-dropdown > fray-selectshell:has(> select:disabled)::after {
-            background: var(--dropdown-underlay-background-disabled);
-            border: var(--dropdown-underlay-border-disabled);
-        }
-
-        fray-dropdown > fray-selectshell > select:focus-visible {
-            outline: 2px solid transparent;
-            outline-offset: 1px;
-            box-shadow: var(--focus-ring);
-        }
-
-        @media (forced-colors: active) {
-            fray-dropdown > fray-selectshell::before,
-            fray-dropdown > fray-selectshell::after {
-                display: none;
-            }
-
-            fray-dropdown > fray-selectshell > select {
-                appearance: auto;
-                padding-inline-end: var(--space-sm);
+            fray-dialog > dialog::backdrop {
+                background: Canvas;
             }
         }
 
@@ -538,32 +574,46 @@ fray-listview {
             flex-direction: column;
             overflow-y: auto;
             height: 100%;
-            color: var(--ui-color);
-            background: var(--ui-background);
-            border: var(--input-border);
-            border-radius: var(--radius-md);
+            padding: var(--ui-padding-v) var(--ui-padding-h);
+            color: var(--ui-text-color);
+            background: var(--ui-input-bg);
+            border: var(--ui-input-border);
+            border-radius: var(--ui-border-radius);
             box-shadow: var(--input-shadow);
             box-sizing: border-box;
+            pointer-events: all;
             user-select: none;
+            white-space: nowrap;
         }
 
         fray-listview > [role="listbox"],
-        fray-listview > [data-part="loading"] {
+        fray-listview > ul[aria-hidden="true"] {
             display: flex;
             flex-direction: column;
+            margin: 0;
+            padding: 0;
+            list-style: none;
         }
 
         fray-listview > [role="listbox"] > [role="option"] {
             display: flex;
             flex-flow: row nowrap;
             position: relative;
-            min-height: var(--control-min-height, 2rem);
+            min-height: calc(var(--ui-font-size) + var(--ui-padding-h) + var(--ui-padding-h));
+            line-height: calc(var(--ui-font-size) + var(--ui-padding) + var(--ui-padding));
+            font-size: var(--ui-font-size);
+            color: var(--ui-text-color);
+            border-radius: var(--ui-border-radius);
             box-sizing: border-box;
             user-select: none;
         }
 
-        fray-listview > [role="listbox"] > [role="option"]:last-child {
-            border-bottom: none;
+        fray-listview > [role="listbox"] > [role="option"]:hover {
+            background: var(--hover-bg-color, #f5f5f5);
+        }
+
+        fray-listview > [role="listbox"] > [role="option"][aria-selected="true"] {
+            background: var(--selected-bg-color, #e0e7ff);
         }
 
         fray-listview > [role="status"],
@@ -734,85 +784,6 @@ fray-progressbar {
             }
         }
 
-fray-quadcheckbox {
-            display: inline-flex;
-            line-height: 1;
-        }
-
-        fray-quadcheckbox > label {
-            display: flex;
-            flex-flow: row nowrap;
-            position: relative;
-            line-height: calc(var(--ui-font-size) + var(--ui-padding) + var(--ui-padding));
-            font-size: var(--ui-font-size);
-            height: calc(var(--ui-font-size) + var(--ui-padding-h) + var(--ui-padding-h));
-            color: var(--ui-text-color);
-            border-radius: var(--ui-border-radius);
-            box-sizing: border-box;
-            align-items: center;
-            gap: .3em;
-            align-content: center;
-            justify-content: center;
-            justify-items: center;
-            cursor: pointer;
-            user-select: none;
-        }
-
-        fray-quadcheckbox > label:has(> input[type="checkbox"]:disabled) {
-            color: #aaa;
-            cursor: not-allowed;
-        }
-
-        fray-quadcheckbox > label > input[type="checkbox"] {
-            position: absolute;
-            width: 1px;
-            height: 1px;
-            padding: 0;
-            margin: -1px;
-            overflow: hidden;
-            clip: rect(0 0 0 0);
-            white-space: nowrap;
-            border: 0;
-            font: inherit;
-            font-size: var(--ui-font-size, inherit);
-        }
-
-        fray-quadcheckbox > label > input[type="checkbox"] + fray-checkboxshell {
-            position: relative;
-            display: block;
-            width: 1em;
-            height: 1em;
-            flex: 0 0 1em;
-            box-sizing: border-box;
-            text-align: center;
-            line-height: 120%;
-            color: var(--input-color, var(--ui-text-color, currentColor));
-            background: var(--checkbox-box-background, var(--ui-input-bg, transparent));
-            border: var(--checkbox-box-border, var(--cbx-o-border, 1px solid currentColor));
-            border-radius: var(--cbx-border-radius, var(--radius-sm, 0.2rem));
-            box-shadow: var(--checkbox-box-shadow);
-            font-family: inherit;
-            font-size: 1em;
-            user-select: none;
-        }
-
-        fray-quadcheckbox > label > input[type="checkbox"]:checked + fray-checkboxshell {
-            color: var(--checkbox-symbol-color, var(--selection-color, currentColor));
-            background: var(--checkbox-box-background-checked,
-                var(--selection-background, var(--ui-accent-color, Highlight)));
-            box-shadow: var(--checkbox-box-shadow-checked);
-        }
-
-        fray-quadcheckbox > label > input[type="checkbox"]:focus-visible + fray-checkboxshell {
-            outline: 2px solid var(--focus-color, var(--ui-accent-color, Highlight));
-            outline-offset: 1px;
-        }
-
-        fray-quadcheckbox > label > input[type="checkbox"]:disabled + fray-checkboxshell {
-            opacity: 0.6;
-            filter: saturate(0.6);
-        }
-
 fray-sidebar {
             display: flex;
             min-width: 0;
@@ -882,6 +853,7 @@ fray-tabline {
             display: flex;
             background: var(--tabline-background);
             flex-flow: row wrap;
+            overflow: hidden;
             padding-top: 3px;
             padding-inline-start: var(--tabline-padding-inline-start);
             flex: 0 0 auto;
@@ -890,15 +862,18 @@ fray-tabline {
 
         fray-tabline > button[role="tab"] {
             position: relative;
-            min-height: var(--control-min-height, 2rem);
-            padding: var(--space-xs) var(--space-sm);
+            min-height: calc(var(--control-min-height, 2rem) - 5px);
+            padding-block: 0;
+            padding-inline: var(--space-sm);
             color: var(--button-color);
             background: var(--tab-button-background);
-            border: var(--button-border);
+            border: none;
             border-radius: var(--radius-md) var(--radius-md) 0 0;
             box-shadow: var(--tab-button-shadow);
             box-sizing: border-box;
+            align-self: flex-end;
             cursor: default;
+            margin-block-start: 3px;
             user-select: none;
             white-space: nowrap;
         }
@@ -908,19 +883,12 @@ fray-tabline {
         }
 
         fray-tabline > button[role="tab"]:not(:disabled)[aria-selected="true"] {
+            min-height: var(--control-min-height, 2rem);
+            padding-block-start: 3px;
             background: var(--tab-button-background-active);
             box-shadow: var(--tab-button-shadow-active);
-            transform: translateY(calc(-1 * var(--tab-button-active-lift)));
+            margin-block-start: 0;
             z-index: 1;
-        }
-
-        fray-tabline > button[role="tab"]:not(:disabled)[aria-selected="true"]::after {
-            content: '';
-            position: absolute;
-            inset-inline: 0;
-            block-size: var(--tab-button-active-bridge-block-size);
-            inset-block-end: calc(-1 * var(--tab-button-active-bridge-block-size));
-            background: var(--tab-button-background-active);
         }
 
         fray-tabline > button[role="tab"]:not(:disabled)[aria-selected="false"]::after {
@@ -940,11 +908,10 @@ fray-tabline {
             cursor: not-allowed;
         }
 
-        fray-tabline > button[role="tab"]:active:not(:disabled) {
-            border-style: var(--button-border-style-active);
-        }
-
 fray-tabpanel {
+            background: var(--panel-background);
+            border-radius: var(--panel-radius);
+            box-shadow: var(--panel-shadow);
             display: flex;
             flex-direction: column;
             width: 100%;
@@ -952,31 +919,23 @@ fray-tabpanel {
             overflow: hidden;
         }
 
-        fray-tabpanel > [data-part="content"] {
+        fray-tabpanel > section[role="tabpanel"] {
             display: flex;
             flex-direction: column;
             flex: 1;
             overflow: auto;
+            padding: 3px;
             z-index: 2;
         }
 
-fray-textbox {
-            display: flex;
-            flex-flow: row nowrap;
-            position: relative;
-            align-items: center;
-            gap: .5em;
-            min-height: var(--control-min-height, 2rem);
-            color: var(--ui-text-color);
-            font-size: var(--ui-font-size);
-            line-height: calc(var(--ui-font-size) + var(--ui-padding) + var(--ui-padding));
-            box-sizing: border-box;
-            user-select: none;
+        fray-tabpanel > section[role="tabpanel"][hidden] {
+            display: none;
         }
 
-        fray-textbox > label {
-            user-select: none;
-            white-space: nowrap;
+        fray-tabpanel > section[role="tabpanel"] > fray-toolbar[role="toolbar"]:first-child {
+            width: calc(100% + 6px);
+            margin-block-start: -3px;
+            margin-inline-start: -3px;
         }
 
 fray-textbox > input {
@@ -1011,126 +970,6 @@ fray-textbox > input {
 
         fray-textbox > [role="alert"] {
             margin: 0;
-        }
-
-fray-themepicker {
-            display: flex;
-            flex-flow: row nowrap;
-            position: relative;
-            align-items: center;
-            gap: .5em;
-            min-height: var(--control-min-height, 2rem);
-            color: var(--ui-text-color);
-            font-size: var(--ui-font-size);
-            line-height: calc(var(--ui-font-size) + var(--ui-padding) + var(--ui-padding));
-            box-sizing: border-box;
-            user-select: none;
-        }
-
-        fray-themepicker > label {
-            user-select: none;
-            white-space: nowrap;
-        }
-
-fray-themepicker > fray-selectshell {
-            display: flex;
-            flex-flow: row nowrap;
-            position: relative;
-            isolation: isolate;
-            min-height: var(--control-min-height, 2rem);
-            box-sizing: border-box;
-        }
-
-        fray-themepicker > fray-selectshell > select {
-            position: relative;
-            z-index: 1;
-            min-height: var(--control-min-height, 2rem);
-            width: var(--input-width, 15rem);
-            padding: var(--space-xs) var(--space-sm);
-            padding-inline-end: var(--dropdown-padding-inline-end);
-            color: var(--input-color);
-            background: var(--dropdown-select-background);
-            border: var(--dropdown-select-border);
-            border-radius: var(--radius-md);
-            box-shadow: var(--dropdown-select-shadow);
-            box-sizing: border-box;
-            font: inherit;
-            appearance: var(--dropdown-appearance);
-            pointer-events: all;
-            white-space: nowrap;
-        }
-
-        fray-themepicker > fray-selectshell::after {
-            content: var(--dropdown-underlay-content);
-            position: absolute;
-            z-index: 0;
-            inset: 0;
-            background: var(--dropdown-underlay-background);
-            border: var(--dropdown-underlay-border);
-            border-radius: 0;
-            border-start-start-radius: var(--dropdown-underlay-start-radius);
-            border-end-start-radius: var(--dropdown-underlay-start-radius);
-            box-shadow: var(--dropdown-underlay-shadow);
-            box-sizing: border-box;
-            pointer-events: none;
-        }
-
-        fray-themepicker > fray-selectshell::before {
-            content: var(--dropdown-trigger-content);
-            position: absolute;
-            z-index: 2;
-            inset-block: 0;
-            inset-inline-end: 0;
-            display: grid;
-            inline-size: var(--dropdown-trigger-width);
-            place-items: center;
-            color: var(--dropdown-trigger-color);
-            background: var(--dropdown-trigger-background);
-            border: var(--dropdown-trigger-border);
-            border-radius: 0;
-            border-start-end-radius: var(--dropdown-trigger-end-radius);
-            border-end-end-radius: var(--dropdown-trigger-end-radius);
-            box-shadow: var(--dropdown-trigger-shadow);
-            box-sizing: border-box;
-            pointer-events: none;
-        }
-
-        fray-themepicker > fray-selectshell:has(> select:hover:not(:disabled))::before {
-            background: var(--dropdown-trigger-background-hover);
-            box-shadow: var(--dropdown-trigger-shadow-hover);
-        }
-
-        fray-themepicker > fray-selectshell:has(> select:disabled)::before {
-            color: var(--input-color-disabled);
-            background: var(--dropdown-trigger-background-disabled);
-            border: var(--dropdown-trigger-border-disabled);
-        }
-
-        fray-themepicker > fray-selectshell:has(> select:disabled)::after {
-            background: var(--dropdown-underlay-background-disabled);
-            border: var(--dropdown-underlay-border-disabled);
-        }
-
-        fray-themepicker > fray-selectshell > select:focus-visible {
-            outline: 2px solid transparent;
-            outline-offset: 1px;
-            box-shadow: var(--focus-ring);
-        }
-
-        @media (forced-colors: active) {
-            fray-themepicker > fray-selectshell::before,
-            fray-themepicker > fray-selectshell::after {
-                display: none;
-            }
-
-            fray-themepicker > fray-selectshell > select {
-                appearance: auto;
-                padding-inline-end: var(--space-sm);
-            }
-        }
-
-fray-themepicker > fray-selectshell > select {
-            min-width: 8rem;
         }
 
 fray-toggle {
@@ -1292,83 +1131,4 @@ fray-treeview {
                 outline: 2px solid Highlight;
                 forced-color-adjust: auto;
             }
-        }
-
-fray-tricheckbox {
-            display: inline-flex;
-            line-height: 1;
-        }
-
-        fray-tricheckbox > label {
-            display: flex;
-            flex-flow: row nowrap;
-            position: relative;
-            line-height: calc(var(--ui-font-size) + var(--ui-padding) + var(--ui-padding));
-            font-size: var(--ui-font-size);
-            height: calc(var(--ui-font-size) + var(--ui-padding-h) + var(--ui-padding-h));
-            color: var(--ui-text-color);
-            border-radius: var(--ui-border-radius);
-            box-sizing: border-box;
-            align-items: center;
-            gap: .3em;
-            align-content: center;
-            justify-content: center;
-            justify-items: center;
-            cursor: pointer;
-            user-select: none;
-        }
-
-        fray-tricheckbox > label:has(> input[type="checkbox"]:disabled) {
-            color: #aaa;
-            cursor: not-allowed;
-        }
-
-        fray-tricheckbox > label > input[type="checkbox"] {
-            position: absolute;
-            width: 1px;
-            height: 1px;
-            padding: 0;
-            margin: -1px;
-            overflow: hidden;
-            clip: rect(0 0 0 0);
-            white-space: nowrap;
-            border: 0;
-            font: inherit;
-            font-size: var(--ui-font-size, inherit);
-        }
-
-        fray-tricheckbox > label > input[type="checkbox"] + fray-checkboxshell {
-            position: relative;
-            display: block;
-            width: 1em;
-            height: 1em;
-            flex: 0 0 1em;
-            box-sizing: border-box;
-            text-align: center;
-            line-height: 120%;
-            color: var(--input-color, var(--ui-text-color, currentColor));
-            background: var(--checkbox-box-background, var(--ui-input-bg, transparent));
-            border: var(--checkbox-box-border, var(--cbx-o-border, 1px solid currentColor));
-            border-radius: var(--cbx-border-radius, var(--radius-sm, 0.2rem));
-            box-shadow: var(--checkbox-box-shadow);
-            font-family: inherit;
-            font-size: 1em;
-            user-select: none;
-        }
-
-        fray-tricheckbox > label > input[type="checkbox"]:checked + fray-checkboxshell {
-            color: var(--checkbox-symbol-color, var(--selection-color, currentColor));
-            background: var(--checkbox-box-background-checked,
-                var(--selection-background, var(--ui-accent-color, Highlight)));
-            box-shadow: var(--checkbox-box-shadow-checked);
-        }
-
-        fray-tricheckbox > label > input[type="checkbox"]:focus-visible + fray-checkboxshell {
-            outline: 2px solid var(--focus-color, var(--ui-accent-color, Highlight));
-            outline-offset: 1px;
-        }
-
-        fray-tricheckbox > label > input[type="checkbox"]:disabled + fray-checkboxshell {
-            opacity: 0.6;
-            filter: saturate(0.6);
         }
