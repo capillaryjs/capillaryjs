@@ -11,12 +11,12 @@ body {
 .style-lab {
     display: grid;
     gap: var(--space-lg);
-    width: min(48rem, calc(100% - 2rem));
+    width: min(64rem, calc(100% - 2rem));
     margin: 3rem auto;
 }
 
 .style-lab > header,
-.style-lab > section {
+.review-controls {
     display: grid;
     gap: var(--space-sm);
 }
@@ -35,21 +35,51 @@ body {
     text-transform: uppercase;
 }
 
-.style-lab dl {
-    display: grid;
+.review-controls label {
+    display: flex;
+    align-items: center;
     gap: var(--space-sm);
 }
 
-.style-lab dl > div {
+.approved-grid {
     display: grid;
-    grid-template-columns: 7rem 1fr;
-    gap: var(--space-sm);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-lg);
 }
 
-.style-lab dt {
-    font-weight: 700;
+.sidebar-example {
+    height: 18rem;
 }
 
-.style-lab dd {
+.approved-grid p,
+.sidebar-example p,
+.splitview-example p {
     margin: 0;
+}
+
+.approved-grid ul,
+.change-register {
+    display: grid;
+    gap: var(--space-sm);
+    margin: 0;
+    padding-inline-start: 1.25rem;
+}
+
+.splitview-example {
+    height: 22rem;
+}
+
+.native-toolbar {
+    padding: var(--space-sm) var(--space-md);
+    background: var(--ui-medium-bg-color);
+}
+
+@media (max-width: 42rem) {
+    .style-lab {
+        margin-block: 1rem;
+    }
+
+    .approved-grid {
+        grid-template-columns: 1fr;
+    }
 }

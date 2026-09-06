@@ -1,5 +1,6 @@
 import {Component, css} from '../component.js'
 import type {ComponentProps, FrayChild} from '../component.js'
+import {Header} from './header.js'
 import {componentClass, controlId} from '../controlUtils.js'
 
 export interface SidebarProps extends ComponentProps {
@@ -28,52 +29,55 @@ export class Sidebar extends Component<SidebarProps> {
             ariaLabel,
             children = [],
         } = this.props
+        const Host = this.Host
         const title = header == null
             ? null
-            : <header>
-                {typeof header === 'string' || typeof header === 'number'
-                    ? <h2 id={this.headerId}>{header}</h2>
-                    : <div id={this.headerId}>{header}</div>}
-            </header>
+            : <Header
+                id={`${this.sidebarId}-header`}
+                headingId={this.headerId}
+            >{header}</Header>
 
-        return <aside
-            id={this.sidebarId}
-            className={componentClass(this.props) || undefined}
-            data-fray-component="sidebar"
-            aria-label={header == null ? ariaLabel : null}
-            aria-labelledby={header == null ? null : this.headerId}
-        >
-            {title}
-            {toolbar == null ? null : <div data-part="toolbar">{toolbar}</div>}
-            <div data-part="content" tabIndex={0}>{children}</div>
-        </aside>
+        return <Host className={componentClass(this.props) || null}>
+            <aside
+                id={this.sidebarId}
+                aria-label={header == null ? ariaLabel : null}
+                aria-labelledby={header == null ? null : this.headerId}
+            >
+                {title}
+                {toolbar == null ? null : <div className="toolbar">{toolbar}</div>}
+                <div className="content" tabIndex={0}>{children}</div>
+            </aside>
+        </Host>
     }
 
+    static override hostName = 'sidebar'
+    static override dependencies = [Header]
+
     static css = css`
-        aside {
+        & {
             display: flex;
+            min-width: 0;
+            min-height: 0;
+        }
+
+        & > aside {
+            display: flex;
+            flex: 1 1 auto;
             flex-direction: column;
             min-width: 0;
             min-height: 0;
             overflow: hidden;
         }
 
-        aside > header,
-        aside > [data-part="toolbar"] {
-            flex: 0 0 auto;
+        & > aside > fray-header,
+        & > aside > .toolbar {
+            flex: none;
         }
 
-        aside > header h2 {
-            margin: 0;
-            font: inherit;
-        }
-
-        aside > [data-part="content"] {
-            flex: 1 1 auto;
-            min-width: 0;
+        & > aside > .content {
+            flex: 1;
             min-height: 0;
-            overflow-x: hidden;
-            overflow-y: auto;
+            overflow: auto;
         }
     `
 }

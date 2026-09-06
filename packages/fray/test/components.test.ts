@@ -12,6 +12,7 @@ import {
     DescriptionList,
     Dropdown,
     FilterMode,
+    Header,
     Label,
     Panel,
     ProgressBar,
@@ -542,16 +543,16 @@ describe('layout controls', () => {
         }).attachTo(document.body)
 
         const split = requiredQuery<HTMLElement>('fray-splitview')
-        assert.equal(split.dataset.direction, 'horizontal')
+        assert.equal(split.className, 'horizontal')
         assert.equal(split.style.getPropertyValue('--split-primary-size'), '18rem')
-        assert.equal(requiredQuery('[data-part="primary"]', split).textContent, 'Tree')
+        assert.equal(requiredQuery('.primary', split).textContent, 'Tree')
         assert.equal(
-            requiredQuery('[data-part="secondary"]', split).getAttribute('aria-label'),
+            requiredQuery('.secondary', split).getAttribute('aria-label'),
             'Project details',
         )
-        assert.equal(requiredQuery('[data-part="primary"]', split).getAttribute('role'), 'region')
-        assert.equal(requiredQuery<HTMLElement>('[data-part="primary"]', split).tabIndex, 0)
-        assert.equal(requiredQuery<HTMLElement>('[data-part="secondary"]', split).tabIndex, 0)
+        assert.equal(requiredQuery('.primary', split).getAttribute('role'), 'region')
+        assert.equal(requiredQuery<HTMLElement>('.primary', split).tabIndex, 0)
+        assert.equal(requiredQuery<HTMLElement>('.secondary', split).tabIndex, 0)
 
         SplitView.new({
             direction: 'vertical',
@@ -559,17 +560,17 @@ describe('layout controls', () => {
             primary: 'Navigation',
             children: 'Details from children',
         }).attachTo(document.body)
-        const vertical = requiredQuery<HTMLElement>('fray-splitview[data-direction="vertical"]')
+        const vertical = requiredQuery<HTMLElement>('fray-splitview.vertical')
         assert.equal(vertical.style.getPropertyValue('--split-primary-size'), '45%')
-        assert.equal(requiredQuery('[data-part="primary"]', vertical).textContent, 'Navigation')
-        assert.equal(requiredQuery('[data-part="secondary"]', vertical).textContent, 'Details from children')
-        assert.equal(requiredQuery('[data-part="primary"]', vertical).hasAttribute('role'), false)
-        assert.equal(requiredQuery('[data-part="secondary"]', vertical).hasAttribute('aria-label'), false)
+        assert.equal(requiredQuery('.primary', vertical).textContent, 'Navigation')
+        assert.equal(requiredQuery('.secondary', vertical).textContent, 'Details from children')
+        assert.equal(requiredQuery('.primary', vertical).hasAttribute('role'), false)
+        assert.equal(requiredQuery('.secondary', vertical).hasAttribute('aria-label'), false)
 
         SplitView.new().attachTo(document.body)
         const empty = requiredAt([...document.querySelectorAll<HTMLElement>('fray-splitview')], 2)
-        assert.equal(requiredQuery('[data-part="primary"]', empty).textContent, '')
-        assert.equal(requiredQuery('[data-part="secondary"]', empty).textContent, '')
+        assert.equal(requiredQuery('.primary', empty).textContent, '')
+        assert.equal(requiredQuery('.secondary', empty).textContent, '')
         assert.throws(() => SplitView.new({primarySize: ''}).mount(), /primarySize/)
         assert.throws(() => SplitView.new({direction: 'diagonal' as 'horizontal'}).mount(),
             /direction/)
@@ -594,6 +595,27 @@ describe('layout controls', () => {
         assert.equal(value.subscriberCount, 0)
     })
 
+    test('Header renders native heading levels inside its component host', () => {
+        Header.new({
+            id: 'summary-header',
+            headingId: 'summary-title',
+            children: 'Portfolio summary',
+        }).attachTo(document.body)
+        const header = requiredQuery<HTMLElement>('fray-header')
+        const defaultHeading = requiredQuery<HTMLHeadingElement>('h2', header)
+        assert.equal(header.id, 'summary-header')
+        assert.equal(defaultHeading.id, 'summary-title')
+        assert.equal(defaultHeading.textContent, 'Portfolio summary')
+
+        Header.new({
+            level: 6,
+            children: h('span', null, 'Deep heading'),
+        }).attachTo(document.body)
+        assert.equal(requiredQuery<HTMLHeadingElement>('fray-header h6').textContent,
+            'Deep heading')
+        assert.throws(() => Header.new({level: 7 as never}).mount(), /integer from 1 to 6/)
+    })
+
     test('Panel uses a labelled component host and explicit orientation', () => {
         Panel.new({
             header: 'Profile',
@@ -602,12 +624,15 @@ describe('layout controls', () => {
         }).attachTo(document.body)
 
         const section = requiredQuery<HTMLElement>('fray-panel')
-        const title = requiredQuery<HTMLElement>('h2')
+        const header = requiredQuery<HTMLElement>('fray-header', section)
+        const title = requiredQuery<HTMLElement>('h2', header)
+        const content = requiredQuery<HTMLElement>('.content', section)
         assert.equal(section.getAttribute('role'), 'region')
         assert.equal(section.className, '')
         assert.equal(section.getAttribute('aria-labelledby'), title.id)
-        assert.equal(section.dataset.orientation, 'horizontal')
-        assert.equal(requiredQuery('[data-part="content"]', section).textContent, 'Details')
+        assert.equal(section.hasAttribute('data-orientation'), false)
+        assert.equal(content.className, 'content horizontal')
+        assert.equal(content.textContent, 'Details')
     })
 
     test('Panel tracks a live disabled state', () => {
@@ -624,11 +649,10 @@ describe('layout controls', () => {
         PanelOwner.new().attachTo(document.body)
 
         const panel = requiredQuery<HTMLElement>('fray-panel')
-        assert.equal(panel.hasAttribute('data-disabled'), false)
+        assert.equal(panel.hasAttribute('aria-disabled'), false)
         assert.equal(panel.getAttribute('aria-disabled'), null)
 
         disabled.set(true)
-        assert.equal(panel.hasAttribute('data-disabled'), true)
         assert.equal(panel.getAttribute('aria-disabled'), 'true')
     })
 
@@ -641,19 +665,21 @@ describe('layout controls', () => {
             children: [h('ol', null, h('li', null, 'First request'))],
         }).attachTo(document.body)
 
-        const sidebar = requiredQuery<HTMLElement>('aside[data-fray-component="sidebar"]')
+        const sidebar = requiredQuery<HTMLElement>('fray-sidebar')
+        const region = requiredQuery<HTMLElement>('aside', sidebar)
         const heading = requiredQuery<HTMLElement>('h2', sidebar)
-        const toolbar = requiredQuery<HTMLElement>('[data-part="toolbar"]', sidebar)
-        const content = requiredQuery<HTMLElement>('[data-part="content"]', sidebar)
-        assert.equal(sidebar.id, 'change-requests')
-        assert.equal(sidebar.getAttribute('aria-labelledby'), heading.id)
-        assert.equal(sidebar.hasAttribute('aria-label'), false)
+        const toolbar = requiredQuery<HTMLElement>('.toolbar', region)
+        const content = requiredQuery<HTMLElement>('.content', region)
+        assert.equal(region.id, 'change-requests')
+        assert.equal(region.getAttribute('aria-labelledby'), heading.id)
+        assert.equal(region.hasAttribute('aria-label'), false)
         assert.equal(requiredQuery('[role="toolbar"]', toolbar).textContent, 'Refresh')
         assert.equal(content.textContent, 'First request')
         assert.equal(content.tabIndex, 0)
-        assert.equal(sidebar.children[0], heading.parentElement)
-        assert.equal(sidebar.children[1], toolbar)
-        assert.equal(sidebar.children[2], content)
+        assert.equal(sidebar.children[0], region)
+        assert.equal(region.children[0], heading.parentElement)
+        assert.equal(region.children[1], toolbar)
+        assert.equal(region.children[2], content)
     })
 
     test('Sidebar uses ariaLabel when no visible header exists', () => {
@@ -662,10 +688,11 @@ describe('layout controls', () => {
             children: 'No saved views',
         }).attachTo(document.body)
 
-        const sidebar = requiredQuery<HTMLElement>('aside[data-fray-component="sidebar"]')
-        assert.equal(sidebar.getAttribute('aria-label'), 'Saved views')
-        assert.equal(sidebar.hasAttribute('aria-labelledby'), false)
-        assert.equal(sidebar.querySelector('[data-part="header"]'), null)
+        const sidebar = requiredQuery<HTMLElement>('fray-sidebar')
+        const region = requiredQuery<HTMLElement>('aside', sidebar)
+        assert.equal(region.getAttribute('aria-label'), 'Saved views')
+        assert.equal(region.hasAttribute('aria-labelledby'), false)
+        assert.equal(region.querySelector('fray-header'), null)
     })
 
     test('TabPanel wires tab semantics, content, clicks, and arrow keys', () => {

@@ -16,6 +16,8 @@ Versioning.
 - Explicit component-specific `live()` prop allowlists, enforced consistently
   by typed JSX/`h()` authoring and the runtime renderer.
 - `Label` component with a live `text` prop for accessible form field labeling.
+- `Header` component with a native `h1`–`h6` level and source-owned Section
+  Header treatment.
 
 ### Changed
 
@@ -46,6 +48,12 @@ Versioning.
 
 - `SplitView` panes are keyboard-focusable so their owned overflow remains
   operable without a pointing device.
+- `Panel` now composes `Header`, uses trait classes for content orientation, and
+  owns only its surface, content layout, and live disabled presentation.
+- `Sidebar` now has a fixed `fray-sidebar` CSS host while retaining its native
+  complementary `aside` region.
+- `SplitView` now uses class-owned direction and pane hooks, a simple two-pane
+  flex layout, and its existing native/ARIA pane semantics.
 
 ## 0.7.0 - 2026-09-04
 

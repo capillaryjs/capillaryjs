@@ -9,6 +9,10 @@ import {
     Checkbox,
     Component,
     Dropdown,
+    Header,
+    Panel,
+    Sidebar,
+    SplitView,
     Textbox,
     createFrayRuntime,
     frayColorOptions,
@@ -107,6 +111,64 @@ describe('style registry', () => {
         assert.match(stylesheet, /fray-checkbox > label\s*\{[^}]*display:\s*flex/)
         assert.match(stylesheet, /input\[type="checkbox"\] \+ \.checkboxshell/)
         assert.doesNotMatch(stylesheet, /fray-checkbox\s*\{[^}]*width:\s*var\(--input-width/)
+    })
+
+    test('collects the complete Panel treatment without unrelated component CSS', () => {
+        const runtime = createFrayRuntime()
+        runtime.registerStyles(Panel)
+        const stylesheet = runtime.styleRegistry.generateCSS()
+
+        assert.match(stylesheet, /fray-panel\s*\{[^}]*background:\s*var\(--panel-background\)/)
+        assert.match(stylesheet, /fray-header\s*\{[^}]*padding:\s*\.25em/)
+        assert.match(stylesheet, /fray-panel > \.content/)
+        assert.match(stylesheet, /fray-panel > \.content\.horizontal/)
+        assert.match(stylesheet, /fray-panel > \.content\.vertical/)
+        assert.match(stylesheet, /fray-panel\[aria-disabled="true"\]\s*\{[^}]*opacity:\s*\.65/)
+        assert.doesNotMatch(stylesheet, /fray-panel > header/)
+        assert.doesNotMatch(stylesheet, /fray-sidebar|fray-dropdown|fray-checkbox|fray-textbox/)
+    })
+
+    test('collects Header CSS without unrelated component rules', () => {
+        const runtime = createFrayRuntime()
+        runtime.registerStyles(Header)
+        const stylesheet = runtime.styleRegistry.generateCSS()
+
+        assert.match(stylesheet, /fray-header\s*\{[^}]*display:\s*block/)
+        assert.match(stylesheet, /background:\s*var\(--section-header-background\)/)
+        assert.match(stylesheet, /box-shadow:\s*var\(--section-header-shadow\)/)
+        assert.match(stylesheet, /fray-header > h1,[\s\S]*fray-header > h6/)
+        assert.doesNotMatch(stylesheet, /fray-panel|fray-sidebar|fray-dropdown|fray-button/)
+    })
+
+    test('collects the complete Sidebar treatment without unrelated component CSS', () => {
+        const runtime = createFrayRuntime()
+        runtime.registerStyles(Sidebar)
+        const stylesheet = runtime.styleRegistry.generateCSS()
+
+        assert.match(stylesheet, /fray-sidebar\s*\{[^}]*display:\s*flex/)
+        assert.match(stylesheet, /fray-sidebar > aside\s*\{[^}]*flex:\s*1 1 auto/)
+        assert.match(stylesheet, /fray-sidebar > aside > fray-header,[\s\S]*fray-sidebar > aside > \.toolbar/)
+        assert.match(stylesheet, /fray-sidebar > aside > \.content\s*\{[^}]*flex:\s*1[^}]*overflow:\s*auto/)
+        assert.match(stylesheet, /fray-header\s*\{[^}]*padding:\s*\.25em/)
+        assert.doesNotMatch(stylesheet, /(?:^|\n)aside\s*\{/)
+        assert.doesNotMatch(stylesheet, /fray-panel|fray-dropdown|fray-checkbox|fray-textbox/)
+    })
+
+    test('collects the complete SplitView treatment without unrelated component CSS', () => {
+        const runtime = createFrayRuntime()
+        runtime.registerStyles(SplitView)
+        const stylesheet = runtime.styleRegistry.generateCSS()
+
+        assert.match(stylesheet, /fray-splitview\s*\{[^}]*display:\s*flex/)
+        assert.match(stylesheet, /fray-splitview\.horizontal\s*\{[^}]*flex-direction:\s*row/)
+        assert.match(stylesheet, /fray-splitview\.vertical\s*\{[^}]*flex-direction:\s*column/)
+        assert.match(stylesheet, /fray-splitview > \.primary\s*\{[^}]*flex:\s*0 1 var\(--split-primary-size, 40%\)/)
+        assert.match(stylesheet, /fray-splitview > \.secondary\s*\{[^}]*flex:\s*1/)
+        assert.match(stylesheet, /fray-splitview > \.primary,[\s\S]*fray-splitview > \.secondary/)
+        assert.match(stylesheet, /fray-splitview\.horizontal > \.primary\s*\{[^}]*border-inline-end/)
+        assert.match(stylesheet, /fray-splitview\.vertical > \.primary\s*\{[^}]*border-block-end/)
+        assert.doesNotMatch(stylesheet, /\[data-direction|\[data-part/)
+        assert.doesNotMatch(stylesheet, /fray-panel|fray-sidebar|fray-dropdown|fray-checkbox/)
     })
 
     test('uses fixed one-hyphen host names and resolves ampersands', () => {

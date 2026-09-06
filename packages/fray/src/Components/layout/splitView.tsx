@@ -1,6 +1,6 @@
 import {Component, css} from '../component.js'
 import type {ComponentProps, FrayChild} from '../component.js'
-import {componentClass} from '../controlUtils.js'
+import {classNames, componentClass} from '../controlUtils.js'
 
 export interface SplitViewProps extends ComponentProps {
     primary?: FrayChild
@@ -31,18 +31,17 @@ export class SplitView extends Component<SplitViewProps> {
         }
         const Host = this.Host
         return <Host
-            className={componentClass(this.props) || null}
-            data-direction={direction}
+            className={classNames(componentClass(this.props), direction)}
             style={primarySize == null ? undefined : {'--split-primary-size': primarySize}}
         >
             <div
-                data-part="primary"
+                className="primary"
                 role={primaryLabel == null ? null : 'region'}
                 aria-label={primaryLabel}
                 tabIndex={0}
             >{primary}</div>
             <div
-                data-part="secondary"
+                className="secondary"
                 role={secondaryLabel == null ? null : 'region'}
                 aria-label={secondaryLabel}
                 tabIndex={0}
@@ -54,36 +53,41 @@ export class SplitView extends Component<SplitViewProps> {
 
     static css = css`
         & {
-            display: grid;
+            display: flex;
             flex: 1 1 auto;
             min-width: 0;
             min-height: 0;
             overflow: hidden;
         }
 
-        &[data-direction="horizontal"] {
-            grid-template-columns:
-                var(--split-primary-size, minmax(16rem, 0.8fr))
-                minmax(0, 1.2fr);
+        &.horizontal {
+            flex-direction: row;
         }
 
-        &[data-direction="vertical"] {
-            grid-template-rows:
-                var(--split-primary-size, minmax(12rem, 0.8fr))
-                minmax(0, 1.2fr);
+        &.vertical {
+            flex-direction: column;
         }
 
-        & > [data-part] {
+        & > .primary {
+            flex: 0 1 var(--split-primary-size, 40%);
+        }
+
+        & > .secondary {
+            flex: 1;
+        }
+
+        & > .primary,
+        & > .secondary {
             min-width: 0;
             min-height: 0;
             overflow: auto;
         }
 
-        &[data-direction="horizontal"] > [data-part="primary"] {
+        &.horizontal > .primary {
             border-inline-end: 1px solid var(--ui-border-color);
         }
 
-        &[data-direction="vertical"] > [data-part="primary"] {
+        &.vertical > .primary {
             border-block-end: 1px solid var(--ui-border-color);
         }
     `

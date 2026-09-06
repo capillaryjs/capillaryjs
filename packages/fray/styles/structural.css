@@ -634,18 +634,18 @@ fray-listview {
         }
 
 fray-panel {
+            background: var(--panel-background);
+            border: var(--panel-border);
+            border-radius: var(--panel-radius);
+            box-shadow: var(--panel-shadow);
+            color: var(--panel-color);
             display: flex;
             flex-direction: column;
             overflow: auto;
             flex: 0 0 auto;
         }
 
-        fray-panel > header h2 {
-            margin: 0;
-            font: inherit;
-        }
-
-        fray-panel > [data-part="content"] {
+        fray-panel > .content {
             display: flex;
             flex: 1;
             overflow: auto;
@@ -653,12 +653,36 @@ fray-panel {
             gap: var(--spacing-medium, 1rem);
         }
 
-        fray-panel > [data-part="content"][data-orientation="horizontal"] {
+        fray-panel > .content.horizontal {
             flex-direction: row;
         }
 
-        fray-panel > [data-part="content"][data-orientation="vertical"] {
+        fray-panel > .content.vertical {
             flex-direction: column;
+        }
+
+        fray-panel[aria-disabled="true"] {
+            opacity: .65;
+        }
+
+fray-header {
+            display: block;
+            color: var(--section-header-color);
+            border-radius: var(--ui-border-radius) var(--ui-border-radius) 0 0;
+            padding: .25em;
+            background: var(--section-header-background);
+            box-shadow: var(--section-header-shadow);
+            z-index: 1;
+        }
+
+        fray-header > h1,
+        fray-header > h2,
+        fray-header > h3,
+        fray-header > h4,
+        fray-header > h5,
+        fray-header > h6 {
+            margin: 0;
+            font: inherit;
         }
 
 fray-progressbar {
@@ -759,63 +783,68 @@ fray-quadcheckbox {
             filter: saturate(0.6);
         }
 
-aside {
+fray-sidebar {
             display: flex;
+            min-width: 0;
+            min-height: 0;
+        }
+
+        fray-sidebar > aside {
+            display: flex;
+            flex: 1 1 auto;
             flex-direction: column;
             min-width: 0;
             min-height: 0;
             overflow: hidden;
         }
 
-        aside > header,
-        aside > [data-part="toolbar"] {
-            flex: 0 0 auto;
+        fray-sidebar > aside > fray-header,
+        fray-sidebar > aside > .toolbar {
+            flex: none;
         }
 
-        aside > header h2 {
-            margin: 0;
-            font: inherit;
-        }
-
-        aside > [data-part="content"] {
-            flex: 1 1 auto;
-            min-width: 0;
+        fray-sidebar > aside > .content {
+            flex: 1;
             min-height: 0;
-            overflow-x: hidden;
-            overflow-y: auto;
+            overflow: auto;
         }
 
 fray-splitview {
-            display: grid;
+            display: flex;
             flex: 1 1 auto;
             min-width: 0;
             min-height: 0;
             overflow: hidden;
         }
 
-        fray-splitview[data-direction="horizontal"] {
-            grid-template-columns:
-                var(--split-primary-size, minmax(16rem, 0.8fr))
-                minmax(0, 1.2fr);
+        fray-splitview.horizontal {
+            flex-direction: row;
         }
 
-        fray-splitview[data-direction="vertical"] {
-            grid-template-rows:
-                var(--split-primary-size, minmax(12rem, 0.8fr))
-                minmax(0, 1.2fr);
+        fray-splitview.vertical {
+            flex-direction: column;
         }
 
-        fray-splitview > [data-part] {
+        fray-splitview > .primary {
+            flex: 0 1 var(--split-primary-size, 40%);
+        }
+
+        fray-splitview > .secondary {
+            flex: 1;
+        }
+
+        fray-splitview > .primary,
+        fray-splitview > .secondary {
             min-width: 0;
             min-height: 0;
             overflow: auto;
         }
 
-        fray-splitview[data-direction="horizontal"] > [data-part="primary"] {
+        fray-splitview.horizontal > .primary {
             border-inline-end: 1px solid var(--ui-border-color);
         }
 
-        fray-splitview[data-direction="vertical"] > [data-part="primary"] {
+        fray-splitview.vertical > .primary {
             border-block-end: 1px solid var(--ui-border-color);
         }
 

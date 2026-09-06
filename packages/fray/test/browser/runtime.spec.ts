@@ -48,11 +48,9 @@ test('Panel exposes its labelled region and live disabled state',
         const panel = root.getByRole('region', {name: 'Panel review probe'})
 
         await expect(panel).toBeVisible()
-        await expect(panel).not.toHaveAttribute('data-disabled')
         await expect(panel).not.toHaveAttribute('aria-disabled')
 
         await page.evaluate(() => globalThis.frayTest.setPanelReviewDisabled(true))
-        await expect(panel).toHaveAttribute('data-disabled', '')
         await expect(panel).toHaveAttribute('aria-disabled', 'true')
 
         const {violations} = await new AxeBuilder({page}).include('#panel-review-root').analyze()
@@ -63,13 +61,13 @@ test('Panel exposes its labelled region and live disabled state',
 test('Sidebar keeps its labelled header and toolbar outside the scrolling content',
     async ({page}) => {
         const sidebar = page.getByRole('complementary', {name: 'Scrollable requests'})
-        const content = sidebar.locator(':scope > [data-part="content"]')
+        const content = sidebar.locator(':scope > .content')
         await expect(sidebar).toBeVisible()
         await expect(sidebar.getByRole('toolbar', {name: 'Request actions'})).toBeVisible()
 
         const before = await sidebar.evaluate((element) => {
-            const contentElement = element.querySelector<HTMLElement>('[data-part="content"]')
-            const header = element.querySelector<HTMLElement>(':scope > header')
+            const contentElement = element.querySelector<HTMLElement>(':scope > .content')
+            const header = element.querySelector<HTMLElement>(':scope > fray-header')
             if (contentElement == null || header == null) throw new Error('Missing Sidebar parts')
             return {
                 rootOverflow: getComputedStyle(element).overflow,
@@ -90,7 +88,7 @@ test('Sidebar keeps its labelled header and toolbar outside the scrolling conten
         await expect(content).toHaveJSProperty('scrollTop',
             before.contentScrollHeight - before.contentClientHeight)
         const headerOffsetTop = await sidebar.evaluate((element) => {
-            const header = element.querySelector<HTMLElement>(':scope > header')
+            const header = element.querySelector<HTMLElement>(':scope > fray-header')
             if (header == null) throw new Error('Missing Sidebar header')
             return header.getBoundingClientRect().top - element.getBoundingClientRect().top
         })

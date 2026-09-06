@@ -27,10 +27,12 @@ Presentation should be equally direct. Native HTML already defines buttons,
 inputs, tables, lists, progress, dialogs, and landmarks, so Fray uses those
 elements when their semantics match. Components that need another boundary use
 readable light-DOM host names rather than framework identity classes.
-Application classes remain available for meaningful reusable traits and
-consumer styling, while Fray's current structural implementation uses explicit
-host and part metadata for its own layout and documented exceptional theme
-rules.
+Within a component host, Fray uses classes for owned parts, purely visual
+states with no semantic equivalent, and meaningful reusable traits; those
+classes do not identify components. Native and ARIA state attributes remain the
+sole semantic state source and are targeted directly by CSS. Renderer markers,
+diagnostics, interoperability, and actual data use `data-*`; Fray does not use
+`data-*` as its routine component-CSS hook.
 
 ## Design model
 
@@ -102,6 +104,7 @@ import {Emitter} from '@sylwellsoftware/glue'
 import {
     Button,
     Component,
+    Header,
     Panel,
     Sidebar,
     Textbox,
@@ -696,9 +699,10 @@ sibling-local `key` through the common component props.
 | `Checkbox<T>` | `symbols`, `label`, value props, `disabled`, `required`, `error`, `name` | `onChange(value, event)` | Two-state semantic value by default; `disabled`, `required`, and `error` support `live()`. |
 | `TriCheckbox` | Checkbox props except `symbols` | `onChange(value, event)` | Cycles deny → neutral → prefer using `FilterMode`. |
 | `QuadCheckbox` | Checkbox props except `symbols` | `onChange(value, event)` | Cycles deny → neutral → prefer → require using `FilterMode`. |
-| `Panel` | `header`, `toolbar`, `orientation`, `disabled`, `id`, `children` | None | Stateless labelled section when a header exists; `disabled` describes the region but does not mutate descendant controls. |
-| `Sidebar` | `header`, `toolbar`, `ariaLabel`, `id`, `children` | None | Native complementary region with fixed header/toolbar parts and independently scrolling content. |
-| `SplitView` | `primary`, `secondary`, `direction`, `primarySize`, pane labels | None | Stateless, non-resizable two-pane layout with explicit overflow ownership and keyboard-focusable panes. |
+| `Header` | `id`, `headingId`, `level`, `children` | None | Styled heading surface using a native `h1`–`h6`; level defaults to `2`. |
+| `Panel` | `header`, `toolbar`, `orientation`, `disabled`, `id`, `children` | None | Stateless labelled section that composes Header when header content exists; `disabled` describes the region but does not mutate descendant controls. |
+| `Sidebar` | `header`, `toolbar`, `ariaLabel`, `id`, `children` | None | Fixed `fray-sidebar` host containing a native complementary region with fixed header/toolbar parts and independently scrolling content. |
+| `SplitView` | `primary`, `secondary`, `direction`, `primarySize`, pane labels | None | Stateless, non-resizable two-pane flex layout with explicit overflow ownership and keyboard-focusable panes; `primarySize` is a flex-basis value. |
 | `DescriptionList` / `DescriptionItem` | list `label`; item `term`, `value` or children | None | Native `dl`/`dt`/`dd` record summary with responsive term/value wrapping. |
 | `ProgressBar` | `label`, `value` or `valueEmitter`, `max`, `valueText` | None | Labelled native progress; a null value is indeterminate. |
 | `ThemePicker` | `label` or `ariaLabel`, theme `options`, value props, `targetDocument`, `disabled` | `onChange(value, option, event)` | String `valueEmitter`; replaces only the theme stylesheet link. |
@@ -877,6 +881,18 @@ h(QuadCheckbox, {label: 'Required tags', defaultValue: FilterMode.Require})
 `FilterMode` values are `Deny`, `Neutral`, `Prefer`, and `Require`. The basic
 checkbox uses neutral/prefer, while the variants expose the additional states.
 
+### Header
+
+```tsx
+<Header id="portfolio-header" headingId="portfolio-title" level={2}>
+    Portfolio summary
+</Header>
+```
+
+`level` is an integer from `1` through `6` and defaults to `2`. Header children
+must be valid native heading content. The custom host owns presentation while
+the nested native heading owns document semantics.
+
 ### Panel
 
 ```ts
@@ -899,10 +915,10 @@ h(Sidebar, {
 }, h('ul', null, h('li', null, 'Release automation')))
 ```
 
-The surrounding grid or flex layout must bound the Sidebar's height. Its
-header and toolbar remain fixed while the dedicated content part owns vertical
-scrolling and is keyboard-focusable. Supply `ariaLabel` when there is no visible
-`header`.
+The surrounding grid or flex layout must bound the Sidebar's height. Its native
+complementary region is inside the fixed Sidebar host; Header and toolbar remain
+fixed while the dedicated content part owns vertical scrolling and is keyboard-
+focusable. Supply `ariaLabel` when there is no visible `header`.
 
 ### Declarative tabs
 

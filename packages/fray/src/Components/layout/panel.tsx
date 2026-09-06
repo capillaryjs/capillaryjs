@@ -1,5 +1,6 @@
 import {Component, css} from '../component.js'
 import type {ComponentProps, FrayChild, LivePropContract} from '../component.js'
+import {Header} from './header.js'
 import {classNames, componentClass, controlId} from '../controlUtils.js'
 
 const panelLiveProps = ['disabled'] as const
@@ -39,43 +40,41 @@ export class Panel extends Component<PanelProps> {
         const Host = this.Host
         const title = header == null
             ? null
-            : <header>
-                {typeof header === 'string' || typeof header === 'number'
-                    ? <h2 id={this.headerId}>{header}</h2>
-                    : <div id={this.headerId}>{header}</div>}
-            </header>
+            : <Header
+                id={`${this.panelId}-header`}
+                headingId={this.headerId}
+            >{header}</Header>
 
         return <Host
             id={this.panelId}
             role={header == null ? null : 'region'}
-            className={classNames(componentClass(this.props))}
-            data-orientation={orientation}
-            data-disabled={disabled ? '' : null}
+            className={componentClass(this.props)}
             aria-disabled={disabled ? 'true' : null}
             aria-labelledby={header == null ? null : this.headerId}
         >
             {title}
             {toolbar}
-            <div data-part="content" data-orientation={orientation}>{children}</div>
+            <div className={classNames('content', orientation)}>{children}</div>
         </Host>
     }
 
     static override hostName = 'panel'
+    static override dependencies = [Header]
 
     static css = css`
         & {
+            background: var(--panel-background);
+            border: var(--panel-border);
+            border-radius: var(--panel-radius);
+            box-shadow: var(--panel-shadow);
+            color: var(--panel-color);
             display: flex;
             flex-direction: column;
             overflow: auto;
             flex: 0 0 auto;
         }
 
-        & > header h2 {
-            margin: 0;
-            font: inherit;
-        }
-
-        & > [data-part="content"] {
+        & > .content {
             display: flex;
             flex: 1;
             overflow: auto;
@@ -83,12 +82,16 @@ export class Panel extends Component<PanelProps> {
             gap: var(--spacing-medium, 1rem);
         }
 
-        & > [data-part="content"][data-orientation="horizontal"] {
+        & > .content.horizontal {
             flex-direction: row;
         }
 
-        & > [data-part="content"][data-orientation="vertical"] {
+        & > .content.vertical {
             flex-direction: column;
+        }
+
+        &[aria-disabled="true"] {
+            opacity: .65;
         }
     `
 }

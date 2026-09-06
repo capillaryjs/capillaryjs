@@ -49,7 +49,7 @@ caller-owned. Application classes and composition roots own service lifetimes.
 | `Textbox`, `Dropdown`, `Toggle`, `ThemePicker`, `ColorPicker`, `Label` | Value controls and accessible field labeling, including runtime presentation selection. | Fray controls |
 | `Checkbox`, `TriCheckbox`, `QuadCheckbox` | Multi-state controls. | Fray controls |
 | `FilterMode` | Semantic vocabulary used by multi-state controls. | Fray controls |
-| `Panel`, `Sidebar`, `SplitView`, `Tab`, `TabLine`, `TabPanel` | Region, sidebar, split-pane, and tab layout primitives. | Fray layout |
+| `Header`, `Panel`, `Sidebar`, `SplitView`, `Tab`, `TabLine`, `TabPanel` | Heading surface, region, sidebar, split-pane, and tab layout primitives. | Fray layout |
 | `DescriptionList`, `DescriptionItem` | Native term/value record summaries. | Fray data display |
 | `ListView`, selection handlers | Keyed single/multi list selection with refresh reconciliation and keyboard/pointer behavior. | Fray data workflow |
 | `TreeView`, `TreeItem`, tree model helpers | Accessible keyed trees, node projection, and explicit immutable root updates. | Fray data workflow |

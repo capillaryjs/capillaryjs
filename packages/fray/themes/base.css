@@ -98,8 +98,6 @@
     --panel-border: 1px solid var(--palette-neutral-300);
     --panel-shadow: none;
     --panel-radius: var(--radius-md);
-    --panel-header-background: var(--section-header-background);
-    --panel-header-color: var(--section-header-color);
 
     --sidebar-background: var(--panel-background);
     --sidebar-color: var(--panel-color);

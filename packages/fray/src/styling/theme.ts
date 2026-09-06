@@ -102,8 +102,6 @@ export const frayThemeVariableCatalog = Object.freeze([
     variable('--section-header-color', 'theme', 'header', 'color', 'Section header content', '--header-color'),
     variable('--section-header-border', 'theme', 'header', 'border', 'Section header border', '--header-border'),
     variable('--section-header-shadow', 'theme', 'header', 'shadow', 'Section header shadow', '--header-shadow'),
-    variable('--panel-header-background', 'theme', 'header', 'background', 'Panel header surface', '--section-header-background'),
-    variable('--panel-header-color', 'theme', 'header', 'color', 'Panel header content', '--section-header-color'),
     variable('--table-header-background', 'theme', 'header', 'background', 'Table header surface', '--section-header-background'),
     variable('--table-header-color', 'theme', 'header', 'color', 'Table header content', '--section-header-color'),
     variable('--dialog-header-background', 'theme', 'header', 'background', 'Dialog header surface', '--section-header-background'),
