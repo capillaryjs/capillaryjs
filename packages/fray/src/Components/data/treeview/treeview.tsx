@@ -1,9 +1,9 @@
 import {Emitter, FetchState} from '@sylwellsoftware/glue'
 import type {ReadableEmitter} from '@sylwellsoftware/glue'
 
-import {Component, css, isVNode} from '../../component.js'
+import {Component, css, h, isVNode} from '../../component.js'
 import type {ComponentProps, FrayChild, Key} from '../../component.js'
-import {classNames, componentClass, invoke} from '../../controlUtils.js'
+import {componentClass, invoke} from '../../controlUtils.js'
 import type {ValueEmitter} from '../../controlUtils.js'
 import {TreeItem} from './treeitem.js'
 import type {TreeItemProps, TreeNode} from './treeitem.js'
@@ -70,6 +70,21 @@ export class TreeView<TValue = unknown> extends Component<TreeViewProps<TValue>>
         }))
     }
 
+    override setProps(nextProps: TreeViewProps<TValue>): this {
+        if (this.ownedNodesEmitter != null) {
+            if (isReadableEmitter(nextProps.nodes)) {
+                throw new TypeError(
+                    'TreeView cannot replace static or declarative nodes with an emitter',
+                )
+            }
+            this.ownedNodesEmitter.set(
+                nextProps.nodes ?? extractDeclarativeNodes<TValue>(nextProps.children),
+                'tree structure changed',
+            )
+        }
+        return super.setProps(nextProps)
+    }
+
     render(): FrayChild {
         const nodes = this.nodesEmitter.get()
         assertTreeNodes(nodes)
@@ -85,24 +100,23 @@ export class TreeView<TValue = unknown> extends Component<TreeViewProps<TValue>>
         this.focusedKey = active?.node.id ?? null
 
         const Host = this.Host
-        return <Host className={classNames('datacomponentlike', componentClass(this.props))}>
+        return <Host className={componentClass(this.props) || null}>
             {fetchState === FetchState.Error
                 ? <p role="alert">{errorMessage(sourceError, 'Unable to load tree items')}</p>
                 : null}
             {fetchState !== FetchState.Error && visible.length === 0
                 ? <p role="status">No tree items</p>
-                : <div role="tree" aria-label={this.props.label}>
+                : <ul role="tree" aria-label={this.props.label}>
                     {visible.map((item, index) => {
                         const {node, depth, position, setSize} = item
                         const hasChildren = (node.children?.length ?? 0) > 0
                         const isExpanded = hasChildren && expanded.has(node.id)
                         const isSelected = Object.is(node.id, selected)
                         const label = this.props.renderItem?.(node, depth) ?? node.label
-                        return <div
+                        return <li
                             key={node.id}
                             role="treeitem"
                             data-index={index}
-                            data-depth={depth}
                             aria-level={depth + 1}
                             aria-posinset={position}
                             aria-setsize={setSize}
@@ -123,15 +137,12 @@ export class TreeView<TValue = unknown> extends Component<TreeViewProps<TValue>>
                             onKeyDown={(event: KeyboardEvent) =>
                                 this.handleKeyDown(event, index, visible)}
                         >
-                            <span
-                                data-part="expander"
-                                data-expandable={hasChildren ? '' : null}
-                                aria-hidden="true"
-                            >{hasChildren ? (isExpanded ? '▾' : '▸') : '•'}</span>
-                            <span data-part="label">{label}</span>
-                        </div>
+                            {h('fray-expander', {'aria-hidden': 'true'},
+                                hasChildren ? (isExpanded ? '▾' : '▸') : '•')}
+                            {h('fray-label', null, label)}
+                        </li>
                     })}
-                </div>}
+                </ul>}
         </Host>
     }
 
@@ -158,6 +169,9 @@ export class TreeView<TValue = unknown> extends Component<TreeViewProps<TValue>>
         & > [role="tree"] {
             display: grid;
             align-content: start;
+            margin: 0;
+            padding: 0;
+            list-style: none;
         }
 
         & [role="treeitem"] {
@@ -171,21 +185,37 @@ export class TreeView<TValue = unknown> extends Component<TreeViewProps<TValue>>
             user-select: none;
         }
 
-        & [data-part="expander"] {
+        & [role="treeitem"]:hover {
+            background: var(--button-background-hover);
+        }
+
+        & [role="treeitem"]:focus-visible {
+            outline: 2px solid transparent;
+            outline-offset: -2px;
+            box-shadow: var(--focus-ring);
+        }
+
+        & [role="treeitem"][aria-selected="true"] {
+            color: var(--ui-select-text-color);
+            background: var(--ui-select-bg);
+        }
+
+        & fray-expander {
             flex: 0 0 1rem;
             text-align: center;
         }
 
-        & [data-part="expander"][data-expandable] {
+        & [role="treeitem"][aria-expanded] > fray-expander {
             cursor: pointer;
         }
 
-        & [data-part="label"] {
+        & fray-label {
             min-width: 0;
             overflow-wrap: anywhere;
         }
 
-        & > [role="status"] {
+        & > [role="status"],
+        & > [role="alert"] {
             margin: 0;
             padding: var(--ui-padding, 0.75rem);
         }
@@ -383,5 +413,5 @@ function isReadableEmitter<TValue>(value: unknown): value is ReadableEmitter<TVa
 }
 
 function isExpanderTarget(target: EventTarget | null): boolean {
-    return target instanceof Element && target.closest('[data-part="expander"]') != null
+    return target instanceof Element && target.closest('fray-expander') != null
 }

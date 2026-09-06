@@ -48,6 +48,7 @@ export class RegisterScreen extends Component<RegisterScreenProps> {
                 summary="Search, prioritise, filter, sort, and select the operational record set."
             />
             <Panel
+                island
                 className="register-controls"
                 header="Register controls"
                 toolbar={<Toolbar label="Register actions">
@@ -147,6 +148,7 @@ export class RegisterScreen extends Component<RegisterScreenProps> {
                 </div>
             </Panel>
             <SplitView
+                island
                 className="meridian-register"
                 primarySize="68%"
                 primaryLabel="Change register table"

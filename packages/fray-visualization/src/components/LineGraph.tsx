@@ -1,6 +1,6 @@
 import {Emitter, FetchState} from '@sylwellsoftware/glue'
 import type {ReadableEmitter} from '@sylwellsoftware/glue'
-import {Component, css} from '@sylwellsoftware/fray'
+import {Component, css, h} from '@sylwellsoftware/fray'
 import type {ComponentProps, FrayChild} from '@sylwellsoftware/fray'
 
 import {civilDateToDay, dayToCivilDate} from '../dates.js'
@@ -40,7 +40,7 @@ export class LineGraph extends Component<LineGraphProps> {
     private readonly smooth$: ReadableEmitter<boolean>
     private readonly range$: ReadableEmitter<LineGraphRange>
     private readonly ownedSources: Emitter<unknown>[] = []
-    private chartHost: HTMLDivElement | null = null
+    private chartHost: HTMLElement | null = null
     private observedWidth = 960
     private currentModel: LineChartModel | null = null
     private resizeObserver: ResizeObserver | null = null
@@ -87,9 +87,9 @@ export class LineGraph extends Component<LineGraphProps> {
             : cursorDate ?? model.maxDate
         const formatDate = this.props.formatDate ?? ((date: CivilDate) => date)
         const formatValue = this.props.formatValue ?? ((value: number) => String(value))
-        return <section
-            className={`datacomponentlike ${this.props.className ?? this.props.class ?? ''}`.trim()}
-            data-fray-visualization="line-graph"
+        const Host = this.Host
+        return <Host
+            className={(this.props.className ?? this.props.class ?? '') || null}
             aria-label={label}
             aria-busy={state !== FetchState.Ready ? 'true' : null}
         >
@@ -104,31 +104,26 @@ export class LineGraph extends Component<LineGraphProps> {
                     ? <p role="status" aria-live="polite">Loading history chart…</p>
                     : shapes.value.length === 0
                         ? <p role="status">{this.props.emptyMessage ?? 'No history values are available.'}</p>
-                        : <div
-                            className="datacomponentshell"
-                            data-part="chart"
-                            tabIndex={0}
-                            role="group"
-                            aria-label={`${label}. Use Left and Right Arrow to move by day; hold Shift to move by week.`}
-                            onPointerMove={(event: PointerEvent) => this.pointerMove(event)}
-                            onKeyDown={(event: KeyboardEvent) => this.cursorKeyDown(event)}
-                            ref={(element: HTMLDivElement | null) => this.chartHost = element}
-                        />}
-            {model == null || activeDate == null ? null : <div data-part="readout">
-                <p aria-live="polite"><strong>{formatDate(activeDate)}</strong></p>
+                        : h('fray-chart', {
+                            tabIndex: 0,
+                            role: 'group',
+                            'aria-label': `${label}. Use Left and Right Arrow to move by day; hold Shift to move by week.`,
+                            onPointerMove: (event: PointerEvent) => this.pointerMove(event),
+                            onKeyDown: (event: KeyboardEvent) => this.cursorKeyDown(event),
+                            ref: (element: HTMLElement | null) => this.chartHost = element,
+                        })}
+            {model == null || activeDate == null ? null : h('fray-readout', null,
+                <p aria-live="polite"><strong>{formatDate(activeDate)}</strong></p>,
                 <ul>{model.series.map(({shape}) => <li key={shape.key}>
-                    <span
-                        className="coloredlike"
-                        data-part="swatch"
-                        data-color-key={shape.colorKey}
-                        style={{'--colored-base': shape.color}}
-                        aria-hidden="true"
-                    />
+                    {h('fray-swatch', {
+                        style: {'--colored-base': shape.color},
+                        'aria-hidden': 'true',
+                    })}
                     <span>{shape.label}</span>
                     <strong>{formatValue(valueAtDate(shape, activeDate))}</strong>
-                </li>)}</ul>
-            </div>}
-        </section>
+                </li>)}</ul>,
+            )}
+        </Host>
     }
 
     afterMount(): void {
@@ -149,8 +144,10 @@ export class LineGraph extends Component<LineGraphProps> {
         this.ownedSources.length = 0
     }
 
+    static override hostName = 'line-graph'
+
     static css = css`
-        section[data-fray-visualization="line-graph"] {
+        & {
             display: flex;
             min-width: 0;
             min-height: var(--viz-line-graph-min-height, 24rem);
@@ -158,38 +155,38 @@ export class LineGraph extends Component<LineGraphProps> {
             padding: var(--viz-space, 0.7rem);
         }
 
-        section[data-fray-visualization="line-graph"] h2,
-        section[data-fray-visualization="line-graph"] p,
-        section[data-fray-visualization="line-graph"] ul {
+        & h2,
+        & p,
+        & ul {
             margin: 0;
         }
 
-        section[data-fray-visualization="line-graph"] [data-part="chart"] {
+        & > fray-chart {
             flex: 1;
             min-height: 20rem;
             margin-block: 0.6rem;
             overflow: auto;
         }
 
-        section[data-fray-visualization="line-graph"] svg {
+        & svg {
             display: block;
             width: 100%;
             min-width: 30rem;
             height: auto;
         }
 
-        section[data-fray-visualization="line-graph"] [data-part="grid"] {
+        & .gridline {
             stroke: var(--viz-grid-color, var(--ui-border-color));
             stroke-width: 1;
             vector-effect: non-scaling-stroke;
         }
 
-        section[data-fray-visualization="line-graph"] [data-part="axis-label"] {
+        & .axismark {
             fill: var(--viz-color, var(--ui-text-color));
             font: 12px system-ui, sans-serif;
         }
 
-        section[data-fray-visualization="line-graph"] [data-part="series-line"] {
+        & .seriesline {
             fill: none;
             stroke-width: 3;
             stroke-linecap: round;
@@ -197,23 +194,23 @@ export class LineGraph extends Component<LineGraphProps> {
             vector-effect: non-scaling-stroke;
         }
 
-        section[data-fray-visualization="line-graph"] [data-part="series-area"] {
+        & .seriesarea {
             opacity: var(--viz-area-opacity, 0.25);
         }
 
-        section[data-fray-visualization="line-graph"] [data-part="cursor"] {
+        & .cursor {
             stroke: var(--viz-cursor-color, var(--ui-text-color));
             stroke-width: 2;
             stroke-dasharray: 4 3;
             vector-effect: non-scaling-stroke;
         }
 
-        section[data-fray-visualization="line-graph"] [data-part="readout"] {
+        & > fray-readout {
             padding-block-start: 0.4rem;
             border-block-start: 1px solid var(--viz-border-color, var(--ui-border-color));
         }
 
-        section[data-fray-visualization="line-graph"] [data-part="readout"] ul {
+        & > fray-readout ul {
             display: flex;
             flex-wrap: wrap;
             gap: 0.4rem 1rem;
@@ -221,27 +218,29 @@ export class LineGraph extends Component<LineGraphProps> {
             list-style: none;
         }
 
-        section[data-fray-visualization="line-graph"] [data-part="readout"] li {
+        & > fray-readout li {
             display: inline-flex;
             align-items: center;
             gap: 0.35rem;
         }
 
-        section[data-fray-visualization="line-graph"] [data-part="swatch"] {
+        & fray-swatch {
+            display: block;
             width: 0.8rem;
             height: 0.8rem;
             border-radius: 50%;
+            background: var(--colored-base);
         }
 
         @media (forced-colors: active) {
-            section[data-fray-visualization="line-graph"] [data-part="series-line"],
-            section[data-fray-visualization="line-graph"] [data-part="cursor"],
-            section[data-fray-visualization="line-graph"] [data-part="grid"] {
+            & .seriesline,
+            & .cursor,
+            & .gridline {
                 stroke: CanvasText;
                 forced-color-adjust: auto;
             }
 
-            section[data-fray-visualization="line-graph"] [data-part="series-area"] {
+            & .seriesarea {
                 fill: Canvas;
                 stroke: CanvasText;
             }
@@ -311,7 +310,7 @@ export class LineGraph extends Component<LineGraphProps> {
 
         for (const tick of model.valueTicks) {
             const line = createSvg('line')
-            line.dataset.part = 'grid'
+            line.classList.add('gridline')
             setAttributes(line, {
                 x1: model.plotLeft,
                 x2: model.plotLeft + model.plotWidth,
@@ -320,14 +319,14 @@ export class LineGraph extends Component<LineGraphProps> {
             })
             svg.append(line)
             const label = createSvg('text')
-            label.dataset.part = 'axis-label'
+            label.classList.add('axismark')
             setAttributes(label, {x: model.plotLeft - 8, y: tick.y + 4, 'text-anchor': 'end'})
             label.textContent = String(tick.value)
             svg.append(label)
         }
         for (const mark of model.dateMarks) {
             const line = createSvg('line')
-            line.dataset.part = 'grid'
+            line.classList.add('gridline')
             setAttributes(line, {
                 x1: mark.x,
                 x2: mark.x,
@@ -336,7 +335,7 @@ export class LineGraph extends Component<LineGraphProps> {
             })
             svg.append(line)
             const label = createSvg('text')
-            label.dataset.part = 'axis-label'
+            label.classList.add('axismark')
             setAttributes(label, {
                 x: mark.x,
                 y: model.plotTop + model.plotHeight + 22,
@@ -348,15 +347,13 @@ export class LineGraph extends Component<LineGraphProps> {
         for (const series of model.series) {
             if (model.stacked) {
                 const area = createSvg('path')
-                area.dataset.part = 'series-area'
-                area.dataset.colorKey = series.colorKey ?? ''
+                area.classList.add('seriesarea')
                 area.setAttribute('fill', series.color)
                 area.setAttribute('d', areaPath(series.points, smooth))
                 svg.append(area)
             }
             const path = createSvg('path')
-            path.dataset.part = 'series-line'
-            path.dataset.colorKey = series.colorKey ?? ''
+            path.classList.add('seriesline')
             path.setAttribute('stroke', series.color)
             path.setAttribute('d', linePath(series.points, smooth))
             svg.append(path)
@@ -368,7 +365,7 @@ export class LineGraph extends Component<LineGraphProps> {
                 + (day - model.minDay) / Math.max(1, model.maxDay - model.minDay)
                 * model.plotWidth
             const line = createSvg('line')
-            line.dataset.part = 'cursor'
+            line.classList.add('cursor')
             setAttributes(line, {
                 x1: x,
                 x2: x,

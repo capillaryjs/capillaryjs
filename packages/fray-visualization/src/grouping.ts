@@ -4,7 +4,36 @@ import type {
     ReadableEmitter,
 } from '@sylwellsoftware/glue'
 
-export type CategoryColors = readonly [low: string, middle: string, high: string]
+export type CategoryColors = readonly [dark: string, base: string, light: string]
+
+/**
+ * CSS inputs for category-aware visualization surfaces.
+ *
+ * The short `c1`/`c2`/`c3` names intentionally preserve the established graph
+ * recipe: dark → base → light. The longer aliases keep ordinary Fray traits
+ * available to component structure and interaction treatment.
+ */
+export interface CategoryColorVariables {
+    readonly '--c1': string
+    readonly '--c2': string
+    readonly '--c3': string
+    readonly '--colored-dark': string
+    readonly '--colored-base': string
+    readonly '--colored-light': string
+}
+
+export function categoryColorVariables(
+    [dark, base, light]: CategoryColors,
+): CategoryColorVariables {
+    return {
+        '--c1': dark,
+        '--c2': base,
+        '--c3': light,
+        '--colored-dark': dark,
+        '--colored-base': base,
+        '--colored-light': light,
+    }
+}
 export type CategoryVisibility = 'hidden' | 'visible'
 
 export interface VisualizationValueEmitter<TValue> extends ReadableEmitter<TValue> {

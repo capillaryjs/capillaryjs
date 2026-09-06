@@ -10,7 +10,7 @@ import {
 import type {ComponentProps, FrayChild} from '@sylwellsoftware/fray'
 import type {MeridianModel} from '../../model/MeridianModel.js'
 import type {Change} from '../../model/types.js'
-import {FeaturePlaceholder, ScreenHeading} from '../../components/shared.js'
+import {ScreenHeading} from '../../components/shared.js'
 
 interface PortfolioScreenProps extends ComponentProps {
     readonly model: MeridianModel
@@ -41,7 +41,7 @@ export class PortfolioScreen extends Component<PortfolioScreenProps> {
                 summary="Aggregate progress and attention for the shared organisational scope."
             />
             <div class="portfolio-summary-grid">
-                <Panel header="Portfolio summary" disabled={live(model.panelDisabled)}>
+                <Panel island header="Portfolio summary" disabled={live(model.panelDisabled)}>
                     <div class="metric-row">
                         <p><strong>{visible.length}</strong><span>Changes in scope</span></p>
                         <p><strong>{critical}</strong><span>Critical</span></p>
@@ -54,7 +54,7 @@ export class PortfolioScreen extends Component<PortfolioScreenProps> {
                         valueText={completionText}
                     />
                 </Panel>
-                <Panel header="Planning horizon">
+                <Panel island header="Planning horizon">
                     <RadioGroup
                         label="Include planned starts within"
                         valueEmitter={model.planningHorizon}
@@ -70,6 +70,7 @@ export class PortfolioScreen extends Component<PortfolioScreenProps> {
             </div>
             <div class="portfolio-detail-grid">
                 <Panel
+                    island
                     header="Attention queue"
                     toolbar={<Button
                         label="Refresh data"
@@ -92,7 +93,7 @@ export class PortfolioScreen extends Component<PortfolioScreenProps> {
                         </span>}
                     />
                 </Panel>
-                <Panel header="Current selection">
+                <Panel island header="Current selection">
                     {selected == null
                         ? <p>No change matches the current portfolio scope.</p>
                         : <div class="selected-change-callout">
@@ -105,11 +106,6 @@ export class PortfolioScreen extends Component<PortfolioScreenProps> {
                                 valueText={`${selected.progress}%`}
                             />
                         </div>}
-                    <FeaturePlaceholder
-                        compact={true}
-                        feature="BlockGraph"
-                        purpose="A compact portfolio distribution will appear here after approval."
-                    />
                 </Panel>
             </div>
         </div>

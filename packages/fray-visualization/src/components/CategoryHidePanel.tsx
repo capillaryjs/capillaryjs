@@ -4,11 +4,12 @@ import {
     Checkbox,
     Component,
     css,
+    h,
 } from '@sylwellsoftware/fray'
 import type {ComponentProps, FrayChild} from '@sylwellsoftware/fray'
 
 import type {CategoryVisibility} from '../grouping.js'
-import {GroupingCriterion} from '../grouping.js'
+import {categoryColorVariables, GroupingCriterion} from '../grouping.js'
 
 const visibilitySymbols = [
     ['☐', 'hidden'],
@@ -36,9 +37,9 @@ extends Component<CategoryHidePanelProps<TItem>> {
         } = this.props
         const itemSnapshot = this.snapshot(this.props.items$)
         const items = Array.isArray(itemSnapshot.value) ? itemSnapshot.value : []
-        return <section
-            className={`datacomponentlike ${this.props.className ?? this.props.class ?? ''}`.trim()}
-            data-fray-visualization="category-hide-panel"
+        const Host = this.Host
+        return <Host
+            className={(this.props.className ?? this.props.class ?? '') || null}
             aria-label={label}
         >
             <header>
@@ -48,7 +49,7 @@ extends Component<CategoryHidePanelProps<TItem>> {
             {itemSnapshot.fetchState === FetchState.Error
                 ? <p role="alert">Category counts are unavailable.</p>
                 : null}
-            <div data-part="criterion-groups">{criteria.map((criterion) => {
+            {h('fray-criteriongroups', null, criteria.map((criterion) => {
                 const categorySnapshot = this.snapshot(criterion.categories$)
                 const hidden = this.read(criterion.hidden$)
                 const categories = Array.isArray(categorySnapshot.value)
@@ -57,7 +58,6 @@ extends Component<CategoryHidePanelProps<TItem>> {
                 const visibleCount = categories.filter(({key}) => !hidden.has(key)).length
                 return <details
                     key={criterion.key}
-                    className="datacomponentshell"
                     open={initiallyOpen(criterion)}
                 >
                     <summary>
@@ -70,77 +70,120 @@ extends Component<CategoryHidePanelProps<TItem>> {
                     {categorySnapshot.fetchState !== FetchState.Ready
                         ? <p role="status" aria-live="polite">Loading {criterion.label}…</p>
                         : null}
-                    <div data-part="categories">{categories.map((category) => {
+                    {h('fray-categories', null, categories.map((category) => {
                         const count = countMatches(items, category.predicate)
-                        return <Checkbox<CategoryVisibility>
-                            key={category.key}
+                        return h('fray-categoryoption', {
+                            key: category.key,
+                            style: categoryColorVariables(category.colors),
+                        },
+                        h('fray-categoryswatch', {'aria-hidden': 'true'}),
+                        <Checkbox<CategoryVisibility>
                             symbols={visibilitySymbols}
                             label={`${category.label} (${count})`}
                             valueEmitter={criterion.visibility(category.key)}
-                        />
-                    })}</div>
+                        />)
+                    }))}
                 </details>
-            })}</div>
-        </section>
+            }))}
+        </Host>
     }
 
+    static override hostName = 'category-hide-panel'
     static dependencies = [Checkbox]
 
     static css = css`
-        section[data-fray-visualization="category-hide-panel"] {
+        & {
             display: grid;
             align-content: start;
+            box-sizing: border-box;
+            flex: 0 0 auto;
             gap: var(--viz-space, 0.6rem);
             min-width: 0;
         }
 
-        section[data-fray-visualization="category-hide-panel"] h2,
-        section[data-fray-visualization="category-hide-panel"] p {
+        & h2,
+        & p {
             margin: 0;
         }
 
-        section[data-fray-visualization="category-hide-panel"] header > p {
+        & header > p {
             color: var(--viz-muted-color, var(--ui-muted-text-color, currentColor));
             font-size: 0.875em;
         }
 
-        section[data-fray-visualization="category-hide-panel"] [data-part="criterion-groups"] {
+        & > fray-criteriongroups {
             display: grid;
             gap: 0.4rem;
-        }
-
-        section[data-fray-visualization="category-hide-panel"] details {
             min-width: 0;
         }
 
-        section[data-fray-visualization="category-hide-panel"] summary {
+        & details {
+            min-width: 0;
+            overflow: hidden;
+            border: 1px solid var(--ui-border-color);
+            border-radius: var(--ui-border-radius);
+        }
+
+        & summary {
             display: flex;
             justify-content: space-between;
+            align-items: center;
+            box-sizing: border-box;
             gap: 0.5rem;
+            min-width: 0;
+            min-height: 2rem;
             padding: 0.5rem;
             cursor: pointer;
             font-weight: 650;
         }
 
-        section[data-fray-visualization="category-hide-panel"] summary small {
+        & summary small {
             font-weight: 400;
             white-space: nowrap;
         }
 
-        section[data-fray-visualization="category-hide-panel"] [data-part="categories"] {
+        & fray-categories {
             display: grid;
+            box-sizing: border-box;
             gap: 0.25rem;
+            min-width: 0;
             max-height: var(--viz-category-max-height, 16rem);
             padding: 0.45rem 0.5rem;
             overflow: auto;
         }
 
-        section[data-fray-visualization="category-hide-panel"]
-        [data-part="categories"] > * > [role="checkbox"] {
+        & fray-categoryoption {
+            display: grid;
+            grid-template-columns: 0.9rem minmax(0, 1fr);
+            align-items: center;
+            gap: 0.45rem;
+            min-width: 0;
+        }
+
+        & fray-categoryswatch {
+            display: block;
+            width: 0.9rem;
+            height: 1.35rem;
+            border: 1px solid var(--c1);
+            border-radius: 0.2rem;
+            background: linear-gradient(15deg, var(--c1) 0%, var(--c2) 65%, var(--c2) 65%, var(--c3) 100%);
+        }
+
+        & fray-categoryoption:has(input:not(:checked)) > fray-categoryswatch {
+            opacity: 0.42;
+            filter: saturate(0.45);
+        }
+
+        & fray-categoryoption > fray-checkbox,
+        & fray-categoryoption > fray-checkbox > label {
+            min-width: 0;
             width: 100%;
+        }
+
+        & fray-categoryoption > fray-checkbox > label {
             justify-content: flex-start;
             text-align: start;
-            white-space: normal;
+            white-space: nowrap;
         }
     `
 }

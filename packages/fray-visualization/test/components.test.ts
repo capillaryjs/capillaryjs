@@ -73,28 +73,44 @@ const itemsValue: readonly Item[] = [
     {id: 3, state: 'closed', tags: []},
 ]
 
-test('generated structural CSS keeps visualization diagnostics out of theme semantics', async () => {
+test('generated structural CSS uses fixed visualization hosts without theme selectors', async () => {
     const css = await readFile(fileURLToPath(
         new URL('../styles/structural.css', import.meta.url),
     ), 'utf8')
-    assert.match(css, /data-fray-visualization/)
+    assert.match(css, /fray-categoryhidepanel/)
+    assert.match(css, /fray-splitselectionpanel/)
+    assert.match(css, /fray-blockgraph/)
+    assert.match(css, /fray-linegraph/)
     assert.match(css, /\[role="treeitem"\]/)
-    assert.match(css, /\.coloredinner/)
+    assert.match(css, /fray-blocklabel/)
+    assert.doesNotMatch(css, /data-fray-visualization|data-part/)
+    assert.doesNotMatch(css, /datacomponentlike|datacomponentshell|coloredlike|coloredinner/)
     assert.doesNotMatch(css, /data-fray-component/)
-    assert.doesNotMatch(css, /#[0-9a-f]{3,8}\b/i)
+    assert.doesNotMatch(css, /#(?:9d1f91|c43cb5|db3ddb|b70909|ee0505|ff4040)\b/i)
     assert.doesNotMatch(css, /^\s*--palette-[a-z0-9-]+\s*:/m)
 })
 
 describe('visualization controls', () => {
     test('CategoryHidePanel uses Fray checkboxes and unfiltered live counts', () => {
+        assert.match(CategoryHidePanel.css, /flex: 0 0 auto/)
+        assert.match(CategoryHidePanel.css, /fray-categoryoption > fray-checkbox > label/)
+        assert.doesNotMatch(CategoryHidePanel.css, /fray-check-box/)
         const items = new Emitter<readonly Item[]>(itemsValue)
         const criterion = stateCriterion()
         const panel = new CategoryHidePanel({items$: items, criteria: [criterion]})
         panel.mount(document.body)
 
-        assert.equal(required('section[data-fray-visualization="category-hide-panel"]').className,
-            'datacomponentlike')
-        assert.equal(required('details').className, 'datacomponentshell')
+        assert.equal(required('fray-categoryhidepanel').getAttribute('data-fray-component'),
+            'category-hide-panel')
+        assert.equal(required('details').className, '')
+        assert.ok(required('fray-criteriongroups'))
+        assert.ok(required('fray-categories'))
+        const categoryOptions = [...document.querySelectorAll<HTMLElement>('fray-categoryoption')]
+        assert.equal(categoryOptions.length, 2)
+        assert.equal(categoryOptions[0]?.style.getPropertyValue('--c1'), colors[0])
+        assert.equal(categoryOptions[0]?.style.getPropertyValue('--c2'), colors[1])
+        assert.equal(categoryOptions[0]?.style.getPropertyValue('--c3'), colors[2])
+        assert.equal(document.querySelectorAll('fray-categoryswatch').length, 2)
         assert.equal(document.querySelector('[role="toolbar"]'), null)
         const checkboxes = [...document.querySelectorAll<HTMLInputElement>('input[type="checkbox"]')]
         assert.equal(checkboxes.length, 2)
@@ -133,14 +149,14 @@ describe('visualization controls', () => {
         const panel = new SplitSelectionPanel({model})
         panel.mount(document.body)
 
-        assert.equal(required('section[data-fray-visualization="split-selection-panel"]').className,
-            'datacomponentlike')
-        assert.ok(required('[data-split-key="state"]').classList.contains('datacomponentshell'))
+        assert.equal(required('fray-splitselectionpanel').getAttribute('data-fray-component'),
+            'split-selection-panel')
+        assert.equal(required('[data-split-key="state"]').className, '')
         assert.equal(document.querySelector('[data-part="position"]'), null)
-        assert.equal(required('[data-part="drag-handle"]').localName, 'drag-handle')
-        assert.equal(document.querySelector('[data-part="drag-handle"] button'), null)
+        assert.equal(required('fray-draghandle').localName, 'fray-draghandle')
+        assert.equal(document.querySelector('fray-draghandle button'), null)
         assert.equal(required('[data-split-key="state"]')
-            .lastElementChild?.getAttribute('data-part'), 'drag-handle')
+            .lastElementChild?.localName, 'fray-draghandle')
         const tagsHandle = required<HTMLElement>('[aria-label="Reorder Tags"]')
         assert.equal(tagsHandle.textContent, '')
         tagsHandle.focus()
@@ -208,6 +224,15 @@ describe('visualization controls', () => {
 })
 
 describe('BlockGraph', () => {
+    test('bakes each category c1/c2/c3 triplet into blocks while themes own chrome visibility', () => {
+        assert.match(BlockGraph.css, /background: var\(--c2, var\(--colored-base\)\)/)
+        assert.match(BlockGraph.css, /box-shadow: var\(--block-graph-block-shadow, none\)/)
+        assert.match(BlockGraph.css, /linear-gradient\(15deg, var\(--c1\) 0%, var\(--c2\) 65%/)
+        assert.match(BlockGraph.css, /opacity: var\(--block-graph-block-gloss-opacity, 0\)/)
+        assert.match(BlockGraph.css, /padding: var\(--viz-block-graph-child-inset, 1\.6em\)/)
+        assert.match(BlockGraph.css, /\[role="treeitem"\] > fray-blocklabel\s*\{[^}]*position: absolute/)
+    })
+
     test('renders and updates an externally observable keyboard selection', () => {
         const items = new Emitter<readonly Item[]>(itemsValue)
         const state = stateCriterion()
@@ -217,13 +242,20 @@ describe('BlockGraph', () => {
         const graph = new BlockGraph({model: selection, label: 'Finding blocks'})
         graph.mount(document.body)
 
-        assert.equal(required('section[data-fray-visualization="block-graph"]').className,
-            'datacomponentlike')
-        assert.ok(required('[data-part="scroller"]').classList.contains('datacomponentshell'))
+        assert.equal(required('fray-blockgraph').getAttribute('data-fray-component'), 'block-graph')
+        assert.ok(required('fray-scroller'))
         const blocks = [...document.querySelectorAll<HTMLElement>('[role="treeitem"]')]
         assert.equal(blocks.length, 2)
-        assert.ok(blocks.every((block) => block.classList.contains('coloredlike')))
-        assert.ok(required('[role="treeitem"] > .coloredinner').classList.contains('coloredinner'))
+        assert.ok(blocks.every((block) => block.className === ''))
+        assert.equal(blocks[0]?.style.getPropertyValue('--colored-dark'), colors[0])
+        assert.equal(blocks[0]?.style.getPropertyValue('--colored-base'), colors[1])
+        assert.equal(blocks[0]?.style.getPropertyValue('--colored-light'), colors[2])
+        assert.equal(blocks[0]?.style.getPropertyValue('--c1'), colors[0])
+        assert.equal(blocks[0]?.style.getPropertyValue('--c2'), colors[1])
+        assert.equal(blocks[0]?.style.getPropertyValue('--c3'), colors[2])
+        assert.equal(blocks[0]?.style.backgroundColor, colors[1])
+        assert.equal(blocks[0]?.style.borderColor, colors[0])
+        assert.ok(required('[role="treeitem"] > fray-blocklabel'))
         assert.match(blocks[0]?.getAttribute('aria-label') ?? '', /Open, 2 items/)
         blocks[0]?.dispatchEvent(new KeyboardEvent('keydown', {key: 'Enter', bubbles: true}))
         assert.deepEqual(selection.selectedItems$.get().map(({id}) => id), [1, 2])
@@ -286,7 +318,7 @@ describe('LineGraph', () => {
         })
         graph.mount(document.body)
 
-        assert.equal(document.querySelectorAll('[data-part="series-line"]').length, 1)
+        assert.equal(document.querySelectorAll('.seriesline').length, 1)
         graph.destroy()
     })
 
@@ -309,30 +341,29 @@ describe('LineGraph', () => {
         })
         graph.mount(document.body)
 
-        assert.equal(required('section[data-fray-visualization="line-graph"]').className,
-            'datacomponentlike')
-        assert.ok(required('[data-part="chart"]').classList.contains('datacomponentshell'))
-        assert.ok(required('[data-part="swatch"]').classList.contains('coloredlike'))
-        assert.equal(document.querySelectorAll('[data-part="series-line"]').length, 2)
-        assert.equal(document.querySelectorAll('[data-part="series-area"]').length, 0)
-        assert.match(required('[data-part="readout"]').textContent ?? '', /2026-01-05/)
+        assert.equal(required('fray-linegraph').getAttribute('data-fray-component'), 'line-graph')
+        assert.ok(required('fray-chart'))
+        assert.ok(required('fray-swatch'))
+        assert.equal(document.querySelectorAll('.seriesline').length, 2)
+        assert.equal(document.querySelectorAll('.seriesarea').length, 0)
+        assert.match(required('fray-readout').textContent ?? '', /2026-01-05/)
 
-        const chart = required<HTMLElement>('[data-part="chart"]')
+        const chart = required<HTMLElement>('fray-chart')
         Object.defineProperty(chart, 'getBoundingClientRect', {
             configurable: true,
             value: () => ({left: 0, width: 960}),
         })
         chart.dispatchEvent(new MouseEvent('pointermove', {bubbles: true, clientX: 72}))
-        assert.match(required('[data-part="readout"]').textContent ?? '', /2026-01-01/)
+        assert.match(required('fray-readout').textContent ?? '', /2026-01-01/)
 
         chart.dispatchEvent(new KeyboardEvent('keydown', {key: 'End', bubbles: true}))
         chart.dispatchEvent(new KeyboardEvent('keydown', {key: 'ArrowLeft', bubbles: true}))
-        assert.match(required('[data-part="readout"]').textContent ?? '', /2026-01-04/)
+        assert.match(required('fray-readout').textContent ?? '', /2026-01-04/)
 
         stacked.set(true)
         smooth.set(true)
-        assert.equal(document.querySelectorAll('[data-part="series-area"]').length, 2)
-        assert.match(required<SVGPathElement>('[data-part="series-line"]').getAttribute('d') ?? '', / C /)
+        assert.equal(document.querySelectorAll('.seriesarea').length, 2)
+        assert.match(required<SVGPathElement>('.seriesline').getAttribute('d') ?? '', / C /)
 
         graph.destroy()
         shapes.dispose()

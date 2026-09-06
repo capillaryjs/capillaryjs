@@ -82,6 +82,7 @@
     --motion-fast: 120ms;
 
     /* Shared UI and feedback */
+    --application-background: var(--palette-light);
     --ui-background: var(--palette-neutral-50);
     --ui-color: var(--palette-neutral-950);
     --ui-border: 1px solid var(--palette-neutral-300);
@@ -98,6 +99,14 @@
     --panel-border: 1px solid var(--palette-neutral-300);
     --panel-shadow: none;
     --panel-radius: var(--radius-md);
+
+    /* Explicit island modifier; non-island themes keep its layout neutral. */
+    --island-margin: 0;
+    --island-padding: 0;
+    --island-background: var(--panel-background);
+    --island-border: var(--panel-border);
+    --island-radius: var(--panel-radius);
+    --island-shadow: var(--panel-shadow);
 
     --sidebar-background: var(--panel-background);
     --sidebar-color: var(--panel-color);
@@ -227,6 +236,9 @@
     --colored-light: var(--palette-primary-light);
     --colored-dark: var(--palette-primary-dark);
     --colored-contrast: var(--palette-contrast-light);
+    --block-graph-block-radius: 0.25em;
+    --block-graph-block-shadow: none;
+    --block-graph-block-gloss-opacity: 0;
 
     /* Structural compatibility aliases */
     --base-font-size: 14px;

@@ -38,20 +38,19 @@ extends Component<SplitSelectionPanelProps<TItem>> {
             description = 'Enabled criteria recursively split each block in this order.',
         } = this.props
         const order = this.read(model.order$)
-        const active = this.read(model.activeSplits$)
-        const activeKeys = new Set(active.map(({key}) => key))
+        this.read(model.activeSplits$)
         const activePreset = this.read(model.activePreset$)
-        return <section
-            className={`datacomponentlike ${this.props.className ?? this.props.class ?? ''}`.trim()}
-            data-fray-visualization="split-selection-panel"
+        const Host = this.Host
+        return <Host
+            className={(this.props.className ?? this.props.class ?? '') || null}
             aria-label={label}
         >
             <header>
                 <h2>{label}</h2>
                 <p>{description}</p>
             </header>
-            {model.presets.length === 0 ? null : <div data-part="presets">
-                {model.presets.map((preset) => <Button
+            {model.presets.length === 0 ? null : h('fray-presets', null,
+                model.presets.map((preset) => <Button
                     key={preset.key}
                     label={preset.label}
                     pressed={activePreset === preset.key}
@@ -59,14 +58,11 @@ extends Component<SplitSelectionPanelProps<TItem>> {
                         model.applyPreset(preset.key)
                         this.announce(`${preset.label} split preset applied`)
                     }}
-                />)}
-            </div>}
+                />))}
             <ol>{order.map((criterion) => <li
                 key={criterion.key}
-                className="datacomponentshell buttonlike"
+                className={this.draggingKey === criterion.key ? 'dragging' : undefined}
                 data-split-key={criterion.key}
-                data-active={activeKeys.has(criterion.key) ? '' : null}
-                data-dragging={this.draggingKey === criterion.key ? '' : null}
                 onPointerDown={(event: PointerEvent) => this.startDragging(criterion.key, event)}
                 onClick={(event: MouseEvent) => this.suppressDraggedClick(event)}
             >
@@ -75,8 +71,7 @@ extends Component<SplitSelectionPanelProps<TItem>> {
                     label={criterion.label}
                     valueEmitter={model.activeState(criterion.key)}
                 />
-                {h('drag-handle', {
-                    'data-part': 'drag-handle',
+                {h('fray-draghandle', {
                     role: 'button',
                     tabIndex: 0,
                     'aria-label': `Reorder ${criterion.label}`,
@@ -99,44 +94,45 @@ extends Component<SplitSelectionPanelProps<TItem>> {
             <p role="status" aria-live="polite" aria-atomic="true">
                 {this.announcement}
             </p>
-        </section>
+        </Host>
     }
 
+    static override hostName = 'split-selection-panel'
     static dependencies = [Button, Checkbox]
 
     static css = css`
-        section[data-fray-visualization="split-selection-panel"] {
+        & {
             display: grid;
             align-content: start;
             gap: var(--viz-space, 0.6rem);
             min-width: 0;
         }
 
-        section[data-fray-visualization="split-selection-panel"] h2,
-        section[data-fray-visualization="split-selection-panel"] p,
-        section[data-fray-visualization="split-selection-panel"] ol {
+        & h2,
+        & p,
+        & ol {
             margin: 0;
         }
 
-        section[data-fray-visualization="split-selection-panel"] header > p {
+        & header > p {
             color: var(--viz-muted-color, var(--ui-muted-text-color, currentColor));
             font-size: 0.875em;
         }
 
-        section[data-fray-visualization="split-selection-panel"] [data-part="presets"] {
+        & > fray-presets {
             display: flex;
             flex-wrap: wrap;
             gap: 0.35rem;
         }
 
-        section[data-fray-visualization="split-selection-panel"] ol {
+        & ol {
             display: grid;
             gap: 0.25rem;
             padding: 0;
             list-style: none;
         }
 
-        section[data-fray-visualization="split-selection-panel"] li {
+        & li {
             display: grid;
             grid-template-columns: minmax(0, 1fr) 1.1rem;
             align-items: center;
@@ -144,17 +140,19 @@ extends Component<SplitSelectionPanelProps<TItem>> {
             min-width: 0;
             min-height: 2.25rem;
             padding: 0.25rem;
+            border: 1px solid var(--ui-border-color);
+            border-radius: var(--ui-border-radius);
         }
 
-        section[data-fray-visualization="split-selection-panel"] li:not([data-active]) {
+        & li:has(input[type="checkbox"]:not(:checked)) {
             color: var(--viz-muted-color, var(--ui-muted-text-color, currentColor));
         }
 
-        section[data-fray-visualization="split-selection-panel"] li[data-dragging] {
+        & li.dragging {
             outline: 2px solid var(--focus-color, var(--ui-accent-color));
         }
 
-        section[data-fray-visualization="split-selection-panel"] [data-part="drag-handle"] {
+        & fray-draghandle {
             display: block;
             width: 1.1rem;
             min-height: 1.8rem;
@@ -170,21 +168,18 @@ extends Component<SplitSelectionPanelProps<TItem>> {
             touch-action: none;
         }
 
-        section[data-fray-visualization="split-selection-panel"] [data-part="drag-handle"]:focus-visible {
+        & fray-draghandle:focus-visible {
             outline: 2px solid var(--focus-color, var(--ui-accent-color));
             outline-offset: 1px;
         }
 
-        section[data-fray-visualization="split-selection-panel"]
-        li > :has(> [role="checkbox"]),
-        section[data-fray-visualization="split-selection-panel"]
-        [role="checkbox"] {
+        & li > :has(> [role="checkbox"]),
+        & [role="checkbox"] {
             width: 100%;
             justify-content: flex-start;
         }
 
-        section[data-fray-visualization="split-selection-panel"]
-        > p[role="status"][aria-live="polite"][aria-atomic="true"] {
+        & > p[role="status"][aria-live="polite"][aria-atomic="true"] {
             position: absolute;
             width: 1px;
             height: 1px;
@@ -258,7 +253,7 @@ extends Component<SplitSelectionPanelProps<TItem>> {
 
     private focusHandle(criterionKey: string): void {
         const handles = this.dom instanceof Element
-            ? this.dom.querySelectorAll<HTMLElement>('[data-split-key] [data-part="drag-handle"]')
+            ? this.dom.querySelectorAll<HTMLElement>('[data-split-key] fray-draghandle')
             : []
         for (const handle of handles) {
             if (handle.closest<HTMLElement>('[data-split-key]')?.dataset.splitKey === criterionKey) {

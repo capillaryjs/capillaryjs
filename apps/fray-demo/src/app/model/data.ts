@@ -1,6 +1,12 @@
-import type {Change, ScopeOption} from './types.js'
+import type {
+    Change,
+    ChangeRisk,
+    Scope,
+    ScopeOption,
+    StatusFocus,
+} from './types.js'
 
-export const changes: readonly Change[] = [
+const seedChanges: readonly Change[] = [
     {
         id: 'CR-104',
         title: 'Emergency lighting renewal',
@@ -105,9 +111,122 @@ export const changes: readonly Change[] = [
     },
 ]
 
+const sites = ['north-plant', 'warehouse', 'south-plant'] as const satisfies readonly Exclude<Scope, 'all'>[]
+const risks = ['Critical', 'High', 'Medium', 'Low'] as const satisfies readonly ChangeRisk[]
+const lifecycles = ['planned', 'active', 'completed'] as const satisfies readonly Exclude<StatusFocus, 'all'>[]
+const owners = [
+    'J. Meyer',
+    'A. Sørensen',
+    'R. Patel',
+    'M. Liu',
+    'E. Novak',
+    'C. Jensen',
+    'T. Okafor',
+    'L. Kowalski',
+    'S. Berg',
+    'N. Iqbal',
+    'P. Duarte',
+    'H. Yamamoto',
+] as const
+const workTypes = [
+    'Safety',
+    'Machinery',
+    'Facilities',
+    'Procedure',
+    'Organisation',
+    'Digital',
+    'Utilities',
+    'Compliance',
+] as const
+const actions = [
+    'Inspection renewal',
+    'Control-system upgrade',
+    'Isolation review',
+    'Guarding improvement',
+    'Ventilation assessment',
+    'Emergency-plan rehearsal',
+    'Sensor replacement',
+    'Workflow standardisation',
+    'Power-distribution survey',
+    'Access-control revision',
+    'Maintenance-window preparation',
+    'Operator-training update',
+] as const
+const assets = [
+    'Assembly line',
+    'Packaging cell',
+    'Loading bay',
+    'Boiler house',
+    'Electrical room',
+    'Process-water system',
+    'Warehouse aisle',
+    'Compressed-air plant',
+    'Fire compartment',
+    'Maintenance workshop',
+] as const
+const statusLabels: Readonly<Record<Exclude<StatusFocus, 'all'>, readonly string[]>> = {
+    planned: ['Drafting scope', 'Awaiting approval', 'Scheduled', 'Supplier quoting'],
+    active: ['In assessment', 'Work in progress', 'Pilot running', 'Ready for review'],
+    completed: ['Completed', 'Verified', 'Closed after review', 'Benefits confirmed'],
+}
+
+const generatedChanges = Array.from({length: 138}, (_, index): Change => {
+    const sequence = index + 300
+    const site = sites[index % sites.length]!
+    const risk = risks[(index * 3 + Math.floor(index / 7)) % risks.length]!
+    const statusFocus = lifecycles[(index + Math.floor(index / 5)) % lifecycles.length]!
+    const type = workTypes[(index * 5 + 1) % workTypes.length]!
+    const action = actions[(index * 7 + 2) % actions.length]!
+    const asset = assets[(index * 3 + Math.floor(index / 4)) % assets.length]!
+    const start = addDays('2026-09-07', index % 80)
+    const completion = addDays(start, 4 + (index * 5) % 24)
+    const progress = statusFocus === 'completed'
+        ? 100
+        : statusFocus === 'planned'
+            ? (index * 7) % 31
+            : 24 + (index * 11) % 67
+    const siteLabel = site === 'north-plant'
+        ? 'North Plant'
+        : site === 'south-plant'
+            ? 'South Plant'
+            : 'Warehouse'
+    return Object.freeze({
+        id: `CR-${sequence}`,
+        title: `${asset} — ${action.toLocaleLowerCase()}`,
+        site,
+        statusFocus,
+        risk,
+        status: statusLabels[statusFocus][index % statusLabels[statusFocus].length]!,
+        summary: `${action} for ${asset.toLocaleLowerCase()} at ${siteLabel}, coordinated across the ${type.toLocaleLowerCase()} workstream.`,
+        owner: owners[(index * 5 + 3) % owners.length]!,
+        type,
+        supplierInvolvement: index % 3 !== 0,
+        safetyImpact: (index + Math.floor(index / 4)) % 3 !== 0,
+        progress,
+        plannedStart: start,
+        plannedCompletion: completion,
+        affectedAssets: Object.freeze([
+            `${asset} ${1 + index % 9}`,
+            `${siteLabel} zone ${String.fromCharCode(65 + index % 8)}`,
+        ]),
+    })
+})
+
+/** A stable, varied 144-row scenario shared by every Meridian work area. */
+export const changes: readonly Change[] = Object.freeze([
+    ...seedChanges,
+    ...generatedChanges,
+])
+
 export const scopes: readonly ScopeOption[] = [
     {id: 'all', label: 'All sites'},
     {id: 'north-plant', label: 'North Plant'},
     {id: 'warehouse', label: 'Warehouse'},
     {id: 'south-plant', label: 'South Plant'},
 ]
+
+function addDays(date: string, days: number): string {
+    const value = new Date(`${date}T00:00:00Z`)
+    value.setUTCDate(value.getUTCDate() + days)
+    return value.toISOString().slice(0, 10)
+}

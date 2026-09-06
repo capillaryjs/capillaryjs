@@ -7,6 +7,7 @@ import {Window} from 'happy-dom'
 import {
     Button,
     Checkbox,
+    ColorPicker,
     Component,
     DataTable,
     DescriptionItem,
@@ -26,8 +27,10 @@ import {
     TabLine,
     TabPanel,
     Textbox,
+    ThemePicker,
     Toggle,
     Toolbar,
+    TreeView,
     createFrayRuntime,
     frayColorOptions,
     frayThemeOptions,
@@ -69,6 +72,14 @@ describe('style registry', () => {
         )
         assert.match(second.textContent, /fray-button > button/)
         assert.match(second.textContent, /fray-textbox > input/)
+        assert.match(second.textContent, /\.fray-fill-horizontal\s*\{[^}]*width:\s*100vw[^}]*overflow-x:\s*auto/)
+        assert.match(second.textContent, /\.fray-fill-vertical\s*\{[^}]*height:\s*100vh[^}]*overflow-y:\s*auto/)
+        assert.doesNotMatch(second.textContent, /\.fray-fill-(?:horizontal|vertical) \[data-fray\]/)
+        assert.match(second.textContent, /\.island\s*\{[^}]*margin:\s*var\(--island-margin\)/)
+        assert.match(second.textContent, /\.fray-fill-horizontal \.island\s*\{[^}]*max-width:[^}]*overflow-x:\s*auto/)
+        assert.match(second.textContent, /\.fray-fill-vertical \.island\s*\{[^}]*max-height:[^}]*overflow-y:\s*auto/)
+        assert.equal((second.textContent.match(/^\s*\.island\s*\{/gm) ?? []).length, 1)
+        assert.doesNotMatch(second.textContent, /\.fray-app/)
         assert.doesNotMatch(second.textContent, /selectshell/)
         assert.doesNotMatch(second.textContent, /data-fray-component|undefined/)
     })
@@ -228,6 +239,20 @@ describe('style registry', () => {
         assert.doesNotMatch(stylesheet, /fray-list-view|data-part|(?:^|\n)div\s*\{|fray-panel|fray-sidebar/)
     })
 
+    test('collects TreeView through its native tree and fixed internal parts', () => {
+        const runtime = createFrayRuntime()
+        runtime.registerStyles(TreeView)
+        const stylesheet = runtime.styleRegistry.generateCSS()
+
+        assert.match(stylesheet, /fray-treeview > \[role="tree"\]\s*\{[^}]*list-style:\s*none/)
+        assert.match(stylesheet, /fray-treeview \[role="treeitem"\]:hover\s*\{[^}]*background:\s*var\(--button-background-hover\)/)
+        assert.match(stylesheet, /fray-treeview \[role="treeitem"\]:focus-visible\s*\{[^}]*box-shadow:\s*var\(--focus-ring\)/)
+        assert.match(stylesheet, /fray-treeview \[role="treeitem"\]\[aria-selected="true"\]\s*\{[^}]*color:\s*var\(--ui-select-text-color\)[^}]*background:\s*var\(--ui-select-bg\)/)
+        assert.match(stylesheet, /fray-treeview fray-expander\s*\{/)
+        assert.match(stylesheet, /fray-treeview fray-label\s*\{/)
+        assert.doesNotMatch(stylesheet, /data-(?:part|depth|expandable)|(?:^|\n)div\s*\{|fray-listview|fray-panel/)
+    })
+
     test('collects FilterPanel through its fixed Bank2 floating surface and Checkbox dependency', () => {
         const runtime = createFrayRuntime()
         runtime.registerStyles(FilterPanel)
@@ -267,6 +292,18 @@ describe('style registry', () => {
         assert.match(stylesheet, /fray-dropdown > fray-selectshell::after\s*\{/)
         assert.match(stylesheet, /appearance:\s*var\(--dropdown-appearance\)/)
         assert.doesNotMatch(stylesheet, /\.selectshell|data-disabled|data-required|data-error|fray-dropdown > (?:input|textarea)/)
+    })
+
+    test('collects both stylesheet pickers through the shared select hierarchy', () => {
+        const runtime = createFrayRuntime()
+        runtime.registerStyles(ThemePicker)
+        runtime.registerStyles(ColorPicker)
+        const stylesheet = runtime.styleRegistry.generateCSS()
+
+        assert.match(stylesheet, /fray-themepicker,\s*fray-colorpicker\s*\{[^}]*display:\s*flex/)
+        assert.match(stylesheet, /fray-themepicker > fray-selectshell > select,\s*fray-colorpicker > fray-selectshell > select\s*\{[^}]*min-width:\s*8rem/)
+        assert.match(stylesheet, /fray-themepicker > fray-selectshell::before,\s*fray-colorpicker > fray-selectshell::before/)
+        assert.doesNotMatch(stylesheet, /data-(?:kind|disabled|required|error)|fray-dropdown|fray-treeview/)
     })
 
     test('keeps checkbox controls separate from generic input and button treatment', () => {
@@ -502,7 +539,7 @@ describe('four-file styling contract', () => {
         }
     })
 
-    test('Shiny preserves Bank2 Toolbar, primary text, and glossy ProgressBar tokens', async () => {
+    test('Shiny preserves Bank2 Toolbar, primary text, and glossy graphical tokens', async () => {
         const css = await readFile(
             fileURLToPath(new URL('../themes/shiny/theme.css', import.meta.url)),
             'utf8',
@@ -510,8 +547,39 @@ describe('four-file styling contract', () => {
         assert.match(css, /--toolbar-background:\s*var\(--ui-gradient\)/)
         assert.match(css, /--text-color:\s*var\(--palette-primary-900\)/)
         assert.match(css, /--ui-color:\s*var\(--text-color\)/)
+        assert.match(css, /--island-margin:\s*var\(--space-sm\)/)
+        assert.match(css, /--island-border:\s*1px solid rgb\(255 255 255 \/ 0\.45\)/)
+        assert.match(css, /--island-shadow:\s*0px 1px 2\.5px 0px #666/)
+        assert.doesNotMatch(css, /--panel-shadow:/)
         assert.match(css, /--progress-value-background:[\s\S]*radial-gradient/)
         assert.match(css, /--progress-value-shadow:[\s\S]*inset -1px 1px 3px 0 #0003/)
+        assert.match(css, /--block-graph-block-border:\s*none/)
+        assert.match(css, /--block-graph-block-gloss-opacity:\s*1/)
+        assert.match(css, /--block-graph-block-shadow:[\s\S]*inset -10px 10px 28px 0 #0006/)
+    })
+
+    test('base BlockGraph tokens retain flat semantic category colors', async () => {
+        const css = await readFile(
+            fileURLToPath(new URL('../themes/base.css', import.meta.url)),
+            'utf8',
+        )
+        assert.match(css, /--block-graph-block-shadow:\s*none/)
+        assert.match(css, /--block-graph-block-gloss-opacity:\s*0/)
+    })
+
+    test('base and Minimal keep island layout neutral', async () => {
+        const [base, minimal] = await Promise.all([
+            readFile(fileURLToPath(new URL('../themes/base.css', import.meta.url)), 'utf8'),
+            readFile(fileURLToPath(new URL('../themes/minimal/theme.css', import.meta.url)), 'utf8'),
+        ])
+        assert.match(base, /--application-background:\s*var\(--palette-light\)/)
+        assert.match(base, /--island-margin:\s*0/)
+        assert.match(base, /--island-padding:\s*0/)
+        assert.match(base, /--island-background:\s*var\(--panel-background\)/)
+        assert.match(base, /--island-border:\s*var\(--panel-border\)/)
+        assert.match(base, /--island-radius:\s*var\(--panel-radius\)/)
+        assert.match(base, /--island-shadow:\s*var\(--panel-shadow\)/)
+        assert.doesNotMatch(minimal, /--island-(?:margin|padding|background|border|radius|shadow):/)
     })
 
     test('catalog fallbacks reference declared variables', () => {

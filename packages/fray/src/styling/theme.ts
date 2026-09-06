@@ -21,6 +21,7 @@ export type FrayThemeVariableValue =
     | 'dimension'
     | 'duration'
     | 'font'
+    | 'opacity'
     | 'radius'
     | 'shadow'
 
@@ -76,6 +77,7 @@ export const frayThemeVariableCatalog = Object.freeze([
     variable('--radius-lg', 'theme', 'shape', 'radius', 'Large corner radius'),
     variable('--motion-fast', 'theme', 'motion', 'duration', 'Fast interaction transition'),
 
+    variable('--application-background', 'theme', 'surface', 'background', 'Application canvas'),
     variable('--ui-background', 'theme', 'surface', 'background', 'Default UI background'),
     variable('--ui-color', 'theme', 'surface', 'color', 'Default UI text'),
     variable('--ui-border', 'theme', 'surface', 'border', 'Default UI border'),
@@ -91,6 +93,12 @@ export const frayThemeVariableCatalog = Object.freeze([
     variable('--panel-border', 'theme', 'panel', 'border', 'Panel border', '--ui-border'),
     variable('--panel-shadow', 'theme', 'panel', 'shadow', 'Panel shadow', '--ui-shadow'),
     variable('--panel-radius', 'theme', 'panel', 'radius', 'Panel radius', '--radius-md'),
+    variable('--island-margin', 'theme', 'island', 'dimension', 'Outer spacing around an explicit island'),
+    variable('--island-padding', 'theme', 'island', 'dimension', 'Inner spacing within an explicit island'),
+    variable('--island-background', 'theme', 'island', 'background', 'Explicit island surface', '--panel-background'),
+    variable('--island-border', 'theme', 'island', 'border', 'Explicit island edge', '--panel-border'),
+    variable('--island-radius', 'theme', 'island', 'radius', 'Explicit island radius', '--panel-radius'),
+    variable('--island-shadow', 'theme', 'island', 'shadow', 'Explicit island elevation', '--panel-shadow'),
     variable('--dialog-shadow', 'theme', 'dialog', 'shadow', 'Modal dialog shadow', '--panel-shadow'),
     variable('--dialog-backdrop-background', 'theme', 'dialog', 'background', 'Modal backdrop'),
 
@@ -159,6 +167,10 @@ export const frayThemeVariableCatalog = Object.freeze([
     variable('--colored-light', 'theme', 'colored', 'color', 'Colored-trait light color', '--palette-primary-light'),
     variable('--colored-dark', 'theme', 'colored', 'color', 'Colored-trait dark color', '--palette-primary-dark'),
     variable('--colored-contrast', 'theme', 'colored', 'color', 'Colored-trait foreground', '--palette-contrast-light'),
+    variable('--block-graph-block-border', 'theme', 'block graph', 'border', 'Block graph category border', '--ui-border'),
+    variable('--block-graph-block-radius', 'theme', 'block graph', 'radius', 'Block graph category radius', '--radius-sm'),
+    variable('--block-graph-block-shadow', 'theme', 'block graph', 'shadow', 'Block graph category depth'),
+    variable('--block-graph-block-gloss-opacity', 'theme', 'block graph', 'opacity', 'Block graph glossy overlay opacity'),
 ] satisfies readonly FrayThemeVariableDefinition[])
 
 export const frayThemeOptions = Object.freeze([

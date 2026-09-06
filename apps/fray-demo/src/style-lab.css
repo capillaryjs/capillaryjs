@@ -1,15 +1,18 @@
 /* Application-owned Meridian layout only. Fray components own their presentation. */
 
 :root {
-    background: var(--ui-background);
+    width: 100%;
+    height: 100%;
+    background: var(--application-background);
 }
 
 body {
-    min-width: 20rem;
-    min-height: 100vh;
+    width: 100%;
+    height: 100%;
     margin: 0;
+    overflow: hidden;
     color: var(--ui-color);
-    background: var(--ui-background);
+    background: var(--application-background);
     font-family: var(--font-family);
     font-size: var(--font-size);
     line-height: var(--line-height);
@@ -23,11 +26,15 @@ select {
 
 .meridian-app {
     display: grid;
-    grid-template-rows: auto minmax(32rem, 1fr) auto;
-    gap: var(--space-md);
-    width: min(96rem, calc(100% - 2rem));
-    min-height: calc(100vh - 2rem);
-    margin: 1rem auto;
+    grid-template-rows: minmax(0, auto) minmax(0, 1fr) minmax(0, auto);
+    gap: 0;
+    width: 100%;
+    height: 100%;
+    min-width: 0;
+    min-height: 0;
+    margin: 0;
+    overflow: hidden;
+    background: var(--application-background);
 }
 
 .meridian-app h1,
@@ -51,15 +58,25 @@ select {
     justify-content: space-between;
     gap: var(--space-lg);
     padding: var(--space-md) var(--space-lg);
-    background: var(--panel-background);
-    border: var(--panel-border);
-    border-radius: var(--panel-radius);
-    box-shadow: var(--panel-shadow);
 }
 
-.meridian-masthead > div {
+.meridian-masthead > div,
+.appearance-controls {
     display: grid;
     gap: var(--space-xs);
+}
+
+.appearance-controls {
+    grid-template-columns: repeat(2, minmax(0, auto));
+    margin: 0;
+    padding: 0;
+    border: 0;
+}
+
+.appearance-controls > legend {
+    grid-column: 1 / -1;
+    padding: 0;
+    font-weight: 700;
 }
 
 .meridian-shell {
@@ -93,12 +110,20 @@ select {
     padding: var(--space-md);
 }
 
+.scope-tree {
+    max-height: 18rem;
+}
+
 .work-area {
     display: grid;
     align-content: start;
     gap: var(--space-md);
-    min-height: 100%;
+    width: 100%;
+    height: 100%;
+    min-width: 0;
+    min-height: 0;
     padding: var(--space-md);
+    overflow: auto;
     box-sizing: border-box;
 }
 
@@ -261,13 +286,45 @@ select {
 
 .analysis-layout {
     display: grid;
-    grid-template-columns: minmax(16rem, 1fr) minmax(24rem, 2fr);
+    grid-template-columns: minmax(18rem, 22rem) minmax(36rem, 1fr);
+    align-items: start;
     gap: var(--space-md);
     min-height: 30rem;
 }
 
 .analysis-layout .history-panel {
     grid-column: 1 / -1;
+}
+
+.analysis-controls,
+.distribution-panel,
+.history-panel {
+    min-width: 0;
+}
+
+.analysis-controls {
+    max-height: 56rem;
+}
+
+.history-options {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-sm) var(--space-md);
+    margin: 0;
+    padding: var(--space-sm);
+    border: 1px solid var(--ui-border-color);
+    border-radius: var(--radius-sm);
+}
+
+.history-options > legend {
+    padding-inline: var(--space-xs);
+    font-weight: 700;
+}
+
+.history-options > label {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-xs);
 }
 
 .feature-placeholder {
@@ -301,20 +358,12 @@ select {
     padding: var(--space-sm) var(--space-md);
 }
 
-.meridian-masthead .feature-placeholder {
-    max-width: 22rem;
-}
-
 .demo-harness {
     display: grid;
     grid-template-columns: auto minmax(25rem, 1fr) minmax(22rem, 1fr) minmax(18rem, auto);
     align-items: center;
     gap: var(--space-md);
     padding: var(--space-md);
-    background: var(--panel-background);
-    border: var(--panel-border);
-    border-radius: var(--panel-radius);
-    box-shadow: var(--panel-shadow);
 }
 
 .harness-heading {
@@ -335,10 +384,6 @@ select {
 }
 
 @media (max-width: 72rem) {
-    .meridian-app {
-        grid-template-rows: auto auto auto;
-    }
-
     .demo-harness {
         grid-template-columns: repeat(2, minmax(0, 1fr));
     }
@@ -349,11 +394,6 @@ select {
 }
 
 @media (max-width: 50rem) {
-    .meridian-app {
-        width: min(100% - 1rem, 96rem);
-        margin-block: 0.5rem;
-    }
-
     .meridian-masthead,
     .meridian-shell,
     .portfolio-summary-grid,
@@ -369,12 +409,20 @@ select {
         display: grid;
     }
 
+    .appearance-controls {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .appearance-controls > legend {
+        grid-column: auto;
+    }
+
     .meridian-shell {
-        overflow: visible;
+        grid-template-rows: minmax(8rem, 35%) minmax(0, 1fr);
     }
 
     .meridian-scope {
-        min-height: 22rem;
+        min-height: 0;
     }
 
     .analysis-layout .history-panel {

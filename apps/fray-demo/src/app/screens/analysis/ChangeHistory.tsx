@@ -1,0 +1,35 @@
+import {Component, Panel} from '@sylwellsoftware/fray'
+import type {ComponentProps, FrayChild} from '@sylwellsoftware/fray'
+import {LineGraph} from '@sylwellsoftware/fray-visualization'
+import type {MeridianModel} from '../../model/MeridianModel.js'
+
+interface ChangeHistoryProps extends ComponentProps {
+    readonly model: MeridianModel
+}
+
+export class ChangeHistory extends Component<ChangeHistoryProps> {
+    render(): FrayChild {
+        const {model} = this.props
+        return <Panel island className="history-panel" header="Change history">
+            <fieldset class="history-options">
+                <legend>Chart presentation</legend>
+                <label>
+                    <input type="checkbox" bind:checked={model.historyStacked} />
+                    Stacked areas
+                </label>
+                <label>
+                    <input type="checkbox" bind:checked={model.historySmooth} />
+                    Smooth curves
+                </label>
+            </fieldset>
+            <LineGraph
+                shapes$={model.historyShapes}
+                stacked$={model.historyStacked}
+                smooth$={model.historySmooth}
+                range$={model.historyRange}
+                label="Changes in flight by risk"
+                formatValue={(value) => `${value} change${value === 1 ? '' : 's'}`}
+            />
+        </Panel>
+    }
+}

@@ -2,16 +2,16 @@ import {
     Button,
     Component,
     Dialog,
-    RadioGroup,
     Sidebar,
     Toggle,
     Toolbar,
+    TreeItem,
+    TreeView,
     live,
 } from '@sylwellsoftware/fray'
 import type {ComponentProps, FrayChild} from '@sylwellsoftware/fray'
-import {scopes} from '../model/data.js'
 import type {MeridianModel} from '../model/MeridianModel.js'
-import {FeaturePlaceholder} from './shared.js'
+import type {Scope, ScopeTreeKey} from '../model/types.js'
 
 interface ScopeSidebarProps extends ComponentProps {
     readonly model: MeridianModel
@@ -28,6 +28,7 @@ export class ScopeSidebar extends Component<ScopeSidebarProps> {
     render(): FrayChild {
         const {model} = this.props
         return <Sidebar
+            island
             className="meridian-scope"
             header="Scope"
             toolbar={<Toolbar label="Scope actions">
@@ -43,19 +44,50 @@ export class ScopeSidebar extends Component<ScopeSidebarProps> {
         >
             <div class="scope-content">
                 <p>Scope changes every work area; table sort remains local to Register.</p>
-                <FeaturePlaceholder
-                    compact={true}
-                    feature="TreeView + TreeItem"
-                    purpose="The organisation, sites, areas, and assets will be navigable here."
-                />
-                <RadioGroup
-                    label="Temporary site scope"
-                    valueEmitter={model.selectedScope}
-                    options={scopes.map(({id, label}) => [id, label] as const)}
-                    disabled={live(model.forceDisabled)}
-                    required={live(model.forceRequired)}
-                    onChange={(scope) => model.note(`Scope → ${scope}`)}
-                />
+                <TreeView<Scope>
+                    className="scope-tree"
+                    label="Organisational scope"
+                    selectedKeyEmitter={model.selectedScopeKey}
+                    expandedKeysEmitter={model.expandedScopeKeys}
+                    onSelect={(node) => model.selectScopeNode(
+                        node.id as ScopeTreeKey,
+                        node.value ?? 'all',
+                    )}
+                >
+                    <TreeItem id="all" label="Company" textValue="Company" value="all">
+                        <TreeItem
+                            id="north-plant"
+                            label="North Plant"
+                            textValue="North Plant"
+                            value="north-plant"
+                        >
+                            <TreeItem
+                                id="assembly"
+                                label="Assembly"
+                                textValue="Assembly"
+                                value="north-plant"
+                            />
+                            <TreeItem
+                                id="packaging"
+                                label="Packaging"
+                                textValue="Packaging"
+                                value="north-plant"
+                            />
+                            <TreeItem
+                                id="warehouse"
+                                label="Warehouse"
+                                textValue="Warehouse"
+                                value="warehouse"
+                            />
+                        </TreeItem>
+                        <TreeItem
+                            id="south-plant"
+                            label="South Plant"
+                            textValue="South Plant"
+                            value="south-plant"
+                        />
+                    </TreeItem>
+                </TreeView>
                 <Toggle
                     label="Status focus"
                     valueEmitter={model.statusFocus}

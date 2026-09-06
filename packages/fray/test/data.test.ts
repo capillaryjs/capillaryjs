@@ -235,9 +235,15 @@ describe('stable data components', () => {
         }).attachTo(document.body)
 
         assert.equal(requiredQuery('fray-treeview').dataset.frayComponent, 'tree-view')
-        assert.ok(requiredQuery('fray-treeview').classList.contains('datacomponentlike'))
+        assert.ok(!requiredQuery('fray-treeview').classList.contains('datacomponentlike'))
+        assert.ok(requiredQuery('fray-treeview > ul[role="tree"]'))
+        assert.equal(document.querySelector('fray-treeview div'), null)
+        assert.equal(document.querySelector('[data-part], [data-depth], [data-expandable]'), null)
         assert.equal(document.querySelectorAll('[role="treeitem"]').length, 2)
         let first = requiredQuery<HTMLElement>('[role="treeitem"]')
+        assert.equal(first.tagName, 'LI')
+        assert.ok(first.querySelector(':scope > fray-expander'))
+        assert.ok(first.querySelector(':scope > fray-label'))
         first.focus()
         first.dispatchEvent(new KeyboardEvent('keydown', {key: 'ArrowRight', bubbles: true}))
         assert.deepEqual(expanded.get(), ['workspace'])
@@ -266,14 +272,30 @@ describe('stable data components', () => {
     })
 
     test('TreeView accepts declarative TreeItem nodes', () => {
-        TreeView.new({
+        let selectedValue: string | null = null
+        const tree = TreeView.new({
             label: 'Declarative tree',
-            children: [h(TreeItem, {id: 'one', label: 'One'},
-                h(TreeItem, {id: 'child', label: 'Child'}))],
+            onSelect: (node) => selectedValue = node.value as string,
+            children: [h(TreeItem, {
+                id: 'one',
+                label: h('strong', null, 'One'),
+                textValue: 'One',
+                value: 'root-value',
+            }, h(TreeItem, {id: 'child', label: 'Child', value: 'child-value'}))],
         }).attachTo(document.body)
         const root = requiredQuery<HTMLElement>('[role="treeitem"]')
         root.dispatchEvent(new KeyboardEvent('keydown', {key: 'ArrowRight', bubbles: true}))
         assert.equal(document.querySelectorAll('[role="treeitem"]').length, 2)
+        const child = requiredAt(document.querySelectorAll<HTMLElement>('[role="treeitem"]'), 1)
+        child.dispatchEvent(new MouseEvent('click', {bubbles: true}))
+        assert.equal(selectedValue, 'child-value')
+
+        tree.setProps({
+            label: 'Declarative tree',
+            children: [h(TreeItem, {id: 'replacement', label: 'Replacement'})],
+        })
+        assert.equal(document.querySelectorAll('[role="treeitem"]').length, 1)
+        assert.equal(requiredQuery<HTMLElement>('fray-label').textContent, 'Replacement')
     })
 
     test('Dialog synchronizes native modality, cancel, and focus restoration', () => {

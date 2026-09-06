@@ -122,7 +122,10 @@ class App extends Component {
     static dependencies = [Button, Panel, Textbox, Toolbar]
 
     render() {
-        return h(Panel, {header: 'Profile'},
+        return h(Panel, {
+            className: 'fray-fill-horizontal fray-fill-vertical',
+            header: 'Profile',
+        },
             h(Textbox, {label: 'Name', valueEmitter: name}),
             h(Toolbar, {label: 'Profile actions'},
                 h(Button, {label: 'Save', onClick: () => save(name.get())})))
@@ -137,6 +140,14 @@ function save(value: string) {
     console.log(value)
 }
 ```
+
+Root sizing is application-owned. Add `fray-fill-horizontal` to a rendered
+application root to claim exactly `100vw`, `fray-fill-vertical` to claim
+exactly `100vh`, or both for a fullscreen application. Each axis supplies its
+own root overflow fallback and zero minimum; descendant islands are bounded
+and scroll on only the opted-in axes. Other components retain their intrinsic
+minimums and their own structural overflow contracts. A root with neither
+modifier keeps its ordinary embedded/content-sized behavior.
 
 The prebuilt structural file targets Fray's default `fray-` hosts. Applications
 with custom components or configured host names may instead register their root
@@ -385,7 +396,7 @@ not a framework identity class. The default application runtime therefore
 produces DOM such as:
 
 ```html
-<fray-panel data-fray class="panellike" data-fray-component="panel">
+<fray-panel data-fray class="island" data-fray-component="panel">
     <fray-textbox data-fray data-fray-component="textbox">
         <input data-fray type="text">
     </fray-textbox>
@@ -398,9 +409,19 @@ Native semantics remain native: `Button` renders `button`, `Toggle` renders
 `thead`/`th`. `Tab` is a declarative child consumed by `TabPanel` and has no
 independent root. The
 `data-fray-component` keeps diagnostics unambiguous. It is not a structural or
-theme selector. Fray may merge public presentation traits such as `panellike`
+theme selector. Fray may merge public presentation traits such as `island`
 with an application-supplied `class`/`className`; those traits describe a
 reusable capability, not component identity.
+
+Pass `island` to a fixed-host component when that surface should be visually
+separated from the page. Fray adds the reusable `island` class to its host;
+applications may use the same class on deliberate native surface boundaries.
+The component-owned rule consumes `--island-*` variables, so an island theme
+can add gutters, an edge, and elevation while a flat theme can leave the
+modifier visually neutral. Islands are one surface layer: nesting an `island`
+component below another island is rejected. Application-authored native island
+classes must follow the same no-nesting invariant. A surface island never
+creates a nested theme or palette scope.
 
 Built-in host names are fixed public DOM: Fray adds its one required custom
 element hyphen and removes internal word separators from the component stem.
@@ -684,8 +705,10 @@ or `defaultValue` in new code.
 
 ## Stable component reference
 
-All components also accept `children`, `className` (`class` is an alias), and a
-sibling-local `key` through the common component props.
+All components also accept `children`, `className` (`class` is an alias), an
+`island` surface modifier, and a sibling-local `key` through the common
+component props. The modifier is static presentation input, not a `live()`
+property.
 
 | Component | Important props | User callback | State/emitter behavior |
 | --- | --- | --- | --- |
@@ -993,6 +1016,17 @@ palette's `500` anchor plus light/dark mix endpoints. A color file therefore
 sets anchors and endpoints, while a theme maps or overrides semantic families
 such as `--button-*`, `--input-*`, `--panel-*`, and `--selection-*`.
 `frayThemeVariableCatalog` exposes the supported vocabulary.
+
+`--application-background` owns the canvas behind an axis-filling application
+root and its islands. Its base value is the white palette endpoint, which
+Shiny and Minimal both retain.
+
+The explicit `island` modifier consumes `--island-margin`,
+`--island-padding`, `--island-background`, `--island-border`,
+`--island-radius`, and `--island-shadow`. Base and Minimal keep its layout and
+elevation neutral; Shiny uses it for Bank2-style separated surfaces. Themes do
+not infer island boundaries from component type or nesting, and islands cannot
+contain other islands.
 
 ### Runtime selection
 

@@ -17,6 +17,8 @@ export interface ComponentProps {
     children?: FrayChild | readonly FrayChild[]
     class?: string | null
     className?: string | null
+    /** Opt this host into the theme-defined, non-nestable island treatment. */
+    island?: boolean
     [name: string]: unknown
 }
 
@@ -281,7 +283,51 @@ export class Component<TProps extends ComponentProps = ComponentProps> {
     static requiredServices: readonly ServiceKey<unknown>[] = []
     /** Component `live()` bindings are opt-in; subclasses declare their allowlist. */
     static liveProps: readonly string[] | null = []
-    static css = ''
+    static css = css`
+        .fray-fill-horizontal,
+        .fray-fill-vertical {
+            box-sizing: border-box;
+            background: var(--application-background);
+        }
+
+        .fray-fill-horizontal {
+            width: 100vw;
+            max-width: 100vw;
+            min-width: 0;
+            overflow-x: auto;
+        }
+
+        .fray-fill-vertical {
+            height: 100vh;
+            max-height: 100vh;
+            min-height: 0;
+            overflow-y: auto;
+        }
+
+        .island {
+            box-sizing: border-box;
+            min-width: 0;
+            min-height: 0;
+            margin: var(--island-margin);
+            padding: var(--island-padding);
+            background: var(--island-background);
+            border: var(--island-border);
+            border-radius: var(--island-radius);
+            box-shadow: var(--island-shadow);
+        }
+
+        .fray-fill-horizontal.island,
+        .fray-fill-horizontal .island {
+            max-width: calc(100% - (2 * var(--island-margin)));
+            overflow-x: auto;
+        }
+
+        .fray-fill-vertical.island,
+        .fray-fill-vertical .island {
+            max-height: calc(100% - (2 * var(--island-margin)));
+            overflow-y: auto;
+        }
+    `
     static hostName: string | null = null
 
     static new<TConstructor extends ConcreteComponentConstructor>(
@@ -335,6 +381,8 @@ export class Component<TProps extends ComponentProps = ComponentProps> {
     _rendered: RenderRecord | null = null
     /** @internal */
     readonly _childComponents = new Set<Component>()
+    /** @internal Component ancestry used to enforce structural invariants. */
+    _parentComponent: Component | null = null
     private initialized = false
     private mounted = false
     private destroyed = false
@@ -370,8 +418,18 @@ export class Component<TProps extends ComponentProps = ComponentProps> {
         if (hostName == null) {
             throw new Error(`${this.constructor.name} does not declare a custom host name`)
         }
+        const {
+            class: classAlias,
+            className: suppliedClassName,
+            ...hostProps
+        } = props ?? {}
+        const componentClassName = suppliedClassName ?? classAlias
+        const className = this.props.island === true
+            ? mergeClassNames(componentClassName, 'island')
+            : componentClassName
         return h(this._runtime.resolveElementName(hostName), {
-            ...props,
+            ...hostProps,
+            ...(className == null ? {} : {className}),
             'data-fray-component': hostName,
         }, ...children)
     }
@@ -410,8 +468,19 @@ export class Component<TProps extends ComponentProps = ComponentProps> {
         return this._routeContext
     }
 
+    /** @internal Assign the renderer-owned component ancestry. */
+    _setParentComponent(parent: Component): this {
+        if (this._parentComponent != null && this._parentComponent !== parent) {
+            throw new Error('A component instance cannot move between component owners')
+        }
+        this._parentComponent = parent
+        this.validateIslandAncestry(this.props)
+        return this
+    }
+
     mount(parent: ParentNode | null = null, before: Node | null = null): this {
         if (this.destroyed) throw new Error('Cannot mount a destroyed component')
+        this.validateIslandAncestry(this.props)
         let mountedNow = false
         if (!this.initialized) {
             this.validateRequiredServices()
@@ -471,6 +540,7 @@ export class Component<TProps extends ComponentProps = ComponentProps> {
         if (nextProps == null || typeof nextProps !== 'object' || Array.isArray(nextProps)) {
             throw new TypeError(`${this.constructor.name} props must be an object`)
         }
+        this.validateIslandAncestry(nextProps)
         this.props = nextProps
         if (this.mounted) this.update()
         return this
@@ -598,6 +668,27 @@ export class Component<TProps extends ComponentProps = ComponentProps> {
                 throw new Error(`${componentType.name} requires unregistered service "${key.name}"`)
             }
         }
+    }
+
+    private validateIslandAncestry(props: ComponentProps): void {
+        if (!hasIslandTrait(props)) return
+        if (this.hasIslandDescendant()) {
+            throw new Error('An island component cannot contain another island')
+        }
+        let ancestor = this._parentComponent
+        while (ancestor != null) {
+            if (hasIslandTrait(ancestor.props)) {
+                throw new Error('An island component cannot be nested inside another island')
+            }
+            ancestor = ancestor._parentComponent
+        }
+    }
+
+    private hasIslandDescendant(): boolean {
+        for (const child of this._childComponents) {
+            if (hasIslandTrait(child.props) || child.hasIslandDescendant()) return true
+        }
+        return false
     }
 
     onDestroy(): void {}
@@ -767,6 +858,7 @@ function createRecord(value: NormalizedChild, owner: Component): RenderRecord {
     if (value instanceof Component) {
         value._setRuntime(owner._runtime)
         value._setRouteContext(owner._routeContextForChildren())
+        value._setParentComponent(owner)
         value.mount()
         owner.registerChild(value)
         return {
@@ -838,6 +930,7 @@ function createRecord(value: NormalizedChild, owner: Component): RenderRecord {
         const instance = new type(resolvedProps as never)
         instance._setRuntime(owner._runtime)
         instance._setRouteContext(owner._routeContextForChildren())
+        instance._setParentComponent(owner)
         const record: ComponentRecord = {
             kind: 'component',
             key,
@@ -1570,9 +1663,23 @@ interface StyleOwner {
 function componentStyleChain(concrete: StyleOwner): StyleOwner[] {
     const chain: StyleOwner[] = []
     let owner: object | null = concrete
-    while (owner != null && owner !== Component && typeof owner === 'function') {
+    while (owner != null && typeof owner === 'function') {
         chain.unshift(owner as unknown as StyleOwner)
+        if (owner === Component) break
         owner = Object.getPrototypeOf(owner)
     }
     return chain
+}
+
+function mergeClassNames(...values: unknown[]): string {
+    return [...new Set(values
+        .flatMap((value) => typeof value === 'string' ? value.split(/\s+/) : [])
+        .filter(Boolean))]
+        .join(' ')
+}
+
+function hasIslandTrait(props: ComponentProps): boolean {
+    if (props.island === true) return true
+    const className = props.className ?? props.class
+    return typeof className === 'string' && className.split(/\s+/).includes('island')
 }

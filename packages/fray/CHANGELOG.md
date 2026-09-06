@@ -8,6 +8,13 @@ Versioning.
 
 ### Added
 
+- Independent `fray-fill-horizontal` and `fray-fill-vertical` application-root
+  modifiers with axis-specific sizing/overflow behavior and a white
+  `--application-background` canvas. Applications combine both modifiers for
+  fullscreen behavior; runtime mounting itself remains sizing-neutral.
+- An explicit common `island` component modifier and catalogued
+  `--island-*` surface variables, allowing themes to elevate only deliberate
+  application surfaces instead of inferring boundaries from component nesting.
 - `data-fray` renderer ownership markers on every Fray-created element, fixed
   one-hyphen `fray-<stem>` component hosts, a variable-only base stylesheet,
   and the `setFrayAppearance()`/`getFrayAppearance()` document appearance API.
@@ -47,6 +54,9 @@ Versioning.
 - Rebuilt the public style lab as the reactive Meridian Change Office workflow
   so approved component CSS is exercised through application-owned scope,
   filtering, selection, routing, and retained-screen state.
+- Restarted TreeView around a native tree list, fixed expander/label parts,
+  semantic selection and expansion selectors, and declarative TreeItem updates;
+  the style lab now uses that hierarchy alongside live theme and colour pickers.
 
 ### Removed
 
@@ -57,6 +67,9 @@ Versioning.
 
 ### Fixed
 
+- Island sizing reacts to the application root's opted-in viewport axes with
+  corresponding bounds and overflow, and component ancestry rejects islands
+  nested within other islands.
 - Toggle and TabLine native buttons now honor configured UI text scaling;
   Toggle's default selected surface also preserves AA text contrast, and the
   Sidebar browser contract follows its fixed light-DOM content part.

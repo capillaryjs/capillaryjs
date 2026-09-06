@@ -37,10 +37,16 @@ importers:
       '@sylwellsoftware/fray':
         specifier: workspace:^
         version: link:../../packages/fray
+      '@sylwellsoftware/fray-visualization':
+        specifier: workspace:^
+        version: link:../../packages/fray-visualization
       '@sylwellsoftware/glue':
         specifier: workspace:^
         version: link:../../packages/glue
     devDependencies:
+      tsx:
+        specifier: ^4.23.13
+        version: 4.23.13
       typescript:
         specifier: ^5.9.2
         version: 5.9.3
@@ -60,10 +66,10 @@ importers:
   packages/fray-visualization:
     devDependencies:
       '@sylwellsoftware/fray':
-        specifier: ^0.4.0
+        specifier: workspace:^
         version: link:../fray
       '@sylwellsoftware/glue':
-        specifier: ^0.4.0
+        specifier: workspace:^
         version: link:../glue
       vite:
         specifier: ^6.3.5

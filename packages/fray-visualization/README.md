@@ -47,11 +47,11 @@ const genre = staticCriterion({
     label: 'Genre',
     categories: [
         {
-            key: 'drama', label: 'Drama', colors: ['#eef', '#88c', '#225'],
+            key: 'drama', label: 'Drama', colors: ['#225', '#88c', '#eef'],
             predicate: movie => movie.genre === 'drama',
         },
         {
-            key: 'comedy', label: 'Comedy', colors: ['#efe', '#8c8', '#252'],
+            key: 'comedy', label: 'Comedy', colors: ['#252', '#8c8', '#efe'],
             predicate: movie => movie.genre === 'comedy',
         },
     ],
@@ -83,7 +83,14 @@ created them. Components do not take ownership of passed models.
 - `SplitSelectionPanel` enables, presets, and reorders the active split subset.
   It supports pointer dragging and `Alt+ArrowUp`/`Alt+ArrowDown`.
 - `BlockGraph` renders a nested proportional mosaic. Selection is exposed by
-  stable criterion/category path and selected-items emitters.
+  stable criterion/category path and selected-items emitters. Every block uses
+  its model-supplied `c1`/`c2`/`c3` category triplet even without an ornamental
+  theme; themes may add presentation such as Shiny's glossy chrome through
+  BlockGraph tokens. Child mosaics are inset from their parent by
+  `--viz-block-graph-child-inset` (default `1.6em`) so the parent surface
+  remains visible around every nested layer. Block labels are positioned over
+  their surfaces and do not reserve layout space, so area ratios continue to
+  represent item-count ratios.
 - `LineGraph` renders responsive SVG line or stacked-area history with pointer
   and keyboard readout.
 
@@ -112,20 +119,26 @@ bounds, and Escape clears the pinned cursor.
 
 ## Styling boundary
 
-The package keeps `data-fray-visualization` as a package-owned structural root
-discriminator and diagnostic label. It lets component-local structural CSS
-distinguish the four native `section` roots without an identity class, a custom
-host wrapper, or a brittle descendant-shape selector. It is not a theme hook.
-`data-part` remains only for chart geometry, scrolling, SVG drawing, and
-interaction mechanics. Themes do not select either attribute. Visualization
-roots opt into `datacomponentlike`; independently framed regions use
-`datacomponentshell`; blocks and legend swatches use `coloredlike`, with block
-labels using `coloredinner`.
+Each component renders one fixed Fray host (`fray-categoryhidepanel`,
+`fray-splitselectionpanel`, `fray-blockgraph`, or `fray-linegraph`). Structural
+CSS is collected from those component classes and scoped to those hosts.
+Component-owned non-native HTML parts use fixed `fray-*` elements; native and
+ARIA state is the presentation hook for disclosure, checkbox, selection, and
+focus state. SVG drawing parts use private classes because SVG cannot contain
+HTML custom elements. No visualization selector is a theme hook.
 
-Category and series colors feed `--colored-light`, `--colored-base`,
-`--colored-dark`, and `--colored-contrast`. Missing block colors therefore
-default to the active theme's primary palette. Layout still exposes narrow
-`--viz-*` sizing and drawing inputs where no ordinary theme trait applies.
+Category color triples are ordered dark, base, light and feed
+the legacy `--c1`, `--c2`, and `--c3` inputs directly into every BlockGraph
+block, as well as `--colored-dark`, `--colored-base`, and `--colored-light`
+aliases. Series colors use the base value for legend swatches and paths.
+Missing block colors therefore default to the active theme's primary palette.
+The base block surface is painted directly from each block's `c2` inline value,
+so it remains colored even before structural CSS is available; themes may opt
+into the catalogued border, radius, shadow, and glossy-overlay variables to add
+ornament.
+CategoryHidePanel renders the same small gradient swatch beside each category,
+muted when that category is hidden. Layout still exposes narrow `--viz-*`
+sizing and drawing inputs where no ordinary theme variable applies.
 Forced-colors mode remains usable without relying on color alone.
 
 See the package [changelog](CHANGELOG.md) for migration notes and release

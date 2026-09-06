@@ -38,9 +38,10 @@ caller-owned. Application classes and composition roots own service lifetimes.
 | Export | Purpose | Owner |
 | --- | --- | --- |
 | `Component` | Browser component lifecycle and renderer. | Fray runtime |
+| `ComponentProps.island` | Explicit themeable surface-boundary modifier for fixed component hosts. | Fray styling/runtime |
 | `h`, `css`, `live` | Vnode/CSS authoring and explicit one-way emitter property binding. | Fray runtime |
 | `jsx`, `jsxs`, `jsxDEV`, `Fragment` | Automatic JSX runtime. | Fray runtime |
-| `FrayRuntime`, `createFrayRuntime`, `defaultFrayRuntime` | Immutable application-scoped services, optional router, fixed host resolution, creation, mounting, and styles. | Fray runtime |
+| `FrayRuntime`, `createFrayRuntime`, `defaultFrayRuntime` | Immutable application-scoped services, optional router, sizing-neutral root mounting, fixed host resolution, creation, and styles. | Fray runtime |
 | `ServiceScope`, `createServiceScope`, `defineService`, `provideService` | Typed application service declaration, composition, lazy resolution, and disposal. | Fray runtime |
 | `StyleRegistry`, `createStyleRegistry`, `styleRegistry` | Isolated or default idempotent structural-style collection/injection. | Fray styling |
 | `frayThemeVariableCatalog` | Machine-readable palette/theme variable hierarchy and fallbacks. | Fray styling |
@@ -69,6 +70,25 @@ The package also exposes `./jsx-runtime`, `./jsx-dev-runtime`, variable-only
 Normal applications collect structural CSS from their declared root component
 rather than loading the complete artifact. Built-in hosts have fixed
 `fray-<stem>` names; Fray-created elements carry `data-fray` for diagnostics.
+
+Root sizing is an application presentation choice rather than a runtime mount
+option. A rendered root with `fray-fill-horizontal` claims `100vw`; one with
+`fray-fill-vertical` claims `100vh`; combining both produces a fullscreen app.
+The two modifiers independently provide axis-specific overflow and
+zero-minimum behavior on the root itself. Descendant islands receive a matching
+maximum size and scroll fallback only on the selected axes; other components
+retain their intrinsic minimums and owned overflow. With neither class, a
+mounted root retains ordinary embedded/content-sized behavior.
+
+`ComponentProps.island` adds the public `island` trait class to a component's
+fixed host while preserving consumer classes. Applications may place the same
+class on a deliberate native surface. The structural rule consumes the
+catalogued `--island-*` variables; themes decide whether that explicit boundary
+gets spacing, an edge, and elevation. The modifier does not infer boundaries
+from nesting and does not establish a nested theme or palette. Component
+ancestry rejects nested islands, including a parent that tries to become an
+island while it already owns an island descendant; native application markup
+must preserve the same single-layer invariant.
 
 `Component.read()` and `Component.snapshot()` are the supported render-time
 tracked-read APIs. `WritableEmitter`, `LiveBinding`, `LivePropContract`,
@@ -182,6 +202,22 @@ consume caller-owned models and emitters; they do not fetch, persist, or infer
 domain policy. Filter predicates may overlap, but every active BlockGraph
 criterion must assign each item to exactly one category. History dates are
 strict `YYYY-MM-DD` civil dates calculated with UTC-day arithmetic.
+BlockGraph bakes each dark/base/light category triple into its `--c1`, `--c2`,
+and `--c3` block variables and paints its unornamented inline surface from
+`c2`. Fray themes can opt into block border, radius, shadow, and glossy-overlay
+chrome through the catalogued `--block-graph-block-*` variables. Each nested
+child mosaic is inset from its parent through
+`--viz-block-graph-child-inset`, which defaults to `1.6em`. Labels overlay
+their block surfaces rather than participating in flex sizing, preserving the
+count-to-area relationship.
+CategoryHidePanel renders the same triplet as a muted-on-hidden swatch.
+
+The four component roots are fixed Fray hosts: `fray-categoryhidepanel`,
+`fray-splitselectionpanel`, `fray-blockgraph`, and `fray-linegraph`.
+Component-owned HTML parts use fixed `fray-*` elements, while SVG drawing parts
+use private classes. Native and ARIA state remains the public interaction-state
+contract; structural `data-part` and `data-fray-visualization` selectors are no
+longer emitted.
 
 ## Async command boundary
 

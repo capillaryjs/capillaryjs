@@ -818,6 +818,57 @@ describe('layout controls', () => {
         assert.equal(section.querySelector('div'), null)
     })
 
+    test('fixed component hosts opt into island treatment explicitly', () => {
+        const panel = Panel.new({
+            className: 'portfolio-summary',
+            island: true,
+            children: 'Summary',
+        }).attachTo(document.body)
+        const host = requiredQuery<HTMLElement>('fray-panel')
+
+        assert.equal(host.className, 'portfolio-summary island')
+
+        panel.setProps({className: 'portfolio-summary', island: false, children: 'Summary'})
+        assert.equal(host.className, 'portfolio-summary')
+    })
+
+    test('island components reject another island anywhere below them', () => {
+        class NestedIslandProbe extends Component {
+            render() {
+                return h(Panel, {
+                    island: true,
+                    children: h('div', null, h(Panel, {island: true, children: 'Nested'})),
+                })
+            }
+        }
+
+        assert.throws(
+            () => NestedIslandProbe.new().mount(),
+            /island component cannot be nested inside another island/,
+        )
+
+        const parent = Panel.new({
+            children: h(Panel, {className: 'island', children: 'Existing child island'}),
+        }).mount()
+        assert.throws(
+            () => parent.setProps({
+                island: true,
+                children: h(Panel, {className: 'island', children: 'Existing child island'}),
+            }),
+            /island component cannot contain another island/,
+        )
+        parent.destroy()
+    })
+
+    test('runtime leaves root sizing policy to the application', () => {
+        const target = document.createElement('div')
+        document.body.append(target)
+        const runtime = createFrayRuntime()
+        const panel = runtime.mount(runtime.create(Panel), target)
+        assert.equal(target.className, '')
+        panel.destroy()
+    })
+
     test('Panel tracks a live disabled state', () => {
         const disabled = new Emitter(false)
         class PanelOwner extends Component {

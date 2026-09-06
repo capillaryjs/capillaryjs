@@ -23,7 +23,7 @@ export class DemoHarness extends Component<DemoHarnessProps> {
         this.read(model.sourceChanges)
         const fetchState = model.sourceChanges.getFetchState()
         const fetchError = model.sourceChanges.getError()
-        return <section class="demo-harness" aria-labelledby="review-harness-heading">
+        return <section class="demo-harness island" aria-labelledby="review-harness-heading">
             <div class="harness-heading">
                 <p class="eyebrow">Review infrastructure</p>
                 <h2 id="review-harness-heading">Demo harness</h2>

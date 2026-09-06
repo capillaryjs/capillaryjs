@@ -1,6 +1,7 @@
 import {
     Button,
     Checkbox,
+    ColorPicker,
     Component,
     DataTable,
     DescriptionItem,
@@ -23,11 +24,20 @@ import {
     TableHeader,
     TableHeaderCell,
     Textbox,
+    ThemePicker,
     Toggle,
     Toolbar,
+    TreeItem,
+    TreeView,
     TriCheckbox,
 } from '@sylwellsoftware/fray'
 import type {FrayChild} from '@sylwellsoftware/fray'
+import {
+    BlockGraph,
+    CategoryHidePanel,
+    LineGraph,
+    SplitSelectionPanel,
+} from '@sylwellsoftware/fray-visualization'
 import {AppHeader} from './components/AppHeader.js'
 import {DemoHarness} from './components/DemoHarness.js'
 import {ScopeSidebar} from './components/ScopeSidebar.js'
@@ -42,6 +52,7 @@ export class MeridianApp extends Component {
         DemoHarness,
         Button,
         Checkbox,
+        ColorPicker,
         DataTable,
         DescriptionItem,
         DescriptionList,
@@ -63,17 +74,24 @@ export class MeridianApp extends Component {
         TableHeader,
         TableHeaderCell,
         Textbox,
+        ThemePicker,
         Toggle,
         Toolbar,
+        TreeItem,
+        TreeView,
         TriCheckbox,
+        BlockGraph,
+        CategoryHidePanel,
+        LineGraph,
+        SplitSelectionPanel,
     ]
     static override css = ''
 
     readonly model = new MeridianModel()
 
     render(): FrayChild {
-        return <main class="meridian-app">
-            <AppHeader key="masthead" />
+        return <main class="meridian-app fray-fill-horizontal fray-fill-vertical">
+            <AppHeader key="masthead" model={this.model} />
             <div class="meridian-shell">
                 <ScopeSidebar key="scope" model={this.model} />
                 <WorkArea key="work-area" model={this.model} />

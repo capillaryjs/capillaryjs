@@ -17,6 +17,9 @@ export default defineConfig({
       '@sylwellsoftware/glue': fileURLToPath(
         new URL('../../packages/glue/src/index.ts', import.meta.url),
       ),
+      '@sylwellsoftware/fray-visualization': fileURLToPath(
+        new URL('../../packages/fray-visualization/src/index.ts', import.meta.url),
+      ),
     },
   },
   build: {

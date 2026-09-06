@@ -26,11 +26,11 @@ export class ChangeScreen extends Component<ChangeScreenProps> {
                 summary="One selected change, its impact, planning, assets, and approvals."
             />
             {selected == null
-                ? <Panel header="Selected change">
+                ? <Panel island header="Selected change">
                     <p>Select a change in Portfolio or Register to continue.</p>
                 </Panel>
                 : <div class="change-layout">
-                    <Panel header="Change summary">
+                    <Panel island header="Change summary">
                         <DescriptionList class="change-facts" label="Change facts">
                             <DescriptionItem term="Risk" value={selected.risk} />
                             <DescriptionItem term="Status" value={selected.status} />
@@ -49,7 +49,7 @@ export class ChangeScreen extends Component<ChangeScreenProps> {
                             valueText={`${selected.progress}%`}
                         />
                     </Panel>
-                    <Panel header="Planning and assessment">
+                    <Panel island header="Planning and assessment">
                         <dl class="compact-facts">
                             <div><dt>Start</dt><dd>{selected.plannedStart}</dd></div>
                             <div><dt>Complete</dt><dd>{selected.plannedCompletion}</dd></div>
@@ -69,13 +69,13 @@ export class ChangeScreen extends Component<ChangeScreenProps> {
                             purpose="The structured impact assessment will expand here."
                         />
                     </Panel>
-                    <Panel header="Affected assets">
+                    <Panel island header="Affected assets">
                         <ul class="asset-list">
                             {selected.affectedAssets.map((asset) =>
                                 <li key={asset}>{asset}</li>)}
                         </ul>
                     </Panel>
-                    <Panel header="Approvals and history">
+                    <Panel island header="Approvals and history">
                         <p class="future-content">
                             Approvals and change history will be composed here in a later
                             application slice.

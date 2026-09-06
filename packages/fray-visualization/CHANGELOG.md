@@ -10,8 +10,24 @@ and Semantic Versioning.
 
 - Regenerated structural CSS against Fray's fixed one-hyphen component-host
   contract.
+- `CategoryHidePanel`, `SplitSelectionPanel`, `BlockGraph`, and `LineGraph`
+  now render fixed Fray hosts and owned custom parts. Obsolete trait classes,
+  structural `data-*` selectors, and redundant visualization diagnostics were
+  removed; native/ARIA state and private SVG classes now drive presentation.
+- `BlockGraph` composes Fray's `Button` for its clear action and always renders
+  a flat model-supplied `c2` category color; it bakes every category's
+  `c1`/`c2`/`c3` triplet and inline base paint into its blocks. Fray themes may
+  add ornamental block chrome through explicit BlockGraph tokens. Category
+  color triples map in their declared dark, base, light order;
+  CategoryHidePanel shows the matching muted-on-hidden gradient swatch. Nested
+  child mosaics retain a configurable inset that exposes their parent layer,
+  while overlaid labels consume no proportional layout area.
 - `LineGraph` accepts static values as well as readable sources for shapes,
   stacked, smooth, and range inputs.
+- `CategoryHidePanel` retains its natural height inside flex-column owners,
+  clips each disclosure to its own bounds, and targets the fixed
+  `fray-checkbox` host so open category groups cannot paint over following
+  controls under compact Shiny sizing.
 - Enabled strict TypeScript compiler checking.
 
 ## 0.7.0 - 2026-09-04

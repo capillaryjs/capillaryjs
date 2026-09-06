@@ -1,7 +1,10 @@
-import {Component, Panel} from '@sylwellsoftware/fray'
+import {Component} from '@sylwellsoftware/fray'
 import type {ComponentProps, FrayChild} from '@sylwellsoftware/fray'
-import {FeaturePlaceholder, ScreenHeading} from '../../components/shared.js'
+import {ScreenHeading} from '../../components/shared.js'
 import type {MeridianModel} from '../../model/MeridianModel.js'
+import {AnalysisControls} from './AnalysisControls.js'
+import {ChangeHistory} from './ChangeHistory.js'
+import {DistributionAnalysis} from './DistributionAnalysis.js'
 
 interface AnalysisScreenProps extends ComponentProps {
     readonly model: MeridianModel
@@ -10,35 +13,17 @@ interface AnalysisScreenProps extends ComponentProps {
 export class AnalysisScreen extends Component<AnalysisScreenProps> {
     render(): FrayChild {
         const visibleCount = this.read(this.props.model.visibleChanges).length
+        const analyticalCount = this.read(this.props.model.visualizationChanges).length
         return <div class="work-area analysis-area">
             <ScreenHeading
                 eyebrow="Analysis"
                 title="Portfolio analysis"
-                summary={`${visibleCount} visible changes will feed every analytical view.`}
+                summary={`${analyticalCount} of ${visibleCount} visible changes currently feed the analytical views.`}
             />
             <div class="analysis-layout">
-                <Panel header="Grouping and visibility">
-                    <FeaturePlaceholder
-                        feature="CategoryHidePanel"
-                        purpose="Risk and status category visibility will be controlled here."
-                    />
-                    <FeaturePlaceholder
-                        feature="SplitSelectionPanel"
-                        purpose="Grouping presets and split order will be configured here."
-                    />
-                </Panel>
-                <Panel header="Portfolio distribution">
-                    <FeaturePlaceholder
-                        feature="BlockGraph"
-                        purpose="Site → risk → status partitions will fill this workspace."
-                    />
-                </Panel>
-                <Panel className="history-panel" header="Change history">
-                    <FeaturePlaceholder
-                        feature="LineGraph"
-                        purpose="Open, completed, and high-risk changes over time will appear here."
-                    />
-                </Panel>
+                <AnalysisControls key="analysis-controls" model={this.props.model} />
+                <DistributionAnalysis key="distribution" model={this.props.model} />
+                <ChangeHistory key="history" model={this.props.model} />
             </div>
         </div>
     }

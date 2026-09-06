@@ -1,5 +1,5 @@
 @charset "utf-8";
-/* Minimal deliberately keeps the defaults supplied by base.css. */
+/* Minimal deliberately keeps base.css's no-gutter, flat island treatment. */
 @layer theme {
   :root {
     color-scheme: light dark;

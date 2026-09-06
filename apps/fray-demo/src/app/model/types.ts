@@ -8,6 +8,7 @@ export type RiskFocus = 'all' | ChangeRisk
 export type DemoFetchState = 'automatic' | 'initial' | 'loading' | 'ready' | 'error'
 export type AttentionFilter = 'all' | 'attention'
 export type PlanningHorizon = '30' | '90' | '365'
+export type ScopeTreeKey = Scope | 'assembly' | 'packaging'
 
 export interface Change extends Record<string, unknown> {
     readonly id: string
