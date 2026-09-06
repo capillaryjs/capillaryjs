@@ -54,6 +54,11 @@
     --button-shadow: -1px 1px 2px 1px rgb(0 0 0 / 0.5);
     --button-shadow-active: -1px 1px 2px rgb(0 0 0 / 0.53);
     --tabline-background: var(--shiny-ui-gradient-2);
+    --tab-button-shadow: 0 0 4px rgb(0 0 0 / 0.67);
+    --tab-button-shadow-active: -1px -1px 2px rgb(0 0 0 / 0.35);
+    --tab-button-active-lift: 2px;
+    --tab-button-active-bridge-block-size: 2px;
+    --tab-button-inactive-bottom-shadow: 0 1px 3px rgb(0 0 0 / 0.67);
     --toggle-button-background-checked:
       radial-gradient(140% 75% at 30% 10%, #fff4, #fff5 47%, #fff0 55%, #fff0),
       linear-gradient(to bottom, var(--palette-primary-900) 0%, var(--palette-primary) 65%, var(--palette-primary) 66%, var(--palette-primary-400) 100%);

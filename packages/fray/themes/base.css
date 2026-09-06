@@ -113,6 +113,11 @@
       --toolbar-shadow: none;
       --tabline-background: var(--palette-neutral-100);
       --tab-active-background: var(--palette-neutral-50);
+      --tab-button-shadow: var(--button-shadow);
+      --tab-button-shadow-active: var(--button-shadow-active);
+      --tab-button-active-lift: 0px;
+      --tab-button-active-bridge-block-size: 0px;
+      --tab-button-inactive-bottom-shadow: none;
       --progress-track-background: var(--palette-neutral-200);
       --progress-value-background: var(--palette-primary);
       --working-background-image: linear-gradient(-45deg, transparent 25%, color-mix(in oklch, var(--palette-light) 35%, transparent) 25% 50%, transparent 50% 75%, color-mix(in oklch, var(--palette-light) 35%, transparent) 75%);
@@ -457,12 +462,38 @@
 
     fray-tabline[data-fray] { background: var(--tabline-background); }
     [role="tab"][data-fray] {
+      position: relative;
+      z-index: 0;
+      align-self: flex-end;
       background: var(--tab-button-background);
       border-radius: var(--radius-md) var(--radius-md) 0 0;
+      box-shadow: var(--tab-button-shadow);
+    }
+    [role="tab"][aria-selected="false"][data-fray]::after {
+      content: "";
+      position: absolute;
+      inset-inline: 0;
+      inset-block-end: -1px;
+      block-size: 1px;
+      background: transparent;
+      box-shadow: var(--tab-button-inactive-bottom-shadow);
+      pointer-events: none;
     }
     [role="tab"][aria-selected="true"][data-fray] {
+      z-index: 2;
       color: var(--button-color);
       background: var(--tab-button-background-active);
+      box-shadow: var(--tab-button-shadow-active);
+      transform: translateY(calc(-1 * var(--tab-button-active-lift)));
+    }
+    [role="tab"][aria-selected="true"][data-fray]::after {
+      content: "";
+      position: absolute;
+      inset-inline: 0;
+      inset-block-end: calc(-1 * var(--tab-button-active-lift));
+      block-size: var(--tab-button-active-bridge-block-size);
+      background: var(--tab-button-background-active);
+      pointer-events: none;
     }
     [role="radiogroup"][data-fray] {
       inline-size: fit-content;

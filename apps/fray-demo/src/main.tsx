@@ -2,6 +2,7 @@ import {
     Component,
     Checkbox,
     ColorPicker,
+    Dropdown,
     Panel,
     Sidebar,
     SplitView,
@@ -12,6 +13,7 @@ import {
     createFrayRuntime,
     live,
 } from '@sylwellsoftware/fray'
+import type {DropdownOption} from '@sylwellsoftware/fray'
 import {DerivedEmitter, Emitter, FetchState} from '@sylwellsoftware/glue'
 import '../../../packages/fray/styles/structural.css'
 import '../../../packages/fray/colors/iceblue/colors.css'
@@ -46,6 +48,13 @@ const scopeLabels: Record<Scope, string> = {
     warehouse: 'Warehouse',
 }
 
+const allScopeOptions: readonly DropdownOption<Scope>[] = [
+    {value: 'all', label: 'All sites'},
+    {value: 'north-plant', label: 'North Plant'},
+    {value: 'south-plant', label: 'South Plant'},
+    {value: 'warehouse', label: 'Warehouse'},
+]
+
 class DemoApp extends Component {
     readonly activeTab = new Emitter<'portfolio' | 'register' | 'change' | 'analysis' | null>('portfolio', {purpose: 'Meridian active work area'})
     readonly demoFetchState = new Emitter<DemoFetchState>('automatic', {purpose: 'Meridian demo fetch-state harness'})
@@ -58,6 +67,7 @@ class DemoApp extends Component {
     readonly forceRequiredState = new Emitter<CheckboxState>('off', {purpose: 'Meridian force required harness'})
     readonly includeCompletedState = new Emitter<'exclude' | 'include'>('exclude', {purpose: 'Meridian completed-change preference'})
     readonly selectedScope = new Emitter<Scope>('all', {purpose: 'Meridian selected scope'})
+    readonly siteOptions = new Emitter<readonly DropdownOption<Scope>[]>(allScopeOptions, {purpose: 'Meridian available site options'})
     readonly statusFocus = new Emitter<'all' | ChangeStatus>('all', {purpose: 'Meridian change status focus'})
     readonly selectedChangeId = new Emitter<string | null>(null, {purpose: 'Meridian selected change'})
     readonly forceDisabled = new DerivedEmitter(
@@ -69,6 +79,11 @@ class DemoApp extends Component {
         [this.forceRequiredState] as const,
         ([state]) => state === 'on',
         {purpose: 'Meridian effective forced required state'},
+    )
+    readonly siteSelectionError = new DerivedEmitter(
+        [this.demoFetchState] as const,
+        ([state]) => state === 'error' ? 'Site availability could not be confirmed.' : null,
+        {purpose: 'Meridian site selector error presentation'},
     )
     readonly visibleChanges = new DerivedEmitter(
         [this.selectedScope, this.statusFocus, this.includeCompletedState, this.registerSearchDraft] as const,
@@ -100,15 +115,16 @@ class DemoApp extends Component {
         const forceDisabled = this.read(this.forceDisabled)
         const registerFilterLabel = this.read(this.registerFilterLabel)
         const registerSearchEvent = this.read(this.registerSearchEvent)
+        const siteOptions = this.read(this.siteOptions)
         return (
             <main class="style-lab">
                 <header>
                     <p class="eyebrow">Fray · Meridian Change Office</p>
-                    <h1>Textbox review</h1>
+                    <h1>Dropdown review</h1>
                     <p>
                         Deterministic Meridian surfaces for the CSS overhaul.
-                        The Register search now uses a Fray Textbox to update
-                        the existing Meridian views as its value changes.
+                        The Sidebar Site selector now uses a Fray Dropdown to
+                        update the existing Meridian views as its value changes.
                     </p>
                     <div class="appearance-harness">
                         <ThemePicker
@@ -143,8 +159,35 @@ class DemoApp extends Component {
                         toolbar={<p class="sidebar-toolbar-note">Organisation coverage</p>}
                     >
                         <p class="scope-intro">Choose the part of Meridian affected by this review.</p>
+                        <Dropdown
+                            id="site-selection"
+                            label="Site"
+                            options={this.siteOptions}
+                            valueEmitter={this.selectedScope}
+                            placeholder="Choose a site"
+                            disabled={live(this.forceDisabled)}
+                            required={live(this.forceRequired)}
+                            error={live(this.siteSelectionError)}
+                        />
+                        <div class="scope-option-actions" role="group" aria-label="Site option availability">
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    this.siteOptions.set(allScopeOptions.filter(({value}) => value !== 'warehouse'),
+                                        'Meridian hide Warehouse site option')
+                                    if (this.selectedScope.get() === 'warehouse') {
+                                        this.selectedScope.set('all', 'Meridian supported scope fallback')
+                                    }
+                                }}
+                            >Hide Warehouse</button>
+                            <button
+                                type="button"
+                                onClick={() => this.siteOptions.set(allScopeOptions,
+                                    'Meridian restore site options')}
+                            >Restore sites</button>
+                        </div>
                         <div class="scope-sites" role="group" aria-label="Sites">
-                            {(Object.entries(scopeLabels) as [Scope, string][]).map(([value, label]) =>
+                            {siteOptions.map(({value, label}) =>
                                 <button
                                     type="button"
                                     aria-pressed={scope === value}
@@ -284,6 +327,12 @@ class DemoApp extends Component {
                                     if (state === 'automatic') {
                                         this.registerSearchDraft.set(search,
                                             'Meridian automatic search fetch state')
+                                        this.siteOptions.setWithState(
+                                            this.siteOptions.get(),
+                                            FetchState.Ready,
+                                            null,
+                                            'Meridian automatic site-option fetch state',
+                                        )
                                         return
                                     }
                                     this.registerSearchDraft.setWithState(
@@ -292,11 +341,21 @@ class DemoApp extends Component {
                                         state === 'error' ? new Error('Forced Register search state') : null,
                                         'Meridian forced search fetch state',
                                     )
+                                    this.siteOptions.setWithState(
+                                        this.siteOptions.get(),
+                                        state === 'error' ? FetchState.Error : state,
+                                        state === 'error' ? new Error('Forced site-option fetch state') : null,
+                                        'Meridian forced site-option fetch state',
+                                    )
                                 }}
                             />
                             <p>
                                 Harness mode: <strong>{demoFetchState}</strong>. Selected scope:
                                 {' '}{scopeLabels[scope]}. The state control remains outside this region.
+                            </p>
+                            <p class="harness-note">
+                                Site options retain their values through this state change; Dropdown observes
+                                the option list but adds no automatic loading/error state from that emitter.
                             </p>
                         </Panel>
                     </div>
