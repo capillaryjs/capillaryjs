@@ -39,11 +39,13 @@ export class SplitView extends Component<SplitViewProps> {
                 data-part="primary"
                 role={primaryLabel == null ? null : 'region'}
                 aria-label={primaryLabel}
+                tabIndex={0}
             >{primary}</div>
             <div
                 data-part="secondary"
                 role={secondaryLabel == null ? null : 'region'}
                 aria-label={secondaryLabel}
+                tabIndex={0}
             >{secondary ?? this.props.children ?? []}</div>
         </Host>
     }

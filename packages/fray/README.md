@@ -698,7 +698,7 @@ sibling-local `key` through the common component props.
 | `QuadCheckbox` | Checkbox props except `symbols` | `onChange(value, event)` | Cycles deny → neutral → prefer → require using `FilterMode`. |
 | `Panel` | `header`, `toolbar`, `orientation`, `disabled`, `id`, `children` | None | Stateless labelled section when a header exists; `disabled` describes the region but does not mutate descendant controls. |
 | `Sidebar` | `header`, `toolbar`, `ariaLabel`, `id`, `children` | None | Native complementary region with fixed header/toolbar parts and independently scrolling content. |
-| `SplitView` | `primary`, `secondary`, `direction`, `primarySize`, pane labels | None | Stateless, non-resizable two-pane layout with explicit overflow ownership. |
+| `SplitView` | `primary`, `secondary`, `direction`, `primarySize`, pane labels | None | Stateless, non-resizable two-pane layout with explicit overflow ownership and keyboard-focusable panes. |
 | `DescriptionList` / `DescriptionItem` | list `label`; item `term`, `value` or children | None | Native `dl`/`dt`/`dd` record summary with responsive term/value wrapping. |
 | `ProgressBar` | `label`, `value` or `valueEmitter`, `max`, `valueText` | None | Labelled native progress; a null value is indeterminate. |
 | `ThemePicker` | `label` or `ariaLabel`, theme `options`, value props, `targetDocument`, `disabled` | `onChange(value, option, event)` | String `valueEmitter`; replaces only the theme stylesheet link. |

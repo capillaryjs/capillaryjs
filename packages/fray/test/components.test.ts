@@ -550,6 +550,8 @@ describe('layout controls', () => {
             'Project details',
         )
         assert.equal(requiredQuery('[data-part="primary"]', split).getAttribute('role'), 'region')
+        assert.equal(requiredQuery<HTMLElement>('[data-part="primary"]', split).tabIndex, 0)
+        assert.equal(requiredQuery<HTMLElement>('[data-part="secondary"]', split).tabIndex, 0)
 
         SplitView.new({
             direction: 'vertical',

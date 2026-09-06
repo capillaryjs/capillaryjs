@@ -42,6 +42,11 @@ Versioning.
 - The named `baseStyles` recipe registry and its public types; shared component
   CSS now follows meaningful class inheritance.
 
+### Fixed
+
+- `SplitView` panes are keyboard-focusable so their owned overflow remains
+  operable without a pointing device.
+
 ## 0.7.0 - 2026-09-04
 
 ### Added
