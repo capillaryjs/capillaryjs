@@ -1,86 +1,44 @@
-# Fray structural, theme, and color CSS
+# Fray base and theme CSS
 
-Fray separates three stylesheet responsibilities:
+Fray presentation is loaded in this order:
 
-1. `styles/structural.css` contains generated layout, flow, sizing,
-   positioning, overflow, interaction mechanics, and justified structural
-   hooks for the default component hosts.
-2. `themes/<name>/theme.css` contains typography, spacing, geometry, surfaces,
-   depth, native-element presentation, reusable trait presentation, and the
-   mapping from palette values to semantic UI variables.
-3. `colors/<name>/colors.css` contains primary, secondary, and neutral color
-   ramps and contrast/color primitives only.
+1. `themes/base.css`: custom-property defaults and palette derivation only.
+2. Runtime-collected structural CSS for the application's declared components.
+3. One `colors/<name>/colors.css`: palette anchors and endpoints only.
+4. One `themes/<name>/theme.css`: intentional custom-property overrides only.
 
-Load the three artifacts independently:
+Application-owned layout CSS is separate from these Fray inputs.
 
-```ts
-import '@sylwellsoftware/fray/styles/structural.css'
-import '@sylwellsoftware/fray/colors/ocean/colors.css'
-import '@sylwellsoftware/fray/themes/shiny/theme.css'
-```
+## Base file
 
-`ThemePicker` and `ColorPicker` replace separate
-`link[data-fray-stylesheet]` elements and update the `data-theme` and
-`data-color` root attributes. The link metadata retains its Fray prefix because
-it is operational/diagnostic metadata rather than theme vocabulary.
+`base.css` provides usable default palette anchors, derives the primary,
+secondary, and neutral ramps, and declares semantic defaults. It contains no
+component selectors and no declarations that consume those variables.
 
-## Selectors and scope
+The application imports it explicitly. Named themes and colors never import it,
+which keeps ownership and load order visible.
 
-Themes target native elements directly and expose reusable prefix-free traits:
+## Theme files
 
-```text
-buttonlike          inputlike          datacomponentlike
-headerlike          coloredlike        panellike
-toolbarlike         selectshell
+A theme changes only variables. The sole ordinary-property exception is
+`color-scheme`, because it informs browser-native rendering. A theme must not
+contain component, trait, part, ARIA-state, or pseudo-element selectors. Those
+selectors belong to component `static css` even when their values are driven by
+theme variables.
 
-buttonshell         buttoninner
-inputshell          inputinner
-datacomponentshell  datacomponentinner
-headershell         headerinner
-panelshell          panelinner
-toolbarshell        toolbarinner
-coloredshell        coloredinner
-```
-
-`like` means a complete single-node treatment. `shell` means an independently
-rendered outer region; `inner` means an independently rendered content region.
-Components do not add wrappers solely to obtain these traits.
-
-Every theme uses a named cascade layer. A zero-specificity boundary rule seeds
-its inherited variables on `:root` or the matching `[data-theme]`. Presentation
-selectors live in `@scope`; nested theme roots and `[data-theme-exclude]` stop
-the outer theme's selectors. This separation is deliberate because scope
-limits do not stop custom-property inheritance. Low-specificity `:where()`
-groups let application CSS override both kinds of rule.
-
-Themes do not select `data-fray-component` or `data-part`. The former is
-diagnostic metadata. The latter is restricted to component-owned structural
-or behavioral mechanics that cannot be expressed through native structure,
-roles, ARIA state, or a justified public trait.
-
-## Variables
-
-The active color file supplies only `--palette-*`. The active theme maps those
-values to prefix-free semantic families such as `--ui-*`, `--header-*`,
-`--button-*`, `--input-*`, `--panel-*`, and `--selection-*`. Generated
-structural CSS may consume these variables where configurable host names make
-a direct theme selector inappropriate.
-
-Custom colored content can set:
+Start with no overrides. Add a variable only when it produces a deliberate
+visual difference from `base.css`; do not repeat defaults for completeness.
 
 ```css
-.severity-block {
-  --colored-light: #ffd7d2;
-  --colored-base: #c8332a;
-  --colored-dark: #721710;
-  --colored-contrast: white;
+@layer theme {
+  :root {
+    color-scheme: only light;
+    --button-background: linear-gradient(white, #ddd);
+    --button-shadow: -1px 1px 2px rgb(0 0 0 / 0.4);
+  }
 }
 ```
 
-An element carrying `coloredlike`, `coloredshell`, or `coloredinner` then lets
-each theme decide whether to use a flat fill, gradient, other treatment, or no
-special polish. When no values are supplied, the primary palette is used.
-
-`frayThemeVariableCatalog` publishes the palette and theme variable contract.
-The top-level `themes/light.css` and `themes/dark.css` files remain temporary
-compatibility bundles; new integrations use the separated files.
+`frayThemeVariableCatalog` publishes the supported palette and semantic
+variable contract. Component-specific variables should fall back through a
+shared family so a theme can remain small.

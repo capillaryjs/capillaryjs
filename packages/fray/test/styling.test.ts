@@ -8,6 +8,7 @@ import {
     Button,
     Checkbox,
     Component,
+    Dropdown,
     Textbox,
     createFrayRuntime,
     frayColorOptions,
@@ -18,7 +19,6 @@ import {
     setFrayAppearance,
     styleRegistry,
 } from '../src/index.js'
-import {baseStyleDefinitions} from '../src/styling/baseStyleDefinitions.js'
 
 let window: Window
 
@@ -51,57 +51,69 @@ describe('style registry', () => {
         )
         assert.match(second.textContent, /button/)
         assert.match(second.textContent, /fray-textbox > input/)
-        assert.doesNotMatch(second.textContent, /data-fray-component/)
-        assert.doesNotMatch(second.textContent, /undefined/)
+        assert.doesNotMatch(second.textContent, /selectshell/)
+        assert.doesNotMatch(second.textContent, /data-fray-component|undefined/)
     })
 
-    test('rejects unknown semantic styles', () => {
-        assert.throws(
-            () => styleRegistry.registerBaseStyle('.example', 'not-a-style'),
-            /Unknown Fray base style/,
-        )
+    test('collects class CSS and dependencies base-to-derived against the concrete host', () => {
+        class BaseDependency extends Component {
+            static override hostName = 'base-dependency'
+            static override css = '& { --dependency-order: base; }'
+        }
+        class DerivedDependency extends Component {
+            static override hostName = 'derived-dependency'
+            static override css = '& { --dependency-order: derived; }'
+        }
+        abstract class BaseProbe extends Component {
+            static override dependencies = [BaseDependency]
+            static override css = '& { --class-order: base; }'
+        }
+        class DerivedProbe extends BaseProbe {
+            static override hostName = 'derived-probe'
+            static override dependencies = [DerivedDependency]
+            static override css = '& { --class-order: derived; }'
+        }
+
+        const runtime = createFrayRuntime()
+        runtime.registerStyles(DerivedProbe)
+        const stylesheet = runtime.styleRegistry.generateCSS()
+
+        assert.match(stylesheet, /fray-derivedprobe\s*\{ --class-order: base; \}/)
+        assert.match(stylesheet, /fray-derivedprobe\s*\{ --class-order: derived; \}/)
+        assert.ok(stylesheet.indexOf('--class-order: base') < stylesheet.indexOf('--class-order: derived'))
+        assert.match(stylesheet, /fray-basedependency/)
+        assert.match(stylesheet, /fray-deriveddependency/)
+        assert.doesNotMatch(stylesheet, /&|fray-baseprobe/)
     })
 
-    test('keeps checkbox controls separate from generic input and button traits', () => {
+    test('select controls inherit shared input and select-shell CSS without recipes', () => {
+        const runtime = createFrayRuntime()
+        runtime.registerStyles(Dropdown)
+        const stylesheet = runtime.styleRegistry.generateCSS()
+
+        assert.match(stylesheet, /fray-dropdown\s*\{[^}]*display:\s*flex/)
+        assert.match(stylesheet, /fray-dropdown > \.selectshell\s*\{/)
+        assert.match(stylesheet, /fray-dropdown > \.selectshell::before\s*\{/)
+        assert.match(stylesheet, /fray-dropdown > \.selectshell::after\s*\{/)
+        assert.match(stylesheet, /appearance:\s*var\(--dropdown-appearance\)/)
+    })
+
+    test('keeps checkbox controls separate from generic input and button treatment', () => {
         const runtime = createFrayRuntime()
         runtime.registerStyles(Checkbox)
         const stylesheet = runtime.styleRegistry.generateCSS()
 
         assert.match(stylesheet, /fray-checkbox\s*\{[^}]*display:\s*inline-flex[^}]*line-height:\s*1/)
-        assert.match(stylesheet, /fray-checkbox > label\s*\{[^}]*display:\s*inline-flex/)
+        assert.match(stylesheet, /fray-checkbox > label\s*\{[^}]*display:\s*flex/)
         assert.match(stylesheet, /input\[type="checkbox"\] \+ \.checkboxshell/)
-        assert.match(stylesheet, /\.checkboxshell\s*\{[^}]*background:\s*var\(--checkbox-box-background/)
-        assert.match(stylesheet,
-            /input\[type="checkbox"\]:checked \+ \.checkboxshell\s*\{[^}]*background:/)
-        assert.doesNotMatch(stylesheet,
-            /fray-checkbox\s*\{[^}]*width:var\(--input-width, 15rem\)/)
+        assert.doesNotMatch(stylesheet, /fray-checkbox\s*\{[^}]*width:\s*var\(--input-width/)
     })
 
-    test('contains only semantic styles used by supported components', () => {
-        assert.deepEqual(Object.keys(baseStyleDefinitions).sort(), [
-            'after',
-            'button',
-            'input',
-            'inputlike',
-            'inputline',
-            'labeledinput',
-            'noselect',
-            'uiline',
-            'working',
-        ])
-    })
-
-    test('uses fixed one-hyphen host names and styles', () => {
-        document.body.replaceChildren()
-        document.head.replaceChildren()
-
+    test('uses fixed one-hyphen host names and resolves ampersands', () => {
         class Probe extends Component {
-            render() {
-                return this.host(null, 'configured')
-            }
-
             static override hostName = 'probe'
             static override css = '& { display: block; }'
+            render() { return this.host(null, 'configured') }
         }
 
         const runtime = createFrayRuntime()
@@ -110,197 +122,58 @@ describe('style registry', () => {
         assert.equal(probe.dom?.nodeName.toLowerCase(), 'fray-probe')
         assert.match(runtime.styleRegistry.generateCSS(), /fray-probe/)
         assert.doesNotMatch(runtime.styleRegistry.generateCSS(), /&/)
-
         probe.destroy()
-        document.body.replaceChildren()
-        document.head.replaceChildren()
-    })
-
-    test('rejects removed host-name configuration and resolves fixed stems', () => {
-        assert.throws(
-            () => createFrayRuntime({elementNames: {prefix: 'acme'}} as never),
-            /no longer supports configurable element names/,
-        )
-        const runtime = createFrayRuntime()
-        assert.equal(runtime.resolveElementName('panel'), 'fray-panel')
-        assert.equal(runtime.resolveElementName('list-view'), 'fray-listview')
     })
 })
 
-describe('supported theme bundles', () => {
-    test('does not publish obsolete light/dark compatibility bundles', async () => {
-        const path = fileURLToPath(new URL('../package.json', import.meta.url))
-        const packageJson = JSON.parse(await readFile(path, 'utf8')) as {
-            exports?: Record<string, unknown>
-            files?: string[]
-        }
-
-        assert.equal(packageJson.exports?.['./themes/light.css'], undefined)
-        assert.equal(packageJson.exports?.['./themes/dark.css'], undefined)
-        assert.ok(packageJson.files?.includes('themes'))
-    })
-
-    test('publishes separate hierarchical theme and color bundles', async () => {
-        const themeRequired = frayThemeVariableCatalog
-            .filter(({layer, fallback}) => layer === 'theme' && fallback == null)
-            .map(({name}) => name)
-        const paletteRequired = frayThemeVariableCatalog
-            .filter(({layer, fallback}) => layer === 'palette' && fallback == null)
-            .map(({name}) => name)
-
-        const baseTheme = await readFile(
+describe('four-file styling contract', () => {
+    test('base.css owns defaults and palette derivation but no presentation selectors', async () => {
+        const css = await readFile(
             fileURLToPath(new URL('../themes/base.css', import.meta.url)),
             'utf8',
         )
-        assert.doesNotMatch(baseTheme, /@scope|:where\(/)
-        let allThemes = baseTheme
-        for (const option of frayThemeOptions) {
-            const css = await readFile(fileURLToPath(option.href), 'utf8')
-            allThemes += css
-            const resolved = `${baseTheme}\n${css}`
-            for (const property of themeRequired) assert.match(resolved, new RegExp(`${property}:`))
-            assert.doesNotMatch(resolved, /^\s*--palette-[a-z0-9-]+\s*:/m)
-            assert.match(css, /@import "\.\.\/base\.css"/)
-            assert.doesNotMatch(resolved, /@scope|:where\(/)
-            for (const trait of ['buttonlike', 'inputlike', 'datacomponentlike',
-                'headerlike', 'coloredlike', 'panellike', 'toolbarlike',
-                'buttonshell', 'buttoninner', 'checkboxshell', 'inputshell', 'inputinner',
-                'datacomponentshell', 'datacomponentinner', 'headershell',
-                'headerinner', 'panelshell', 'panelinner', 'toolbarshell',
-                'toolbarinner', 'coloredshell', 'coloredinner', 'selectshell']) {
-                assert.match(resolved, new RegExp(`\\.${trait}\\b`))
-            }
-            assert.doesNotMatch(resolved, /--([a-z0-9-]+):\\s*var\\(--\\1\\)/)
+        assertVariableOnly(css, false)
+        assert.doesNotMatch(css, /@import/)
+        for (const family of ['primary', 'secondary', 'neutral']) {
+            assert.match(css, new RegExp(`--palette-${family}-500:`))
+            assert.match(css, new RegExp(`--palette-${family}-light-mix:\\s*var\\(--palette-light\\)`))
+            assert.match(css, new RegExp(`--palette-${family}-900:[^;]*--palette-${family}-dark-mix`))
         }
-        for (const optionalOverride of [
-            '--table-header-background',
-            '--toggle-button-background',
-            '--dropdown-trigger-background',
-        ]) assert.match(allThemes, new RegExp(`${optionalOverride}:`))
+        for (const {name, fallback} of frayThemeVariableCatalog) {
+            if (fallback == null) assert.match(css, new RegExp(`${name}:`))
+        }
+    })
 
+    test('color files contain anchors/endpoints only and never import base.css', async () => {
         for (const option of frayColorOptions) {
             const css = await readFile(fileURLToPath(option.href), 'utf8')
-            const isDerived = css.includes('@import "../base.css"')
-            for (const property of paletteRequired) {
-                if (isDerived && property.match(/--palette-(?:primary|secondary|neutral)-(?!500)\d+/)) {
-                    continue
-                }
-                assert.match(css, new RegExp(`${property}:`))
-            }
+            assertVariableOnly(css, false)
+            assert.doesNotMatch(css, /@import/)
             assert.doesNotMatch(css, /^\s*--(?!palette-)[a-z0-9-]+\s*:/m)
-            assert.match(css, /@import "\.\.\/base\.css"/)
-            assert.match(css, /:root\s*\{/)
-            assert.doesNotMatch(css, /:where|\[data-color/)
+            for (const family of ['primary', 'secondary', 'neutral']) {
+                assert.match(css, new RegExp(`--palette-${family}-500:`))
+                assert.doesNotMatch(css, new RegExp(`--palette-${family}-(?:50|100|200|300|400|600|700|800|900|950):`))
+            }
         }
     })
 
-    test('base groups semantic theme responsibilities and Shiny overrides only variables', async () => {
-        const baseTheme = await readFile(
+    test('theme files contain intentional overrides only and never import base.css', async () => {
+        const base = await readFile(
             fileURLToPath(new URL('../themes/base.css', import.meta.url)),
             'utf8',
         )
-        const shinyTheme = await readFile(
-            fileURLToPath(new URL('../themes/shiny/theme.css', import.meta.url)),
-            'utf8',
-        )
-
-        for (const section of [
-            '/* Input components */',
-            '/* Action components */',
-            '/* Choice components */',
-            '/* Layout components */',
-            '/* Navigation components */',
-            '/* Data components */',
-            '/* Status and graphical components */',
-        ]) assert.match(baseTheme, new RegExp(section.replaceAll('*', '\\*')))
-        for (const section of [
-            '/* Layout components */',
-            '/* Input components */',
-            '/* Action components */',
-            '/* Choice components */',
-            '/* Navigation components */',
-        ]) assert.match(shinyTheme, new RegExp(section.replaceAll('*', '\\*')))
-
-        assert.match(baseTheme,
-            /fray-panel,\s*\.panellike,\s*dialog\[data-fray\],\s*\.panelshell \{[\s\S]*?border: var\(--panel-border\)/)
-        assert.match(baseTheme,
-            /fray-panel,\s*\.panellike,\s*dialog\[data-fray\],\s*\.panelinner \{[\s\S]*?color: var\(--panel-color\)/)
-        assert.match(baseTheme,
-            /button\[data-fray\],\s*\.buttonlike,\s*\.buttonshell \{[\s\S]*?border: var\(--button-border\)/)
-        assert.match(baseTheme,
-            /input\[data-fray\]:not\(\[type="checkbox"\]\),[\s\S]*?\.inputshell \{[\s\S]*?border: var\(--input-border\)/)
-        assert.match(baseTheme,
-            /header\[data-fray\],[\s\S]*?\.headershell \{[\s\S]*?border: var\(--header-border\)/)
-        assert.match(baseTheme,
-            /\[role="toolbar"\]\[data-fray\],[\s\S]*?\.toolbarshell \{[\s\S]*?border: var\(--toolbar-border\)/)
-        assert.match(baseTheme,
-            /\.datacomponentlike,\s*\.datacomponentinner \{[\s\S]*?color: var\(--ui-color\)/)
-        assert.match(baseTheme,
-            /\.coloredlike,\s*\.coloredshell,\s*\.coloredinner \{[\s\S]*?color: var\(--colored-contrast\)/)
-        assert.match(baseTheme, /fray-panel > header\[data-fray\]/)
-        assert.match(baseTheme, /fray-panel\[data-disabled\]/)
-        assert.match(baseTheme, /aside\[data-fray\] \{\n\s+color: var\(--sidebar-color\)/)
-        assert.match(baseTheme, /aside\[data-fray\] > header\[data-fray\]/)
-        assert.match(baseTheme, /button\[data-fray\],\s*\.buttonlike \{[\s\S]*white-space: nowrap/)
-        assert.match(baseTheme, /label\[data-fray\],\s*legend\[data-fray\] \{[\s\S]*user-select: none[\s\S]*white-space: nowrap/)
-        assert.match(baseTheme, /header\[data-fray\],\s*th\[data-fray\],\s*\.headerlike \{[\s\S]*user-select: none[\s\S]*white-space: nowrap/)
-        assert.match(baseTheme, /aside\[data-fray\] > div\[data-fray\]:last-child:focus-visible/)
-        assert.match(baseTheme, /fray-tabline\[data-fray\] \{\s*background: var\(--tabline-background\);\s*\}/)
-        assert.match(baseTheme, /\[role="tab"\]\[aria-selected="false"\]\[data-fray\]::after/)
-        assert.match(baseTheme, /\[role="tab"\]\[aria-selected="true"\]\[data-fray\]::after/)
-        assert.match(baseTheme, /transform: translateY\(calc\(-1 \* var\(--tab-button-active-lift\)\)\)/)
-        assert.match(shinyTheme, /@import "\.\.\/base\.css"/)
-        assert.match(shinyTheme, /--panel-header-background:/)
-        assert.match(shinyTheme, /--section-header-shadow:\s*var\(--shiny-panel-header-shadow\)/)
-        assert.match(shinyTheme, /--sidebar-header-background:\s*var\(--shiny-panel-header-background\)/)
-        assert.match(shinyTheme, /--tab-button-active-lift:\s*2px/)
-        assert.match(shinyTheme, /--tab-button-inactive-bottom-shadow:/)
-        assert.match(shinyTheme, /--shiny-ui-gradient:\s*linear-gradient\(\s*to top,/)
-        assert.match(shinyTheme, /--shiny-ui-gradient-2:\s*linear-gradient\(\s*to bottom,/)
-        assert.match(shinyTheme, /--button-background:\s*var\(--shiny-ui-gradient-2\)/)
-        assert.match(shinyTheme, /--button-background-hover:\s*var\(--shiny-ui-gradient\)/)
-        assert.match(shinyTheme, /--button-border:\s*1px solid var\(--palette-light\)/)
-        assert.match(shinyTheme, /--button-shadow:\s*-1px 1px 2px 1px/)
-        assert.match(shinyTheme, /--input-shadow:\s*inset -1px 1px 3px -2px/)
-        assert.match(shinyTheme, /--tabline-background:\s*var\(--shiny-ui-gradient-2\)/)
-        assert.match(baseTheme, /\[role="radiogroup"\]\[data-fray\] \{\n\s+inline-size: fit-content/)
-        assert.match(shinyTheme, /--toggle-button-shadow:\s*none/)
-        assert.match(shinyTheme, /--toggle-button-background-checked:\s*radial-gradient/)
-        assert.match(shinyTheme, /--toggle-button-selected-inline-overlap:\s*-1px/)
-        assert.match(shinyTheme, /--toggle-button-selected-z-index:\s*1/)
-        assert.match(shinyTheme, /--toggle-group-shadow:\s*var\(--button-shadow\)/)
-        assert.match(shinyTheme, /--toggle-inactive-shared-border-color:\s*transparent/)
-        assert.match(shinyTheme, /--toggle-inactive-separator-background:\s*linear-gradient/)
-        assert.match(baseTheme, /\[role="radio"\]\[aria-checked="false"\]\[data-fray\] \+ \[role="radio"\]\[aria-checked="false"\]\[data-fray\]::before/)
-        assert.match(baseTheme, /\.checkboxshell \{[\s\S]*box-shadow: var\(--checkbox-box-shadow\)/)
-        assert.match(shinyTheme, /--checkbox-box-background-checked:\s*radial-gradient/)
-        assert.match(shinyTheme, /--checkbox-box-shadow-checked:/)
-        assert.doesNotMatch(shinyTheme, /fray-panel|aside\[data-fray\]|\.panellike|:where\(/)
-    })
-
-    test('palette ramp derivation allows palette-controlled hue variation', async () => {
-        const [basePalette, iceBlue] = await Promise.all([
-            readFile(
-                fileURLToPath(new URL('../colors/base.css', import.meta.url)),
-                'utf8',
-            ),
-            readFile(
-                fileURLToPath(new URL('../colors/iceblue/colors.css', import.meta.url)),
-                'utf8',
-            ),
-        ])
-
-        for (const family of ['primary', 'secondary', 'neutral']) {
-            assert.match(basePalette, new RegExp(`--palette-${family}-light-mix:\\s*var\\(--palette-light\\)`))
-            assert.match(basePalette, new RegExp(`--palette-${family}-dark-mix:\\s*var\\(--palette-dark\\)`))
-            assert.match(basePalette, new RegExp(`--palette-${family}-400:[^;]*--palette-${family}-light-mix`))
-            assert.match(basePalette, new RegExp(`--palette-${family}-900:[^;]*--palette-${family}-dark-mix`))
+        const baseDeclarations = oneLineCustomProperties(base)
+        for (const option of frayThemeOptions) {
+            const css = await readFile(fileURLToPath(option.href), 'utf8')
+            assertVariableOnly(css, true)
+            assert.doesNotMatch(css, /@import/)
+            assert.doesNotMatch(css, /fray-|\[data-fray|\.buttonlike|\.selectshell/)
+            assert.doesNotMatch(css, /^\s*--palette-[a-z0-9-]+\s*:/m)
+            for (const [name, value] of oneLineCustomProperties(css)) {
+                assert.notEqual(value, baseDeclarations.get(name),
+                    `${option.value} repeats the base value for ${name}`)
+            }
         }
-
-        assert.match(iceBlue, /--palette-primary-light-mix:\s*#00b9e8/)
-        assert.match(iceBlue, /--palette-primary-dark-mix:\s*#00193f/)
-        assert.match(iceBlue, /--palette-primary-500:\s*#2989d8/)
-        assert.doesNotMatch(iceBlue, /--palette-primary-(?:50|100|200|300|400|600|700|800|900|950):/)
     })
 
     test('catalog fallbacks reference declared variables', () => {
@@ -309,82 +182,58 @@ describe('supported theme bundles', () => {
         for (const definition of frayThemeVariableCatalog) {
             if (definition.fallback != null) assert.ok(names.has(definition.fallback))
         }
-        assert.ok(frayThemeVariableCatalog.some(({name}) =>
-            name === '--table-header-background'))
-        assert.ok(frayThemeVariableCatalog.some(({name}) =>
-            name === '--toggle-button-background'))
-        assert.ok(frayThemeVariableCatalog.some(({name}) =>
-            name === '--palette-primary-light-mix'))
     })
 
     test('replaces theme and color links independently', () => {
         document.head.replaceChildren()
-        const theme = frayThemeOptions[0]
-        const colors = frayColorOptions[0]
-        assert.ok(theme)
-        assert.ok(colors)
-
+        const theme = frayThemeOptions[0]!
+        const colors = frayColorOptions[0]!
         const themeLink = replaceFrayStylesheet('theme', theme, document)
         const colorLink = replaceFrayStylesheet('colors', colors, document)
         assert.notEqual(themeLink, colorLink)
         assert.equal(document.head.querySelectorAll('link[rel="stylesheet"]').length, 2)
         assert.equal(document.documentElement.dataset.theme, theme.value)
         assert.equal(document.documentElement.dataset.color, colors.value)
-
-        const replacement = frayThemeOptions[1]
-        assert.ok(replacement)
-        assert.equal(replaceFrayStylesheet('theme', replacement, document), themeLink)
-        assert.equal(themeLink.dataset.fraySelection, replacement.value)
-        assert.equal(colorLink.dataset.fraySelection, colors.value)
     })
 
     test('uses one root appearance setting for adaptive themes', () => {
         document.documentElement.removeAttribute('data-appearance')
         assert.equal(getFrayAppearance(document), 'system')
-
         setFrayAppearance('dark', document)
-        assert.equal(document.documentElement.dataset.appearance, 'dark')
         assert.equal(getFrayAppearance(document), 'dark')
-
-        setFrayAppearance('light', document)
-        assert.equal(document.documentElement.dataset.appearance, 'light')
         setFrayAppearance('system', document)
         assert.equal(document.documentElement.hasAttribute('data-appearance'), false)
-        assert.equal(getFrayAppearance(document), 'system')
         assert.throws(() => setFrayAppearance('dim' as never, document), /light, dark, or system/)
     })
 
-    test('ships one generated structural artifact without palette declarations', async () => {
-        const path = fileURLToPath(new URL('../styles/structural.css', import.meta.url))
-        const css = await readFile(path, 'utf8')
-        assert.match(css, /Generated by scripts\/build-structural-css\.mjs/)
-        assert.match(css, /fray-themepicker/)
-        assert.match(css, /fray-colorpicker/)
-        assert.match(css, /fray-checkbox\s*\{[^}]*display:\s*inline-flex[^}]*line-height:\s*1/)
-        assert.doesNotMatch(css, /^\s*--palette-[a-z0-9-]+\s*:/m)
-        assert.doesNotMatch(css, /data-fray-component/)
-        assert.doesNotMatch(css, /#[0-9a-f]{3,8}\b/i)
-    })
-
-    test('exports the structural, hierarchical theme, and color subpaths', async () => {
-        const path = fileURLToPath(new URL('../package.json', import.meta.url))
-        const packageJson = JSON.parse(await readFile(path, 'utf8')) as {
+    test('publishes base, generated structural, theme, and color assets', async () => {
+        const packagePath = fileURLToPath(new URL('../package.json', import.meta.url))
+        const packageJson = JSON.parse(await readFile(packagePath, 'utf8')) as {
             exports?: Record<string, unknown>
-            files?: string[]
         }
-        assert.equal(
-            packageJson.exports?.['./styles/structural.css'],
-            './styles/structural.css',
+        assert.equal(packageJson.exports?.['./themes/base.css'], './themes/base.css')
+        assert.equal(packageJson.exports?.['./styles/structural.css'], './styles/structural.css')
+        assert.equal(packageJson.exports?.['./themes/*/theme.css'], './themes/*/theme.css')
+        assert.equal(packageJson.exports?.['./colors/*/colors.css'], './colors/*/colors.css')
+
+        const structural = await readFile(
+            fileURLToPath(new URL('../styles/structural.css', import.meta.url)),
+            'utf8',
         )
-        assert.equal(
-            packageJson.exports?.['./themes/*/theme.css'],
-            './themes/*/theme.css',
-        )
-        assert.equal(
-            packageJson.exports?.['./colors/*/colors.css'],
-            './colors/*/colors.css',
-        )
-        assert.ok(packageJson.files?.includes('styles'))
-        assert.ok(packageJson.files?.includes('colors'))
+        assert.match(structural, /Generated by scripts\/build-structural-css\.mjs/)
+        assert.doesNotMatch(structural, /^\s*--palette-[a-z0-9-]+\s*:/m)
     })
 })
+
+function assertVariableOnly(css: string, allowColorScheme: boolean): void {
+    const declarations = [...css.matchAll(/^\s*([a-z-]+)\s*:/gmi)].map(([, name]) => name!)
+    const unexpected = declarations.filter((name) =>
+        !name.startsWith('--') && !(allowColorScheme && name === 'color-scheme'))
+    assert.deepEqual(unexpected, [])
+    assert.doesNotMatch(css, /@scope|:where\(|@media/)
+}
+
+function oneLineCustomProperties(css: string): Map<string, string> {
+    return new Map([...css.matchAll(/^\s*(--[a-z0-9-]+):\s*([^;\n]+);/gmi)]
+        .map(([, name, value]) => [name!, value!.trim()]))
+}

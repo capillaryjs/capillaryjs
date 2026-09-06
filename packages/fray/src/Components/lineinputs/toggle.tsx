@@ -136,12 +136,7 @@ export class Toggle<TValue extends Key = string> extends Component<ToggleProps<T
         }
     }
 
-    static baseStyles = [
-        ['fieldset:has(> [data-part="options"]) > [data-part="options"]', ['uiline']],
-        ['fieldset:has(> [data-part="options"]) [role="radio"]', ['uiline', 'button']],
-    ]
-
-    static css = css`
+    static override css = css`
         fieldset:has(> [data-part="options"]) {
             margin: 0;
             padding: 0;
@@ -152,6 +147,56 @@ export class Toggle<TValue extends Key = string> extends Component<ToggleProps<T
         fieldset:has(> [data-part="options"]) > [data-part="options"] {
             display: flex;
             padding: 0;
+            margin: 0;
+            min-height: var(--control-min-height, 2rem);
+            border-radius: var(--radius-md);
+            box-shadow: var(--toggle-group-shadow);
+            box-sizing: border-box;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        fieldset:has(> [data-part="options"]) [role="radio"] {
+            position: relative;
+            min-height: var(--control-min-height, 2rem);
+            padding: var(--space-xs) var(--space-sm);
+            color: var(--button-color);
+            background: var(--toggle-button-background);
+            border: var(--button-border);
+            border-radius: 0;
+            border-left: none;
+            border-right: none;
+            box-shadow: var(--toggle-button-shadow);
+            box-sizing: border-box;
+            cursor: default;
+            user-select: none;
+            white-space: nowrap;
+        }
+
+        fieldset:has(> [data-part="options"]) [role="radio"]:disabled {
+            cursor: not-allowed;
+            pointer-events: none;
+        }
+
+        fieldset:has(> [data-part="options"]) [role="radio"]:active:not(:disabled) {
+            border-style: var(--button-border-style-active);
+        }
+
+        fieldset:has(> [data-part="options"]) [role="radio"]:first-of-type {
+            border-radius: var(--ui-border-radius) 0 0 var(--ui-border-radius);
+            border: var(--button-border);
+            border-right: none;
+        }
+
+        fieldset:has(> [data-part="options"]) [role="radio"]:last-of-type {
+            border-radius: 0 var(--ui-border-radius) var(--ui-border-radius) 0;
+            border: var(--button-border);
+            border-left: none;
+        }
+
+        fieldset:has(> [data-part="options"]) [role="radio"][aria-checked="false"]
+        + [role="radio"][aria-checked="false"] {
+            border-left: none;
         }
 
     `

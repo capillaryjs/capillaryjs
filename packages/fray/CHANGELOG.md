@@ -9,8 +9,10 @@ Versioning.
 ### Added
 
 - `data-fray` renderer ownership markers on every Fray-created element, fixed
-  one-hyphen `fray-<stem>` component hosts, a shared base theme stylesheet, and
-  the `setFrayAppearance()`/`getFrayAppearance()` document appearance API.
+  one-hyphen `fray-<stem>` component hosts, a variable-only base stylesheet,
+  and the `setFrayAppearance()`/`getFrayAppearance()` document appearance API.
+- Base-to-derived component CSS collection, including dependencies declared at
+  every class level, for meaningful component styling inheritance.
 - Explicit component-specific `live()` prop allowlists, enforced consistently
   by typed JSX/`h()` authoring and the runtime renderer.
 - `Label` component with a live `text` prop for accessible form field labeling.
@@ -20,10 +22,11 @@ Versioning.
 - Regenerated structural CSS to match the fixed component host names.
 - Palette ramps can independently mix their primary, secondary, or neutral
   light and dark sides toward palette-selected hue endpoints.
-- `Panel` is the first rebuilt Shiny component treatment, with a matching
-  public style-lab review surface and browser accessibility coverage.
-- Minimal and Java now compose the shared base theme; native presentation rules
-  target Fray-owned elements directly rather than scoped theme islands.
+- Normal applications register their root component and inject only reachable
+  component CSS. Base owns semantic defaults and palette derivation; named
+  colors and themes are independent variable-only files with no base import.
+- The public style lab has returned to a native zero-component baseline for
+  strict component-at-a-time CSS review.
 - Interactive controls now expose consistent live availability and validation
   contracts: `Textbox`/`Dropdown` accept live disabled, required, and error
   state; checkboxes, radio controls, and toggles accept live disabled, required,
@@ -36,6 +39,8 @@ Versioning.
 
 - Configurable Fray component host prefixes and overrides, plus the obsolete
   top-level `themes/light.css` and `themes/dark.css` compatibility bundles.
+- The named `baseStyles` recipe registry and its public types; shared component
+  CSS now follows meaningful class inheritance.
 
 ## 0.7.0 - 2026-09-04
 

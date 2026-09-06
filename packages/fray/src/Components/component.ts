@@ -105,11 +105,6 @@ export type TemplateProps<TProps extends ComponentProps> = {
             : TProps[TName]
 }
 
-export type BaseStyleNames = string | readonly string[]
-export type BaseStyles =
-    | Readonly<Record<string, BaseStyleNames>>
-    | ReadonlyArray<readonly [string, BaseStyleNames]>
-
 export interface ComponentDependency {
     registerStyles(runtime?: FrayRuntime, seen?: Set<ComponentDependency>): void
 }
@@ -300,14 +295,9 @@ export class Component<TProps extends ComponentProps = ComponentProps> {
         return instance.mount() as InstanceType<TConstructor>
     }
 
-    static get baseStyles(): unknown {
-        return {}
-    }
-
     static registerStyles(
         this: ComponentDependency & {
             css?: string
-            baseStyles?: unknown
             dependencies?: ComponentDependency[]
             hostName?: string | null
         },
@@ -317,20 +307,20 @@ export class Component<TProps extends ComponentProps = ComponentProps> {
         if (seen.has(this)) return
         seen.add(this)
 
-        const hostName = this.hostName ?? null
-        if (this.css) {
-            runtime.styleRegistry.registerCSS(hostName == null
-                ? this.css
-                : runtime.resolveHostCSS(this.css, hostName))
+        const concreteHostName = this.hostName ?? null
+        const styleChain = componentStyleChain(this)
+        for (const owner of styleChain) {
+            if (Object.hasOwn(owner, 'css') && owner.css) {
+                runtime.styleRegistry.registerCSS(concreteHostName == null
+                    ? owner.css
+                    : runtime.resolveHostCSS(owner.css, concreteHostName))
+            }
         }
-        const baseStyles = normalizeBaseStyles(this.baseStyles)
-        for (const [selector, styleNames] of baseStyles) {
-            runtime.styleRegistry.registerBaseStyle(hostName == null
-                ? selector
-                : runtime.resolveHostSelector(selector, hostName), styleNames)
-        }
-        for (const dependency of this.dependencies ?? []) {
-            dependency.registerStyles(runtime, seen)
+        for (const owner of styleChain) {
+            if (!Object.hasOwn(owner, 'dependencies')) continue
+            for (const dependency of owner.dependencies ?? []) {
+                dependency.registerStyles(runtime, seen)
+            }
         }
     }
 
@@ -1567,26 +1557,17 @@ function describeValue(value: unknown): string {
     }
 }
 
-function normalizeBaseStyles(value: unknown): Array<[string, BaseStyleNames]> {
-    if (value == null) return []
-    if (Array.isArray(value)) {
-        return value.map((entry) => {
-            if (!Array.isArray(entry) || entry.length < 2 || typeof entry[0] !== 'string') {
-                throw new TypeError('Component baseStyles entries must be selector/style tuples')
-            }
-            const names = entry[1]
-            if (typeof names !== 'string'
-                && (!Array.isArray(names) || names.some((name) => typeof name !== 'string'))) {
-                throw new TypeError('Component base style names must be strings')
-            }
-            return [entry[0], names as BaseStyleNames]
-        })
+interface StyleOwner {
+    css?: string
+    dependencies?: ComponentDependency[]
+}
+
+function componentStyleChain(concrete: StyleOwner): StyleOwner[] {
+    const chain: StyleOwner[] = []
+    let owner: object | null = concrete
+    while (owner != null && owner !== Component && typeof owner === 'function') {
+        chain.unshift(owner as unknown as StyleOwner)
+        owner = Object.getPrototypeOf(owner)
     }
-    if (typeof value !== 'object') {
-        throw new TypeError('Component baseStyles must be an object or tuple array')
-    }
-    return Object.entries(value).map(([selector, names]) => [
-        selector,
-        names as BaseStyleNames,
-    ])
+    return chain
 }

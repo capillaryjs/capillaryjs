@@ -38,8 +38,6 @@ export * from './Components/status/progressBar.js'
 export * from './Components/theme/stylesheetPicker.js'
 export {Component, css, h, live} from './Components/component.js'
 export type {
-    BaseStyleNames,
-    BaseStyles,
     ComponentConstructor,
     ComponentDependency,
     ComponentProps,

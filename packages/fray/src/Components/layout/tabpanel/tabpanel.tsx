@@ -175,7 +175,7 @@ export class TabPanel extends Component<TabPanelProps> {
             display: flex;
             flex-direction: column;
             width: 100%;
-            min-height: 0;
+            height: 100%;
             overflow: hidden;
         }
 
@@ -184,6 +184,7 @@ export class TabPanel extends Component<TabPanelProps> {
             flex-direction: column;
             flex: 1;
             overflow: auto;
+            z-index: 2;
         }
     `
 }

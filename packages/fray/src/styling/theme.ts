@@ -117,6 +117,7 @@ export const frayThemeVariableCatalog = Object.freeze([
     variable('--button-border', 'theme', 'button', 'border', 'Generic button border'),
     variable('--button-shadow', 'theme', 'button', 'shadow', 'Generic button shadow'),
     variable('--button-shadow-active', 'theme', 'button', 'shadow', 'Pressed button shadow'),
+    variable('--button-border-style-active', 'theme', 'button', 'border', 'Pressed button border style'),
     variable('--toggle-button-background', 'theme', 'button', 'background', 'Toggle option surface', '--button-background'),
     variable('--toggle-button-background-checked', 'theme', 'button', 'background', 'Selected toggle option', '--selection-background'),
     variable('--tab-button-background', 'theme', 'button', 'background', 'Tab surface', '--button-background'),

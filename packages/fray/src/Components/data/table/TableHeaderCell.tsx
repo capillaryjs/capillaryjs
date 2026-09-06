@@ -142,27 +142,42 @@ export class TableHeaderCell extends Component<TableHeaderCellProps> {
 
     static dependencies = [FilterPanel]
 
-    static baseStyles = [
-        ['th[aria-sort]', 'noselect'],
-        ['th[aria-sort] > [data-part="sort"]', ['uiline', 'button']],
-        ['th[aria-sort] > [data-part="filter-toggle"]', ['uiline', 'button']],
-    ]
-
-    static css = css`
+    static override css = css`
         th[aria-sort] {
             position: relative;
-            text-align: start;
+            padding-right: 24px;
+            user-select: var(--noselect-user-select);
+            cursor: var(--noselect-cursor);
         }
 
         th[aria-sort] > [data-part="sort"],
         th[aria-sort] > [data-part="filter-toggle"] {
             width: auto;
+            min-height: var(--control-min-height, 2rem);
+            padding: var(--space-xs) var(--space-sm);
+            color: var(--button-color);
+            background: var(--button-background);
+            border: var(--button-border);
+            border-radius: var(--radius-md);
+            box-shadow: var(--button-shadow);
+            box-sizing: border-box;
+            cursor: default;
             font-family: inherit;
+            user-select: none;
+            white-space: nowrap;
         }
 
         th[aria-sort] > [data-part="filter-toggle"] {
-            margin-inline-start: var(--ui-padding-h);
-            font-size: 0.75em;
+            position: absolute;
+            right: 2px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 1em;
+            opacity: 0.5;
+        }
+
+        th[aria-sort] > [data-part="filter-toggle"]:hover {
+            opacity: 1;
         }
     `
 }

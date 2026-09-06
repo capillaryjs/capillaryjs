@@ -181,17 +181,19 @@ export class ListView<TItem = unknown> extends Component<ListViewProps<TItem>> {
 
     static override hostName = 'list-view'
 
-    static baseStyles = [
-        ['&', 'inputlike'],
-        ['& > [role="listbox"] > [role="option"]', 'inputline'],
-    ]
-
-    static css = css`
+    static override css = css`
         & {
             display: flex;
             flex-direction: column;
             overflow-y: auto;
-            min-height: 0;
+            height: 100%;
+            color: var(--ui-color);
+            background: var(--ui-background);
+            border: var(--input-border);
+            border-radius: var(--radius-md);
+            box-shadow: var(--input-shadow);
+            box-sizing: border-box;
+            user-select: none;
         }
 
         & > [role="listbox"],
@@ -201,8 +203,16 @@ export class ListView<TItem = unknown> extends Component<ListViewProps<TItem>> {
         }
 
         & > [role="listbox"] > [role="option"] {
-            cursor: default;
+            display: flex;
+            flex-flow: row nowrap;
+            position: relative;
+            min-height: var(--control-min-height, 2rem);
+            box-sizing: border-box;
             user-select: none;
+        }
+
+        & > [role="listbox"] > [role="option"]:last-child {
+            border-bottom: none;
         }
 
         & > [role="status"],

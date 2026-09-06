@@ -288,8 +288,8 @@ export class DataTable<TRow extends TableRow = TableRow>
         }
 
         & > table {
-            width: 100%;
             border-collapse: collapse;
+            width: 100%;
         }
 
         & thead:has([aria-expanded="true"]) {
@@ -299,13 +299,28 @@ export class DataTable<TRow extends TableRow = TableRow>
 
         & th,
         & td {
-            padding: var(--ui-padding-v) var(--ui-padding-h);
-            text-align: start;
+            text-align: left;
+            padding: 0 var(--ui-padding);
+            font-weight: normal;
         }
 
-        & tbody tr[data-fray-selectable-row] {
-            cursor: default;
+        &,
+        & table,
+        & tbody tr,
+        & tbody tr td {
             user-select: none;
+            pointer-events: all;
+        }
+
+        & tr td {
+            line-height: calc(var(--ui-font-size) + var(--ui-padding));
+            font-size: var(--ui-font-size);
+            height: calc(var(--ui-font-size) + var(--ui-padding-h));
+        }
+
+        & tr td fray-placeholder {
+            font-size: var(--ui-font-size);
+            height: var(--ui-font-size);
         }
 
     `

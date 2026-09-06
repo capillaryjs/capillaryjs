@@ -1,4 +1,4 @@
-import {Component, css} from '../component.js'
+import {css} from '../component.js'
 import type {FrayChild, LivePropContract, Ref} from '../component.js'
 import {
     componentClass,
@@ -7,6 +7,7 @@ import {
     invoke,
 } from '../controlUtils.js'
 import type {ValueControlProps, ValueEmitter} from '../controlUtils.js'
+import {LabeledInputControl} from './LabeledInputControl.js'
 
 const textboxLiveProps = ['disabled', 'required', 'readOnly', 'error'] as const
 
@@ -32,7 +33,7 @@ export interface TextboxProps extends ValueControlProps<string>,
     onChange?: (value: string, event: Event) => void
 }
 
-export class Textbox extends Component<TextboxProps> {
+export class Textbox extends LabeledInputControl<TextboxProps> {
     static override liveProps = textboxLiveProps
     readonly inputId: string
     readonly errorId: string
@@ -117,12 +118,7 @@ export class Textbox extends Component<TextboxProps> {
 
     static override hostName = 'textbox'
 
-    static baseStyles = [
-        ['&', ['labeledinput', 'inputline']],
-        ['& > input', ['input', 'inputline']],
-    ]
-
-    static css = css`
+    static override css = css`
         & input {
             cursor: text;
         }

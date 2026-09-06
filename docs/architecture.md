@@ -101,18 +101,18 @@ Readable emitters may be rendered as fine-grained children, bound to properties,
 or read as component dependencies. Glue remains an external Fray peer so a
 consumer resolves one reactive runtime instance.
 
-Fray presentation has three independent layers:
+Fray presentation has four ordered inputs:
 
 ```text
-component structural declarations
-              │ dependency-aware collection
+themes/base.css (variables and palette derivation only)
+              │
               ▼
-styles/structural.css (loaded once)
+component static css (usage-specific, dependency-aware collection)
               ▲
               │ consumes hierarchical custom properties
               │
-themes/<name>/theme.css  +  colors/<name>/colors.css
-replaceable treatment       replaceable palette
+colors/<name>/colors.css  +  themes/<name>/theme.css
+anchors/endpoints only       intentional variable overrides only
 ```
 
 The variable hierarchy proceeds from palette roles through global UI roles and
@@ -120,9 +120,11 @@ generic semantic families such as headers, buttons, inputs, panels, and
 selection. Optional table-header, tab-button, toggle-button, dropdown-trigger,
 dialog, checkbox, and progress roles specialize those families. Custom
 components participate by consuming the generic fallbacks and may expose a
-narrower component override. Theme selectors are exceptional but supported for
-pseudo-elements and native pseudo-parts that variables alone cannot create;
-they use stable component/part/state hooks and preserve accessibility behavior.
+narrower component override. Selectors, pseudo-elements, native pseudo-parts,
+and state rules remain with the owning component class; themes supply only the
+values they consume. Meaningful abstract component classes own CSS shared by
+descendants, and the collector emits inherited rules base-to-derived against
+each concrete host.
 
 Theme and color selection is application policy. Fray supplies pickers and
 independent stylesheet-link replacement; Glue is involved only if the

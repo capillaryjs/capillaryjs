@@ -150,9 +150,20 @@ export class Checkbox<TValue extends CheckboxValue = FilterModeValue>
         }
 
         & > label {
-            display: inline-flex;
+            display: flex;
+            flex-flow: row nowrap;
+            position: relative;
+            line-height: calc(var(--ui-font-size) + var(--ui-padding) + var(--ui-padding));
+            font-size: var(--ui-font-size);
+            height: calc(var(--ui-font-size) + var(--ui-padding-h) + var(--ui-padding-h));
+            color: var(--ui-text-color);
+            border-radius: var(--ui-border-radius);
+            box-sizing: border-box;
             align-items: center;
-            gap: 0.35em;
+            gap: .3em;
+            align-content: center;
+            justify-content: center;
+            justify-items: center;
             cursor: pointer;
             user-select: none;
         }
@@ -177,14 +188,13 @@ export class Checkbox<TValue extends CheckboxValue = FilterModeValue>
 
         & input[type="checkbox"] + .checkboxshell {
             position: relative;
-            display: inline-grid;
+            display: block;
             width: 1em;
             height: 1em;
             flex: 0 0 1em;
-            overflow: hidden;
             box-sizing: border-box;
-            line-height: 1;
-            place-items: center;
+            text-align: center;
+            line-height: 120%;
             color: var(--input-color, var(--ui-text-color, currentColor));
             background: var(--checkbox-box-background, var(--ui-input-bg, transparent));
             border: var(--checkbox-box-border, var(--cbx-o-border, 1px solid currentColor));
@@ -207,6 +217,7 @@ export class Checkbox<TValue extends CheckboxValue = FilterModeValue>
 
         & input[type="checkbox"]:disabled + .checkboxshell {
             opacity: 0.6;
+            filter: saturate(0.6);
         }
     `
 }

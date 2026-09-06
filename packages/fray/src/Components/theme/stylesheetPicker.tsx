@@ -1,13 +1,13 @@
-import {Component, css} from '../component.js'
+import {css} from '../component.js'
 import type {ComponentProps, FrayChild, LivePropContract} from '../component.js'
 import {
-    classNames,
     componentClass,
     controlId,
     createValueEmitter,
     invoke,
 } from '../controlUtils.js'
 import type {ValueControlProps, ValueEmitter} from '../controlUtils.js'
+import {SelectControl} from '../lineinputs/SelectControl.js'
 import {
     findFrayStylesheetOption,
     frayColorOptions,
@@ -32,7 +32,7 @@ export interface StylesheetPickerProps extends ValueControlProps<string>,
     onChange?: (value: string, option: FrayStylesheetOption, event: Event) => void
 }
 
-abstract class StylesheetPicker extends Component<StylesheetPickerProps> {
+abstract class StylesheetPicker extends SelectControl<StylesheetPickerProps> {
     static override liveProps = stylesheetPickerLiveProps
     readonly valueEmitter: ValueEmitter<string>
     readonly inputId: string
@@ -66,29 +66,31 @@ abstract class StylesheetPicker extends Component<StylesheetPickerProps> {
         const {label, ariaLabel, disabled = false, onChange} = this.props
         const Host = this.Host
         return <Host
-            className={classNames('selectshell', componentClass(this.props))}
+            className={componentClass(this.props)}
             data-kind={this.kind}
             data-disabled={disabled ? '' : null}
         >
             {label == null ? null : <label htmlFor={this.inputId}>{label}</label>}
-            <select
-                id={this.inputId}
-                value={selected.value}
-                disabled={disabled}
-                aria-label={label == null ? ariaLabel : null}
-                onChange={(event: Event) => {
-                    const value = selectedValue(event)
-                    const option = findFrayStylesheetOption(options, value)
-                    this.valueEmitter.set(value, `${this.kind} selected`)
-                    invoke(onChange, value, option, event)
-                }}
-            >
-                {options.map((option) => <option
-                    key={option.value}
-                    value={option.value}
-                    selected={option.value === selected.value}
-                >{option.label}</option>)}
-            </select>
+            <span class="selectshell">
+                <select
+                    id={this.inputId}
+                    value={selected.value}
+                    disabled={disabled}
+                    aria-label={label == null ? ariaLabel : null}
+                    onChange={(event: Event) => {
+                        const value = selectedValue(event)
+                        const option = findFrayStylesheetOption(options, value)
+                        this.valueEmitter.set(value, `${this.kind} selected`)
+                        invoke(onChange, value, option, event)
+                    }}
+                >
+                    {options.map((option) => <option
+                        key={option.value}
+                        value={option.value}
+                        selected={option.value === selected.value}
+                    >{option.label}</option>)}
+                </select>
+            </span>
         </Host>
     }
 
@@ -117,17 +119,8 @@ abstract class StylesheetPicker extends Component<StylesheetPickerProps> {
         )
     }
 
-    static baseStyles = [
-        ['&', ['labeledinput', 'inputline']],
-        ['& > select', ['input', 'inputline']],
-    ]
-
-    static css = css`
-        & {
-            position: relative;
-        }
-
-        & > select {
+    static override css = css`
+        & > .selectshell > select {
             min-width: 8rem;
         }
     `

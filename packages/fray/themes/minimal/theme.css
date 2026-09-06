@@ -1,4 +1,7 @@
 @charset "utf-8";
-@import "../base.css";
-
-/* Minimal deliberately uses the complete shared default treatment. */
+/* Minimal deliberately keeps the defaults supplied by base.css. */
+@layer theme {
+  :root {
+    color-scheme: light dark;
+  }
+}

@@ -13,14 +13,16 @@ pnpm add @sylwellsoftware/glue @sylwellsoftware/fray \
   @sylwellsoftware/fray-visualization
 ```
 
-Load both structural stylesheets and an application-selected Fray theme/color
-pair:
+Load Fray's variable base and an application-selected theme/color pair. Register
+the application root so Fray and Visualization component CSS is collected from
+declared dependencies:
 
 ```ts
-import '@sylwellsoftware/fray/styles/structural.css'
-import '@sylwellsoftware/fray-visualization/styles/structural.css'
+import '@sylwellsoftware/fray/themes/base.css'
 import '@sylwellsoftware/fray/themes/minimal/theme.css'
 import '@sylwellsoftware/fray/colors/iceblue/colors.css'
+
+runtime.registerStyles(App).injectStyles(document)
 ```
 
 ## Grouping and filtering

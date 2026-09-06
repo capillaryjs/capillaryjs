@@ -63,10 +63,12 @@ caller-owned. Application classes and composition roots own service lifetimes.
 | `NavigationAdapter`, `createHistoryNavigation`, `createHashNavigation`, `MemoryNavigationAdapter` | Injected URL placement and deterministic navigation-history seams. | Fray routing |
 | `RouteScope`, `RouteValue`, `RouteQuery`, `RouteLink`, `waitForRouteValue` | Mounted route context, dynamic/query emitter bindings, native links, and cancellable Glue-readable prerequisites. | Fray routing/components |
 
-The package also exposes `./jsx-runtime`, `./jsx-dev-runtime`, generated
-`./styles/structural.css`, replaceable `./themes/*/theme.css`, and replaceable
-`./colors/*/colors.css` subpaths. Built-in hosts have fixed `fray-<stem>`
-names; Fray-created elements carry `data-fray` for native presentation rules.
+The package also exposes `./jsx-runtime`, `./jsx-dev-runtime`, variable-only
+`./themes/base.css`, complete generated `./styles/structural.css`, replaceable
+`./themes/*/theme.css`, and replaceable `./colors/*/colors.css` subpaths.
+Normal applications collect structural CSS from their declared root component
+rather than loading the complete artifact. Built-in hosts have fixed
+`fray-<stem>` names; Fray-created elements carry `data-fray` for diagnostics.
 
 `Component.read()` and `Component.snapshot()` are the supported render-time
 tracked-read APIs. `WritableEmitter`, `LiveBinding`, `LivePropContract`,

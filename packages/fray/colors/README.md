@@ -1,39 +1,33 @@
 # Fray color palettes
 
-Each `<name>/colors.css` file defines a replaceable, prefix-free color
-language. It contains palette values only; it does not decide what a panel,
-button, input, selection, or application surface looks like.
+Each `<name>/colors.css` file is a replaceable variable-only palette. It does
+not decide what a panel, button, input, selection, or application surface looks
+like, and it never imports another stylesheet.
 
-Every palette supplies three complete ramps:
+A palette normally supplies:
 
-```text
---palette-primary-{50,100,200,300,400,500,600,700,800,900,950}
---palette-secondary-{50,100,200,300,400,500,600,700,800,900,950}
---palette-neutral-{50,100,200,300,400,500,600,700,800,900,950}
+- `--palette-light` and `--palette-dark` endpoints;
+- light/dark contrast colors and named red/green primitives;
+- `--palette-primary-500`, `--palette-secondary-500`, and
+  `--palette-neutral-500` anchors.
+
+`themes/base.css` derives the remaining numeric ramp stops and the ordinary
+`primary`, `light`, and `dark` aliases with `color-mix`. A palette may also
+override `--palette-<family>-light-mix` or
+`--palette-<family>-dark-mix` when a ramp intentionally changes hue.
+
+```css
+@layer palette {
+  :root {
+    --palette-light: #fff;
+    --palette-dark: #111827;
+    --palette-primary-500: #2989d8;
+    --palette-secondary-500: #7137a8;
+    --palette-neutral-500: #7892aa;
+  }
+}
 ```
 
-These ramps are automatically derived from the base `500` values using
-`color-mix` in `colors/base.css`. A new palette only needs to provide the base
-values and `@import "../base.css"`. By default, light stops mix toward
-`--palette-light` and dark stops mix toward `--palette-dark`. A palette may
-instead set `--palette-<family>-light-mix` and/or
-`--palette-<family>-dark-mix` to introduce intentional hue variation in a
-specific primary, secondary, or neutral ramp while retaining the shared
-derivation.
-
-It also supplies `--palette-<family>`, `--palette-<family>-light`, and
-`--palette-<family>-dark` aliases; `--palette-light`, `--palette-dark`,
-`--palette-contrast-light`, and `--palette-contrast-dark`; and named hue
-primitives such as `--palette-red` and `--palette-green`. Additional numeric
-stops may be added without changing the existing contract.
-
-Themes map these values to semantic variables. For example, a theme may map a
-light-mode button to `--palette-neutral-100`, a selected item to
-`--palette-primary-600`, and an error to `--palette-red`. A different theme can
-use the same palette in entirely different places.
-
-Palette declarations use a zero-specificity boundary selector for `:root` or
-the matching `[data-color]` root. They select no descendants; the custom
-properties propagate through normal inheritance and a nested color root seeds
-its own palette. `frayThemeVariableCatalog` entries whose `layer` is `palette`
-expose the machine-readable required vocabulary.
+Color files contain no semantic `--button-*`, `--input-*`, or `--panel-*`
+variables and no descendant selectors. Themes map the derived palette to those
+semantic roles.

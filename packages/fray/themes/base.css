@@ -1,19 +1,83 @@
 @charset "utf-8";
 
+/* Variables only. Structural and presentation declarations belong to components. */
+@layer palette {
+  :root {
+      /* Usable defaults; colors.css replaces these anchors and endpoints. */
+      --palette-light: #ffffff;
+      --palette-dark: #111827;
+      --palette-contrast-light: var(--palette-light);
+      --palette-contrast-dark: var(--palette-dark);
+      --palette-red: #b3261e;
+      --palette-green: #287a3c;
+      --palette-primary-500: #2989d8;
+      --palette-secondary-500: #7137a8;
+      --palette-neutral-500: #7892aa;
+
+      /* Each ramp may vary hue; ordinary palettes retain its contrast endpoints. */
+      --palette-primary-light-mix: var(--palette-light);
+      --palette-primary-dark-mix: var(--palette-dark);
+      --palette-secondary-light-mix: var(--palette-light);
+      --palette-secondary-dark-mix: var(--palette-dark);
+      --palette-neutral-light-mix: var(--palette-light);
+      --palette-neutral-dark-mix: var(--palette-dark);
+
+      --palette-primary-50: color-mix(in oklch, var(--palette-primary-500) 8%, var(--palette-primary-light-mix));
+      --palette-primary-100: color-mix(in oklch, var(--palette-primary-500) 16%, var(--palette-primary-light-mix));
+      --palette-primary-200: color-mix(in oklch, var(--palette-primary-500) 32%, var(--palette-primary-light-mix));
+      --palette-primary-300: color-mix(in oklch, var(--palette-primary-500) 50%, var(--palette-primary-light-mix));
+      --palette-primary-400: color-mix(in oklch, var(--palette-primary-500) 72%, var(--palette-primary-light-mix));
+      --palette-primary-600: color-mix(in oklch, var(--palette-primary-500) 85%, var(--palette-primary-dark-mix));
+      --palette-primary-700: color-mix(in oklch, var(--palette-primary-500) 72%, var(--palette-primary-dark-mix));
+      --palette-primary-800: color-mix(in oklch, var(--palette-primary-500) 58%, var(--palette-primary-dark-mix));
+      --palette-primary-900: color-mix(in oklch, var(--palette-primary-500) 42%, var(--palette-primary-dark-mix));
+      --palette-primary-950: color-mix(in oklch, var(--palette-primary-500) 28%, var(--palette-primary-dark-mix));
+      --palette-primary: var(--palette-primary-500);
+      --palette-primary-light: var(--palette-primary-200);
+      --palette-primary-dark: var(--palette-primary-800);
+
+      --palette-secondary-50: color-mix(in oklch, var(--palette-secondary-500) 8%, var(--palette-secondary-light-mix));
+      --palette-secondary-100: color-mix(in oklch, var(--palette-secondary-500) 16%, var(--palette-secondary-light-mix));
+      --palette-secondary-200: color-mix(in oklch, var(--palette-secondary-500) 32%, var(--palette-secondary-light-mix));
+      --palette-secondary-300: color-mix(in oklch, var(--palette-secondary-500) 50%, var(--palette-secondary-light-mix));
+      --palette-secondary-400: color-mix(in oklch, var(--palette-secondary-500) 72%, var(--palette-secondary-light-mix));
+      --palette-secondary-600: color-mix(in oklch, var(--palette-secondary-500) 85%, var(--palette-secondary-dark-mix));
+      --palette-secondary-700: color-mix(in oklch, var(--palette-secondary-500) 72%, var(--palette-secondary-dark-mix));
+      --palette-secondary-800: color-mix(in oklch, var(--palette-secondary-500) 58%, var(--palette-secondary-dark-mix));
+      --palette-secondary-900: color-mix(in oklch, var(--palette-secondary-500) 42%, var(--palette-secondary-dark-mix));
+      --palette-secondary-950: color-mix(in oklch, var(--palette-secondary-500) 28%, var(--palette-secondary-dark-mix));
+      --palette-secondary: var(--palette-secondary-500);
+      --palette-secondary-light: var(--palette-secondary-200);
+      --palette-secondary-dark: var(--palette-secondary-800);
+
+      --palette-neutral-50: color-mix(in oklch, var(--palette-neutral-500) 6%, var(--palette-neutral-light-mix));
+      --palette-neutral-100: color-mix(in oklch, var(--palette-neutral-500) 13%, var(--palette-neutral-light-mix));
+      --palette-neutral-200: color-mix(in oklch, var(--palette-neutral-500) 26%, var(--palette-neutral-light-mix));
+      --palette-neutral-300: color-mix(in oklch, var(--palette-neutral-500) 43%, var(--palette-neutral-light-mix));
+      --palette-neutral-400: color-mix(in oklch, var(--palette-neutral-500) 68%, var(--palette-neutral-light-mix));
+      --palette-neutral-600: color-mix(in oklch, var(--palette-neutral-500) 84%, var(--palette-neutral-dark-mix));
+      --palette-neutral-700: color-mix(in oklch, var(--palette-neutral-500) 67%, var(--palette-neutral-dark-mix));
+      --palette-neutral-800: color-mix(in oklch, var(--palette-neutral-500) 50%, var(--palette-neutral-dark-mix));
+      --palette-neutral-900: color-mix(in oklch, var(--palette-neutral-500) 32%, var(--palette-neutral-dark-mix));
+      --palette-neutral-950: color-mix(in oklch, var(--palette-neutral-500) 18%, var(--palette-neutral-dark-mix));
+      --palette-neutral: var(--palette-neutral-500);
+      --palette-neutral-light: var(--palette-neutral-200);
+      --palette-neutral-dark: var(--palette-neutral-800);
+  }
+}
 @layer theme {
   :root {
     /* Foundation */
-    color-scheme: light;
-    --font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-    --font-size: 0.875rem;
-    --line-height: 1.25;
-    --control-min-height: 2rem;
-    --space-xs: 0.25rem;
-    --space-sm: 0.5rem;
+    --font-family: sans-serif;
+    --font-size: 14px;
+    --line-height: normal;
+    --control-min-height: calc(var(--ui-font-size) + var(--ui-padding) + var(--ui-padding));
+    --space-xs: 0px;
+    --space-sm: 6px;
     --space-md: 1rem;
     --space-lg: 1.5rem;
-    --radius-sm: 0.2rem;
-    --radius-md: 0.375rem;
+    --radius-sm: 3px;
+    --radius-md: 3px;
     --radius-lg: 0.5rem;
     --motion-fast: 120ms;
 
@@ -22,11 +86,11 @@
     --ui-color: var(--palette-neutral-950);
     --ui-border: 1px solid var(--palette-neutral-300);
     --ui-shadow: none;
-    --focus-ring: 0 0 0 2px var(--palette-primary-400);
-    --focus-color: var(--palette-primary);
-    --error-color: var(--palette-red);
-    --error-contrast: var(--palette-contrast-light);
-    --success-color: var(--palette-green);
+    --focus-ring: 0 0 0 1px var(--ui-accent-color-highlight);
+    --focus-color: var(--ui-accent-color);
+    --error-color: #f00;
+    --error-contrast: #fcc;
+    --success-color: #080;
 
     /* Layout components */
     --panel-background: var(--palette-neutral-50);
@@ -71,23 +135,46 @@
     --toolbar-shadow: none;
 
     /* Input components */
-    --input-background: var(--palette-light);
-    --input-color: var(--palette-neutral-950);
-    --input-border: 1px solid var(--palette-neutral-500);
+    --input-background: #fff;
+    --input-color: var(--text-color);
+    --input-border: 1px solid #aaa;
     --input-shadow: none;
-    --input-background-disabled: var(--palette-neutral-200);
-    --input-color-disabled: var(--palette-neutral-700);
+    --input-background-disabled: var(--ui-medium-bg-color);
+    --input-color-disabled: #777;
+    --dropdown-appearance: none;
+    --dropdown-padding-inline-end: 1.75em;
+    --dropdown-select-background: transparent;
+    --dropdown-select-border: 1px solid transparent;
+    --dropdown-select-shadow: none;
+    --dropdown-underlay-content: "";
+    --dropdown-underlay-background: var(--input-background);
+    --dropdown-underlay-background-disabled: var(--input-background-disabled);
+    --dropdown-underlay-border: var(--input-border);
+    --dropdown-underlay-border-disabled: var(--ui-input-border-disabled);
+    --dropdown-underlay-shadow: var(--input-shadow);
+    --dropdown-underlay-start-radius: var(--ui-border-radius);
+    --dropdown-trigger-content: none;
+    --dropdown-trigger-width: calc(var(--dd-btn-width) - 1px);
+    --dropdown-trigger-color: var(--button-color);
     --dropdown-trigger-background: var(--button-background);
+    --dropdown-trigger-background-hover: var(--button-background-hover);
+    --dropdown-trigger-background-disabled: var(--button-background-disabled);
+    --dropdown-trigger-border: var(--button-border);
+    --dropdown-trigger-border-disabled: var(--button-border-disabled);
+    --dropdown-trigger-end-radius: var(--ui-border-radius);
+    --dropdown-trigger-shadow: var(--button-shadow);
+    --dropdown-trigger-shadow-hover: var(--button-shadow);
 
     /* Action components */
     --button-background: var(--palette-neutral-100);
     --button-background-hover: var(--palette-primary-100);
     --button-background-active: var(--palette-primary);
-    --button-background-disabled: var(--palette-neutral-200);
-    --button-color: var(--palette-neutral-950);
-    --button-border: 1px solid var(--palette-neutral-500);
+    --button-background-disabled: #ccc;
+    --button-color: var(--ui-text-color);
+    --button-border: 1px solid #fff0;
     --button-shadow: none;
     --button-shadow-active: none;
+    --button-border-style-active: solid;
     --menu-button-background: var(--button-background);
 
     /* Choice components */
@@ -135,31 +222,63 @@
     /* Status and graphical components */
     --progress-track-background: var(--palette-neutral-200);
     --progress-value-background: var(--palette-primary);
-    --working-background-image: linear-gradient(-45deg, transparent 25%, color-mix(in oklch, var(--palette-light) 35%, transparent) 25% 50%, transparent 50% 75%, color-mix(in oklch, var(--palette-light) 35%, transparent) 75%);
+    --working-background-image: linear-gradient(-45deg, #0001 25%,  #fff1 25%, #fff1 50%, #0001 50%, #0001 75%, #fff1 75%, #fff1);
     --colored-base: var(--palette-primary);
     --colored-light: var(--palette-primary-light);
     --colored-dark: var(--palette-primary-dark);
     --colored-contrast: var(--palette-contrast-light);
 
     /* Structural compatibility aliases */
-    --base-font-size: var(--font-size);
-    --ui-font-size: var(--font-size);
-    --ui-padding: var(--space-sm);
-    --ui-padding-h: var(--space-sm);
-    --ui-padding-v: var(--space-xs);
-    --ui-border-radius: var(--radius-md);
+    --base-font-size: 14px;
+    --ui-font-size: var(--base-font-size);
+    --ui-padding: 6px;
+    --ui-padding-h: 6px;
+    --ui-padding-v: 0px;
+    --ui-margin: 1px;
+    --ui-border-radius: 3px;
     --ui-text-color: var(--ui-color);
     --ui-muted-text-color: var(--palette-neutral-700);
     --ui-border-color: var(--palette-neutral-300);
-    --ui-input-bg: var(--input-background);
-    --ui-input-border: var(--input-border);
-    --ui-input-bg-disabled: var(--input-background-disabled);
-    --ui-input-border-disabled: 1px solid var(--palette-neutral-300);
-    --ui-input-text-color-disabled: var(--input-color-disabled);
-    --ui-accent-color: var(--palette-primary);
-    --ui-accent-color-highlight: var(--palette-primary-100);
-    --input-width: 15rem;
-    --button-border-disabled: 1px solid var(--palette-neutral-300);
+    --ui-input-text-color: var(--text-color);
+    --ui-input-bg: #fff;
+    --ui-input-border: 1px solid #aaa;
+    --ui-input-bg-disabled: var(--ui-medium-bg-color);
+    --ui-input-border-disabled: 1px solid var(--ui-dark2-bg-color);
+    --ui-select-bg-disabled: var(--ui-dark2-bg-color);
+    --ui-input-text-color-disabled: #777;
+    --ui-accent-color: var(--ui-select-bg-dark);
+    --ui-accent-color-highlight: var(--primary-color-l90);
+    --ui-primary-bg-color: #f5f7f8;
+    --ui-medium-bg-color: #ebeff3;
+    --ui-dark-bg-color: #d7dee3;
+    --ui-dark2-bg-color: var(--palette-neutral-400);
+    --text-color: var(--palette-neutral-950);
+    --primary-color-l90: var(--palette-primary-200);
+    --ui-select-bg: var(--palette-primary-600);
+    --ui-select-bg-dark: var(--palette-primary-700);
+    --ui-select-text-color: var(--palette-contrast-light);
+    --ui-table-bg-color: var(--ui-primary-bg-color);
+    --ui-table-bg-color2: var(--ui-medium-bg-color);
+    --input-width: 15em;
+    --button-border-disabled: #777;
+    --error-text-color-light: #fcc;
+    --error-text-color-dark: #800;
+    --error-border-color: #f00;
+    --error-bg: #faa;
+    --error-bg-translucent: #f002;
+    --error-bg-neutral: #fff;
+    --success-text-color-light: #bfb;
+    --success-text-color-dark: #b00;
+    --success-border-color: #0b0;
+    --success-bg: #beb;
+    --success-bg-translucent: #0f02;
+    --success-bg-neutral: #fff;
+    --icon-filter-hue: 205deg;
+    --icon-filter: brightness(1) opacity(.7) hue-rotate(var(--icon-filter-hue)) saturate(.75);
+    --icon-filter-active: var(--icon-filter);
+    --icon-filter-overlay: brightness(1) opacity(.25) hue-rotate(var(--icon-filter-hue)) saturate(.7);
+    --tooltip-background: #ffa;
+    --dd-btn-width: 1.5em;
     --toggle-selected-bg: var(--selection-background);
     --toggle-selected-text: var(--selection-color);
     --panel-bg: var(--panel-background);
@@ -172,490 +291,11 @@
     --tabline-bg: var(--tabline-background);
     --tab-bg-active: var(--tab-active-background);
     --cbx-o-border: var(--checkbox-box-border);
-    --cbx-border-radius: var(--radius-sm);
+    --cbx-border-radius: var(--ui-border-radius);
     --spacing-small: var(--space-sm);
     --spacing-medium: var(--space-md);
     --noselect-user-select: none;
     --noselect-cursor: default;
 
-    font-family: var(--font-family);
-    font-size: var(--font-size);
-    line-height: var(--line-height);
-    color: var(--ui-color);
-    background: var(--ui-background);
-  }
-
-  /* Input components */
-  label[data-fray],
-  legend[data-fray] {
-    user-select: none;
-    white-space: nowrap;
-  }
-
-  input[data-fray]:not([type="checkbox"]),
-  select[data-fray],
-  textarea[data-fray],
-  .inputlike {
-    min-height: var(--control-min-height);
-    border-radius: var(--radius-md);
-    box-sizing: border-box;
-    font: inherit;
-  }
-
-  input[data-fray]:not([type="checkbox"]),
-  select[data-fray],
-  textarea[data-fray],
-  .inputlike,
-  .inputshell {
-    border: var(--input-border);
-    box-shadow: var(--input-shadow);
-  }
-
-  input[data-fray]:not([type="checkbox"]),
-  select[data-fray],
-  textarea[data-fray],
-  .inputlike,
-  .inputshell,
-  .inputinner {
-    color: var(--input-color);
-    background: var(--input-background);
-  }
-
-  input[data-fray]:not([type="checkbox"]),
-  select[data-fray],
-  textarea[data-fray],
-  .inputlike,
-  .inputinner {
-    padding: var(--space-xs) var(--space-sm);
-  }
-
-  input[data-fray]:not([type="checkbox"]):disabled,
-  select[data-fray]:disabled,
-  textarea[data-fray]:disabled,
-  .inputlike:disabled,
-  .inputlike[aria-disabled="true"] {
-    color: var(--input-color-disabled);
-    background: var(--input-background-disabled);
-    cursor: not-allowed;
-  }
-
-  .inputshell { border-radius: var(--radius-sm); }
-  .selectshell { position: relative; }
-
-  /* Action components */
-  button[data-fray],
-  .buttonlike {
-    min-height: var(--control-min-height);
-    font: inherit;
-    cursor: default;
-    user-select: none;
-    white-space: nowrap;
-  }
-
-  button[data-fray],
-  .buttonlike,
-  .buttonshell {
-    border: var(--button-border);
-    border-radius: var(--radius-md);
-    box-shadow: var(--button-shadow);
-  }
-
-  button[data-fray],
-  .buttonlike,
-  .buttoninner {
-    padding: var(--space-xs) var(--space-sm);
-    color: var(--button-color);
-    background: var(--button-background);
-  }
-
-  button[data-fray]:hover:not(:disabled, [aria-disabled="true"]),
-  .buttonlike:hover:not(:disabled, [aria-disabled="true"]) {
-    background: var(--button-background-hover);
-  }
-
-  button[data-fray]:active:not(:disabled, [aria-disabled="true"]),
-  .buttonlike:active:not(:disabled, [aria-disabled="true"]) {
-    background: var(--button-background-active);
-    box-shadow: var(--button-shadow-active);
-  }
-
-  button[data-fray]:disabled,
-  .buttonlike:disabled,
-  .buttonlike[aria-disabled="true"] {
-    color: var(--input-color-disabled);
-    background: var(--button-background-disabled);
-    border: var(--button-border-disabled);
-    cursor: not-allowed;
-    pointer-events: none;
-  }
-
-  button[data-fray]:focus-visible,
-  .buttonlike:focus-visible,
-  input[data-fray]:focus-visible,
-  select[data-fray]:focus-visible,
-  textarea[data-fray]:focus-visible,
-  .inputlike:focus-visible {
-    outline: 2px solid transparent;
-    outline-offset: 1px;
-    box-shadow: var(--focus-ring);
-  }
-
-  /* Choice components */
-  .checkboxshell {
-    color: var(--input-color);
-    background: var(--checkbox-box-background);
-    border: var(--checkbox-box-border);
-    border-radius: var(--radius-sm);
-    box-shadow: var(--checkbox-box-shadow);
-  }
-
-  input[data-fray][type="checkbox"]:checked + .checkboxshell {
-    color: var(--checkbox-symbol-color);
-    background: var(--checkbox-box-background-checked);
-    box-shadow: var(--checkbox-box-shadow-checked);
-  }
-
-  fray-checkbox[data-fray][data-disabled] > label {
-    color: var(--input-color-disabled);
-  }
-
-  [role="checkbox"][aria-checked="true"] .inputshell {
-    color: var(--checkbox-symbol-color);
-    background: var(--checkbox-box-background-checked);
-  }
-
-  [aria-selected="true"][data-fray],
-  [aria-pressed="true"][data-fray] {
-    color: var(--selection-color);
-    background: var(--selection-background);
-  }
-
-  [role="radiogroup"][data-fray] {
-    inline-size: fit-content;
-    border-radius: var(--radius-md);
-    box-shadow: var(--toggle-group-shadow);
-  }
-
-  [role="radio"][data-fray] {
-    position: relative;
-    background: var(--toggle-button-background);
-    box-shadow: var(--toggle-button-shadow);
-  }
-
-  [role="radio"][aria-checked="true"][data-fray] {
-    position: relative;
-    z-index: var(--toggle-button-selected-z-index);
-    margin-inline: var(--toggle-button-selected-inline-overlap);
-    color: var(--selection-color);
-    background: var(--toggle-button-background-checked);
-    border: var(--toggle-button-border-checked);
-    box-shadow: var(--toggle-button-shadow-checked);
-  }
-
-  [role="radio"][aria-checked="true"][data-fray]:hover {
-    background: var(--toggle-button-background-checked);
-  }
-
-  [role="radio"][aria-checked="false"][data-fray]:has(+ [role="radio"][aria-checked="false"][data-fray]) {
-    border-inline-end-color: var(--toggle-inactive-shared-border-color);
-  }
-
-  [role="radio"][aria-checked="false"][data-fray] + [role="radio"][aria-checked="false"][data-fray] {
-    border-inline-start-color: var(--toggle-inactive-shared-border-color);
-  }
-
-  [role="radio"][aria-checked="false"][data-fray] + [role="radio"][aria-checked="false"][data-fray]::before {
-    content: "";
-    position: absolute;
-    inset-block: var(--toggle-inactive-separator-block-inset);
-    inset-inline-start: -1px;
-    inline-size: 1px;
-    background: var(--toggle-inactive-separator-background);
-    pointer-events: none;
-  }
-
-  [role="radiogroup"][data-fray] > [role="radio"][data-fray] {
-    border-radius: 0;
-  }
-
-  [role="radiogroup"][data-fray] > [role="radio"][data-fray]:first-child {
-    border-radius: var(--radius-md) 0 0 var(--radius-md);
-  }
-
-  [role="radiogroup"][data-fray] > [role="radio"][data-fray]:last-child {
-    border-radius: 0 var(--radius-md) var(--radius-md) 0;
-  }
-
-  /* Layout components */
-  header[data-fray],
-  th[data-fray],
-  .headerlike {
-    user-select: none;
-    white-space: nowrap;
-  }
-
-  header[data-fray],
-  th[data-fray],
-  .headerlike,
-  .headershell {
-    border: var(--header-border);
-    box-shadow: var(--header-shadow);
-  }
-
-  header[data-fray],
-  th[data-fray],
-  .headerlike,
-  .headerinner {
-    color: var(--header-color);
-    background: var(--header-background);
-  }
-
-  .headerinner { padding: var(--space-sm); }
-
-  fray-panel,
-  .panellike,
-  dialog[data-fray],
-  .panelshell {
-    border: var(--panel-border);
-    border-radius: var(--panel-radius);
-    box-shadow: var(--panel-shadow);
-  }
-
-  fray-panel,
-  .panellike,
-  dialog[data-fray],
-  .panelinner {
-    color: var(--panel-color);
-    background: var(--panel-background);
-  }
-
-  .panelinner { padding: var(--space-md); }
-
-  fray-panel > header[data-fray] {
-    padding: var(--space-sm);
-    color: var(--panel-header-color);
-    background: var(--panel-header-background);
-    border-block-end: var(--section-header-border);
-    box-shadow: var(--section-header-shadow);
-  }
-
-  fray-panel[data-disabled] { opacity: 0.65; }
-
-  aside[data-fray] {
-    color: var(--sidebar-color);
-    background: var(--sidebar-background);
-    border: var(--sidebar-border);
-    border-radius: var(--sidebar-radius);
-    box-shadow: var(--sidebar-shadow);
-  }
-
-  aside[data-fray] > header[data-fray] {
-    padding: var(--space-sm);
-    color: var(--sidebar-header-color);
-    background: var(--sidebar-header-background);
-    border-block-end: var(--sidebar-header-border);
-    box-shadow: var(--sidebar-header-shadow);
-  }
-
-  aside[data-fray] > header[data-fray] + div[data-fray]:not(:last-child) {
-    padding: var(--space-sm);
-    color: var(--sidebar-toolbar-color);
-    background: var(--sidebar-toolbar-background);
-    border-block-end: var(--sidebar-toolbar-border);
-    box-shadow: var(--sidebar-toolbar-shadow);
-  }
-
-  aside[data-fray] > div[data-fray]:last-child {
-    padding: var(--space-md);
-  }
-
-  aside[data-fray] > div[data-fray]:last-child:focus-visible {
-    outline: 2px solid transparent;
-    outline-offset: -2px;
-    box-shadow: inset var(--focus-ring);
-  }
-
-  dialog[data-fray]::backdrop {
-    background: var(--dialog-backdrop-background);
-  }
-
-  dialog[data-fray] > header[data-fray] {
-    color: var(--dialog-header-color);
-    background: var(--dialog-header-background);
-  }
-
-  dialog[data-fray] > footer[data-fray] {
-    border-block-start: 1px solid var(--ui-border-color);
-  }
-
-  [role="toolbar"][data-fray],
-  .toolbarlike,
-  .toolbarshell {
-    border: var(--toolbar-border);
-    box-shadow: var(--toolbar-shadow);
-  }
-
-  [role="toolbar"][data-fray],
-  .toolbarlike,
-  .toolbarinner {
-    color: var(--toolbar-color);
-    background: var(--toolbar-background);
-  }
-
-  .toolbarshell { border-radius: var(--radius-md); }
-  .toolbarinner { padding: var(--space-sm); }
-
-  /* Navigation components */
-  fray-tabline[data-fray] {
-    background: var(--tabline-background);
-  }
-
-  [role="tab"][data-fray] {
-    position: relative;
-    z-index: 0;
-    align-self: flex-end;
-    background: var(--tab-button-background);
-    border-radius: var(--radius-md) var(--radius-md) 0 0;
-    box-shadow: var(--tab-button-shadow);
-  }
-
-  [role="tab"][aria-selected="false"][data-fray]::after {
-    content: "";
-    position: absolute;
-    inset-inline: 0;
-    inset-block-end: -1px;
-    block-size: 1px;
-    background: transparent;
-    box-shadow: var(--tab-button-inactive-bottom-shadow);
-    pointer-events: none;
-  }
-
-  [role="tab"][aria-selected="true"][data-fray] {
-    z-index: 2;
-    color: var(--button-color);
-    background: var(--tab-button-background-active);
-    box-shadow: var(--tab-button-shadow-active);
-    transform: translateY(calc(-1 * var(--tab-button-active-lift)));
-  }
-
-  [role="tab"][aria-selected="true"][data-fray]::after {
-    content: "";
-    position: absolute;
-    inset-inline: 0;
-    inset-block-end: calc(-1 * var(--tab-button-active-lift));
-    block-size: var(--tab-button-active-bridge-block-size);
-    background: var(--tab-button-background-active);
-    pointer-events: none;
-  }
-
-  /* Data components */
-  table[data-fray],
-  textarea[data-fray],
-  [role="tree"][data-fray],
-  [role="listbox"][data-fray],
-  .datacomponentlike,
-  .datacomponentinner {
-    color: var(--ui-color);
-    background: var(--ui-background);
-  }
-
-  table[data-fray],
-  textarea[data-fray],
-  [role="tree"][data-fray],
-  [role="listbox"][data-fray],
-  .datacomponentlike {
-    border-color: var(--palette-neutral-300);
-  }
-
-  .datacomponentshell {
-    border: var(--ui-border);
-    border-radius: var(--panel-radius);
-    box-shadow: var(--ui-shadow);
-  }
-
-  .datacomponentinner { padding: var(--space-sm); }
-
-  th[data-fray] {
-    color: var(--table-header-color);
-    background: var(--table-header-background);
-  }
-
-  th[data-fray] > button[data-fray] {
-    color: var(--table-header-color);
-    background: var(--table-header-button-background);
-  }
-
-  dl[data-fray] > div[data-fray] {
-    border-block-end: 1px solid var(--ui-border-color);
-  }
-
-  dt[data-fray] {
-    color: var(--ui-muted-text-color);
-    font-weight: 600;
-  }
-
-  [role="option"][data-fray]:hover,
-  [role="treeitem"][data-fray]:hover,
-  tbody[data-fray] tr[data-fray][tabindex]:hover {
-    background: var(--row-hover-background);
-  }
-
-  [role="option"][data-fray]:focus-visible,
-  [role="treeitem"][data-fray]:focus-visible,
-  tbody[data-fray] tr[data-fray][tabindex]:focus-visible {
-    outline: 2px solid var(--focus-color);
-    outline-offset: -2px;
-  }
-
-  tbody[data-fray] tr[data-fray]:nth-child(odd) {
-    background: var(--table-row-background);
-  }
-
-  tbody[data-fray] tr[data-fray]:nth-child(even) {
-    background: var(--table-row-alt-background);
-  }
-
-  /* Status and graphical components */
-  [role="alert"][data-fray] { color: var(--error-color); }
-
-  progress[data-fray] {
-    color: var(--progress-value-background);
-    background: var(--progress-track-background);
-    accent-color: var(--palette-primary);
-  }
-
-  .coloredlike,
-  .coloredshell {
-    --colored-base: var(--palette-primary);
-    --colored-light: var(--palette-primary-light);
-    --colored-dark: var(--palette-primary-dark);
-    --colored-contrast: var(--palette-contrast-light);
-    border-color: color-mix(in oklch, var(--colored-dark) 72%, currentColor);
-  }
-
-  .coloredlike,
-  .coloredshell,
-  .coloredinner {
-    color: var(--colored-contrast);
-    background: var(--colored-base);
-  }
-
-  @media (prefers-reduced-motion: no-preference) {
-    dialog[data-fray][open] { animation: theme-dialog-enter var(--motion-fast) ease-out; }
-  }
-
-  @keyframes theme-dialog-enter {
-    from { transform: translateY(0.4rem); }
-  }
-
-  @media (forced-colors: active) {
-    .coloredlike,
-    .coloredshell,
-    .coloredinner {
-      color: CanvasText;
-      background: Canvas;
-      border-color: CanvasText;
-      forced-color-adjust: auto;
-    }
   }
 }

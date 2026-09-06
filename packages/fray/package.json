@@ -45,6 +45,7 @@
       "import": "./dist/jsx-dev-runtime.js"
     },
     "./styles/structural.css": "./styles/structural.css",
+    "./themes/base.css": "./themes/base.css",
     "./themes/*/theme.css": "./themes/*/theme.css",
     "./colors/*/colors.css": "./colors/*/colors.css"
   },

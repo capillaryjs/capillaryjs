@@ -92,9 +92,10 @@ Responsibility stays at the narrowest layer that understands it:
 
 ## Set up a browser application
 
-Fray ships ESM, TypeScript declarations, automatic/classic JSX runtimes, one
-generated structural stylesheet, replaceable theme treatments, and replaceable
-color palettes. Glue is a peer dependency.
+Fray ships ESM, TypeScript declarations, automatic/classic JSX runtimes,
+variable defaults, replaceable theme treatments, and replaceable color
+palettes. Glue is a peer dependency. Applications collect structural CSS from
+the component classes they actually declare.
 
 ```ts
 import {Emitter} from '@sylwellsoftware/glue'
@@ -108,7 +109,7 @@ import {
     createFrayRuntime,
     h,
 } from '@sylwellsoftware/fray'
-import '@sylwellsoftware/fray/styles/structural.css'
+import '@sylwellsoftware/fray/themes/base.css'
 import '@sylwellsoftware/fray/colors/iceblue/colors.css'
 import '@sylwellsoftware/fray/themes/minimal/theme.css'
 
@@ -126,6 +127,7 @@ class App extends Component {
 }
 
 const runtime = createFrayRuntime()
+runtime.registerStyles(App).injectStyles(document)
 runtime.mount(runtime.create(App), document.querySelector('#app')!)
 
 function save(value: string) {
@@ -931,154 +933,63 @@ content and IDs.
 
 ## Styling and accessibility
 
-Fray's styling system has three physically and conceptually separate layers:
+A Fray application loads four ordered styling inputs:
 
-| Layer | Shipped path | Responsibility | Runtime behavior |
-| --- | --- | --- | --- |
-| Structure | `styles/structural.css` | Generated component layout, flow, sizing, positioning, accessibility mechanics, stable hooks, and variable consumption | Loaded once; remains stable during presentation changes |
-| Theme | `themes/<name>/theme.css` | Typography, spacing, geometry, depth, surface treatment, semantic family mappings, and exceptional pseudo/native rendering | Loaded separately and independently replaceable |
-| Colors | `colors/<name>/colors.css` | Primary, secondary, and neutral ramps plus contrast/color primitives; no UI-semantic roles | Loaded separately and independently replaceable |
+| Order | Input | Responsibility |
+| --- | --- | --- |
+| 1 | `themes/base.css` | Default palette anchors, palette-ramp derivation, and semantic custom-property defaults only |
+| 2 | Runtime-collected component CSS | Rules from the `static css` declarations of the component classes the application declares |
+| 3 | `colors/<name>/colors.css` | Palette anchors and endpoints only |
+| 4 | `themes/<name>/theme.css` | Intentional custom-property overrides; `color-scheme` is the only ordinary declaration allowed |
 
-Component authors place only structure and mechanics in `static css`: display,
-flow, sizing, positioning, overflow, stable state hooks, and consumption of
-semantic variables. Reusable `static baseStyles` mappings apply named
-structural rules to component selectors, while `static dependencies` let the
-collector traverse a complete application tree, deduplicate definitions, and
-generate one artifact. Literal palettes and treatment-specific shadows,
-gradients, radii, and decoration do not belong in component CSS.
+Application layout remains in application-owned CSS and is not a fifth Fray
+layer. Named color and theme files never import the base file; load order is
+explicit at the application entry point.
 
-The initial supported treatments are `shiny`, `java`, and `minimal`. The color
-catalog contains `iceblue`, `ocean`, `green`, `gray`, `orange`, `purple`, `red`,
-and `yellow`. The older top-level `themes/light.css` and `themes/dark.css`
-remain compatibility bundles; new applications should use the separated
-contract.
+Component classes own every selector and every declaration that consumes a
+Fray variable. Shared rules live in meaningful abstract component classes when
+those components share DOM or behavior. For example, `Dropdown` inherits the
+labeled-input contract and then the select-shell contract. The collector walks
+that class chain base-to-derived, resolves each class's own `&` selectors
+against the concrete host, and then traverses dependencies declared at every
+level. The older named `baseStyles` recipe system has been removed.
 
-These three treatments adapt the useful intent of earlier styling experiments
-rather than preserving their CSS literally. Application-specific selectors,
-duplicated declarations, and mixed structural/presentation rules were removed;
-the characteristic restrained Minimal, classic raised Java, and layered glossy
-Shiny treatments were rebuilt on the current component hooks and variables.
+A component's `static css` should contain the absolute minimum needed for its
+contract. Every selector, declaration, pseudo-element, and variable must have a
+specific purpose that cannot be expressed more simply. A base-class edit must
+be reviewed against all descendants because its CSS is compiled into each
+concrete descendant that is used.
 
-### Hierarchical custom properties
+The checked-in `styles/structural.css` is a complete generated artifact for
+non-tree-shaken/diagnostic use. Normal applications should register their root
+component and inject the resulting usage-specific stylesheet:
 
-CSS custom properties are Fray's primary theme integration protocol:
-
-```text
-colors.css
-  --palette-primary-* / --palette-secondary-* / --palette-neutral-*
-                  │
-                  ▼
-theme.css
-  global UI roles (font, spacing, shape, surface)
-                  │
-                  ▼
-  generic families (header, button, input, panel, selection)
-                  │
-                  ▼
-  optional variants (table header, tab button, toggle button,
-                     dropdown trigger, dialog header)
-                  │
-                  ▼
-structural CSS and custom components
+```ts
+const runtime = createFrayRuntime()
+runtime.registerStyles(App).injectStyles(document)
+runtime.mount(runtime.create(App), root)
 ```
 
-Components request the narrowest useful variable and explicitly fall back
-toward its generic family. A theme can therefore change all header-like or
-button-like elements with a few assignments, then override only the variants
-that should look different. `frayThemeVariableCatalog` exports this contract in
-machine-readable form, including every variable's layer, family, value kind,
-purpose, and optional fallback.
+### Custom properties
 
-Palette ramps normally mix their `500` anchor toward `--palette-light` and
-`--palette-dark`. A palette can opt into hue variation by overriding the
-catalogued `--palette-<family>-light-mix` and
-`--palette-<family>-dark-mix` endpoints for the relevant ramp instead.
-
-A custom component can apply the public trait matching the treatment it needs
-and optionally consume the same variable hierarchy:
-
-```css
-acme-grid.datacomponentlike > header {
-  color: var(--table-header-color, var(--header-color));
-  background: var(--table-header-background, var(--header-background));
-}
-```
-
-Complete traits use the `like` suffix. A component whose outer and content
-regions are distinct uses `shell` and `inner`, for example `buttonshell` with
-`buttoninner`, or `datacomponentshell` with `datacomponentinner`. Other public
-families include `inputlike`, `headerlike`, `coloredlike`, `panellike`, and
-`toolbarlike`; the panel and toolbar families also expose
-`panelshell`/`panelinner` and `toolbarshell`/`toolbarinner`. Wrappers are not
-introduced solely to carry a split trait.
-
-Themes directly target native elements, public traits, native pseudo-parts,
-and native/ARIA state. They never target `data-fray-component` or `data-part`.
-Every theme seeds inherited variables with a zero-specificity
-`:root`/`[data-theme]` boundary rule. Presentation selectors use `@scope` with
-nested theme roots and `[data-theme-exclude]` limits, a named cascade layer,
-and low-specificity `:where()` selectors. Shiny's highlights and
-select/progress decoration follow that contract and yield to native
-representation under forced colors.
-
-`coloredlike` defaults to the primary palette. Components can provide
-`--colored-base`, `--colored-light`, `--colored-dark`, and
-`--colored-contrast`; the active theme decides whether those inputs become a
-flat color, gradient, other polish, or no special treatment.
+`base.css` derives full primary, secondary, and neutral ramps from each
+palette's `500` anchor plus light/dark mix endpoints. A color file therefore
+sets anchors and endpoints, while a theme maps or overrides semantic families
+such as `--button-*`, `--input-*`, `--panel-*`, and `--selection-*`.
+`frayThemeVariableCatalog` exposes the supported vocabulary.
 
 ### Runtime selection
 
 `replaceFrayStylesheet` maintains one
 `link[data-fray-stylesheet="theme"]` and one
 `link[data-fray-stylesheet="colors"]`. Replacing either link also sets the
-corresponding `data-theme` or `data-color` root attribute. The
-`ThemePicker` and `ColorPicker` controls expose the same operation through the
-normal Fray value-control contract.
+corresponding root data attribute. `ThemePicker` and `ColorPicker` expose the
+same operation through the normal value-control contract. The base file and
+runtime-injected structural stylesheet stay loaded while those two links are
+replaced.
 
-The default option catalogs resolve URLs against Fray's published package
-layout for direct ESM/CDN use. A bundled application should ask its bundler to
-emit each selectable CSS file as an asset and supply those resulting URLs:
-
-```tsx
-import {ColorPicker, Component, ThemePicker} from '@sylwellsoftware/fray'
-import iceblueHref from '@sylwellsoftware/fray/colors/iceblue/colors.css?url'
-import purpleHref from '@sylwellsoftware/fray/colors/purple/colors.css?url'
-import minimalHref from '@sylwellsoftware/fray/themes/minimal/theme.css?url'
-import shinyHref from '@sylwellsoftware/fray/themes/shiny/theme.css?url'
-
-const themes = [
-    {value: 'shiny', label: 'Shiny', href: shinyHref},
-    {value: 'minimal', label: 'Minimal', href: minimalHref},
-]
-const colors = [
-    {value: 'iceblue', label: 'Ice blue', href: iceblueHref},
-    {value: 'purple', label: 'Purple', href: purpleHref},
-]
-
-class AppearanceControls extends Component {
-    render() {
-        return <aside aria-label="Appearance">
-            <ThemePicker label="Theme" options={themes} defaultValue="shiny" />
-            <ColorPicker label="Colors" options={colors} defaultValue="iceblue" />
-        </aside>
-    }
-
-    static dependencies = [ColorPicker, ThemePicker]
-}
-```
-
-The `?url` syntax above is supported by Vite; use the equivalent emitted-asset
-mechanism for another bundler. The structural stylesheet is not replaced.
-
-See [`themes/README.md`](themes/README.md) for the complete architecture and
-variable families, and [`colors/README.md`](colors/README.md) for the palette
-contract.
-
-Stable examples are tested with axe in Chromium, Firefox, and WebKit and have
-no serious or critical automated violations. Browser tests also cover keyboard
-operation, labelled roles, reduced motion, 200% configured text sizing, and
-forced-colors focus visibility. A formal manual screen-reader pass is still a
-release-candidate requirement; automated checks are not a substitute for it.
+See [the theme contract](themes/README.md) and
+[the palette contract](colors/README.md) for authoring details.
 
 ## Data workflows
 
@@ -1142,8 +1053,8 @@ For a tree derived from domain state, a callback updates that real source; the
 tree derivation then rebuilds and `deriveTreeNode` resolves the fresh node.
 `updateTreeNode` is the equivalent pure path-copy operation.
 
-Generic `FilterState` keeps `neutral`, `prefer`, `require`, and `deny` semantic
-values separate from glyphs and transport. `filterByState`,
+Generic `FilterState` keeps `neutral`, `prefer`, `require`, and `deny`
+semantic values separate from glyphs and transport. `filterByState`,
 `deriveFilterPredicate`, and `deriveFilteredItems` consume caller-supplied
 dimension matchers. `serializeFilterState`/`parseFilterState` round-trip
 validated version-1 plain data without owning URL or storage access. Unknown

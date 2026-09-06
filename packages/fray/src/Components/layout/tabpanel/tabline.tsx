@@ -116,15 +116,31 @@ export class TabLine extends Component<TabLineProps> {
 
     static override hostName = 'tab-line'
 
-    static baseStyles = [
-        ['& > button[role="tab"]', ['uiline', 'button']],
-    ]
-
-    static css = css`
+    static override css = css`
         & {
             display: flex;
             flex-flow: row wrap;
             padding-top: 3px;
+            flex: 0 0 auto;
+            z-index: 0;
+        }
+
+        & > button[role="tab"] {
+            min-height: var(--control-min-height, 2rem);
+            padding: var(--space-xs) var(--space-sm);
+            color: var(--button-color);
+            background: var(--tab-button-background);
+            border: var(--button-border);
+            border-radius: var(--radius-md) var(--radius-md) 0 0;
+            box-shadow: var(--tab-button-shadow);
+            box-sizing: border-box;
+            cursor: default;
+            user-select: none;
+            white-space: nowrap;
+        }
+
+        & > button[role="tab"]:active:not(:disabled) {
+            border-style: var(--button-border-style-active);
         }
     `
 }

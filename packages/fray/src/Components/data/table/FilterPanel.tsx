@@ -174,16 +174,13 @@ export class FilterPanel extends Component<FilterPanelProps> {
 
     static css = css`
         & {
-            position: fixed;
-            z-index: 1100;
-            inset-block-start: 0;
-            inset-inline-end: 0;
+            position: absolute;
+            z-index: 1000;
             display: flex;
-            min-width: 12rem;
-            padding: var(--ui-padding);
             flex-flow: column nowrap;
-            align-items: stretch;
-            overflow-y: auto;
+            align-items: flex-start;
+            left: 100%;
+            top: 0;
         }
 
     `

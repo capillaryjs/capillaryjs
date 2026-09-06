@@ -124,19 +124,22 @@ pnpm add @sylwellsoftware/glue @sylwellsoftware/fray \
   @sylwellsoftware/fray-visualization
 ```
 
-For Fray, import the structural stylesheet plus a theme and color palette:
+For Fray, import the variable base plus a theme and color palette, then collect
+styles from the application's root component:
 
 ```ts
-import '@sylwellsoftware/fray/styles/structural.css'
-import '@sylwellsoftware/fray-visualization/styles/structural.css'
+import '@sylwellsoftware/fray/themes/base.css'
 import '@sylwellsoftware/fray/themes/minimal/theme.css'
 import '@sylwellsoftware/fray/colors/iceblue/colors.css'
+
+runtime.registerStyles(App).injectStyles(document)
 ```
 
-Structural CSS owns layout and interaction mechanics. The theme owns visual
-treatment and semantic families; the color stylesheet owns the palette. An
-application may replace either presentation stylesheet without rebuilding the
-component tree or refetching data.
+Class-owned CSS owns component presentation and interaction mechanics. The
+base owns defaults and palette derivation; the theme owns intentional variable
+overrides; the color stylesheet owns palette anchors. An application may
+replace either presentation stylesheet without rebuilding the component tree
+or refetching data.
 
 ## Example
 

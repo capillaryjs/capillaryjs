@@ -71,13 +71,47 @@ export class Button extends Component<ButtonProps> {
         >{content}</button>
     }
 
-    static baseStyles = [
-        ['button', ['uiline', 'button']],
-    ]
-
-    static css = css`
+    static override css = css`
         button {
+            min-height: var(--control-min-height, 2rem);
+            padding: var(--space-xs) var(--space-sm);
+            color: var(--button-color);
+            background: var(--button-background);
+            border: var(--button-border);
+            border-radius: var(--radius-md);
+            box-shadow: var(--button-shadow);
+            box-sizing: border-box;
+            cursor: default;
             font-family: inherit;
+            font-size: var(--ui-font-size);
+            line-height: calc(var(--ui-font-size) + var(--ui-padding) + var(--ui-padding));
+            user-select: none;
+            white-space: nowrap;
+        }
+
+        button:hover:not(:disabled, [aria-disabled="true"]) {
+            background: var(--button-background-hover);
+        }
+
+        button:active:not(:disabled, [aria-disabled="true"]) {
+            background: var(--button-background-active);
+            border-style: var(--button-border-style-active);
+            box-shadow: var(--button-shadow-active);
+        }
+
+        button:focus-visible {
+            outline: 2px solid transparent;
+            outline-offset: 1px;
+            box-shadow: var(--focus-ring);
+        }
+
+        button:disabled,
+        button[aria-disabled="true"] {
+            color: var(--input-color-disabled);
+            background: var(--button-background-disabled);
+            border: var(--button-border-disabled);
+            cursor: not-allowed;
+            pointer-events: none;
         }
     `
 }

@@ -1,153 +1,55 @@
-/* Application-owned layout only. Fray themes own component presentation. */
+/* Application-owned page layout only. Fray components own their presentation. */
 
 body {
     margin: 0;
+    color: var(--ui-color);
+    background: var(--ui-background);
+    font-family: var(--font-family);
+    font-size: var(--font-size);
+    line-height: var(--line-height);
 }
-
 .style-lab {
     display: grid;
-    gap: 1.5rem;
-    width: min(72rem, calc(100% - 2rem));
-    margin: 2rem auto;
+    gap: var(--space-lg);
+    width: min(48rem, calc(100% - 2rem));
+    margin: 3rem auto;
 }
 
 .style-lab > header,
 .style-lab > section {
-    max-width: 48rem;
+    display: grid;
+    gap: var(--space-sm);
+}
+
+.style-lab h1,
+.style-lab h2,
+.style-lab p,
+.style-lab dl {
+    margin: 0;
 }
 
 .eyebrow {
-    margin: 0;
     font-size: 0.75rem;
     font-weight: 700;
     letter-spacing: 0.08em;
     text-transform: uppercase;
 }
 
-nav {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 1rem;
-}
-
-.appearance-harness {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 1rem;
-    margin-block-start: 1rem;
-}
-
-.meridian-workspace {
+.style-lab dl {
     display: grid;
-    grid-template-columns: minmax(13rem, 17rem) minmax(0, 1fr);
-    align-items: start;
-    gap: 1.5rem;
+    gap: var(--space-sm);
 }
 
-.meridian-scope {
-    block-size: min(34rem, calc(100vh - 4rem));
-}
-
-.sidebar-toolbar-note {
-    margin: 0;
-    color: var(--ui-muted-text-color);
-    font-size: 0.875em;
-}
-
-.scope-intro,
-.scope-selection,
-.scope-notes {
-    margin: 0;
-}
-
-.scope-sites {
+.style-lab dl > div {
     display: grid;
-    gap: 0.5rem;
+    grid-template-columns: 7rem 1fr;
+    gap: var(--space-sm);
 }
 
-.scope-option-actions {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.5rem;
+.style-lab dt {
+    font-weight: 700;
 }
 
-.scope-selection strong {
-    display: block;
-    margin-block-end: 0.125rem;
-}
-
-.meridian-content {
-    display: grid;
-    gap: 1.5rem;
-    min-width: 0;
-}
-
-.meridian-register {
-    min-block-size: 24rem;
-}
-
-.long-copy {
-    max-width: 42rem;
-}
-
-.register-intro {
+.style-lab dd {
     margin: 0;
-}
-
-.register-filter {
-    display: grid;
-    gap: 0.35rem;
-    max-inline-size: 22rem;
-}
-
-.register-search-event {
-    margin: 0;
-    color: var(--ui-muted-text-color);
-    font-size: 0.875em;
-}
-
-.register-list {
-    display: grid;
-    gap: 0.5rem;
-}
-
-.register-list button {
-    text-align: start;
-}
-
-.panel-toolbar-note {
-    padding-inline: 0.5rem;
-    font-size: 0.875em;
-}
-
-.harness-note {
-    margin: 0;
-    color: var(--ui-muted-text-color);
-    font-size: 0.875em;
-}
-
-.meridian-content fray-toggle[data-fray] {
-    max-width: 100%;
-}
-
-.harness-availability {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 1rem;
-    color: var(--panel-color);
-}
-
-@media (max-width: 42rem) {
-    .meridian-workspace {
-        grid-template-columns: 1fr;
-    }
-
-    .meridian-scope {
-        block-size: auto;
-        max-block-size: none;
-    }
-
-    .meridian-register {
-        min-block-size: 22rem;
-    }
 }

@@ -16,24 +16,34 @@ export class Placeholder extends Component<PlaceholderProps> {
 
     static override hostName = 'placeholder'
 
-    static baseStyles = [
-        ['&::after', ['after', 'working']],
-    ]
-
-    static css = css`
+    static override css = css`
         & {
             display: block;
-            min-width: 3rem;
+            width: 5em;
             height: 1em;
-            overflow: hidden;
-            background: currentColor;
             border-radius: var(--ui-border-radius);
-            opacity: 0.18;
             position: relative;
         }
 
-        @keyframes fray-placeholder-progress {
-            from { background-position: 0 0; }
+        &::after {
+            content: "";
+            display: block;
+            position: absolute;
+            z-index: 1;
+            inset: 0;
+            margin: auto;
+            animation: fray-placeholder-progress 0.8s linear infinite;
+            background-repeat: repeat;
+            background-size: 2rem 2rem;
+            background-image: var(--working-background-image);
+            border: 0 solid transparent;
+            border-radius: inherit;
+            box-sizing: border-box;
+            pointer-events: none;
+        }
+
+        @keyframes progress {
+            from { background-position: 0rem 0; }
             to { background-position: 2rem 0; }
         }
     `

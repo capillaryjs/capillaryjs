@@ -253,7 +253,7 @@ describe('choice controls', () => {
 
         assert.equal(document.querySelectorAll('select').length, 2)
         assert.ok([...document.querySelectorAll('fray-themepicker, fray-colorpicker')]
-            .every((picker) => picker.classList.contains('selectshell')))
+            .every((picker) => picker.querySelector(':scope > .selectshell > select') != null))
         assert.equal(document.documentElement.dataset.theme, 'minimal')
         assert.equal(document.documentElement.dataset.color, 'iceblue')
         assert.equal(document.head.querySelectorAll('link[data-fray-stylesheet]').length, 2)
@@ -288,8 +288,8 @@ describe('choice controls', () => {
         }).attachTo(document.body)
         const select = requiredQuery<HTMLSelectElement>('select')
 
-        assert.equal(select.parentElement?.localName, 'fray-dropdown')
         assert.ok(select.parentElement?.classList.contains('selectshell'))
+        assert.equal(select.parentElement?.parentElement?.localName, 'fray-dropdown')
         assert.equal(select.value, '1')
         select.value = '2'
         select.dispatchEvent(new Event('change', {bubbles: true}))

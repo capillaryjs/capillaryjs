@@ -1,6 +1,4 @@
 @charset "utf-8";
-@import "../base.css";
-
 @layer theme {
   :root {
     color-scheme: only light;
@@ -15,13 +13,6 @@
     --input-shadow: inset 1px 1px 1px color-mix(in oklch, var(--palette-dark) 30%, transparent);
     --toolbar-border: 2px outset var(--palette-light);
     --working-background-image: repeating-linear-gradient(135deg, transparent 0 4px, color-mix(in oklch, var(--palette-dark) 12%, transparent) 4px 8px);
-  }
-
-  button[data-fray]:active:not(:disabled),
-  .buttonlike:active:not([aria-disabled="true"]),
-  [role="tab"][data-fray]:active,
-  [role="radio"][data-fray]:active,
-  [role="checkbox"][data-fray]:active {
-    border-style: inset;
+    --button-border-style-active: inset;
   }
 }

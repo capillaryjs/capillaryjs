@@ -1,11 +1,14 @@
 @charset "utf-8";
-@import "../base.css";
-
-/* Shiny changes theme tokens only; base.css owns component selectors. */
+/* Shiny changes theme tokens only. Components own all consuming selectors. */
 @layer theme {
   :root {
     /* Foundation and shared chrome */
     color-scheme: only light;
+    --box-shadow: -1px 1px 2px 1px rgba(0,0,0,0.3);
+    --button-shadow: -1px 1px 2px 1px rgba(0,0,0,0.5);
+    --button-shadow-pressed: -1px 1px 2px 0px #0008;
+    --ui-gradient: linear-gradient( to top, var(--ui-primary-bg-color) 9px, var(--ui-primary-bg-color) 13px, var(--ui-dark-bg-color) 100% );
+    --ui-gradient-2: linear-gradient( to bottom, var(--ui-primary-bg-color) 9px, var(--ui-primary-bg-color) 13px, var(--ui-dark-bg-color) 100% );
     --shiny-panel-header-background:
       radial-gradient(140% 75% at 40% 15%, #fff2, #fff2 47%, #fff0 55%, #fff0),
       linear-gradient(to bottom, var(--palette-primary-900) 0%, var(--palette-primary) 65%, var(--palette-primary) 66%, var(--palette-primary-400) 100%);
@@ -15,24 +18,13 @@
       inset -1px 1px 1px rgb(0 0 0 / 0.38),
       inset 1px -1px 1px rgb(255 255 255 / 0.33),
       0 1px 2px rgb(0 0 0 / 0.45);
-    --shiny-ui-gradient: linear-gradient(
-      to top,
-      color-mix(in oklch, var(--palette-primary) 3%, var(--palette-neutral-50)) 9px,
-      color-mix(in oklch, var(--palette-primary) 3%, var(--palette-neutral-50)) 13px,
-      color-mix(in oklch, var(--palette-primary) 14%, var(--palette-neutral-50)) 100%
-    );
-    --shiny-ui-gradient-2: linear-gradient(
-      to bottom,
-      color-mix(in oklch, var(--palette-primary) 3%, var(--palette-neutral-50)) 9px,
-      color-mix(in oklch, var(--palette-primary) 3%, var(--palette-neutral-50)) 13px,
-      color-mix(in oklch, var(--palette-primary) 14%, var(--palette-neutral-50)) 100%
-    );
+    --shiny-ui-gradient: var(--ui-gradient);
+    --shiny-ui-gradient-2: var(--ui-gradient-2);
 
     /* Layout components */
     --panel-color: var(--palette-primary-900);
-    --panel-border: 1px solid var(--palette-neutral-300);
-    --panel-shadow: 0 1px 2.5px color-mix(in oklch, var(--palette-dark) 58%, transparent);
-    --panel-radius: 0;
+    --panel-shadow: 0px 1px 2.5px 0px #666;
+    --panel-radius: 0px;
     --panel-header-background: var(--shiny-panel-header-background);
     --panel-header-color: var(--palette-contrast-light);
     --section-header-shadow: var(--shiny-panel-header-shadow);
@@ -40,8 +32,6 @@
     --sidebar-background:
       linear-gradient(135deg, rgb(255 255 255 / 0.4), transparent 55%),
       var(--panel-background);
-    --sidebar-border: var(--panel-border);
-    --sidebar-shadow: var(--panel-shadow);
     --sidebar-radius: 0;
     --sidebar-header-background: var(--shiny-panel-header-background);
     --sidebar-header-color: var(--palette-contrast-light);
@@ -50,17 +40,32 @@
     --sidebar-toolbar-border: 1px solid color-mix(in oklch, var(--palette-primary) 24%, var(--palette-neutral-300));
 
     /* Input components */
-    --input-shadow: inset -1px 1px 3px -2px color-mix(in oklch, var(--palette-dark) 58%, transparent);
-    --input-color-disabled: color-mix(in oklch, var(--palette-neutral-700) 48%, var(--palette-light));
+    --input-shadow: inset -1px 1px 3px -2px rgba(0,0,0,0.45);
+    --dropdown-trigger-content: '\23F7';
 
     /* Action components */
-    --button-background: var(--shiny-ui-gradient-2);
-    --button-background-hover: var(--shiny-ui-gradient);
-    --button-background-active: var(--shiny-ui-gradient);
-    --button-border: 1px solid var(--palette-light);
-    --button-border-disabled: 1px solid color-mix(in oklch, var(--palette-light) 62%, var(--palette-neutral-500));
-    --button-shadow: -1px 1px 2px 1px rgb(0 0 0 / 0.5);
-    --button-shadow-active: -1px 1px 2px rgb(0 0 0 / 0.53);
+    --button-background: var(--ui-gradient-2);
+    --button-background-hover: var(--ui-gradient);
+    --button-background-active: var(--ui-gradient);
+    --button-border: 1px solid #fff;
+    --button-shadow-active: var(--button-shadow-pressed);
+
+    --cbx-x-bg: radial-gradient(140% 75% at 30% 10%, #fff5, #fff4 47%, #fff0 55%, #fff0), linear-gradient(to bottom, #400 0%, #c00 65%, #e00 100%);
+    --cbx-x-color: #fff;
+    --cbx-x-border: 0px solid rgba(0,0,0,0);
+    --cbx-x-shadow: inset 1px -1px 1px 0px #fffa, inset -1px 2px 3px -1px #0002, -1px 1px 2px 0px #0005;
+    --cbx-o-bg: linear-gradient(to bottom, #ffffffd5 0%, #ffffffe5 100%), linear-gradient(to bottom, var(--palette-primary) 0%, var(--palette-primary) 100%);
+    --cbx-o-color: var(--ui-input-text-color);
+    --cbx-o-border: 0px solid rgba(0,0,0,0);
+    --cbx-o-shadow: inset 1px -1px 1px 0px #ffff, inset -1px 2px 3px -1px #0002, -1px 1px 2px 0px #0005;
+    --cbx-c-bg: var(--checkbox-box-background-checked);
+    --cbx-c-color: #fff;
+    --cbx-c-border: 0px solid rgba(0,0,0,0);
+    --cbx-c-shadow: inset 1px -1px 1px 0px #fff9, inset -1px 2px 3px -1px #0002, -1px 1px 2px 0px #0005;
+    --cbx-r-bg: radial-gradient(140% 75% at 30% 10%, #fff5, #fff4 47%, #fff0 55%, #fff0), linear-gradient(to bottom, #030 0%, #0a0 65%, #0d0 100%);
+    --cbx-r-color: #fff;
+    --cbx-r-border: 0px solid rgba(0,0,0,0);
+    --cbx-r-shadow: inset 1px -1px 1px 0px #fff8, inset -1px 2px 3px -1px #0002, -1px 1px 2px 0px #0005;
 
     /* Choice components */
     --checkbox-box-background:
@@ -74,13 +79,11 @@
       inset 1px -1px 1px rgb(255 255 255 / 1),
       inset -1px 2px 3px rgb(0 0 0 / 0.13),
       -1px 1px 2px rgb(0 0 0 / 0.33);
-    --checkbox-box-shadow-checked: var(--checkbox-box-shadow);
     --checkbox-symbol-color: var(--palette-contrast-light);
 
     --toggle-button-background-checked:
       radial-gradient(140% 75% at 30% 10%, #fff4, #fff5 47%, #fff0 55%, #fff0),
       linear-gradient(to bottom, var(--palette-primary-900) 0%, var(--palette-primary) 65%, var(--palette-primary) 66%, var(--palette-primary-400) 100%);
-    --toggle-button-shadow: none;
     --toggle-button-border-checked: 0 solid transparent;
     --toggle-button-selected-inline-overlap: -1px;
     --toggle-button-selected-z-index: 1;
