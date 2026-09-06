@@ -194,7 +194,7 @@ describe('supported theme bundles', () => {
         }
     })
 
-    test('base owns the Panel and Sidebar host treatments and Shiny overrides only variables', async () => {
+    test('base groups semantic theme responsibilities and Shiny overrides only variables', async () => {
         const baseTheme = await readFile(
             fileURLToPath(new URL('../themes/base.css', import.meta.url)),
             'utf8',
@@ -204,16 +204,48 @@ describe('supported theme bundles', () => {
             'utf8',
         )
 
-        assert.match(baseTheme, /fray-panel\s*,/)
+        for (const section of [
+            '/* Input components */',
+            '/* Action components */',
+            '/* Choice components */',
+            '/* Layout components */',
+            '/* Navigation components */',
+            '/* Data components */',
+            '/* Status and graphical components */',
+        ]) assert.match(baseTheme, new RegExp(section.replaceAll('*', '\\*')))
+        for (const section of [
+            '/* Layout components */',
+            '/* Input components */',
+            '/* Action components */',
+            '/* Choice components */',
+            '/* Navigation components */',
+        ]) assert.match(shinyTheme, new RegExp(section.replaceAll('*', '\\*')))
+
+        assert.match(baseTheme,
+            /fray-panel,\s*\.panellike,\s*dialog\[data-fray\],\s*\.panelshell \{[\s\S]*?border: var\(--panel-border\)/)
+        assert.match(baseTheme,
+            /fray-panel,\s*\.panellike,\s*dialog\[data-fray\],\s*\.panelinner \{[\s\S]*?color: var\(--panel-color\)/)
+        assert.match(baseTheme,
+            /button\[data-fray\],\s*\.buttonlike,\s*\.buttonshell \{[\s\S]*?border: var\(--button-border\)/)
+        assert.match(baseTheme,
+            /input\[data-fray\]:not\(\[type="checkbox"\]\),[\s\S]*?\.inputshell \{[\s\S]*?border: var\(--input-border\)/)
+        assert.match(baseTheme,
+            /header\[data-fray\],[\s\S]*?\.headershell \{[\s\S]*?border: var\(--header-border\)/)
+        assert.match(baseTheme,
+            /\[role="toolbar"\]\[data-fray\],[\s\S]*?\.toolbarshell \{[\s\S]*?border: var\(--toolbar-border\)/)
+        assert.match(baseTheme,
+            /\.datacomponentlike,\s*\.datacomponentinner \{[\s\S]*?color: var\(--ui-color\)/)
+        assert.match(baseTheme,
+            /\.coloredlike,\s*\.coloredshell,\s*\.coloredinner \{[\s\S]*?color: var\(--colored-contrast\)/)
         assert.match(baseTheme, /fray-panel > header\[data-fray\]/)
         assert.match(baseTheme, /fray-panel\[data-disabled\]/)
         assert.match(baseTheme, /aside\[data-fray\] \{\n\s+color: var\(--sidebar-color\)/)
         assert.match(baseTheme, /aside\[data-fray\] > header\[data-fray\]/)
-        assert.match(baseTheme, /button\[data-fray\], \.buttonlike \{[\s\S]*white-space: nowrap/)
-        assert.match(baseTheme, /label\[data-fray\], legend\[data-fray\] \{[\s\S]*user-select: none[\s\S]*white-space: nowrap/)
-        assert.match(baseTheme, /header\[data-fray\], th\[data-fray\], \.headerlike \{[\s\S]*user-select: none[\s\S]*white-space: nowrap/)
+        assert.match(baseTheme, /button\[data-fray\],\s*\.buttonlike \{[\s\S]*white-space: nowrap/)
+        assert.match(baseTheme, /label\[data-fray\],\s*legend\[data-fray\] \{[\s\S]*user-select: none[\s\S]*white-space: nowrap/)
+        assert.match(baseTheme, /header\[data-fray\],\s*th\[data-fray\],\s*\.headerlike \{[\s\S]*user-select: none[\s\S]*white-space: nowrap/)
         assert.match(baseTheme, /aside\[data-fray\] > div\[data-fray\]:last-child:focus-visible/)
-        assert.match(baseTheme, /fray-tabline\[data-fray\] \{ background: var\(--tabline-background\); \}/)
+        assert.match(baseTheme, /fray-tabline\[data-fray\] \{\s*background: var\(--tabline-background\);\s*\}/)
         assert.match(baseTheme, /\[role="tab"\]\[aria-selected="false"\]\[data-fray\]::after/)
         assert.match(baseTheme, /\[role="tab"\]\[aria-selected="true"\]\[data-fray\]::after/)
         assert.match(baseTheme, /transform: translateY\(calc\(-1 \* var\(--tab-button-active-lift\)\)\)/)
