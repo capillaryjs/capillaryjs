@@ -27,6 +27,7 @@
         .colored {
             background: linear-gradient(15deg, var(--c1) 0%, var(--c2) 65%, var(--c2) 65%, var(--c3) 100%);
             box-shadow: var(--colored-shadow);
+            border-radius: var(--ui-border-radius);
         }
 
         .island {
@@ -100,6 +101,7 @@ fray-quadcheckbox,
 fray-tricheckbox {
             display: inline-flex;
             line-height: 1;
+            height: 1.4em;
         }
 
         fray-checkbox > label,
@@ -633,14 +635,13 @@ fray-app {
         }
 
 fray-grouppanel {
-            display: grid;
-            grid-template-columns: 1.5rem minmax(0, 1fr);
+            display: flex;
+            flex-flow: row nowrap;
             align-items: stretch;
             box-sizing: border-box;
             min-width: 0;
             min-height: 0;
             column-gap: 0.35rem;
-            row-gap: 0;
             padding-block: 0.125rem;
             padding-inline: 0.125rem 0.35rem;
             border: 1px solid var(--ui-border-color);
@@ -651,29 +652,22 @@ fray-grouppanel {
             display: grid;
             place-items: center;
             box-sizing: border-box;
-            width: 100%;
+            width: 1.7em;
             min-width: 0;
             min-height: 0;
             padding: 0.125em;
             border-radius: var(--ui-border-radius);
-        }
-
-        fray-grouppanel > fray-header > h1,
-        fray-grouppanel > fray-header > h2,
-        fray-grouppanel > fray-header > h3,
-        fray-grouppanel > fray-header > h4,
-        fray-grouppanel > fray-header > h5,
-        fray-grouppanel > fray-header > h6 {
-            font-weight: 650;
-            white-space: nowrap;
             writing-mode: vertical-rl;
             transform: rotate(180deg);
+            font-weight: normal;
+            font-size: var(--ui-font-size);
         }
 
         fray-grouppanel > fray-content {
             display: block;
             min-width: 0;
             min-height: 0;
+            margin-left: .25em;
         }
 
 fray-header {
