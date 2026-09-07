@@ -407,14 +407,14 @@ describe('style registry', () => {
         assert.doesNotMatch(stylesheet, /fray-grouppanel|fray-panel|fray-header|fray-checkbox/)
     })
 
-    test('collects OptionsPanel with inherited GroupPanel grid layout and flex content override', () => {
+    test('collects OptionsPanel with inherited GroupPanel flex layout and flex content override', () => {
         const runtime = createFrayRuntime()
         runtime.registerStyles(OptionsPanel)
         const stylesheet = runtime.styleRegistry.generateCSS()
 
-        assert.match(stylesheet, /fray-optionspanel\s*\{[^}]*grid-template-columns:\s*1\.5rem minmax\(0, 1fr\)/)
-        assert.match(stylesheet, /fray-optionspanel > fray-header\s*\{[^}]*place-items:\s*center/)
-        assert.match(stylesheet, /fray-optionspanel > fray-content\s*\{[^}]*display:\s*flex[^}]*flex-direction:\s*column[^}]*gap:\s*var\(--options-panel-group-gap, 1\.5em\)/)
+        assert.match(stylesheet, /fray-optionspanel\s*\{[^}]*display:\s*flex[^}]*flex-flow:\s*row nowrap[^}]*border:\s*1px solid var\(--ui-border-color\)/)
+        assert.match(stylesheet, /fray-optionspanel > fray-header\s*\{[^}]*place-items:\s*center[^}]*writing-mode:\s*vertical-rl[^}]*transform:\s*rotate\(180deg\)/)
+        assert.match(stylesheet, /fray-optionspanel > fray-content\s*\{[^}]*display:\s*flex[^}]*flex-direction:\s*column[^}]*gap:\s*\.5em/)
         assert.match(stylesheet, /fray-header\s*\{[^}]*background:\s*var\(--section-header-background\)/)
         assert.doesNotMatch(stylesheet, /fray-panel|fray-sidebar|fray-checkbox/)
     })
@@ -424,9 +424,9 @@ describe('style registry', () => {
         runtime.registerStyles(GroupPanel)
         const stylesheet = runtime.styleRegistry.generateCSS()
 
-        assert.match(stylesheet, /fray-grouppanel\s*\{[^}]*grid-template-columns:\s*1\.5rem minmax\(0, 1fr\)[^}]*column-gap:\s*0\.35rem[^}]*padding-inline:\s*0\.125rem 0\.35rem[^}]*border:\s*1px solid var\(--ui-border-color\)/)
-        assert.match(stylesheet, /fray-grouppanel > fray-header\s*\{[^}]*place-items:\s*center[^}]*box-sizing:\s*border-box[^}]*width:\s*100%[^}]*min-width:\s*0[^}]*border-radius:\s*var\(--ui-border-radius\)/)
-        assert.match(stylesheet, /fray-grouppanel > fray-header > h1,[\s\S]*writing-mode:\s*vertical-rl[^}]*transform:\s*rotate\(180deg\)/)
+        assert.match(stylesheet, /fray-grouppanel\s*\{[^}]*display:\s*flex[^}]*flex-flow:\s*row nowrap[^}]*column-gap:\s*0\.35rem[^}]*padding-inline:\s*0\.125rem 0\.35rem[^}]*border:\s*1px solid var\(--ui-border-color\)/)
+        assert.match(stylesheet, /fray-grouppanel > fray-header\s*\{[^}]*place-items:\s*center[^}]*box-sizing:\s*border-box[^}]*width:\s*1\.7em[^}]*min-width:\s*0[^}]*border-radius:\s*var\(--ui-border-radius\)/)
+        assert.match(stylesheet, /fray-grouppanel > fray-header\s*\{[^}]*writing-mode:\s*vertical-rl[^}]*transform:\s*rotate\(180deg\)/)
         assert.match(stylesheet, /fray-header\s*\{[^}]*background:\s*var\(--section-header-background\)[^}]*box-shadow:\s*var\(--section-header-shadow\)/)
         assert.doesNotMatch(stylesheet, /fray-panel|fray-sidebar|fray-checkbox/)
     })
