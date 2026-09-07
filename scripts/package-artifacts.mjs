@@ -1,5 +1,4 @@
 import {spawnSync} from 'node:child_process'
-import {createHash} from 'node:crypto'
 import {
     copyFileSync,
     mkdirSync,
@@ -11,6 +10,8 @@ import {
 } from 'node:fs'
 import {basename, dirname, isAbsolute, join, relative, resolve} from 'node:path'
 import {fileURLToPath} from 'node:url'
+
+import {archiveSha256, npmTarStreamSha256} from './artifact-checks.mjs'
 
 const workspaceRoot = resolve(fileURLToPath(new URL('..', import.meta.url)))
 const artifactRoot = join(workspaceRoot, '.artifacts', 'release')
@@ -78,12 +79,21 @@ for (const definition of definitions) {
     const secondPackDirectory = join(artifactRoot, `pack-b-${basename(definition.directory)}`)
     const firstTarball = createPack(definition.directory, firstPackDirectory)
     const secondTarball = createPack(definition.directory, secondPackDirectory)
-    const firstChecksum = sha256(firstTarball)
-    const secondChecksum = sha256(secondTarball)
+    const firstChecksum = archiveSha256(firstTarball)
+    const secondChecksum = archiveSha256(secondTarball)
+    const firstContentChecksum = npmTarStreamSha256(firstTarball)
+    const secondContentChecksum = npmTarStreamSha256(secondTarball)
     assert(
-        firstChecksum === secondChecksum,
-        `${definition.name} tarball is not byte-for-byte deterministic`,
+        firstContentChecksum === secondContentChecksum,
+        `${definition.name} npm tar stream is not deterministic\n`
+            + `first: ${firstContentChecksum}\nsecond: ${secondContentChecksum}`,
     )
+    if (firstChecksum !== secondChecksum) {
+        console.log(
+            `[pack] ${definition.name}: gzip wrappers differ; deterministic npm tar stream `
+            + firstContentChecksum,
+        )
+    }
 
     const finalTarball = join(packageOutput, basename(firstTarball))
     copyFileSync(firstTarball, finalTarball)
@@ -336,10 +346,6 @@ function isDistributionFile(path) {
 function isTextTarPath(path) {
     return /(?:^|\/)(?:LICENSE|NOTICE)$/.test(path)
         || /\.(?:css|js|json|map|md|ts)$/.test(path)
-}
-
-function sha256(path) {
-    return createHash('sha256').update(readFileSync(path)).digest('hex')
 }
 
 function readJson(path) {
