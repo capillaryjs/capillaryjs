@@ -13,7 +13,6 @@ export class OptionsPanel<TProps extends GroupPanelBaseProps = OptionsPanelProps
     static override hostName = 'options-panel'
 
     static css = css`
-        
         & > fray-content {
             display: flex;
             flex-direction: column;
