@@ -1,6 +1,6 @@
 import type {ReadableEmitter} from '@sylwellsoftware/glue'
 
-import {Component, css, h} from '../component.js'
+import {Component, css} from '../component.js'
 import type {ComponentProps, FrayChild} from '../component.js'
 import {componentClass, controlId} from '../controlUtils.js'
 
@@ -51,15 +51,15 @@ export class ProgressBar extends Component<ProgressBarProps> {
                 max={max}
                 aria-valuetext={valueText}
             >{valueText}</progress>
-            {h('fray-content', {'aria-hidden': 'true'},
-                h('fray-progress', {
-                    style: percentage == null ? undefined : {
+            <fray-content aria-hidden="true">
+                <fray-progress
+                    style={percentage == null ? undefined : {
                         '--progress-width': `${percentage}%`,
                         '--progress-inverse-width': `${10000 / Math.max(percentage, 1)}%`,
-                    },
-                }, h('fray-inverse', null, this.props.label)),
-                h('fray-label', null, this.props.label),
-            )}
+                    }}
+                ><fray-inverse>{this.props.label}</fray-inverse></fray-progress>
+                <fray-label>{this.props.label}</fray-label>
+            </fray-content>
         </Host>
     }
 

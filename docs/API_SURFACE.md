@@ -58,6 +58,7 @@ peer dependency.
 | `FrayApp`, `mountFrayApp` | Fixed `fray-app` root, theme-text boundary, and CSS-registering application mount helper |
 | `Fragment`, `jsx`, `jsxs`, `jsxDEV` | Automatic JSX runtime |
 | `h` | Low-level vnode factory retained for non-JSX integrations |
+| `FrayHostElementTagNameMap`, `FrayElementTagNameMap` | Custom `fray-*` host element tag maps that extend JSX intrinsic elements |
 | `css` | Static CSS template helper |
 | `live` | Explicit one-way emitter binding for DOM properties and allowlisted component props |
 | `FrayRuntime`, `createFrayRuntime`, `defaultFrayRuntime` | Application-scoped component creation, mounting, styles, services, and optional routing |

@@ -1,5 +1,5 @@
 import {FetchState} from '@sylwellsoftware/glue'
-import {Button, Component, css, h} from '@sylwellsoftware/fray'
+import {Button, Component, css} from '@sylwellsoftware/fray'
 import type {ComponentProps, FrayChild} from '@sylwellsoftware/fray'
 
 import type {BlockNode, BlockPath} from '../block.js'
@@ -44,9 +44,9 @@ export class BlockGraph<TItem = unknown> extends Component<BlockGraphProps<TItem
             aria-busy={layoutSnapshot.fetchState !== FetchState.Ready ? 'true' : null}
         >
             <header>
-                {h('fray-summary', null,
-                    <h2>{label}</h2>,
-                    <p>{description} {layout.root.count} items.</p>,
+                <fray-summary>
+                    <h2>{label}</h2>
+                    <p>{description} {layout.root.count} items.</p>
                     <output>
                         <strong>Selection:</strong>{' '}
                         {selected == null ? 'None' : selected.path.length === 0
@@ -55,8 +55,8 @@ export class BlockGraph<TItem = unknown> extends Component<BlockGraphProps<TItem
                                 const path = selected.path.slice(0, index + 1)
                                 return findBlock(layout.root, path)?.label ?? segment.categoryKey
                             }).join(' → ')}
-                    </output>,
-                )}
+                    </output>
+                </fray-summary>
                 <Button
                     label="Clear selection"
                     disabled={selectedPath == null}
@@ -71,21 +71,21 @@ export class BlockGraph<TItem = unknown> extends Component<BlockGraphProps<TItem
                         ? this.renderPartitionError(layout.issues)
                         : layout.root.count === 0
                             ? <p role="status">{emptyMessage}</p>
-                            : h('fray-scroller', {
-                                tabIndex: 0,
-                                'aria-label': `Scrollable ${label}`,
-                            }, h('fray-blocks', {
-                                role: 'tree',
-                                'aria-label': label,
-                                className: layout.root.childOrientation,
-                                onClick: (event: MouseEvent) => {
+                            : <fray-scroller
+                                tabIndex={0}
+                                aria-label={`Scrollable ${label}`}
+                            ><fray-blocks
+                                role="tree"
+                                aria-label={label}
+                                className={layout.root.childOrientation}
+                                onClick={(event: MouseEvent) => {
                                     if (event.target === event.currentTarget) model.clear()
-                                },
-                            }, ...nodes.map((node) => this.renderBlock(
+                                }}
+                            >{nodes.map((node) => this.renderBlock(
                                 node,
                                 selectedPath,
                                 selected?.key ?? firstKey ?? null,
-                            ))))}
+                            ))}</fray-blocks></fray-scroller>}
         </Host>
     }
 
@@ -286,21 +286,21 @@ export class BlockGraph<TItem = unknown> extends Component<BlockGraphProps<TItem
                 }),
             }}
         >
-            {h('fray-blocklabel', null,
-                h('fray-blockname', null,
-                    <small>{node.criterionLabel ?? 'Items'}:</small>,
-                    <strong>{node.label}</strong>,
-                ),
-                <data value={String(node.count)}>{node.count}</data>,
-            )}
-            {node.children.length === 0 ? null : h('fray-blockgroup', {
-                role: 'group',
-                className: node.childOrientation,
-            }, ...node.children.map((child) => this.renderBlock(
+            <fray-blocklabel>
+                <fray-blockname>
+                    <small>{node.criterionLabel ?? 'Items'}:</small>
+                    <strong>{node.label}</strong>
+                </fray-blockname>
+                <data value={String(node.count)}>{node.count}</data>
+            </fray-blocklabel>
+            {node.children.length === 0 ? null : <fray-blockgroup
+                role="group"
+                className={node.childOrientation}
+            >{node.children.map((child) => this.renderBlock(
                 child,
                 selectedPath,
                 tabbableKey,
-            )))}
+            ))}</fray-blockgroup>}
         </article>
     }
 

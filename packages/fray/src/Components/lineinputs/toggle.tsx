@@ -1,4 +1,4 @@
-import {Component, css, h} from '../component.js'
+import {Component, css} from '../component.js'
 import type {FrayChild, Key, LivePropContract} from '../component.js'
 import {
     assertOptions,
@@ -88,15 +88,15 @@ export class Toggle<TValue extends Key = string> extends Component<ToggleProps<T
 
         const Host = this.Host
         return <Host id={this.groupId} className={componentClass(this.props) || null}>
-            {label == null ? null : h('fray-label', {id: this.legendId}, label)}
-            {h('fray-options', {
-                role: 'radiogroup',
-                'aria-label': label == null ? this.props.ariaLabel : null,
-                'aria-labelledby': label == null ? null : this.legendId,
-                'aria-required': required ? 'true' : null,
-                'aria-invalid': error == null ? null : 'true',
-                'aria-describedby': error == null ? null : this.errorId,
-            }, options.map(([value, optionLabel], index) => <button
+            {label == null ? null : <fray-label id={this.legendId}>{label}</fray-label>}
+            <fray-options
+                role="radiogroup"
+                aria-label={label == null ? this.props.ariaLabel : null}
+                aria-labelledby={label == null ? null : this.legendId}
+                aria-required={required ? 'true' : null}
+                aria-invalid={error == null ? null : 'true'}
+                aria-describedby={error == null ? null : this.errorId}
+            >{options.map(([value, optionLabel], index) => <button
                 key={String(value)}
                 type="button"
                 role="radio"
@@ -106,11 +106,11 @@ export class Toggle<TValue extends Key = string> extends Component<ToggleProps<T
                 onClick={(event: MouseEvent) => this.selectOption(value, event)}
                 onKeyDown={(event: KeyboardEvent) =>
                     this.handleKeyDown(event, index, options)}
-            >{optionLabel}</button>))}
-            {error == null ? null : h('fray-error', {
-                id: this.errorId,
-                role: 'alert',
-            }, String(error))}
+            >{optionLabel}</button>)}</fray-options>
+            {error == null ? null : <fray-error
+                id={this.errorId}
+                role="alert"
+            >{String(error)}</fray-error>}
         </Host>
     }
 

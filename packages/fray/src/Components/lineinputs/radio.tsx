@@ -1,4 +1,4 @@
-import {Component, css, h} from '../component.js'
+import {Component, css} from '../component.js'
 import type {
     ComponentProps,
     FrayChild,
@@ -72,7 +72,7 @@ export class RadioButton extends CheckableControl<RadioButtonProps> {
                     onChange={(event: Event) => invoke(this.props.onChange,
                         (event.currentTarget as HTMLInputElement).checked, event)}
                 />
-                {h('fray-checkshell', {'aria-hidden': 'true'})}
+                <fray-checkshell aria-hidden="true" />
                 {label}
             </label>
             {error == null ? null : <p id={this.errorId} role="alert">{String(error)}</p>}

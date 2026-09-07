@@ -1,5 +1,5 @@
 import {Button} from '../menu/button.js'
-import {Component, css, h} from '../component.js'
+import {Component, css} from '../component.js'
 import type {ComponentProps, FrayChild, LivePropContract, Ref} from '../component.js'
 import {
     componentClass,
@@ -70,7 +70,7 @@ export class Dialog extends Component<DialogProps> {
                 {description == null ? null : <p id={this.descriptionId}>
                     {description}
                 </p>}
-                {h('fray-content', null, children)}
+                <fray-content>{children}</fray-content>
                 {actions == null && !showCloseButton ? null : <footer>
                     {actions}
                     {showCloseButton ? <Button

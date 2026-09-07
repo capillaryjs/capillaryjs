@@ -8,12 +8,15 @@ Versioning.
 
 ### Added
 
+- Added `FrayHostElementTagNameMap` and `FrayElementTagNameMap` types to register
+  custom `fray-*` host elements as JSX intrinsic tags, enabling TSX-only
+  authoring without explicit `h()` calls.
 - Added `FrayApp` and `mountFrayApp()`. `FrayApp` provides a fixed block-level
   `fray-app` root, optional viewport-axis sizing, and a `main`/`none` landmark
   policy; the mount helper collects and injects its dependency CSS before the
   first commit.
 - Adjusted font-styling in general to be more sensible
-- Improved base css of CategoryHidepanel for more compact layout 
+- Improved base css of CategoryHidepanel for more compact layout
 
 ### Fixed
 

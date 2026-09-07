@@ -6,6 +6,12 @@ and Semantic Versioning.
 
 ## Unreleased
 
+### Changed
+
+- Replaced all explicit `h()` calls in `BlockGraph`, `CategoryHidePanel`,
+  `LineGraph`, and `SplitSelectionPanel` with equivalent TSX syntax, using the
+  new `FrayHostElementTagNameMap` intrinsic element types from Fray.
+
 
 
 ## 0.9.1 - 2026-09-07

@@ -1,4 +1,4 @@
-import {Component, css, h} from '../component.js'
+import {Component, css} from '../component.js'
 import type {ComponentProps, FrayChild} from '../component.js'
 import {componentClass} from '../controlUtils.js'
 
@@ -13,8 +13,8 @@ export class DescriptionItem extends Component<DescriptionItemProps> {
     render(): FrayChild {
         const {term, value, children = []} = this.props
         return [
-            h('dt', null, term),
-            h('dd', null, value ?? children),
+            <dt>{term}</dt>,
+            <dd>{value ?? children}</dd>,
         ]
     }
 }

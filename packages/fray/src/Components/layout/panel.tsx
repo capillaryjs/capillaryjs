@@ -1,4 +1,4 @@
-import {Component, css, h} from '../component.js'
+import {Component, css} from '../component.js'
 import type {ComponentProps, FrayChild, LivePropContract} from '../component.js'
 import {Header} from './header.js'
 import {componentClass, controlId} from '../controlUtils.js'
@@ -54,7 +54,7 @@ export class Panel extends Component<PanelProps> {
         >
             {title}
             {toolbar}
-            {h('fray-content', {className: orientation}, children)}
+            <fray-content className={orientation}>{children}</fray-content>
         </Host>
     }
 

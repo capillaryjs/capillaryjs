@@ -45,6 +45,8 @@ export type {
     ComponentDependency,
     ComponentProps,
     FrayChild,
+    FrayElementTagNameMap,
+    FrayHostElementTagNameMap,
     FunctionComponent,
     EmitterSnapshot,
     Key,

@@ -1,4 +1,4 @@
-import {Component, css, h} from '../component.js'
+import {Component, css} from '../component.js'
 import type {ComponentDependency, ComponentProps, FrayChild} from '../component.js'
 import {componentClass, controlId} from '../controlUtils.js'
 import {Header} from './header.js'
@@ -42,7 +42,7 @@ export class GroupPanel<
                 id={`${this.panelId}-header`}
                 headingId={this.headerId}
             >{header}</Header>
-            {h('fray-content', null, content)}
+            <fray-content>{content}</fray-content>
         </Host>
     }
 

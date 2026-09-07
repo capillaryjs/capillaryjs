@@ -1,4 +1,4 @@
-import {Component, css, h} from '../component.js'
+import {Component, css} from '../component.js'
 import type {ComponentProps, FrayChild} from '../component.js'
 import {Header} from './header.js'
 import {componentClass, controlId} from '../controlUtils.js'
@@ -44,8 +44,8 @@ export class Sidebar extends Component<SidebarProps> {
                 aria-labelledby={header == null ? null : this.headerId}
             >
                 {title}
-                {toolbar == null ? null : h('fray-toolbarcontent', null, toolbar)}
-                {h('fray-content', {tabIndex: 0}, children)}
+                {toolbar == null ? null : <fray-toolbarcontent>{toolbar}</fray-toolbarcontent>}
+                <fray-content tabIndex={0}>{children}</fray-content>
             </aside>
         </Host>
     }

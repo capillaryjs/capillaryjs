@@ -1,7 +1,7 @@
 import {Emitter, FetchState} from '@sylwellsoftware/glue'
 import type {ReadableEmitter} from '@sylwellsoftware/glue'
 
-import {Component, css, h, isVNode} from '../../component.js'
+import {Component, css, isVNode} from '../../component.js'
 import type {ComponentProps, FrayChild, Key} from '../../component.js'
 import {componentClass, invoke} from '../../controlUtils.js'
 import type {ValueEmitter} from '../../controlUtils.js'
@@ -146,12 +146,13 @@ export class TreeView<TValue = unknown> extends Component<TreeViewProps<TValue>>
                             onKeyDown={(event: KeyboardEvent) =>
                                 this.handleKeyDown(event, index, visible)}
                         >
-                            {h('fray-expander', {'aria-hidden': 'true'},
-                                hasChildren ? (isExpanded ? '▾' : '▸') : '•')}
-                            {h('fray-label', {
-                                ...(labelClassName == null ? {} : {className: labelClassName}),
-                                ...(labelStyle == null ? {} : {style: labelStyle}),
-                            }, label)}
+                            <fray-expander aria-hidden="true">
+                                {hasChildren ? (isExpanded ? '▾' : '▸') : '•'}
+                            </fray-expander>
+                            <fray-label
+                                {...(labelClassName == null ? {} : {className: labelClassName})}
+                                {...(labelStyle == null ? {} : {style: labelStyle})}
+                            >{label}</fray-label>
                         </li>
                     })}
                 </ul>}

@@ -1,6 +1,5 @@
 import {Emitter} from '@sylwellsoftware/glue'
 import type {ReadableEmitter} from '@sylwellsoftware/glue'
-import {h} from '../component.js'
 import type {FrayChild, LivePropContract} from '../component.js'
 import {
     assertOptions,
@@ -92,7 +91,7 @@ export class Dropdown<TValue extends DropdownValue = string>
             className={componentClass(this.props)}
         >
             {label == null ? null : <label htmlFor={this.inputId}>{label}</label>}
-            {h('fray-selectshell', null,
+            <fray-selectshell>
                 <select
                     id={this.inputId}
                     name={name}
@@ -126,8 +125,8 @@ export class Dropdown<TValue extends DropdownValue = string>
                             selected={Object.is(currentValue, option.value)}
                         >{option.label ?? String(option.value)}</option>
                     })}
-                </select>,
-            )}
+                </select>
+            </fray-selectshell>
             {error == null ? null : <p
                 id={this.errorId}
                 role="alert"

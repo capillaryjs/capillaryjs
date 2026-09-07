@@ -1,4 +1,4 @@
-import {Component, css, h} from '../component.js'
+import {Component, css} from '../component.js'
 import type {ComponentProps, FrayChild} from '../component.js'
 import {componentClass, controlId} from '../controlUtils.js'
 
@@ -33,7 +33,10 @@ export class Header extends Component<HeaderProps> {
             id={this.headerId}
             className={componentClass(this.props) || null}
         >
-            {h(`h${level}`, {id: this.headingId}, children)}
+            {(() => {
+                const Heading = `h${level}` as 'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6'
+                return <Heading id={this.headingId}>{children}</Heading>
+            })()}
         </Host>
     }
 

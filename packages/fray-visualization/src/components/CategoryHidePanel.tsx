@@ -4,7 +4,6 @@ import {
     Checkbox,
     GroupPanel,
     css,
-    h,
 } from '@sylwellsoftware/fray'
 import type {FrayChild, GroupPanelBaseProps} from '@sylwellsoftware/fray'
 
@@ -38,12 +37,12 @@ extends GroupPanel<CategoryHidePanelProps<TItem>> {
         const itemSnapshot = this.snapshot(this.props.items$)
         const items = Array.isArray(itemSnapshot.value) ? itemSnapshot.value : []
         return this.renderGroupPanel(label,
-            h('fray-categoryhidecontent', null,
-                <p>{description}</p>,
-                itemSnapshot.fetchState === FetchState.Error
+            <fray-categoryhidecontent>
+                <p>{description}</p>
+                {itemSnapshot.fetchState === FetchState.Error
                     ? <p role="alert">Category counts are unavailable.</p>
-                    : null,
-                h('fray-criteriongroups', null, criteria.map((criterion) => {
+                    : null}
+                <fray-criteriongroups>{criteria.map((criterion) => {
                     const categorySnapshot = this.snapshot(criterion.categories$)
                     const hidden = this.read(criterion.hidden$)
                     const categories = Array.isArray(categorySnapshot.value)
@@ -58,30 +57,31 @@ extends GroupPanel<CategoryHidePanelProps<TItem>> {
                             <span>{criterion.label}</span>
                             <small>{visibleCount}/{categories.length} visible</small>
                         </summary>
-                        {h('fray-categorygroupcontent', null,
-                            categorySnapshot.fetchState === FetchState.Error
+                        <fray-categorygroupcontent>
+                            {categorySnapshot.fetchState === FetchState.Error
                                 ? <p role="alert">{criterion.label} categories are unavailable.</p>
-                                : null,
-                            categorySnapshot.fetchState !== FetchState.Ready
+                                : null}
+                            {categorySnapshot.fetchState !== FetchState.Ready
                                 ? <p role="status" aria-live="polite">Loading {criterion.label}…</p>
-                                : null,
-                            h('fray-categories', null, categories.map((category) => {
+                                : null}
+                            <fray-categories>{categories.map((category) => {
                                 const count = countMatches(items, category.predicate)
-                                return h('fray-categoryoption', {
-                                    key: category.key,
-                                    style: categoryColorVariables(category.colors),
-                                },
-                                h('fray-categoryswatch', {'aria-hidden': 'true'}),
-                                <Checkbox<CategoryVisibility>
-                                    symbols={visibilitySymbols}
-                                    label={`${category.label} (${count})`}
-                                    valueEmitter={criterion.visibility(category.key)}
-                                />)
-                            })),
-                        )}
+                                return <fray-categoryoption
+                                    key={category.key}
+                                    style={{...categoryColorVariables(category.colors)}}
+                                >
+                                    <fray-categoryswatch aria-hidden="true" />
+                                    <Checkbox<CategoryVisibility>
+                                        symbols={visibilitySymbols}
+                                        label={`${category.label} (${count})`}
+                                        valueEmitter={criterion.visibility(category.key)}
+                                    />
+                                </fray-categoryoption>
+                            })}</fray-categories>
+                        </fray-categorygroupcontent>
                     </details>
-                })),
-            ),
+                })}</fray-criteriongroups>
+            </fray-categoryhidecontent>,
         )
     }
 
@@ -93,7 +93,6 @@ extends GroupPanel<CategoryHidePanelProps<TItem>> {
             flex: 0 0 auto;
             min-width: 0;
         }
-        
 
         & > fray-content > fray-categoryhidecontent {
             display: grid;

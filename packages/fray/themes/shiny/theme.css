@@ -3,8 +3,6 @@
 @layer theme {
   :root {
     --base-font-size: 14px;
-    --font-size: 12px;
-    --font-family: Helvetica, sans-serif;
 
     /* Foundation and shared chrome */
     color-scheme: only light;

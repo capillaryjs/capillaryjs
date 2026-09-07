@@ -1,4 +1,4 @@
-import {Button, Checkbox, GroupPanel, css, h} from '@sylwellsoftware/fray'
+import {Button, Checkbox, GroupPanel, css} from '@sylwellsoftware/fray'
 import type {FrayChild, GroupPanelBaseProps} from '@sylwellsoftware/fray'
 
 import type {CategoryVisibility} from '../grouping.js'
@@ -42,8 +42,8 @@ extends GroupPanel<SplitSelectionPanelProps<TItem>> {
         const activePreset = this.read(model.activePreset$)
         return this.renderGroupPanel(label, [
             <p>{description}</p>,
-            model.presets.length === 0 ? null : h('fray-presets', null,
-                model.presets.map((preset) => <Button
+            model.presets.length === 0 ? null : <fray-presets>
+                {model.presets.map((preset) => <Button
                     key={preset.key}
                     label={preset.label}
                     pressed={activePreset === preset.key}
@@ -51,7 +51,7 @@ extends GroupPanel<SplitSelectionPanelProps<TItem>> {
                         model.applyPreset(preset.key)
                         this.announce(`${preset.label} split preset applied`)
                     }}
-                />)),
+                />)}</fray-presets>,
             <ol>{order.map((criterion) => <li
                 key={criterion.key}
                 className={this.draggingKey === criterion.key ? 'dragging' : undefined}
@@ -64,12 +64,12 @@ extends GroupPanel<SplitSelectionPanelProps<TItem>> {
                     label={criterion.label}
                     valueEmitter={model.activeState(criterion.key)}
                 />
-                {h('fray-draghandle', {
-                    role: 'button',
-                    tabIndex: 0,
-                    'aria-label': `Reorder ${criterion.label}`,
-                    title: 'Drag to reorder; use Alt+Arrow keys from the keyboard',
-                    onKeyDown: (event: KeyboardEvent) => {
+                <fray-draghandle
+                    role="button"
+                    tabIndex={0}
+                    aria-label={`Reorder ${criterion.label}`}
+                    title="Drag to reorder; use Alt+Arrow keys from the keyboard"
+                    onKeyDown={(event: KeyboardEvent) => {
                         if (!event.altKey || (event.key !== 'ArrowUp' && event.key !== 'ArrowDown')) {
                             return
                         }
@@ -81,8 +81,8 @@ extends GroupPanel<SplitSelectionPanelProps<TItem>> {
                             this.announce(`${criterion.label} moved to position ${position}`)
                             queueMicrotask(() => this.focusHandle(criterion.key))
                         }
-                    },
-                })}
+                    }}
+                />
             </li>)}</ol>,
             <p role="status" aria-live="polite" aria-atomic="true">
                 {this.announcement}

@@ -1,4 +1,4 @@
-import {Component, css, h} from '../component.js'
+import {Component, css} from '../component.js'
 import type {ComponentProps, FrayChild} from '../component.js'
 import {classNames, componentClass} from '../controlUtils.js'
 
@@ -34,16 +34,16 @@ export class SplitView extends Component<SplitViewProps> {
             className={classNames(componentClass(this.props), direction)}
             style={primarySize == null ? undefined : {'--split-primary-size': primarySize}}
         >
-            {h('fray-primary', {
-                role: primaryLabel == null ? null : 'region',
-                'aria-label': primaryLabel,
-                tabIndex: 0,
-            }, primary)}
-            {h('fray-secondary', {
-                role: secondaryLabel == null ? null : 'region',
-                'aria-label': secondaryLabel,
-                tabIndex: 0,
-            }, secondary ?? this.props.children ?? [])}
+            <fray-primary
+                role={primaryLabel == null ? null : 'region'}
+                aria-label={primaryLabel}
+                tabIndex={0}
+            >{primary}</fray-primary>
+            <fray-secondary
+                role={secondaryLabel == null ? null : 'region'}
+                aria-label={secondaryLabel}
+                tabIndex={0}
+            >{secondary ?? this.props.children ?? []}</fray-secondary>
         </Host>
     }
 

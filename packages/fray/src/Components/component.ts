@@ -246,11 +246,45 @@ type NativeCheckedBinding<TElement extends HTMLElement> =
         ? {'bind:checked'?: WritableEmitter<boolean> | undefined}
         : {}
 
+export interface FrayHostElementTagNameMap {
+    'fray-content': HTMLElement
+    'fray-checkshell': HTMLElement
+    'fray-selectshell': HTMLElement
+    'fray-expander': HTMLElement
+    'fray-label': HTMLElement
+    'fray-options': HTMLElement
+    'fray-error': HTMLElement
+    'fray-toolbarcontent': HTMLElement
+    'fray-primary': HTMLElement
+    'fray-secondary': HTMLElement
+    'fray-progress': HTMLElement
+    'fray-inverse': HTMLElement
+    'fray-presets': HTMLElement
+    'fray-draghandle': HTMLElement
+    'fray-chart': HTMLElement
+    'fray-readout': HTMLElement
+    'fray-swatch': HTMLElement
+    'fray-summary': HTMLElement
+    'fray-scroller': HTMLElement
+    'fray-blocks': HTMLElement
+    'fray-blocklabel': HTMLElement
+    'fray-blockname': HTMLElement
+    'fray-blockgroup': HTMLElement
+    'fray-categoryhidecontent': HTMLElement
+    'fray-criteriongroups': HTMLElement
+    'fray-categorygroupcontent': HTMLElement
+    'fray-categories': HTMLElement
+    'fray-categoryoption': HTMLElement
+    'fray-categoryswatch': HTMLElement
+}
+
+export type FrayElementTagNameMap = HTMLElementTagNameMap & FrayHostElementTagNameMap
+
 export type FrayIntrinsicElements = {
-    [TTag in keyof HTMLElementTagNameMap]: FrayDOMProps<HTMLElementTagNameMap[TTag]>
-        & LiveDOMProperties<HTMLElementTagNameMap[TTag]>
-        & NativeValueBinding<HTMLElementTagNameMap[TTag]>
-        & NativeCheckedBinding<HTMLElementTagNameMap[TTag]>
+    [TTag in keyof FrayElementTagNameMap]: FrayDOMProps<FrayElementTagNameMap[TTag]>
+        & LiveDOMProperties<FrayElementTagNameMap[TTag]>
+        & NativeValueBinding<FrayElementTagNameMap[TTag]>
+        & NativeCheckedBinding<FrayElementTagNameMap[TTag]>
 }
 
 /** Classic JSX type namespace for consumers configured with `jsxFactory: "h"`. */

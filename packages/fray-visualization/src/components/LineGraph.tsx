@@ -1,6 +1,6 @@
 import {Emitter, FetchState} from '@sylwellsoftware/glue'
 import type {ReadableEmitter} from '@sylwellsoftware/glue'
-import {Component, css, h} from '@sylwellsoftware/fray'
+import {Component, css} from '@sylwellsoftware/fray'
 import type {ComponentProps, FrayChild} from '@sylwellsoftware/fray'
 
 import {civilDateToDay, dayToCivilDate} from '../dates.js'
@@ -104,25 +104,25 @@ export class LineGraph extends Component<LineGraphProps> {
                     ? <p role="status" aria-live="polite">Loading history chart…</p>
                     : shapes.value.length === 0
                         ? <p role="status">{this.props.emptyMessage ?? 'No history values are available.'}</p>
-                        : h('fray-chart', {
-                            tabIndex: 0,
-                            role: 'group',
-                            'aria-label': `${label}. Use Left and Right Arrow to move by day; hold Shift to move by week.`,
-                            onPointerMove: (event: PointerEvent) => this.pointerMove(event),
-                            onKeyDown: (event: KeyboardEvent) => this.cursorKeyDown(event),
-                            ref: (element: HTMLElement | null) => this.chartHost = element,
-                        })}
-            {model == null || activeDate == null ? null : h('fray-readout', null,
-                <p aria-live="polite"><strong>{formatDate(activeDate)}</strong></p>,
+                        : <fray-chart
+                            tabIndex={0}
+                            role="group"
+                            aria-label={`${label}. Use Left and Right Arrow to move by day; hold Shift to move by week.`}
+                            onPointerMove={(event: PointerEvent) => this.pointerMove(event)}
+                            onKeyDown={(event: KeyboardEvent) => this.cursorKeyDown(event)}
+                            ref={(element: HTMLElement | null) => this.chartHost = element}
+                        />}
+            {model == null || activeDate == null ? null : <fray-readout>
+                <p aria-live="polite"><strong>{formatDate(activeDate)}</strong></p>
                 <ul>{model.series.map(({shape}) => <li key={shape.key}>
-                    {h('fray-swatch', {
-                        style: {'--colored-base': shape.color},
-                        'aria-hidden': 'true',
-                    })}
+                    <fray-swatch
+                        style={{'--colored-base': shape.color}}
+                        aria-hidden="true"
+                    />
                     <span>{shape.label}</span>
                     <strong>{formatValue(valueAtDate(shape, activeDate))}</strong>
-                </li>)}</ul>,
-            )}
+                </li>)}</ul>
+            </fray-readout>}
         </Host>
     }
 

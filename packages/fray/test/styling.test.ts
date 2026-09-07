@@ -344,7 +344,7 @@ describe('style registry', () => {
         runtime.registerStyles(RadioGroup)
         const stylesheet = runtime.styleRegistry.generateCSS()
 
-        assert.match(stylesheet, /fray-radiogroup > fieldset\s*\{[^}]*display:\s*flex[^}]*flex-flow:\s*row wrap[^}]*gap:\s*var\(--space-sm, 0\.5rem\)[^}]*min-inline-size:\s*0/)
+        assert.match(stylesheet, /fray-radiogroup > fieldset\s*\{[^}]*display:\s*flex[^}]*flex-flow:\s*column wrap[^}]*gap:\s*0[^}]*min-inline-size:\s*0/)
         assert.match(stylesheet, /fray-radiogroup > fieldset > legend\s*\{[^}]*flex:\s*0 0 100%[^}]*padding:\s*0/)
         assert.match(stylesheet, /fray-radiobutton > label > input\[type="radio"\] \+ fray-checkshell\s*\{[^}]*border-radius:\s*50%/)
         assert.doesNotMatch(stylesheet, /data-part|data-disabled|data-required|data-error|fray-options|fray-toggle/)

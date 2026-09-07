@@ -1,4 +1,4 @@
-import {css, h} from '../../component.js'
+import {css} from '../../component.js'
 import type {ComponentProps, FrayChild, LivePropContract} from '../../component.js'
 import {CheckableControl} from '../CheckableControl.js'
 import {
@@ -142,7 +142,7 @@ export class Checkbox<TValue extends CheckboxValue = FilterModeValue>
                         }
                     }}
                 />
-                {h('fray-checkshell', {'aria-hidden': 'true'}, shellSymbol)}
+                <fray-checkshell aria-hidden="true">{shellSymbol}</fray-checkshell>
                 {label}
             </label>
             {error == null ? null : <p id={this.errorId} role="alert">{String(error)}</p>}
