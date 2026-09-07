@@ -192,8 +192,8 @@ export class RadioGroup<TValue extends Key = string>
     static override css = css`
         & > fieldset {
             display: flex;
-            flex-flow: row wrap;
-            gap: var(--space-sm, 0.5rem);
+            flex-flow: column wrap;
+            gap: 0;
             margin: 0;
             padding: 0;
             min-inline-size: 0;
@@ -204,6 +204,8 @@ export class RadioGroup<TValue extends Key = string>
         & > fieldset > legend {
             flex: 0 0 100%;
             padding: 0;
+            margin-bottom: .5em;
+            border-bottom: 1px solid #aaa;
         }
     `
 

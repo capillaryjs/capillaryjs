@@ -20,6 +20,7 @@ Versioning.
 - `FrayApp` now applies the theme canvas, text color, font family, font size,
   and line height even when embedded. Existing viewport root traits now apply
   the published text color as well as typography.
+- RadioGroup basic rendering adjusted
 
 ## 1.1.1 - 2026-09-07
 
