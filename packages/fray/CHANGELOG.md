@@ -8,6 +8,8 @@ Versioning.
 
 ### Added
 
+- Added `OptionGroup`, a labelled `fieldset`/`legend` shell with a `headerEnd` slot for controls that need a standardized semantic grouping.
+- Added `OptionsPanel`, extending `GroupPanel` with a flex-column content area and a configurable group gap, designed to contain `OptionGroup` children.
 - Added `FrayHostElementTagNameMap` and `FrayElementTagNameMap` types to register
   custom `fray-*` host elements as JSX intrinsic tags, enabling TSX-only
   authoring without explicit `h()` calls.

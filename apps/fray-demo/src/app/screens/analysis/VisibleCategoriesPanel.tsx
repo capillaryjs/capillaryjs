@@ -17,7 +17,6 @@ export class VisibleCategoriesPanel extends Component<VisibleCategoriesPanelProp
             criteria={model.groupingCriteria}
             label="Visible categories"
             description="Hide a category from both analytical views. Counts remain unfiltered."
-            initiallyOpen={({key}) => key === 'risk' || key === 'lifecycle'}
         />
     }
 }

@@ -17,6 +17,8 @@ import {
     FilterPanel,
     GroupPanel,
     Header,
+    OptionGroup,
+    OptionsPanel,
     ListView,
     Panel,
     Placeholder,
@@ -391,6 +393,30 @@ describe('style registry', () => {
         assert.match(stylesheet, /fray-panel\[aria-disabled="true"\]\s*\{[^}]*opacity:\s*\.65/)
         assert.doesNotMatch(stylesheet, /fray-panel > header/)
         assert.doesNotMatch(stylesheet, /fray-sidebar|fray-dropdown|fray-checkbox|fray-textbox/)
+    })
+
+    test('collects OptionGroup fieldset shell and labeled legend treatment', () => {
+        const runtime = createFrayRuntime()
+        runtime.registerStyles(OptionGroup)
+        const stylesheet = runtime.styleRegistry.generateCSS()
+
+        assert.match(stylesheet, /fray-optiongroup\s*\{[^}]*display:\s*block/)
+        assert.match(stylesheet, /fray-optiongroup > fieldset\s*\{[^}]*margin:\s*0[^}]*padding:\s*0[^}]*border:\s*0/)
+        assert.match(stylesheet, /fray-optiongroup > fieldset > legend\s*\{[^}]*display:\s*flex[^}]*justify-content:\s*space-between[^}]*border-bottom:\s*1px solid var\(--ui-border-color\)/)
+        assert.match(stylesheet, /fray-optiongroup > fieldset > legend > span\s*\{[^}]*flex:\s*1/)
+        assert.doesNotMatch(stylesheet, /fray-grouppanel|fray-panel|fray-header|fray-checkbox/)
+    })
+
+    test('collects OptionsPanel with inherited GroupPanel grid layout and flex content override', () => {
+        const runtime = createFrayRuntime()
+        runtime.registerStyles(OptionsPanel)
+        const stylesheet = runtime.styleRegistry.generateCSS()
+
+        assert.match(stylesheet, /fray-optionspanel\s*\{[^}]*grid-template-columns:\s*1\.5rem minmax\(0, 1fr\)/)
+        assert.match(stylesheet, /fray-optionspanel > fray-header\s*\{[^}]*place-items:\s*center/)
+        assert.match(stylesheet, /fray-optionspanel > fray-content\s*\{[^}]*display:\s*flex[^}]*flex-direction:\s*column[^}]*gap:\s*var\(--options-panel-group-gap, 1\.5em\)/)
+        assert.match(stylesheet, /fray-header\s*\{[^}]*background:\s*var\(--section-header-background\)/)
+        assert.doesNotMatch(stylesheet, /fray-panel|fray-sidebar|fray-checkbox/)
     })
 
     test('collects GroupPanel border and vertical Header treatment', () => {

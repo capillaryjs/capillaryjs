@@ -2,7 +2,8 @@ import {FetchState} from '@sylwellsoftware/glue'
 import type {ReadableEmitter} from '@sylwellsoftware/glue'
 import {
     Checkbox,
-    GroupPanel,
+    OptionGroup,
+    OptionsPanel,
     css,
 } from '@sylwellsoftware/fray'
 import type {FrayChild, GroupPanelBaseProps} from '@sylwellsoftware/fray'
@@ -20,19 +21,17 @@ export interface CategoryHidePanelProps<TItem> extends GroupPanelBaseProps {
     readonly criteria: readonly GroupingCriterion<TItem>[]
     readonly label?: string
     readonly description?: string
-    readonly initiallyOpen?: (criterion: GroupingCriterion<TItem>) => boolean
 }
 
 /** Show/hide controls with live counts against the unfiltered item source. */
 export class CategoryHidePanel<TItem = unknown>
-extends GroupPanel<CategoryHidePanelProps<TItem>> {
+extends OptionsPanel<CategoryHidePanelProps<TItem>> {
     static override liveProps: readonly string[] = []
     render(): FrayChild {
         const {
             criteria,
             label = 'Show or hide categories',
             description = '',
-            initiallyOpen = () => true,
         } = this.props
         const itemSnapshot = this.snapshot(this.props.items$)
         const items = Array.isArray(itemSnapshot.value) ? itemSnapshot.value : []
@@ -49,44 +48,39 @@ extends GroupPanel<CategoryHidePanelProps<TItem>> {
                         ? categorySnapshot.value
                         : []
                     const visibleCount = categories.filter(({key}) => !hidden.has(key)).length
-                    return <details
+                    return <OptionGroup
                         key={criterion.key}
-                        open={initiallyOpen(criterion)}
+                        label={criterion.label}
+                        headerEnd={<small>{visibleCount}/{categories.length} visible</small>}
                     >
-                        <summary>
-                            <span>{criterion.label}</span>
-                            <small>{visibleCount}/{categories.length} visible</small>
-                        </summary>
-                        <fray-categorygroupcontent>
-                            {categorySnapshot.fetchState === FetchState.Error
-                                ? <p role="alert">{criterion.label} categories are unavailable.</p>
-                                : null}
-                            {categorySnapshot.fetchState !== FetchState.Ready
-                                ? <p role="status" aria-live="polite">Loading {criterion.label}…</p>
-                                : null}
-                            <fray-categories>{categories.map((category) => {
-                                const count = countMatches(items, category.predicate)
-                                return <fray-categoryoption
-                                    key={category.key}
-                                    style={{...categoryColorVariables(category.colors)}}
-                                >
-                                    <fray-categoryswatch aria-hidden="true" />
-                                    <Checkbox<CategoryVisibility>
-                                        symbols={visibilitySymbols}
-                                        label={`${category.label} (${count})`}
-                                        valueEmitter={criterion.visibility(category.key)}
-                                    />
-                                </fray-categoryoption>
-                            })}</fray-categories>
-                        </fray-categorygroupcontent>
-                    </details>
+                        {categorySnapshot.fetchState === FetchState.Error
+                            ? <p role="alert">{criterion.label} categories are unavailable.</p>
+                            : null}
+                        {categorySnapshot.fetchState !== FetchState.Ready
+                            ? <p role="status" aria-live="polite">Loading {criterion.label}…</p>
+                            : null}
+                        <fray-categories>{categories.map((category) => {
+                            const count = countMatches(items, category.predicate)
+                            return <fray-categoryoption
+                                key={category.key}
+                                style={{...categoryColorVariables(category.colors)}}
+                            >
+                                <fray-categoryswatch aria-hidden="true" />
+                                <Checkbox<CategoryVisibility>
+                                    symbols={visibilitySymbols}
+                                    label={`${category.label} (${count})`}
+                                    valueEmitter={criterion.visibility(category.key)}
+                                />
+                            </fray-categoryoption>
+                        })}</fray-categories>
+                    </OptionGroup>
                 })}</fray-criteriongroups>
             </fray-categoryhidecontent>,
         )
     }
 
     static override hostName = 'category-hide-panel'
-    static dependencies = [Checkbox]
+    static dependencies = [Checkbox, OptionGroup]
 
     static css = css`
         & {
@@ -113,39 +107,8 @@ extends GroupPanel<CategoryHidePanelProps<TItem>> {
             min-width: 0;
         }
 
-        & details {
-            min-width: 0;
-        }
-
-        & summary {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            box-sizing: border-box;
-            gap: 0.5rem;
-            min-width: 0;
-            margin-bottom: 0.5em;
-            padding: 0 0 0.25em;
-            cursor: pointer;
-            border-bottom: 1px solid var(--ui-border-color);
-            font-weight: 400;
-            font-family: sans-serif;
-            font-size: var(--font-size);
-            color: var(--palette-neutral-950);
-        }
-
-        & summary small {
-            font-weight: 400;
+        & fray-option-group > fieldset > legend small {
             white-space: nowrap;
-        }
-
-        & details > fray-categorygroupcontent {
-            display: block;
-            min-width: 0;
-        }
-
-        & details:not([open]) > fray-categorygroupcontent {
-            display: none;
         }
 
         & fray-categories {

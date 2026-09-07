@@ -99,7 +99,7 @@ describe('visualization controls', () => {
         assert.match(CategoryHidePanel.css, /flex: 0 0 auto/)
         assert.match(GroupPanel.css, /grid-template-columns:\s*1\.5rem minmax\(0, 1fr\)/)
         assert.match(GroupPanel.css, /> fray-header > h1,[\s\S]*writing-mode:\s*vertical-rl[^}]*transform:\s*rotate\(180deg\)/)
-        assert.match(CategoryHidePanel.css, /summary[^}]*border-bottom:\s*1px solid var\(--ui-border-color\)/)
+        assert.match(CategoryHidePanel.css, /fray-option-group > fieldset > legend small/)
         assert.match(CategoryHidePanel.css, /fray-categoryoption > fray-checkbox > label/)
         assert.doesNotMatch(CategoryHidePanel.css, /fray-check-box/)
         const items = new Emitter<readonly Item[]>(itemsValue)
@@ -115,10 +115,7 @@ describe('visualization controls', () => {
         assert.ok(categoryPanel.querySelector(
             ':scope > fray-content > fray-categoryhidecontent',
         ))
-        assert.equal(required('details').className, '')
-        assert.ok(required('fray-categoryhidecontent'))
-        assert.ok(required('fray-criteriongroups'))
-        assert.ok(required('fray-categorygroupcontent'))
+        assert.ok(required('fray-optiongroup'))
         assert.ok(required('fray-categories'))
         const categoryOptions = [...document.querySelectorAll<HTMLElement>('fray-categoryoption')]
         assert.equal(categoryOptions.length, 2)

@@ -86,7 +86,7 @@ custom elements.
 | --- | --- |
 | Actions | `Button`, `Toolbar` |
 | Text and choices | `Label`, `Textbox`, `Dropdown`, `RadioButton`, `RadioGroup`, `Toggle`, `Checkbox`, `TriCheckbox`, `QuadCheckbox` |
-| Layout | `FrayApp`, `Header`, `GroupPanel`, `Panel`, `Sidebar`, `SplitView`, `Tab`, `TabLine`, `TabPanel` |
+| Layout | `FrayApp`, `Header`, `GroupPanel`, `OptionGroup`, `OptionsPanel`, `Panel`, `Sidebar`, `SplitView`, `Tab`, `TabLine`, `TabPanel` |
 | Records and collections | `DescriptionItem`, `DescriptionList`, `Placeholder`, `ListView`, `TreeItem`, `TreeView` |
 | Tables and filters | `DataTable`, `FilterPanel`, `TableHeader`, `TableHeaderCell` |
 | Dialog and status | `Dialog`, `ProgressBar` |
@@ -108,6 +108,8 @@ Notable public behavior:
   `dataSource`, or table-owned `rest` options.
 - `Dialog` uses a native modal surface with focus containment and restoration.
 - `GroupPanel` is a named group with a bordered body and vertical header.
+- `OptionGroup` renders a labelled `fieldset`/`legend` shell with a `headerEnd` slot.
+- `OptionsPanel` extends `GroupPanel` with a flex-column content area for `OptionGroup` children.
 
 ### Data helpers
 

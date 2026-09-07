@@ -8,6 +8,9 @@ and Semantic Versioning.
 
 ### Changed
 
+- `CategoryHidePanel` now extends `OptionsPanel` instead of `GroupPanel` and
+  renders each criterion as an `OptionGroup` with a `headerEnd` visible-count
+  slot, replacing the previous `details`/`summary` disclosure structure.
 - Replaced all explicit `h()` calls in `BlockGraph`, `CategoryHidePanel`,
   `LineGraph`, and `SplitSelectionPanel` with equivalent TSX syntax, using the
   new `FrayHostElementTagNameMap` intrinsic element types from Fray.
