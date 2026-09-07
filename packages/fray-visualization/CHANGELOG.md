@@ -6,6 +6,8 @@ and Semantic Versioning.
 
 ## Unreleased
 
+## 0.9.0 - 2026-09-07
+
 ### Changed
 
 - Every `BlockGraph` block now opts into Fray's reusable `colored` trait. Its

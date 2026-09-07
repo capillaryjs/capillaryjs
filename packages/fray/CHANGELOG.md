@@ -6,6 +6,8 @@ Versioning.
 
 ## Unreleased
 
+## 1.1.0 - 2026-09-07
+
 ### Added
 
 - Added `GroupPanel`, a labelled control-group surface with a bordered body
