@@ -6,6 +6,19 @@ Versioning.
 
 ## Unreleased
 
+### Added
+
+- Added `FrayApp` and `mountFrayApp()`. `FrayApp` provides a fixed block-level
+  `fray-app` root, optional viewport-axis sizing, and a `main`/`none` landmark
+  policy; the mount helper collects and injects its dependency CSS before the
+  first commit.
+
+### Fixed
+
+- `FrayApp` now applies the theme canvas, text color, font family, font size,
+  and line height even when embedded. Existing viewport root traits now apply
+  the published text color as well as typography.
+
 ## 1.1.1 - 2026-09-07
 
 ### Changed

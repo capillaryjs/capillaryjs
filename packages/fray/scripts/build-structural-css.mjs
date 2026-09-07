@@ -2,6 +2,7 @@ import {mkdir, writeFile} from 'node:fs/promises'
 import {fileURLToPath} from 'node:url'
 
 import {Placeholder} from '../src/Components/Placeholder.tsx'
+import {FrayApp} from '../src/Components/app/app.tsx'
 import {DescriptionItem, DescriptionList} from '../src/Components/data/descriptionList.tsx'
 import {ListView} from '../src/Components/data/listview/listview.tsx'
 import {DataTable} from '../src/Components/data/table/DataTable.tsx'
@@ -40,6 +41,7 @@ const components = [
     Dialog,
     Dropdown,
     FilterPanel,
+    FrayApp,
     GroupPanel,
     ListView,
     Panel,

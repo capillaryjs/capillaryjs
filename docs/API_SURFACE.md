@@ -55,6 +55,7 @@ peer dependency.
 | Export | Purpose |
 | --- | --- |
 | `Component` | Explicit class-component lifecycle, tracked emitter reads, cleanup, service access, and keyed rendering |
+| `FrayApp`, `mountFrayApp` | Fixed `fray-app` root, theme-text boundary, and CSS-registering application mount helper |
 | `Fragment`, `jsx`, `jsxs`, `jsxDEV` | Automatic JSX runtime |
 | `h` | Low-level vnode factory retained for non-JSX integrations |
 | `css` | Static CSS template helper |
@@ -84,7 +85,7 @@ custom elements.
 | --- | --- |
 | Actions | `Button`, `Toolbar` |
 | Text and choices | `Label`, `Textbox`, `Dropdown`, `RadioButton`, `RadioGroup`, `Toggle`, `Checkbox`, `TriCheckbox`, `QuadCheckbox` |
-| Layout | `Header`, `GroupPanel`, `Panel`, `Sidebar`, `SplitView`, `Tab`, `TabLine`, `TabPanel` |
+| Layout | `FrayApp`, `Header`, `GroupPanel`, `Panel`, `Sidebar`, `SplitView`, `Tab`, `TabLine`, `TabPanel` |
 | Records and collections | `DescriptionItem`, `DescriptionList`, `Placeholder`, `ListView`, `TreeItem`, `TreeView` |
 | Tables and filters | `DataTable`, `FilterPanel`, `TableHeader`, `TableHeaderCell` |
 | Dialog and status | `Dialog`, `ProgressBar` |
@@ -179,10 +180,12 @@ Presentation loads as base variables, structural CSS, color anchors, then
 theme overrides. Applications can collect structural CSS from declared root
 dependencies instead of loading the complete artifact.
 
-`fray-fill-horizontal` and `fray-fill-vertical` are application-root traits
-that claim a viewport axis and apply the published typography variables. With
-neither class, the root remains embedded/content-sized and inherits host-page
-typography.
+`FrayApp` has a fixed `fray-app` host, applies the published canvas, color, and
+typography variables even when embedded, and offers independent viewport-axis
+settings plus a `main`/`none` landmark policy. `mountFrayApp()` collects and
+injects its declared structural CSS before mounting. The legacy
+`fray-fill-horizontal` and `fray-fill-vertical` application-root traits remain
+available and apply the same canvas, color, and typography values.
 
 `island` marks one explicit, non-nestable surface boundary. `colored` consumes
 application-supplied `--c1`, `--c2`, and `--c3` values for a shared gradient

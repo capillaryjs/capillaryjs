@@ -6,6 +6,7 @@ import {
     DataTable,
     Dialog,
     Dropdown,
+    FrayApp,
     ProgressBar,
     RouteLink,
     SplitView,
@@ -17,6 +18,7 @@ import {
     defineRoute,
     defineService,
     h,
+    mountFrayApp,
     provideService,
     routeTarget,
     serializeTableQuery,
@@ -38,6 +40,11 @@ new SplitView({primary: 'Navigation', secondary: 'Content'})
 new ProgressBar({label: 'Loading', value: null})
 new TreeView({label: 'Projects', nodes: [{id: 'one', label: 'One'}]})
 new Dialog({title: 'Confirm', children: 'Continue?'})
+mountFrayApp(createFrayRuntime(), FrayApp, document.body, {
+    sizing: 'viewport',
+    landmark: 'main',
+    children: 'Application',
+})
 
 type Row = {id: number; name: string}
 new DataTable<Row>({

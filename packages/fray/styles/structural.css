@@ -4,6 +4,7 @@
         .fray-fill-vertical {
             box-sizing: border-box;
             background: var(--application-background);
+            color: var(--ui-color);
             font-family: var(--font-family);
             font-size: var(--font-size);
             line-height: var(--line-height);
@@ -619,6 +620,16 @@ fray-dialog > dialog {
             fray-dialog > dialog::backdrop {
                 background: Canvas;
             }
+        }
+
+fray-app {
+            box-sizing: border-box;
+            display: block;
+            background: var(--application-background);
+            color: var(--ui-color);
+            font-family: var(--font-family);
+            font-size: var(--font-size);
+            line-height: var(--line-height);
         }
 
 fray-grouppanel {

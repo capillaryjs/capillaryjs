@@ -60,30 +60,32 @@ Use Fray's automatic JSX runtime:
 }
 ```
 
-Load the variable base, one color palette, and one theme. Register the root
-component before mounting so Fray can collect its structural CSS dependencies:
+Load the variable base, one color palette, and one theme. `FrayApp` is the
+normal application shell: it renders a fixed `fray-app` host, applies the
+theme canvas and typography, and has an accessible primary-content landmark by
+default. `mountFrayApp()` collects reachable structural CSS before mounting:
 
 ```tsx
 import {Emitter} from '@sylwellsoftware/glue'
 import {
     Button,
-    Component,
+    FrayApp,
     Panel,
     Textbox,
     Toolbar,
     createFrayRuntime,
+    mountFrayApp,
 } from '@sylwellsoftware/fray'
 
 import '@sylwellsoftware/fray/themes/base.css'
 import '@sylwellsoftware/fray/colors/iceblue/colors.css'
 import '@sylwellsoftware/fray/themes/minimal/theme.css'
 
-class ProfileApp extends Component {
+class ProfileApp extends FrayApp {
     readonly name = new Emitter('Ada')
 
-    render() {
+    protected override renderContent() {
         return <Panel
-            className="fray-fill-horizontal fray-fill-vertical"
             header="Profile"
             toolbar={<Toolbar label="Profile actions">
                 <Button label="Save" onClick={() => this.save()} />
@@ -105,14 +107,23 @@ class ProfileApp extends Component {
 }
 
 const runtime = createFrayRuntime()
-runtime.registerStyles(ProfileApp).injectStyles(document)
-runtime.mount(runtime.create(ProfileApp), document.querySelector('#app')!)
+mountFrayApp(runtime, ProfileApp, document.querySelector('#app')!, {
+    sizing: 'viewport',
+})
 ```
 
-`static dependencies` is transitive and idempotent. It declares the Fray and
-application components whose structural CSS the root can render. Applications
-that prefer a complete static asset may import
+`FrayApp` may also be instantiated directly with `children`. Derived apps
+override `renderContent()`. Its `sizing` is `embedded`, `viewport-width`,
+`viewport-height`, or `viewport`; `landmark` is `main` (the default) or `none`
+for an embedded app. `static dependencies` is transitive and idempotent. It
+declares the Fray and application components whose structural CSS the root can
+render. `FrayApp` itself registers and injects those styles whenever it
+attaches; `mountFrayApp()` is the concise normal entry point. Applications that
+prefer a complete static asset may import
 `@sylwellsoftware/fray/styles/structural.css` instead of collecting styles.
+
+`FrayApp` deliberately does not select a palette, theme, appearance mode,
+services, router, routes, or domain state. Those remain application policy.
 
 The low-level `h()` vnode factory remains exported for non-JSX integrations,
 but TSX is the documented authoring model for applications and Fray
@@ -331,6 +342,7 @@ const view = new Emitter<'list' | 'grid'>('list')
 
 | Component | Purpose | Key props and state |
 | --- | --- | --- |
+| `FrayApp` | Fixed `fray-app` application shell and theme-text boundary | `sizing`: `embedded`/viewport axes; `landmark`: `main`/`none`; content or overridden `renderContent()` |
 | `Header` | Styled native heading surface | `level` (1–6), `headingId`, content |
 | `GroupPanel` | Labelled bordered group with a vertical header | required `header`, content |
 | `Panel` | Optional labelled region with toolbar and content flow | `header`, `toolbar`, `orientation`, `disabled`; live: `disabled` |
@@ -547,12 +559,16 @@ runtime selection.
 
 ### Root sizing and typography
 
-Fray does not force a mount root to fill its container. Put
-`fray-fill-horizontal`, `fray-fill-vertical`, or both on the rendered
-application root to claim `100vw`, `100vh`, or the full viewport. Each modifier
-also applies `--font-family`, `--font-size`, and `--line-height` so native and
-Fray descendants inherit the theme typography. An embedded root without a fill
-class keeps the host page's typography and content sizing.
+`FrayApp` is block-level and always applies `--application-background`,
+`--ui-color`, `--font-family`, `--font-size`, and `--line-height`, so all of
+its native and Fray descendants inherit theme text treatment even when it is
+embedded. Its `sizing` prop maps to `fray-fill-horizontal`,
+`fray-fill-vertical`, or both to claim `100vw`, `100vh`, or the full viewport.
+
+The traits remain available for applications that use a plain `Component`
+root. They now apply the same canvas, text color, and typography values. A
+plain root without either trait remains content-sized and inherits host-page
+text treatment.
 
 ### Reusable traits
 

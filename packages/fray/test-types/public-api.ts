@@ -9,6 +9,7 @@ import {
     Dialog,
     Dropdown,
     GroupPanel,
+    FrayApp,
     ListView,
     Panel,
     ProgressBar,
@@ -30,6 +31,7 @@ import {
     defineService,
     h,
     live,
+    mountFrayApp,
     provideService,
     routeParameter,
     routeTarget,
@@ -48,6 +50,11 @@ const textboxValue = new Emitter('Ada')
 const textbox = new Textbox({label: 'Name', valueEmitter: textboxValue})
 textbox.valueEmitter.get().toUpperCase()
 new GroupPanel({header: 'Grouping', children: 'Controls'})
+new FrayApp({sizing: 'viewport', landmark: 'main', children: 'Application'})
+const appRuntime = createFrayRuntime()
+mountFrayApp(appRuntime, FrayApp, document.body, {landmark: 'none'})
+// @ts-expect-error FrayApp sizing is a bounded application-root policy.
+new FrayApp({sizing: 'container'})
 
 const numericValue = new Emitter(1)
 const radioOptions = new Emitter([['one', 'One']] as const)

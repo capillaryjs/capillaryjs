@@ -288,6 +288,7 @@ export class Component<TProps extends ComponentProps = ComponentProps> {
         .fray-fill-vertical {
             box-sizing: border-box;
             background: var(--application-background);
+            color: var(--ui-color);
             font-family: var(--font-family);
             font-size: var(--font-size);
             line-height: var(--line-height);
