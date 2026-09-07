@@ -1,471 +1,174 @@
 # Fray
 
-Fray is a browser-only component and DOM runtime built around
-Glue emitters. It targets modern evergreen browsers. Its `0.x` API may change
-with documented migration notes.
+Fray is a browser-only TypeScript component runtime built around Glue
+emitters. It provides TSX rendering, explicit component lifecycle, accessible
+controls and data views, scoped services and routing, and dependency-collected
+structural CSS.
 
-Install it together with its Glue peer:
+Fray 1.x is ESM-only and targets current evergreen browsers. Install it with
+its Glue peer:
 
 ```bash
 pnpm add @sylwellsoftware/glue @sylwellsoftware/fray
 ```
 
-Fray is ESM-only and targets the current and previous major versions of
-Chromium, Firefox, and Safari at candidate time. Its reproducible test matrix
-uses Playwright's pinned Chromium, Firefox, and WebKit builds. Repository
-tooling requires Node 22+ and pnpm 10; Fray's runtime itself is browser-only.
+## Design and ownership
 
-## Why Fray
-
-Fray presents application values without requiring developers to translate
-them into a second UI-specific state system. A control writes the same Glue
-emitter that a derivation or query can observe, and a component renders the
-downstream value it actually needs. State remains owned and explicit, while
-reactive propagation and rendering mechanics stay library concerns.
-
-Presentation should be equally direct. Native HTML already defines buttons,
-inputs, tables, lists, progress, dialogs, and landmarks, so Fray uses those
-elements when their semantics match. Components that need another boundary use
-readable light-DOM host names rather than framework identity classes.
-Within a component host, Fray uses classes for owned parts, purely visual
-states with no semantic equivalent, and meaningful reusable traits; those
-classes do not identify components. Native and ARIA state attributes remain the
-sole semantic state source and are targeted directly by CSS. Renderer markers,
-diagnostics, interoperability, and actual data use `data-*`; Fray does not use
-`data-*` as its routine component-CSS hook.
-
-## Design model
-
-Fray is the presentation half of a deliberately two-layer architecture:
+Fray presents application values without moving them into a second UI-specific
+state system. Controls write ordinary Glue emitters, components read the
+downstream values they need, and applications retain ownership of domain
+policy and asynchronous work.
 
 ```text
-consumer application
-  domain policy, composition, endpoints, active theme/color
-                         │
-                         ▼
+application
+  domain policy, composition, services, endpoints, routes, theme selection
+                              │
+                              ▼
 Fray
-  TSX/h(), components, DOM, events, lifecycle, structural CSS
-                         │ get / subscribe / set
-                         ▼
+  TSX, DOM, events, lifecycle, accessibility, structural presentation
+                              │ get / subscribe / set
+                              ▼
 Glue
-  mutable and derived values, live queries, status, causality
+  mutable values, derived values, live queries, commands, diagnostics
 ```
 
-The libraries share a protocol, not a monolithic application framework. Glue
-remains usable without a UI; Fray does not introduce hooks, a hidden component
-state store, a query language, or transport policy to compete with Glue.
-
-Fray follows these design rules:
-
-- **Declarative structure, ordinary TypeScript logic.** TSX or `h()` describes
-  the current DOM. Normal methods and event handlers express algorithms and
-  commands.
-- **Small components compose into larger widgets.** A table, for example, is
-  assembled from headers, cells, filtering, selection, loading, and error
-  pieces instead of becoming one opaque primitive.
-- **Use the browser.** Native elements and semantics are preferred for inputs,
-  buttons, labels, tables, progress, dialogs, and landmarks. Fray's custom host
-  names are light-DOM ownership/styling hooks, not registered Web Components.
-- **One reactive model.** Shared or composable state lives in Glue emitters;
-  derived values replace manually mirrored state; live data lives in
-  `LiveQuery`. Short-lived presentation details may remain explicit component
-  fields when no other object must observe them.
-- **Explicit ownership and cleanup.** Components own the child components,
-  subscriptions, listeners, emitters, and queries they create, and release
-  them with their lifecycle.
-- **Stable browser state during updates.** The synchronous keyed patcher
-  preserves compatible DOM nodes, focus, selection, input state, and event
-  listener cardinality while reconciling a component's new vnode tree.
-- **Progressive tooling.** JSX and generated structural CSS are build-time
-  conveniences over the same small runtime contracts; they are not separate
-  execution models.
-
-Responsibility stays at the narrowest layer that understands it:
+The boundaries are deliberate:
 
 | Concern | Owner |
 | --- | --- |
-| Domain state, service implementations/providers, endpoint configuration, page composition, theme availability and selection policy | Application |
-| DOM structure, native events, accessibility, component lifetime, service-scope propagation, visual async states | Fray components/runtime |
-| Mutable/computed values, query timing/results, fetch state, optional causality | Glue |
-| Remote wire serialization and retrieval mechanism | Injected Glue query handler/application adapter |
-| Browser navigation placement, restoration, and routed component integration | Caller-owned Fray router with an injected navigation adapter |
-| Layout/flow CSS and stable component/part hooks | Fray structural styling |
-| Look-and-feel treatment and palette | Separately loaded Fray-compatible theme/color CSS |
+| Domain state, validation policy, endpoint configuration, service providers, routes, page composition | Application |
+| DOM structure, native events, accessible semantics, component lifetime, visual async states | Fray |
+| Mutable and computed values, query execution and status, command lifecycle, optional causality | Glue |
+| Retrieval, wire serialization, persistence | Application-supplied handlers and adapters |
+| Structural selectors and component layout | Fray component CSS |
+| Theme treatment, palette, application layout | Separately loaded CSS and application CSS |
 
-## Set up a browser application
+Fray prefers native HTML when it expresses the contract. Custom `fray-*`
+hosts are readable light-DOM ownership and styling boundaries; they are not
+registered custom elements and do not use Shadow DOM.
 
-Fray ships ESM, TypeScript declarations, automatic/classic JSX runtimes,
-variable defaults, replaceable theme treatments, and replaceable color
-palettes. Glue is a peer dependency. Applications collect structural CSS from
-the component classes they actually declare.
+## Set up TSX
 
-```ts
+Use Fray's automatic JSX runtime:
+
+```json
+{
+  "compilerOptions": {
+    "jsx": "react-jsx",
+    "jsxImportSource": "@sylwellsoftware/fray"
+  }
+}
+```
+
+Load the variable base, one color palette, and one theme. Register the root
+component before mounting so Fray can collect its structural CSS dependencies:
+
+```tsx
 import {Emitter} from '@sylwellsoftware/glue'
 import {
     Button,
     Component,
-    Header,
     Panel,
-    Sidebar,
     Textbox,
     Toolbar,
     createFrayRuntime,
-    h,
 } from '@sylwellsoftware/fray'
+
 import '@sylwellsoftware/fray/themes/base.css'
 import '@sylwellsoftware/fray/colors/iceblue/colors.css'
 import '@sylwellsoftware/fray/themes/minimal/theme.css'
 
-const name = new Emitter('Ada')
-
-class App extends Component {
-    static dependencies = [Button, Panel, Textbox, Toolbar]
+class ProfileApp extends Component {
+    readonly name = new Emitter('Ada')
 
     render() {
-        return h(Panel, {
-            className: 'fray-fill-horizontal fray-fill-vertical',
-            header: 'Profile',
-        },
-            h(Textbox, {label: 'Name', valueEmitter: name}),
-            h(Toolbar, {label: 'Profile actions'},
-                h(Button, {label: 'Save', onClick: () => save(name.get())})))
-    }
-}
-
-const runtime = createFrayRuntime()
-runtime.registerStyles(App).injectStyles(document)
-runtime.mount(runtime.create(App), document.querySelector('#app')!)
-
-function save(value: string) {
-    console.log(value)
-}
-```
-
-Root sizing is application-owned. Add `fray-fill-horizontal` to a rendered
-application root to claim exactly `100vw`, `fray-fill-vertical` to claim
-exactly `100vh`, or both for a fullscreen application. Each axis supplies its
-own root overflow fallback and zero minimum; descendant islands are bounded
-and scroll on only the opted-in axes. Other components retain their intrinsic
-minimums and their own structural overflow contracts. Either modifier also
-establishes the theme's `--font-family`, `--font-size`, and `--line-height` on
-the application root so native content and Fray controls inherit the published
-typography without application CSS. A root with neither modifier keeps its
-ordinary embedded/content-sized behavior, including its host page's typography.
-
-The prebuilt structural file targets Fray's default `fray-` hosts. Applications
-with custom components or configured host names may instead register their root
-dependencies and call `runtime.injectStyles(document)`; collection remains
-idempotent and produces one application-scoped structural style element.
-
-For automatic JSX, configure TypeScript with `"jsx": "react-jsx"` and
-`"jsxImportSource": "@sylwellsoftware/fray"`. Classic JSX uses `h` as `jsxFactory` and
-`Fragment` as `jsxFragmentFactory`. JSX and `h()` produce the same vnodes.
-
-The same root can be written with automatic JSX:
-
-```tsx
-class App extends Component {
-    render() {
-        return <Panel header="Profile">
-            <Textbox label="Name" valueEmitter={name} />
-            <Button label="Save" onClick={() => save(name.get())} />
+        return <Panel
+            className="fray-fill-horizontal fray-fill-vertical"
+            header="Profile"
+            toolbar={<Toolbar label="Profile actions">
+                <Button label="Save" onClick={() => this.save()} />
+            </Toolbar>}
+        >
+            <Textbox label="Name" valueEmitter={this.name} />
         </Panel>
     }
 
-    static dependencies = [Button, Panel, Textbox]
-}
-```
-
-## Application services without prop-drilling
-
-Service classes remain ordinary application TypeScript. They commonly group
-immutable Glue endpoint declarations, while every `open()` call still creates
-a caller-owned live result:
-
-```ts
-class ProjectService {
-    readonly label = 'Projects'
-    readonly projects = new RestEndpoint<
-    {search: string},
-    readonly Project[]
-    >({url: '/api/projects', parseResult: parseProjects})
-}
-
-const projectService = defineService<ProjectService>('projects')
-const services = createServiceScope([
-    provideService(projectService, () => new ProjectService()),
-])
-const runtime = createFrayRuntime({services})
-```
-
-The composition root chooses the implementation once. Every nested class
-component created through that runtime inherits the scope:
-
-```ts
-class ProjectList extends Component {
-    static requiredServices = [projectService]
-    private service!: ProjectService
-
-    initialize() {
-        this.service = this.requireService(projectService)
+    onDestroy() {
+        this.name.dispose()
     }
 
-    render() {
-        return h('output', null, this.service.label)
+    private save() {
+        console.log(this.name.get())
     }
+
+    static dependencies = [Button, Panel, Textbox, Toolbar]
 }
+
+const runtime = createFrayRuntime()
+runtime.registerStyles(ProfileApp).injectStyles(document)
+runtime.mount(runtime.create(ProfileApp), document.querySelector('#app')!)
 ```
 
-Dependencies must be declared in `static requiredServices`. Resolution is
-available during `initialize()` and later, after Fray has assigned the runtime;
-constructors cannot resolve services. A missing service fails before component
-initialization, and an undeclared lookup also fails clearly.
+`static dependencies` is transitive and idempotent. It declares the Fray and
+application components whose structural CSS the root can render. Applications
+that prefer a complete static asset may import
+`@sylwellsoftware/fray/styles/structural.css` instead of collecting styles.
 
-Providers are fixed when `ServiceScope` is created. Factories run lazily once
-per scope, can explicitly require another registered service, and are checked
-for circular resolution. `scope.dispose()` disposes initialized services in
-reverse creation order. Components dispose the queries/results they open, not
-the shared service. Create one scope per browser application or test. Because
-the scope is explicit rather than global, a future non-browser adapter can
-preserve request/session isolation without changing service definitions.
+The low-level `h()` vnode factory remains exported for non-JSX integrations,
+but TSX is the documented authoring model for applications and Fray
+components.
 
-There is intentionally no transient resolve-on-every-call lifetime. Independent
-query state comes from caller-owned endpoint results. Function components stay
-presentation-oriented and receive rendered values or emitters from a nearby
-lifecycle-owning class component.
+## Components and lifecycle
 
-## Hierarchical browser routing
+A class component has explicit phases:
 
-Routing is optional and application-scoped. Route descriptors name immutable
-relative segments; the mounted component hierarchy supplies their parentage.
-This lets a `TabPanel` discover immediate routes from ordinary `Tab`
-annotations without requiring a duplicate central route tree:
+1. The constructor stores props and creates local objects, without subscribing
+   or rendering.
+2. `initialize()` runs once after Fray assigns the runtime. Create subscriptions
+   or resolve declared services here.
+3. `render()` returns TSX, a primitive, an emitter child, a component, or an
+   array of children.
+4. `afterMount()` runs after the first DOM commit; `afterUpdate()` runs after
+   later commits.
+5. `onDestroy()` releases resources owned by the component.
+
+`watch()` schedules a component update when an observable changes.
+`read(emitter)` returns its value and tracks it only for the current render.
+`snapshot(emitter)` tracks and returns `{value, fetchState, error}`.
+`onCleanup()` registers listeners or other cleanup functions that Fray invokes
+on destruction.
 
 ```tsx
-import {Emitter} from '@sylwellsoftware/glue'
-import {
-    Component,
-    RouteLink,
-    RouteQuery,
-    RouteUnavailableError,
-    RouteValue,
-    Tab,
-    TabPanel,
-    createBrowserRouter,
-    createHashNavigation,
-    createFrayRuntime,
-    defineRoute,
-    defineRouteParameter,
-    routeTarget,
-    stringRouteCodec,
-    waitForRouteValue,
-} from '@sylwellsoftware/fray'
+class Counter extends Component {
+    readonly count = new Emitter(0)
+    readonly label = this.count.map((value) => `Count: ${value}`)
 
-const routes = {
-    changes: defineRoute('changes'),
-    security: defineRoute('security'),
-    overview: defineRoute('security-overview', 'overview'),
-    projects: defineRoute('security-projects', 'projects'),
-}
-const activeApplication = new Emitter('changes')
-const activeSecurityView = new Emitter('overview')
-
-class SecurityApplication extends Component {
     render() {
-        return <TabPanel valueEmitter={activeSecurityView} label="Security views">
-            <Tab id="overview" label="Overview" route={routes.overview}>Summary</Tab>
-            <Tab id="projects" label="Projects" route={routes.projects}>Projects</Tab>
-        </TabPanel>
+        return <Button
+            label={this.label}
+            onClick={() => this.count.set(this.count.get() + 1)}
+        />
     }
 
-    static dependencies = [Tab, TabPanel]
-}
-
-class App extends Component {
-    render() {
-        return <>
-            <nav aria-label="Applications">
-                <RouteLink to={routeTarget(routes.security, routes.projects)}>
-                    Security projects
-                </RouteLink>
-            </nav>
-            <TabPanel valueEmitter={activeApplication} label="Applications">
-                <Tab id="changes" label="Changes" route={routes.changes}>Changes</Tab>
-                <Tab id="security" label="Security" route={routes.security}>
-                    <SecurityApplication />
-                </Tab>
-            </TabPanel>
-        </>
+    onDestroy() {
+        this.label.dispose()
+        this.count.dispose()
     }
 
-    static dependencies = [RouteLink, SecurityApplication, Tab, TabPanel]
+    static dependencies = [Button]
 }
-
-const router = createBrowserRouter({adapter: createHashNavigation(window)})
-const runtime = createFrayRuntime({router})
-const app = runtime.mount(runtime.create(App), document.querySelector('#app')!)
-
-addEventListener('pagehide', () => {
-    app.destroy()
-    router.dispose()
-}, {once: true})
 ```
 
-The runtime opens the root scope. A selected routed tab opens its own scope for
-nested components, so `/security/projects` restores the outer tab first and
-then discovers and restores the inner tab. Every scope declares when its
-immediate registrations are complete; this distinguishes an unknown child
-from one whose parent has not mounted yet. Duplicate IDs or literal paths and
-multiple parameter routes in one scope fail at completion. Literal routes take
-precedence over the optional parameter route.
+Fray's synchronous keyed reconciler preserves compatible DOM and component
+identity, focus, cursor and native input state, and event-listener cardinality.
+Use stable `key` values for reordered siblings. Never reuse one component
+instance under two owners.
 
-`RouteLink` is a native anchor. A descriptor resolves against the current
-lineage, which is convenient for sibling destinations. A link outside the
-destination's mounted lineage uses `routeTarget(...)` with the full chain from
-the root. Modified clicks, downloads, and non-`_self` targets retain native
-browser behavior. `router.navigate(target)` pushes by default;
-`router.redirect(target)` and `navigate(target, {history: 'replace'})` replace.
-`router.href(target)`, `router.resolve(descriptor, context)`, and
-`router.isActive(target, exact)` support advanced composition.
+### Custom component hosts
 
-Dynamic path values use a typed codec and an application-owned nullable
-emitter:
-
-```tsx
-const projectRoute = defineRouteParameter('project', stringRouteCodec, 'project-id')
-const selectedProjectId = new Emitter<string | null>(null)
-
-<RouteValue
-    route={projectRoute}
-    valueEmitter={selectedProjectId}
-    resolve={async (projectId, _context, signal) => {
-        const projects = await waitForRouteValue(
-            projectResults,
-            (items) => items.length > 0,
-            signal,
-        )
-        if (!projects.some(({id}) => id === projectId)) {
-            throw new RouteUnavailableError(`Unknown project "${projectId}"`)
-        }
-        return projectId
-    }}
->
-    <ProjectView />
-</RouteValue>
-```
-
-Resolvers run in path order, may normalize the decoded value, and receive the
-settled ancestor values plus an `AbortSignal`. A newer navigation or router
-disposal aborts outstanding work. `waitForRouteValue` is a convenience for a
-Glue readable; fetching, authorization, retries, and domain validation remain
-application-owned. Set `scopeChildren` on `RouteValue` only when further route
-levels live beneath the dynamic value. Leaving it off avoids remounting an
-otherwise stable leaf view when selection changes.
-
-Explicit query bindings make selected shareable view state routable without
-coupling the originating control to the router:
-
-```tsx
-<RouteQuery
-    name="range"
-    valueEmitter={historyRange}
-    codec={historyRangeCodec}
-    defaultValue="12m"
->
-    <HistoryView />
-</RouteQuery>
-```
-
-Defaults are omitted, owned names sort deterministically, foreign query keys
-are preserved, and passive emitter changes replace the current URL. Invalid
-owned values reset to the default and produce a structured `router.issue`.
-Path failures similarly fall back to the deepest resolved parent and replace
-the failed entry. Applications observe `router.transition` for pending/idle
-state and render `router.issue` as localized, accessible feedback. An explicit
-navigation clears the issue.
-
-Choose `createHashNavigation(window)` for static hosting; it reserves the URL
-fragment. Choose `createHistoryNavigation(window, {basePath: '/app/'})` for
-ordinary paths; the deployment must serve the application entry point for
-direct requests below that base. `MemoryNavigationAdapter` supplies
-deterministic tests and does not imply server rendering. The application owns
-and disposes the router; destroying a runtime root removes mounted route
-registrations but does not dispose the caller-owned router.
-
-## Component host elements
-
-Fray components with a wrapper render a standards-valid custom host element,
-not a framework identity class. The default application runtime therefore
-produces DOM such as:
-
-```html
-<fray-panel data-fray class="island" data-fray-component="panel">
-    <fray-textbox data-fray data-fray-component="textbox">
-        <input data-fray type="text">
-    </fray-textbox>
-    <button data-fray data-fray-component="button">Save</button>
-</fray-panel>
-```
-
-Native semantics remain native: `Button` renders `button`, `Toggle` renders
-`fieldset`, `Sidebar` renders `aside`, and table header components render
-`thead`/`th`. `Tab` is a declarative child consumed by `TabPanel` and has no
-independent root. The
-`data-fray-component` keeps diagnostics unambiguous. It is not a structural or
-theme selector. Fray may merge public presentation traits such as `island`
-and `colored` with an application-supplied `class`/`className`; those traits
-describe a reusable capability, not component identity.
-
-Pass `island` to a fixed-host component when that surface should be visually
-separated from the page. Fray adds the reusable `island` class to its host;
-applications may use the same class on deliberate native surface boundaries.
-The component-owned rule consumes `--island-*` variables, so an island theme
-can add gutters, an edge, and elevation while a flat theme can leave the
-modifier visually neutral. Islands are one surface layer: nesting an `island`
-component below another island is rejected. Application-authored native island
-classes must follow the same no-nesting invariant. A surface island never
-creates a nested theme or palette scope.
-
-Apply `colored` only to an element that supplies an ordered dark/base/light
-triplet through `--c1`, `--c2`, and `--c3`. The shared component rule paints
-that triplet as a gradient; named themes can add depth through
-`--colored-shadow`. Shiny supplies its glossy shadow while the base and other
-themes remain flat.
-
-Built-in host names are fixed public DOM: Fray adds its one required custom
-element hyphen and removes internal word separators from the component stem.
-For example, `Panel`, `ListView`, and `ThemePicker` render as `<fray-panel>`,
-`<fray-listview>`, and `<fray-themepicker>`. They cannot be prefixed, renamed,
-or made prefix-free at runtime. This lets distributed stylesheets target hosts
-directly and predictably.
-
-Every element created by Fray's renderer also receives the boolean `data-fray`
-attribute. Themes can therefore target native Fray output without affecting
-other UI libraries: `button[data-fray]`, `input[data-fray]`, and
-`dialog[data-fray]`. The marker is renderer-owned and cannot be removed through
-component props. `data-fray-component` remains diagnostic metadata, not an
-ordinary styling selector.
-
-Create the runtime once at application startup, then create and mount the root
-through that runtime. Styles live in the document's global cascade because the
-hosts are deliberately unregistered light-DOM elements, not Web Components or
-Shadow DOM boundaries.
-
-## Reactive templates
-
-TypeScript TSX is Fray's supported template syntax. Classic JSX and direct
-`h()` calls are equivalent frontends: both lower to the same vnode tree and
-use the same renderer. A future template-file syntax can target this vnode
-contract without changing Glue binding semantics.
-
-Fray's built-ins are authored in TSX. Direct
-`h()` remains supported for consumers that do not use JSX and as the renderer's
-canonical vnode operation, but it is not the built-in component authoring
-format. The workspace lint gate rejects new `h()` templates under
-`packages/fray/src/Components`.
-
-Custom hosts are available inside a TSX component through its protected `Host`
-template component:
+Wrapped components declare a host stem and render `this.Host`. The runtime maps
+the stem to one fixed, standards-valid name by removing internal hyphens and
+prefixing `fray-`:
 
 ```tsx
 interface BadgeProps extends ComponentProps {
@@ -481,105 +184,37 @@ class Badge extends Component<BadgeProps> {
     }
 
     static override hostName = 'badge'
+    static override css = css`
+        & { display: inline-flex; }
+        &[data-tone="positive"] { color: var(--palette-green); }
+    `
 }
 ```
 
-At runtime that template produces `<fray-badge>`. `hostName` is a stable
-lowercase kebab-case component identity; Fray derives the fixed host spelling.
-Native-root components such as `Button` use their native tag directly in TSX
-instead of `Host`.
+The `&` selector resolves against the concrete host during style collection.
+Native-root components render their native element directly. Fray-created DOM
+has `data-fray` for diagnostics, but component styling uses the owning host,
+native/ARIA state, fixed part elements, and meaningful traits rather than data
+attributes as routine CSS hooks.
 
-Glue values have explicit behavior at each template boundary:
+## Reactive templates
 
-| Template form | Meaning |
-| --- | --- |
-| `{emitter}` | Render the current value and patch only that child range on emission. |
-| `<Child source={emitter} />` | Pass the emitter object unchanged; the child owns how it consumes it. |
-| `prop={live(emitter)}` | Subscribe a DOM property or a component-declared live prop one way to the emitter's current value. |
-| `<input bind:value={emitter} />` | Bind a writable string emitter and native `value` two ways. |
-| `<input bind:checked={emitter} />` | Bind a writable boolean emitter and native `checked` two ways. |
-| `this.read(emitter)` | Read during `render()` and rerender the component while that dependency is used. |
-| `this.snapshot(emitter)` | Track and read `{value, fetchState, error}` for stateful rendering. |
+Fray exposes four distinct reactive forms. Choose the form that matches the
+ownership boundary.
 
-Direct child and `live()` subscriptions are renderer-owned and are released
-when their nodes disappear. Render-time `read()`/`snapshot()` dependencies are
-reconciled after every render, so conditional dependencies are also released.
-The component still owns and disposes emitters it creates. Direct rendering
-uses only an emitter's value; use `snapshot()` when loading and error state
-must affect the markup.
+### Tracked reads
 
-Component props do not implicitly unwrap emitters. A raw emitter prop passes
-the emitter object to the component, while `live(emitter)` passes its current
-value and subscribes at the renderer boundary. Every class component has an
-explicit live-prop contract and rejects `live()` outside its allowlist in both
-typed templates and at runtime. `live()` is reserved for small render-time
-state such as availability, validation, and busy/pressed state. Identity,
-callbacks, initial values, structural collections, and emitter ownership are
-ordinary props. A data prop documented as accepting a readable emitter is a
-separate input-source contract, not a `live()` prop.
-
-This complete example uses mutable and derived emitters, direct emitter
-children, raw emitter props, native two-way bindings, a one-way live property,
-conditional tracked state, and a `LiveQuery` passed to a child:
+Use `read()` when control flow or an ordinary value depends on an emitter. Use
+`snapshot()` when loading and error state matter:
 
 ```tsx
-import {
-    DerivedEmitter,
-    Emitter,
-    FetchState,
-    LiveQuery,
-    QueryHandler,
-} from '@sylwellsoftware/glue'
-import type {ReadableEmitter} from '@sylwellsoftware/glue'
-import {
-    Button,
-    Component,
-    Panel,
-    Textbox,
-    createFrayRuntime,
-    live,
-} from '@sylwellsoftware/fray'
-import type {ComponentProps, WritableEmitter} from '@sylwellsoftware/fray'
-
-interface Change {
-    id: number
-    title: string
-}
-
-const fixtures: readonly Change[] = [
-    {id: 101, title: 'Add release attestations'},
-    {id: 102, title: 'Migrate the demo to TypeScript'},
-]
-
-class ChangeQueryHandler extends QueryHandler<{filter: string}, readonly Change[]> {
-    override fetch({filter}: {filter: string}): readonly Change[] {
-        const needle = filter.trim().toLocaleLowerCase()
-        return needle === ''
-            ? fixtures
-            : fixtures.filter(({title}) =>
-                title.toLocaleLowerCase().includes(needle))
-    }
-}
-
-interface PreviewProps extends ComponentProps {
-    heading: ReadableEmitter<string, unknown>
-    approved: WritableEmitter<boolean>
-}
-
-class Preview extends Component<PreviewProps> {
-    render() {
-        return <section aria-label="Live change preview">
-            <h3>{this.props.heading}</h3>
-            <label>
-                <input type="checkbox" bind:checked={this.props.approved} />
-                Approved
-            </label>
-        </section>
-    }
+interface Item {
+    id: string
+    label: string
 }
 
 interface ResultsProps extends ComponentProps {
-    results: ReadableEmitter<readonly Change[] | undefined, unknown>
+    results: ReadableEmitter<readonly Item[] | undefined>
 }
 
 class Results extends Component<ResultsProps> {
@@ -589,271 +224,98 @@ class Results extends Component<ResultsProps> {
             return <p role="alert">{String(error)}</p>
         }
         return <ul aria-busy={fetchState === FetchState.Loading}>
-            {(value ?? []).map(({id, title}) => <li key={id}>{title}</li>)}
+            {(value ?? []).map((item) => <li key={item.id}>{item.label}</li>)}
         </ul>
     }
 }
-
-class ChangeApp extends Component {
-    readonly title = new Emitter('Add native Glue template bindings')
-    readonly approved = new Emitter(false)
-    readonly filter = new Emitter('')
-    readonly showPreview = new Emitter(true)
-    readonly heading = new DerivedEmitter(
-        [this.title, this.approved] as const,
-        ([title, approved]) => `${title} — ${approved ? 'approved' : 'draft'}`,
-    )
-    readonly results = new LiveQuery({
-        handler: new ChangeQueryHandler(),
-        args: {filter: this.filter},
-    })
-
-    render() {
-        return <Panel header={this.heading}>
-            <Textbox label="Title" valueEmitter={this.title} />
-            <label>Search <input bind:value={this.filter} /></label>
-
-            <output title={live(this.heading)}>Current title: {this.title}</output>
-
-            <label>
-                <input type="checkbox" bind:checked={this.showPreview} />
-                Show preview
-            </label>
-            {this.read(this.showPreview)
-                ? <Preview heading={this.heading} approved={this.approved} />
-                : null}
-
-            <Results results={this.results} />
-            <Button
-                label="Refresh results"
-                onClick={() => void this.results.refresh()}
-            />
-        </Panel>
-    }
-
-    onDestroy(): void {
-        this.results.dispose()
-        this.heading.dispose()
-        this.showPreview.dispose()
-        this.filter.dispose()
-        this.approved.dispose()
-        this.title.dispose()
-    }
-
-    static dependencies = [Button, Panel, Preview, Results, Textbox]
-}
-
-const runtime = createFrayRuntime()
-runtime.registerStyles(ChangeApp).injectStyles(document)
-runtime.mount(runtime.create(ChangeApp), document.querySelector('#app')!)
 ```
 
-Emitter props are raw by default on purpose: automatically unwrapping every
-prop would make it impossible for controls such as `Textbox` and application
-components such as `Preview` to receive a stable emitter. Use `live()` only
-when the receiver expects a scalar prop and one-way updates are desired.
+The surrounding component rerenders when a tracked source changes, and Fray
+reconciles the tracked source set after every render.
 
-## Glue integration and ownership
+### Fine-grained emitter children
 
-The smallest Fray/Glue seam is a current value plus subscription:
-
-```text
-readable: get() + subscribe(listener)
-writable: readable contract + set(next)
-```
-
-Choose the integration mechanism according to what should update:
-
-- render an emitter as a child or use `live(emitter)` for fine-grained scalar
-  DOM/component updates;
-- use `this.read(emitter)` when the component's structure depends on its value;
-- use `this.snapshot(emitter)` when loading/error state affects the structure;
-- pass the emitter object as a normal prop when a child control owns the
-  interaction;
-- use callbacks for one-way commands and emitters for values that must be read,
-  composed, or observed elsewhere.
-
-A data-aware component normally watches the downstream value it renders rather
-than every upstream input. Leaf controls write ordinary emitters; a coordinator
-owns any semantic `DerivedEmitter`; a data owner constructs or receives the
-`LiveQuery`; the injected handler alone owns transport serialization.
-
-```text
-control event ──► Emitter ──► DerivedEmitter ──► LiveQuery
-                      │              │                │
-                      └──────────────┴────────────────┘
-                                  Fray view
-```
-
-Construction itself is side-effect-free with respect to DOM mounting.
-`initialize()` establishes component subscriptions, mounting creates/attaches
-the rendered tree, updates reconcile it, and `destroy()` releases renderer and
-component-owned resources. State created by a component should be disposed in
-`onDestroy()` as shown above. State supplied through props remains owned by the
-caller unless an API explicitly says otherwise.
-
-For asynchronous views, keep the widget's semantic structure present whenever
-practical and render initial loading, refresh-with-previous-data, empty, error,
-and ready states explicitly. Glue owns the query state transition; Fray owns
-how that state is presented.
-
-## State convention
-
-Every stateful control follows one ownership rule:
-
-- pass a writable `valueEmitter` to share and externally update state;
-- otherwise pass `defaultValue` to initialize the control's owned emitter;
-- read the active emitter from the component instance's `valueEmitter`
-  property;
-- use `onInput` or `onChange` to observe user actions. The callback runs after
-  the emitter changes and does not replace the emitter contract.
-
-`value` remains an initial-value alias for imported `0.x` call-site
-compatibility; it is not a prop-driven controlled mode. Prefer `valueEmitter`
-or `defaultValue` in new code.
-
-## Stable component reference
-
-All components also accept `children`, `className` (`class` is an alias), an
-`island` surface modifier, and a sibling-local `key` through the common
-component props. The modifier is static presentation input, not a `live()`
-property.
-
-| Component | Important props | User callback | State/emitter behavior |
-| --- | --- | --- | --- |
-| `Button` | `label`, `type`, `disabled`, `pressed`, `busy`, `busyLabel`, `ariaLabel`, native `id`/`name`/`value`/`title` | `onClick(event)` | Stateless native button; busy state disables activation and is presentation only. |
-| `Toolbar` | `label`, `orientation`, `id`, `children` | None | Stateless named toolbar; orientation is horizontal or vertical. |
-| `Textbox` | `label` or `ariaLabel`, value props, `disabled`, `required`, `readOnly`, `error`, native text constraints, `inputRef` | `onInput(value, event)`, `onChange(value, event)` | String `valueEmitter`; external emitter changes patch the native input without replacing it. |
-| `Dropdown<T>` | `options`, `label` or `ariaLabel`, value props, `disabled`, `required`, `error`, `placeholder`, `name` | `onChange(value, event)` | Typed string/number `valueEmitter`; `options` may be an array or readable emitter. |
-| `RadioButton` | `label`, `name`, `value`, `checked`, `disabled`, `required`, `error` | `onChange(checked, event)` | Native radio input with a labelled fixed shell; `checked`, `disabled`, `required`, and `error` support `live()`. |
-| `RadioGroup<T>` | Plain-array `options`, `label` or `ariaLabel`, value props, `name`, `disabled`, `required`, `error` | `onChange(value, event)` | Native radio inputs with one selected `valueEmitter`; `disabled`, `required`, and `error` support `live()`. |
-| `Toggle<T>` | `options`, `label` or `ariaLabel`, value props, `disabled`, `required`, `error` | `onChange(value, event)` | One selected value; `disabled`, `required`, and `error` support `live()`. |
-| `Checkbox<T>` | `symbols`, `label`, value props, `disabled`, `required`, `error`, `name` | `onChange(value, event)` | Two-state semantic value by default; `disabled`, `required`, and `error` support `live()`. |
-| `TriCheckbox` | Checkbox props except `symbols` | `onChange(value, event)` | Cycles deny → neutral → prefer using `FilterMode`. |
-| `QuadCheckbox` | Checkbox props except `symbols` | `onChange(value, event)` | Cycles deny → neutral → prefer → require using `FilterMode`. |
-| `Header` | `id`, `headingId`, `level`, `children` | None | Styled heading surface using a native `h1`–`h6`; level defaults to `2`. |
-| `GroupPanel` | `header`, `id`, `children` | None | Labelled bordered control group with a full-height vertical Header. |
-| `Panel` | `header`, `toolbar`, `orientation`, `disabled`, `id`, `children` | None | Stateless labelled section that composes Header when header content exists; `disabled` describes the region but does not mutate descendant controls. |
-| `Sidebar` | `header`, `toolbar`, `ariaLabel`, `id`, `children` | None | Fixed `fray-sidebar` host containing a native complementary region with fixed header/toolbar parts and independently scrolling content. |
-| `SplitView` | `primary`, `secondary`, `direction`, `primarySize`, pane labels | None | Stateless, non-resizable two-pane flex layout with explicit overflow ownership and keyboard-focusable panes; `primarySize` is a flex-basis value. |
-| `DescriptionList` / `DescriptionItem` | list `label`; item `term`, `value` or children | None | Native `dl`/`dt`/`dd` record summary with responsive term/value wrapping. |
-| `ProgressBar` | `label`, `value` or `valueEmitter`, `max`, `valueText` | None | Native progress semantics with a clipped-label visual surface; a null value is indeterminate. |
-| `ThemePicker` | `label` or `ariaLabel`, theme `options`, value props, `targetDocument`, `disabled` | `onChange(value, option, event)` | String `valueEmitter`; replaces only the theme stylesheet link. |
-| `ColorPicker` | `label` or `ariaLabel`, color `options`, value props, `targetDocument`, `disabled` | `onChange(value, option, event)` | String `valueEmitter`; replaces only the color stylesheet link. |
-| `Tab` | `id`, `label`, `disabled`, optional literal `route`, `children` | None | Declarative content marker consumed by `TabPanel`; a route annotation binds tab activation to the current route scope. |
-| `TabLine` | `tabs`, `label`, `baseId`, value props | `onChange(id, event)` | Active-tab `valueEmitter`; arrow keys skip disabled tabs, with Home/End support. |
-| `TabPanel` | `tabs` or `Tab` children, `label`, `id`, value props | `onChange(id, event)` | Owns or consumes the active-tab emitter, wires the selected tabpanel, and contextually registers annotated tabs when a router is present. |
-
-### Live binding and data-source contracts
-
-Use `live()` only for the props listed here. All other component props reject
-`live()` in TSX, `h()`, and at runtime. Form-control errors render an alert,
-set invalid state, and associate the control or group with that message.
-
-| Component | `live()` props | Dedicated reactive input/state props |
-| --- | --- | --- |
-| `Button` | `disabled`, `pressed`, `busy` | None |
-| `Textbox` | `disabled`, `required`, `readOnly`, `error` | `valueEmitter` |
-| `Dropdown` | `disabled`, `required`, `error` | `options` may be an array or readable emitter; `valueEmitter` |
-| `RadioButton` | `checked`, `disabled`, `required`, `error` | None |
-| `RadioGroup` | `disabled`, `required`, `error` | `valueEmitter`; `options` is always an ordinary array |
-| `Toggle` | `disabled`, `required`, `error` | `valueEmitter`; `options` is always an ordinary array |
-| `Checkbox`, `TriCheckbox`, `QuadCheckbox` | `disabled`, `required`, `error` | `valueEmitter` |
-| `ThemePicker`, `ColorPicker` | `disabled` | `valueEmitter` |
-| `Dialog` | `showCloseButton` | `valueEmitter` controls open state |
-| `Panel` | `disabled` | None |
-| `ProgressBar` | None | `valueEmitter` |
-| `ListView` | None | `items` may be an array or readable emitter; selection emitters are outputs |
-| `TreeView` | None | `nodes` may be an array or readable emitter; selected/expanded emitters are outputs; `itemLabelClassName` and `itemLabelStyle` decorate each block label beside its expander |
-| `DataTable` | None | `data` may be an array or readable emitter; `dataSource`/`rest` and selection emitters are explicit source/state contracts |
-| `FilterPanel` | None | `options` may be an array or readable emitter |
-| Layout, tab, description, toolbar, placeholder, and routing components | None | Their ordinary structural/configuration props require an owner rerender when changed |
-
-Readable data sources carry their own fetch state and error through Glue's
-`getFetchState()` and `getError()` APIs. `ListView`, `DataTable`, `FilterPanel`,
-and `TreeView` surface those source failures as data-loading errors. This is
-separate from a control's `error` prop, which represents validation or other
-application-level input feedback.
-
-Invalid option arrays, duplicate tab IDs, unsupported orientations, malformed
-emitters, and non-function callbacks fail with descriptive errors.
-
-## Component examples
-
-### Actions and toolbar
-
-```ts
-h(Toolbar, {label: 'Editor actions'},
-    h(Button, {label: 'Save', onClick: save}),
-    h(Button, {label: 'Delete', disabled: true}))
-```
-
-### Textbox
-
-```ts
-const query = new Emitter('')
-
-h(Textbox, {
-    label: 'Search',
-    valueEmitter: query,
-    required: true,
-    error: query.get() === '' ? 'Enter a search term' : null,
-    onInput: (value) => console.log('search changed', value),
-})
-```
-
-### Dropdown
-
-```ts
-const role = new Emitter<'author' | 'reviewer'>('author')
-
-h(Dropdown, {
-    label: 'Role',
-    valueEmitter: role,
-    options: [
-        {value: 'author', label: 'Author'},
-        {value: 'reviewer', label: 'Reviewer'},
-    ],
-    onChange: (value) => console.log(value),
-})
-```
-
-### Toggle
-
-```ts
-h(Toggle, {
-    label: 'View',
-    defaultValue: 'list',
-    options: [['list', 'List'], ['grid', 'Grid']],
-    onChange: (value) => console.log(value),
-})
-```
-
-### RadioGroup
-
-`RadioGroup` deliberately has a narrow reactive contract. Its selectable
-`options` are ordinary structural input, its `valueEmitter` is a stable raw
-writable state channel, and only `disabled`, `required`, and `error` accept one-way
-`live()` bindings.
-
-| Prop | Role | `live()` support |
-| --- | --- | --- |
-| `options` | Selectable value/label tuples supplied by the owner | No |
-| `disabled` | Current availability state | Yes, with a readable boolean emitter |
-| `required` | Current form-requirement state | Yes, with a readable boolean emitter |
-| `error` | Current validation message and invalid state | Yes, with a readable error emitter |
-| `valueEmitter` | Stable writable selected-value channel | Pass the emitter raw; do not wrap it |
-| `value`, `defaultValue`, `initialValue` | Initial value when no `valueEmitter` is supplied | No |
-| `id`, `label`, `ariaLabel`, `name` | Ordinary identity and presentation input | No `live()` binding |
-| `onChange` | Action callback | No |
-
-Static and live availability state can be combined without changing the option
-contract:
+A readable emitter in child position updates only its owned DOM range:
 
 ```tsx
-const selectedView = new Emitter<'list' | 'grid'>('list')
-const unavailable = new Emitter(false)
-const mustChoose = new Emitter(true)
+<output>Current name: {name}</output>
+```
+
+An emitter passed as a normal component prop remains the same object. Fray does
+not inspect arbitrary prop values or discover dependencies implicitly.
+
+### One-way live properties
+
+`live()` updates a DOM property or a component-declared live prop without
+rerendering its parent:
+
+```tsx
+<Button label="Submit" disabled={live(submitting)} />
+<output title={live(summary)}>{summary}</output>
+```
+
+Built-in components allowlist their live props. TypeScript and runtime checks
+reject a binding on an undeclared prop. Value/data emitters such as
+`valueEmitter`, `items`, and `nodes` are raw contracts and do not use `live()`.
+
+### Two-way native bindings
+
+`bind:value` accepts a writable string emitter and `bind:checked` accepts a
+writable boolean emitter:
+
+```tsx
+<input aria-label="Search" bind:value={search} />
+<input type="checkbox" bind:checked={showArchived} />
+```
+
+Fray keeps the property synchronized in both directions and owns the renderer
+subscription. Higher-level value controls use the same explicit
+`valueEmitter` convention.
+
+## Value-control convention
+
+Stateful controls expose a public writable `valueEmitter`. Callers can supply
+one with `valueEmitter`, supply an initial uncontrolled value with
+`defaultValue`, or let the control create its documented fallback. `value` is
+retained as an initial-value compatibility alias; it is not a continuously
+controlled prop. `onChange` reports user-driven changes.
+
+Availability and validation can be ordinary values or supported `live()`
+bindings. Labels should be visible whenever possible; `ariaLabel` is the
+fallback for controls without visible label content.
+
+## Component reference
+
+Every public component is listed below. Generic `className`, `class`, `island`,
+`key`, and `children` come from `ComponentProps` and are omitted from the key
+props column.
+
+The generic controls `Dropdown`, `RadioGroup`, and `Toggle` preserve their
+option value type through `valueEmitter` and `onChange`; the `<T>` notation in
+the tables below denotes that TypeScript type parameter.
+
+### Actions, inputs, and choices
+
+| Component | Purpose | Key props and state |
+| --- | --- | --- |
+| `Button` | Native button with optional pressed and busy state | `label`, `type`, `disabled`, `pressed`, `busy`, `busyLabel`, `onClick`; live: `disabled`, `pressed`, `busy` |
+| `Toolbar` | Named action group | `label`, `orientation` |
+| `Label` | Native label for rich or live text | `text`, `htmlFor`; live: `text` |
+| `Textbox` | Labelled native text input with validation | `label`, `valueEmitter`, `defaultValue`, `type`, `name`, `placeholder`, `disabled`, `required`, `readOnly`, `error`, native text constraints, `inputRef`, `onInput`, `onChange`; live: availability and `error` |
+| `Dropdown<T>` | Labelled native select | `options`, `label`, `valueEmitter`, `defaultValue`, `placeholder`, `disabled`, `required`, `error`, `onChange`; `options` may be static or a readable emitter |
+| `RadioButton` | Standalone native radio and label | `label`, `name`, `value`, `checked`, `disabled`, `required`, `error`, `onChange`; live: state, availability, `error` |
+| `RadioGroup<T>` | Named native-radio fieldset owning one value | `options` as `[value, label]` tuples, `label`, `valueEmitter`, `defaultValue`, `disabled`, `required`, `error`, `onChange`; options are ordinary render data |
+| `Toggle<T>` | ARIA radio group rendered as toggle buttons | `options` as `[value, label]` tuples, `label`, `valueEmitter`, `defaultValue`, `disabled`, `required`, `error`, `onChange` |
+| `Checkbox<T>` | Configurable keyboard-operable semantic state cycle | `symbols` as `[content, value]` tuples, `label`, `valueEmitter`, `defaultValue`, `disabled`, `required`, `error`, `onChange` |
+| `TriCheckbox` | Neutral/prefer/deny `FilterMode` cycle | Same public props as `Checkbox`, except fixed symbols |
+| `QuadCheckbox` | Neutral/prefer/require/deny `FilterMode` cycle | Same public props as `Checkbox`, except fixed symbols |
+
+`FilterMode` exports `neutral`, `prefer`, `require`, and `deny` semantic values.
+Arrow keys move backward or forward through a multi-state checkbox; Space uses
+the native forward cycle.
+
+```tsx
+const view = new Emitter<'list' | 'grid'>('list')
 
 <RadioGroup
     label="View"
@@ -861,282 +323,267 @@ const mustChoose = new Emitter(true)
         ['list', 'List'],
         ['grid', 'Grid'],
     ]}
-    valueEmitter={selectedView}
-    disabled={live(unavailable)}
-    required={live(mustChoose)}
+    valueEmitter={view}
 />
 ```
 
-`live(optionsEmitter)` and a raw options emitter are both unsupported. When an
-application genuinely owns a changing option vocabulary, its owning class
-component must make that structural rerender explicit:
+### Layout and navigation
+
+| Component | Purpose | Key props and state |
+| --- | --- | --- |
+| `Header` | Styled native heading surface | `level` (1–6), `headingId`, content |
+| `GroupPanel` | Labelled bordered group with a vertical header | required `header`, content |
+| `Panel` | Optional labelled region with toolbar and content flow | `header`, `toolbar`, `orientation`, `disabled`; live: `disabled` |
+| `Sidebar` | Labelled `aside` with fixed header/toolbar and scrolling content | `header`, `toolbar`, `ariaLabel`, content |
+| `SplitView` | Two-pane layout | `primary`, `secondary`, `direction`, `primarySize`, region labels |
+| `Tab` | Declarative tab definition consumed by `TabPanel` | `id`, `label`, `disabled`, optional literal `route`, content |
+| `TabLine` | Standalone keyboard-operable tab list | `tabs`, `valueEmitter`/`activeTabEmitter`, initial value, `label`, `onChange` |
+| `TabPanel` | Tab list plus owned tabpanel sections | declarative `Tab` children or `tabs` definitions; value props, `label`, `onChange` |
+
+`TabLine` supports Home, End, and orientation-appropriate arrow navigation and
+skips disabled tabs. `TabPanel` can register routed tabs when it is mounted in
+a router-backed route scope.
 
 ```tsx
-interface ViewChooserProps extends ComponentProps {
-    options: ReadableEmitter<readonly RadioOption[]>
+<TabPanel id="profile" label="Profile sections">
+    <Tab id="summary" label="Summary">Summary content</Tab>
+    <Tab id="details" label="Details">Details content</Tab>
+</TabPanel>
+```
+
+`SplitView` is a fixed two-pane composition primitive. It does not impose
+application resizing policy or persist pane sizes.
+
+### Data and record views
+
+| Component | Purpose | Key props and state |
+| --- | --- | --- |
+| `DescriptionList` | Native `dl` record summary | `label`, `DescriptionItem` children |
+| `DescriptionItem` | Native `dt`/`dd` pair | required `term`, `value` or content |
+| `Placeholder` | Decorative loading placeholder | numeric `width`, clamped to 10–100 percent |
+| `ListView<T>` | Keyed single- or multi-select ARIA listbox | `items`, `itemKey`, `label`, `renderItem`, `multiSelect`, selected emitter |
+| `TreeItem<T>` | Declarative tree-node marker | `id`, `label`, `textValue`, `value`, nested `TreeItem` children |
+| `TreeView<T>` | Keyed single-select ARIA tree | `nodes` or declarative items, `label`, selected/expanded emitters, `renderItem`, per-label class/style callbacks, `onSelect` |
+| `FilterPanel` | Semantic filter-control fieldset | `options`, `filters`, `filterModes`, `defaultSemanticState`, `label`, `onChange` |
+| `TableHeaderCell` | Sort/filter header-cell control | column key/label plus sort/filter state callbacks |
+| `TableHeader` | Header row over public column definitions | `columns`, sort/filter emitters and callbacks |
+| `DataTable<T>` | Accessible local, caller-query, or REST-backed table | `columns`, one data input, `rowKey`, caption/messages, semantic filter options, single/multi selection |
+
+`ListView`, `TreeView`, and `DataTable` reconcile selection by stable keys when
+fresh item objects arrive. Supply an explicit key for application data; index
+fallbacks are only safe for immutable ordering. `ListView.items` and
+`TreeView.nodes` accept static arrays or readable emitters and present loading,
+empty, and error states from the emitter snapshot.
+
+Advanced compositions may use `BaseSelectionHandler`,
+`SingleSelectionHandler`, `MultiSelectionHandler`, and
+`createSelectionHandler` directly. Ordinary applications should prefer the
+selection behavior already owned by `ListView` and `DataTable`.
+
+`TreeView` owns keyboard navigation, expansion, typeahead, and selection. Use
+`itemLabelClassName` and `itemLabelStyle` when only the label beside the
+expander needs a reusable presentation trait such as `colored`.
+
+#### DataTable inputs and ownership
+
+`DataTable` requires exactly one data mode:
+
+- `data`: a static array or readable emitter; the table owns the local derived
+  data source it creates.
+- `dataSource`: a caller-owned `TableDataSource`; the caller disposes it.
+- `rest`: convenience options for a table-owned REST-backed source.
+
+For reusable sources, use `createLocalTableDataSource`,
+`createQueryTableDataSource`, `createHandlerTableDataSource`, or
+`createRestTableDataSource`. Sources expose `query`, `sortEmitter`,
+`filtersEmitter`, optional `retry`, and `dispose()`.
+
+`TableColumn` definitions own display and local comparison/filter functions.
+The pure `applyLocalTableState`, `serializeTableQuery`, and related table-query
+helpers keep local behavior and remote encoding explicit. Pagination,
+virtualization, and server-specific wire policy remain application concerns.
+
+### Dialog, status, and presentation selection
+
+| Component | Purpose | Key props and state |
+| --- | --- | --- |
+| `Dialog` | Controlled native modal with focus containment and restoration | `title`, `description`, `actions`, `valueEmitter`/`defaultValue`, `closeLabel`, `showCloseButton`, `initialFocusRef`, `onClose` |
+| `ProgressBar` | Labelled native progress with visual track | required `label`, `value` or `valueEmitter`, `max`, `valueText`; `null` is indeterminate |
+| `ThemePicker` | Select and replace a Fray theme link | value props, `options`, `label`/`ariaLabel`, `disabled`, `targetDocument`, `onChange` |
+| `ColorPicker` | Select and replace a Fray color link | same contract as `ThemePicker` |
+
+The pickers use `frayThemeOptions` and `frayColorOptions` by default. An
+application still owns whether runtime selection is offered, which options are
+available, and whether the selected identifier is persisted.
+
+## Semantic filter state
+
+Fray's filter helpers keep presentation symbols separate from matching policy.
+A `FilterState` is plain, versionable data keyed by dimension and option. A
+`FilterDimensionDefinition` supplies the application-owned matchers.
+
+Dimensions combine with AND. Within a dimension, deny wins, every required
+option must match, and at least one preferred option must match when any are
+active. Unknown persisted keys survive serialization without constraining
+current matching.
+
+Use `matchesFilterState` or `filterByState` for pure evaluation;
+`deriveFilterPredicate` and `deriveFilteredItems` for reactive results; and
+`serializeFilterState`/`parseFilterState` for deterministic versioned data.
+
+## Application services
+
+Service implementations remain ordinary application TypeScript. Fray provides
+typed keys and a fixed application scope, not dependency discovery:
+
+```tsx
+class ProjectService {
+    readonly label = 'Projects'
 }
 
-class ViewChooser extends Component<ViewChooserProps> {
+const projectService = defineService<ProjectService>('projects')
+const services = createServiceScope([
+    provideService(projectService, () => new ProjectService()),
+])
+
+class ProjectTitle extends Component {
+    static requiredServices = [projectService]
+    private service!: ProjectService
+
+    initialize() {
+        this.service = this.requireService(projectService)
+    }
+
     render() {
-        return <RadioGroup
-            label="View"
-            options={this.read(this.props.options)}
-        />
+        return <output>{this.service.label}</output>
     }
 }
+
+const runtime = createFrayRuntime({services})
 ```
 
-Calling `optionsEmitter.get()` directly in `render()` only reads a snapshot and
-does not subscribe. `this.read(optionsEmitter)` rerenders the owner when the
-array changes; normal vnode reconciliation then supplies the new ordinary
-array prop to `RadioGroup`. The owner remains responsible for deciding what an
-option removal means for its selected-value emitter. Fray does not silently
-select, clear, or otherwise rewrite that state.
+Providers are immutable, lazy, and scope-shared. Factories can explicitly
+resolve declared dependencies through their `ServiceResolver`; cycles and
+missing providers fail clearly. `ServiceScope.dispose()` disposes initialized
+services in reverse creation order. Components own the queries/results they
+open; they do not dispose scope-shared services.
 
-`label` is a `FrayChild`, so it may still contain an emitter that is rendered
-and subscribed as child content. That fine-grained child behavior is distinct
-from making the `label` property itself a `live()` binding. The same is true of
-an individual `RadioOption` label: its rendered content may be reactive without
-making the option array or its selectable values live.
+`FrayRuntime` carries one `ServiceScope`, optional router, and isolated
+`StyleRegistry`. `createFrayRuntime()` is the normal construction entry point;
+`defaultFrayRuntime` supports direct compatibility mounting.
 
-Because `live()` subscriptions belong to a parent render record, pass live
-props through JSX or `h()`. Direct `new RadioGroup(...)` construction accepts
-resolved booleans and ordinary arrays only.
+## Browser routing
 
-### Checkbox variants
-
-```ts
-h(Checkbox, {label: 'Include archived'})
-h(TriCheckbox, {label: 'Match policy', defaultValue: FilterMode.Neutral})
-h(QuadCheckbox, {label: 'Required tags', defaultValue: FilterMode.Require})
-```
-
-`FilterMode` values are `Deny`, `Neutral`, `Prefer`, and `Require`. The basic
-checkbox uses neutral/prefer, while the variants expose the additional states.
-
-### Header
+Fray routing binds explicit route vocabulary to ordinary writable emitters.
+The application owns descriptors, codecs, data-dependent resolvers, and the
+navigation adapter.
 
 ```tsx
-<Header id="portfolio-header" headingId="portfolio-title" level={2}>
-    Portfolio summary
-</Header>
+const portfolioRoute = defineRoute('portfolio')
+const projectRoute = defineRouteParameter('project', stringRouteCodec)
+const selectedProject = new Emitter<string | null>(null)
+
+const router = createBrowserRouter({adapter: createHashNavigation()})
+const runtime = createFrayRuntime({router})
+
+<TabPanel label="Application sections">
+    <Tab id="portfolio" label="Portfolio" route={portfolioRoute}>
+        <RouteValue
+            route={projectRoute}
+            valueEmitter={selectedProject}
+            scopeChildren={true}
+        >
+            <ProjectScreen selectedProject={selectedProject} />
+        </RouteValue>
+    </Tab>
+</TabPanel>
 ```
 
-`level` is an integer from `1` through `6` and defaults to `2`. Header children
-must be valid native heading content. The custom host owns presentation while
-the nested native heading owns document semantics.
+Core routing exports:
 
-### Panel
+- `defineRoute`, `defineRouteParameter`, `routeParameter`, `routeTarget`, and
+  `withRouteQuery` create immutable descriptors and targets.
+- `BrowserRouter`/`createBrowserRouter` progressively restore mounted scopes,
+  normalize locations, and expose structured issue state.
+- `createHistoryNavigation`, `createHashNavigation`, and
+  `MemoryNavigationAdapter` decide where locations live.
+- `RouteScope` establishes lineage; `RouteValue` binds dynamic path values;
+  `RouteQuery` binds one named query value; `RouteLink` renders a real anchor.
+- `waitForRouteValue` lets a resolver await a readable application
+  prerequisite with cancellation.
 
-```ts
-h(Panel, {
-    header: 'Account',
-    orientation: 'vertical',
-    toolbar: h(Toolbar, {label: 'Account actions'},
-        h(Button, {label: 'Edit'})),
-}, h('p', null, 'Account details'))
-```
+Resolvers may return `RouteRedirect` through `redirectTo()`, or throw
+`RouteUnavailableError` when the requested value cannot be represented in the
+mounted application state.
 
-### Sidebar
+Explicit navigation pushes by default. Restoration never pushes; redirects,
+fallback, canonicalization, and passive bound-state changes replace. A
+superseding transition aborts pending resolvers. Invalid locations settle at
+the deepest valid parent and leave accessible issue presentation to the
+application.
 
-```ts
-h(Sidebar, {
-    id: 'project-navigation',
-    header: 'Projects',
-    toolbar: h(Toolbar, {label: 'Project filters'},
-        h(Textbox, {label: 'Search projects'})),
-}, h('ul', null, h('li', null, 'Release automation')))
-```
+The history adapter needs server fallback for direct deep requests. The hash
+adapter reserves the fragment. The memory adapter is intended for deterministic
+tests. The caller owns and disposes the router.
 
-The surrounding grid or flex layout must bound the Sidebar's height. Its native
-complementary region is inside the fixed Sidebar host; Header and toolbar remain
-fixed while the dedicated content part owns vertical scrolling and is keyboard-
-focusable. Supply `ariaLabel` when there is no visible `header`.
+## Styling contract
 
-### Declarative tabs
+Load presentation in this order:
 
-```ts
-h(TabPanel, {id: 'profile', label: 'Profile sections'},
-    h(Tab, {id: 'summary', label: 'Summary'}, 'Summary content'),
-    h(Tab, {id: 'details', label: 'Details'}, 'Details content'))
-```
+1. `@sylwellsoftware/fray/themes/base.css`
+2. Collected CSS or `@sylwellsoftware/fray/styles/structural.css`
+3. One `@sylwellsoftware/fray/colors/<name>/colors.css`
+4. One `@sylwellsoftware/fray/themes/<name>/theme.css`
 
-### Standalone tab line
+`base.css` declares variables and derives palette roles but contains no
+component selectors. Color files provide anchors and endpoints. Theme files
+provide intentional variable overrides. Component `static css` owns selectors,
+layout, pseudo-elements, native states, and interaction mechanics.
 
-```ts
-h(TabLine, {
-    baseId: 'settings',
-    label: 'Settings sections',
-    defaultValue: 'general',
-    tabs: [
-        {id: 'general', label: 'General'},
-        {id: 'advanced', label: 'Advanced'},
-    ],
-    onChange: (id) => console.log('active tab', id),
-})
-```
+`frayThemeVariableCatalog` describes the supported palette and semantic
+variable hierarchy. `findFrayStylesheetOption`, `replaceFrayStylesheet`,
+`setFrayAppearance`, and `getFrayAppearance` support application-controlled
+runtime selection.
 
-Use `TabPanel` when Fray should render content and ARIA relationships. Use a
-standalone `TabLine` only when the consumer owns the corresponding tabpanel
-content and IDs.
+### Root sizing and typography
 
-## Styling and accessibility
+Fray does not force a mount root to fill its container. Put
+`fray-fill-horizontal`, `fray-fill-vertical`, or both on the rendered
+application root to claim `100vw`, `100vh`, or the full viewport. Each modifier
+also applies `--font-family`, `--font-size`, and `--line-height` so native and
+Fray descendants inherit the theme typography. An embedded root without a fill
+class keeps the host page's typography and content sizing.
 
-A Fray application loads four ordered styling inputs:
+### Reusable traits
 
-| Order | Input | Responsibility |
-| --- | --- | --- |
-| 1 | `themes/base.css` | Default palette anchors, palette-ramp derivation, and semantic custom-property defaults only |
-| 2 | Runtime-collected component CSS | Rules from the `static css` declarations of the component classes the application declares |
-| 3 | `colors/<name>/colors.css` | Palette anchors and endpoints only |
-| 4 | `themes/<name>/theme.css` | Intentional custom-property overrides; `color-scheme` is the only ordinary declaration allowed |
+`island` marks one deliberate themeable surface boundary. Pass
+`island={true}` to a wrapped component or use the class on application-owned
+native markup. Fray rejects nested component islands; application markup must
+preserve the same one-layer invariant.
 
-Application layout remains in application-owned CSS and is not a fifth Fray
-layer. Named color and theme files never import the base file; load order is
-explicit at the application entry point.
+`colored` consumes an explicit `--c1`, `--c2`, `--c3` triplet for the shared
+gradient and `--colored-shadow` treatment. It does not choose semantic colors
+for the application.
 
-Component classes own every selector and every declaration that consumes a
-Fray variable. Shared rules live in meaningful abstract component classes when
-those components share DOM or behavior. For example, `Dropdown` inherits the
-labeled-input contract and then the select-shell contract. The collector walks
-that class chain base-to-derived, resolves each class's own `&` selectors
-against the concrete host, and then traverses dependencies declared at every
-level. The older named `baseStyles` recipe system has been removed.
+## Accessibility and browser support
 
-A component's `static css` should contain the absolute minimum needed for its
-contract. Every selector, declaration, pseudo-element, and variable must have a
-specific purpose that cannot be expressed more simply. A base-class edit must
-be reviewed against all descendants because its CSS is compiled into each
-concrete descendant that is used.
+Fray components use native controls and landmarks where possible, expose
+accessible names, preserve focus during keyed updates, and render loading,
+empty, and error messages outside collection semantics. The browser matrix
+covers pinned Chromium, Firefox, and WebKit builds, including keyboard flows,
+200% text, forced colors, and automated accessibility checks.
 
-The checked-in `styles/structural.css` is a complete generated artifact for
-non-tree-shaken/diagnostic use. Normal applications should register their root
-component and inject the resulting usage-specific stylesheet:
+Applications remain responsible for meaningful labels, heading hierarchy,
+domain validation messages, color contrast introduced by application CSS,
+focus order across composed screens, and manual assistive-technology testing.
 
-```ts
-const runtime = createFrayRuntime()
-runtime.registerStyles(App).injectStyles(document)
-runtime.mount(runtime.create(App), root)
-```
+Fray does not support SSR, hydration, Shadow DOM, registered Web Components,
+legacy browsers, or a concurrent rendering scheduler.
 
-### Custom properties
+## Further reference
 
-`base.css` derives full primary, secondary, and neutral ramps from each
-palette's `500` anchor plus light/dark mix endpoints. A color file therefore
-sets anchors and endpoints, while a theme maps or overrides semantic families
-such as `--button-*`, `--input-*`, `--panel-*`, and `--selection-*`.
-`frayThemeVariableCatalog` exposes the supported vocabulary.
-
-`--application-background` owns the canvas behind an axis-filling application
-root and its islands. Its base value is the white palette endpoint, which
-Shiny and Minimal both retain.
-
-The explicit `island` modifier consumes `--island-margin`,
-`--island-padding`, `--island-background`, `--island-border`,
-`--island-radius`, and `--island-shadow`. Base and Minimal keep its layout and
-elevation neutral; Shiny uses it for Bank2-style separated surfaces. Themes do
-not infer island boundaries from component type or nesting, and islands cannot
-contain other islands.
-
-The reusable `colored` trait consumes a required `--c1`/`--c2`/`--c3`
-dark/base/light triplet and `--colored-shadow`. Its base treatment is the
-shared three-stop gradient; Shiny adds depth without changing the
-application-owned triplet.
-
-### Runtime selection
-
-`replaceFrayStylesheet` maintains one
-`link[data-fray-stylesheet="theme"]` and one
-`link[data-fray-stylesheet="colors"]`. Replacing either link also sets the
-corresponding root data attribute. `ThemePicker` and `ColorPicker` expose the
-same operation through the normal value-control contract. The base file and
-runtime-injected structural stylesheet stay loaded while those two links are
-replaced.
-
-See [the theme contract](themes/README.md) and
-[the palette contract](colors/README.md) for authoring details.
-
-## Data workflows
-
-`ListView`, `DataTable`, `TreeView`, `TreeItem`, `Dialog`, `FilterPanel`, and
-their model helpers are part of the package entry point. All accept
-ordinary Glue emitters; they do not introduce a second state store.
-
-List and table selection is discriminated by cardinality. Single selection is
-an item or `null`; array state is reserved for explicit multi-selection:
-
-```tsx
-const selected = new Emitter<Project | null>(null)
-const selectedRows = new Emitter<Project[]>([])
-
-<ListView items={projects} selectedItemEmitter={selected} itemKey="id" />
-<DataTable
-    data={projects}
-    columns={columns}
-    multiSelect
-    selectedItemsEmitter={selectedRows}
-/>
-```
-
-Both modes reconcile selected keys to fresh objects when data is replaced.
-Multi-selection retains Control/Command toggles, Shift and pointer-drag ranges,
-and keyboard operation.
-
-DataTable accepts exactly one data boundary:
-
-```tsx
-// Direct local data; Fray derives sorted/filtered rows.
-<DataTable data={projects} columns={columns} />
-
-// Convenient REST adapter; the table creates and disposes this source.
-<DataTable
-    rest={{url: '/api/projects', baseUrl: location.href}}
-    columns={columns}
-/>
-
-// Explicit source; the caller owns and eventually disposes it.
-const source = createQueryTableDataSource({query, sortEmitter, filtersEmitter})
-<DataTable dataSource={source} columns={columns} />
-```
-
-`createLocalTableDataSource`, `createQueryTableDataSource`,
-`createHandlerTableDataSource`, and `createRestTableDataSource` make ownership
-visible. Sources package the row query with sort/filter emitters, retry, and
-disposal. The default REST serializer retains the compact existing endpoint
-tokens; inject `serializeQuery` when an endpoint uses another wire contract.
-
-Tree node state is projected from complete immutable snapshots:
-
-```ts
-const selectedNode = deriveTreeNode(treeNodes, selectedKey)
-
-// Only for an authoritative writable root:
-updateWritableTreeNode(treeNodes, 'project-1', (node) => ({...node, label: 'Updated'}))
-```
-
-For a tree derived from domain state, a callback updates that real source; the
-tree derivation then rebuilds and `deriveTreeNode` resolves the fresh node.
-`updateTreeNode` is the equivalent pure path-copy operation.
-
-Generic `FilterState` keeps `neutral`, `prefer`, `require`, and `deny`
-semantic values separate from glyphs and transport. `filterByState`,
-`deriveFilterPredicate`, and `deriveFilteredItems` consume caller-supplied
-dimension matchers. `serializeFilterState`/`parseFilterState` round-trip
-validated version-1 plain data without owning URL or storage access. Unknown
-valid keys are preserved and ignored until a matching definition exists.
-Dimensions combine with AND. Within each dimension, a denied match always
-rejects, every required option must match, and at least one preferred option
-must match when preferences are active. Neutral options do not constrain the
-result.
-
-The stable non-virtualized performance boundary and detailed state behavior are
-documented in this guide. See the migration notes in the changelog before
-upgrading from 0.2.x.
-
-Fray is not a replacement for an SSR/hydration framework, Web Components,
-React/Vue adapters, a broad design system, a virtualized production data grid,
-legacy-browser support, or a stable `1.0` API. See the [workspace
-overview](../../README.md), [API surface](../../docs/API_SURFACE.md),
-[architecture overview](../../docs/architecture.md),
-[changelog](CHANGELOG.md), [contribution guide](../../CONTRIBUTING.md),
-and [security policy](../../SECURITY.md).
+- [Public API surface](../../docs/API_SURFACE.md)
+- [Architecture](../../docs/architecture.md)
+- [Theme contract](themes/README.md)
+- [Color palette contract](colors/README.md)
+- [Release history](CHANGELOG.md)

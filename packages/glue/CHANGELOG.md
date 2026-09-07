@@ -6,6 +6,11 @@ Versioning.
 
 ## Unreleased
 
+### Changed
+
+- Reworked the package guide around current emitter, query, endpoint, command,
+  diagnostic, ownership, and complete package-root export contracts.
+
 ## 0.8.0 - 2026-09-06
 
 ### Added

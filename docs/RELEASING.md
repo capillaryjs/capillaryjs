@@ -1,56 +1,108 @@
 # Releasing Glue, Fray, and Fray Visualization
 
-Normal development and demo builds use the local workspace source. npm releases
-are a separate, deliberate operation from a reviewed, clean commit on public
-`main`.
+Ordinary pushes never publish packages. npm releases begin from a reviewed,
+clean commit on protected public `main`, pass the full public verification
+gate, and enter npm's staged-publishing workflow through GitHub OIDC. A human
+maintainer inspects and promotes every stage with 2FA.
 
-## Prepare and stage
+## 1. Prepare metadata
 
-1. Update the selected package versions, compatible dependency ranges, and each
-   selected package's `CHANGELOG.md`. Use `next` for prereleases and reserve `latest` for an
-   explicitly approved stable release.
-2. Run `pnpm verify:release` and review
-   `.artifacts/release/package-artifacts.json` plus every tarball inventory.
-3. Commit and push the reviewed source. Wait for the required `verify-release`
-   check on `main`.
-4. From the private integration workspace, run the Gradle
-   `npmStageReleasePreflight` task with the exact version, tag, and release set,
-   then explicitly confirm `npmStageRelease`. This only dispatches
-   `.github/workflows/release.yml`.
-5. Approve the protected `npm-release` GitHub environment. The workflow reruns
-   release verification and uses npm OIDC to stage the exact tarballs.
-   Dependencies are staged before dependants: Glue, Fray, then Fray
-   Visualization. No npm token is stored in GitHub.
+Choose an exact release plan containing only the packages being released.
+Dependencies must remain compatible: Glue precedes Fray, which precedes Fray
+Visualization.
 
-## Review and promote
+For each selected package:
 
-CI cannot make a staged package public. In npm's **Staged Packages** page, or
-with npm 11.15 or newer, list the stages and inspect each one:
+- choose the exact version and distribution tag (`next` for a prerelease;
+  `latest` only for an approved stable release);
+- update the package version and any selected-package peer range;
+- promote its `Unreleased` changelog entries under a dated version heading;
+- leave unrelated package metadata unchanged.
 
-```text
-npm stage list @sylwellsoftware/glue
-npm stage view <stage-id>
-npm stage download <stage-id>
+The repository's preparation tooling validates this shape and records an exact
+candidate fingerprint. Re-running the identical plan is safe; do not hand-edit
+the candidate after verification.
+
+## 2. Verify the candidate
+
+From this public repository, the complete gate is:
+
+```bash
+pnpm verify:release
 ```
 
-Compare the downloaded tarball, package/version/tag, inventory, and SHA-256 with
-the workflow artifact and plan. Then approve with npmjs.com or `npm stage
-approve <stage-id>`. npm requires maintainer 2FA. For a combined release,
-approve and verify Glue before Fray, and Fray before Fray Visualization. Verify the public version,
-distribution tag, clean exact-version installation, and npm provenance linked
-to this repository.
+It runs formatting, lint, tooling tests, builds, type checks, package tests,
+consumer type checks, the browser/accessibility matrix, tarball and external
+consumer checks, a public source scan, and the release preflight.
+
+Review:
+
+- `.artifacts/release/package-artifacts.json`;
+- every selected tarball inventory and digest;
+- the exact version/tag plan;
+- the complete source diff.
+
+Commit and push only the verified candidate, then wait for the required
+`verify-release` check on public `main`. A different commit or candidate tree
+requires a new verification run and artifact set.
+
+## 3. Stage through trusted automation
+
+The private integration workspace dispatches
+`.github/workflows/release.yml` with the canonical JSON release plan. The
+workflow checks out the selected public commit, repeats release verification,
+validates registry availability, retains the exact tarballs as a workflow
+artifact, and pauses at the protected `npm-release` environment.
+
+After environment approval, GitHub obtains a short-lived npm identity through
+OIDC and runs `npm stage publish` for the exact verified tarballs. No npm token
+is stored in GitHub. CI stages only; it cannot approve or make a stage public.
+
+The trusted-publisher identity is restricted to repository
+`sylwellsoftware/gluefrayjs`, workflow `release.yml`, environment
+`npm-release`, and staged-publishing permission.
+
+## 4. Inspect and promote stages
+
+Use npmjs.com **Staged Packages** or the pinned staged-publishing CLI. The
+`stage list` command accepts a package name, not a package/version specifier:
+
+```bash
+npx --yes --package=npm@11.19.1 npm stage list @sylwellsoftware/fray --json
+npx --yes --package=npm@11.19.1 npm stage view <stage-id>
+npx --yes --package=npm@11.19.1 npm stage download <stage-id>
+```
+
+Compare the stage's package, version, tag, contents, provenance, and digest with
+the retained workflow artifact and local report. Then approve through npmjs.com
+or:
+
+```bash
+npx --yes --package=npm@11.19.1 npm stage approve <stage-id>
+```
+
+Approval requires an authenticated maintainer session and npm 2FA. If a
+combined release is staged, approve and verify each dependency before its
+dependant: Glue, then Fray, then Fray Visualization.
+
+After each promotion, verify the exact public version, distribution tag,
+provenance link, and a clean exact-version install.
 
 ## Failure and recovery
 
-If a dependency stages but a dependant fails, do not rerun blindly. Inspect
-the pending stage, correct the cause, and either stage only the remaining
-package or reject the dependency with `npm
-stage reject <stage-id>` using 2FA. A rejected stage is not public; package
-history is unchanged.
+- If verification fails, fix the source or test and create a new candidate.
+  Never promote artifacts from a failing run.
+- If a dependency stages but a dependant fails, inspect the pending stage and
+  correct the cause. Stage only the missing package when the release tooling
+  identifies that recovery path.
+- Reject an unwanted pending stage with npmjs.com or
+  `npm stage reject <stage-id>`. Rejection requires 2FA and does not change
+  public package history.
+- If one package is already public, verify it before continuing in dependency
+  order; do not blindly repeat the whole plan.
+- Do not unpublish a bad public release as incident response. Deprecate it and
+  prepare a corrected version.
 
-To stop releases, disable `release.yml` in GitHub Actions and remove or revoke
-the trusted-publisher entries for all three packages. The intended trust identity is
-only `sylwellsoftware/gluefrayjs`, workflow `release.yml`, environment
-`npm-release`, with `npm stage publish` permission. Disabling or revoking this
-path does not delete any published version. Never unpublish a release as an
-incident response; deprecate a bad public version and prepare a corrected one.
+To suspend releases, disable `release.yml` and remove or revoke the npm trusted
+publisher entries for all three packages. This does not delete existing public
+versions.

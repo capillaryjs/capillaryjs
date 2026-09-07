@@ -6,6 +6,11 @@ and Semantic Versioning.
 
 ## Unreleased
 
+### Changed
+
+- Expanded the package guide to document every public model, component,
+  calculation helper, ownership rule, keyboard interaction, and styling seam.
+
 ## 0.9.0 - 2026-09-07
 
 ### Changed

@@ -14,7 +14,6 @@ import {
     Sidebar,
     Textbox,
     createFrayRuntime,
-    h,
     live,
 } from '@sylwellsoftware/fray'
 import type {
@@ -50,10 +49,10 @@ class Counter extends Component {
     readonly label = this.count.map((count) => `Count: ${count}`)
 
     render() {
-        return h(Button, {
-            label: this.label,
-            onClick: () => this.count.set(this.count.get() + 1),
-        })
+        return <Button
+            label={this.label}
+            onClick={() => this.count.set(this.count.get() + 1)}
+        />
     }
 
     onDestroy(): void {

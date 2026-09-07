@@ -1,6 +1,7 @@
 # Glue
 
-Glue is a small, platform-neutral reactive value and live-query library. Fray
+Glue is a small, platform-neutral reactive value and live-query library. Its
+current 0.x releases follow documented migration guidance. Fray
 uses it as its state/data-flow layer, but Glue does not depend on Fray, a DOM,
 or any UI framework. Its implementation and tests are strict TypeScript; the
 ESM build includes declarations and declaration maps.
@@ -186,7 +187,7 @@ boundary that created them.
 
 ## Live queries
 
-```js
+```ts
 import {Emitter, LiveQuery, RestQueryHandler} from '@sylwellsoftware/glue'
 
 const search = new Emitter('ada')
@@ -274,6 +275,10 @@ const local = service.matchingMovies.open({source: cachedMovies, args: {genre}})
 Both results implement `LiveResult`, so a UI that only reads value, fetch
 state, error, and subscriptions can accept either. `LiveQuery` additionally
 implements `RefreshableLiveResult` with `refresh()`, `retry()`, and `abort()`.
+The `queryEndpoint`, `restEndpoint`, and `derivedEndpoint` factory functions are
+equivalent construction frontends when an application prefers function
+declarations to `new QueryEndpoint()`, `new RestEndpoint()`, and
+`new DerivedEndpoint()`.
 
 For a query-like body protocol such as GraphQL, put a custom handler in a
 `QueryEndpoint`. The handler owns method, headers, authentication, body
@@ -359,6 +364,22 @@ responsible for CSS assets, stylesheet links, and rendering.
 
 Nothing in this contract is Fray-specific: another UI framework, a CLI, a Node
 service, or a test can consume the same emitters and live queries.
+
+## Complete export groups
+
+| Area | Public exports |
+| --- | --- |
+| Values | `BaseEmitter`, `Emitter`, `DerivedEmitter`, readable/snapshot/notification option and inference types |
+| State | `FetchState`, `FetchStateValues`, `combineFetchStates` |
+| Queries | `QueryArg`, `LiveQuery`, `LiveResult`, `RefreshableLiveResult`, polling and argument types |
+| Handlers | `QueryHandler`, `RestQueryHandler`, handler/fetch/URL/serializer/parser contracts |
+| Endpoints | `QueryEndpoint`, `RestEndpoint`, `DerivedEndpoint`, `DerivedLiveResult`, lowercase factory functions and option types |
+| Commands | `AsyncCommand`, `AsyncCommandConcurrencyError`, executor/context/concurrency option types |
+| Diagnostics | `EventBubble`, `EventBus`, `EventOptions`, `EventListener`, `BubbleGraph` |
+| Utilities | `NonEmptyArray` |
+
+All runtime exports and public types are available from the package root. Glue
+does not expose implementation subpath entry points.
 
 ## Local checks
 

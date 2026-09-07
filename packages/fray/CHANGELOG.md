@@ -6,6 +6,12 @@ Versioning.
 
 ## Unreleased
 
+### Changed
+
+- Replaced legacy `h()`-first documentation with a comprehensive TSX-first
+  guide covering every public component, reactive template form, data-source
+  ownership rule, service/routing boundary, and styling contract.
+
 ## 1.1.0 - 2026-09-07
 
 ### Added

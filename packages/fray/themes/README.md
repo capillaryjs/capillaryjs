@@ -1,33 +1,41 @@
-# Fray base and theme CSS
+# Fray base and themes
 
-Fray presentation is loaded in this order:
+Fray presentation is assembled from independently owned files in this order:
 
-1. `themes/base.css`: custom-property defaults and palette derivation only.
-2. Runtime-collected structural CSS for the application's declared components.
-3. One `colors/<name>/colors.css`: palette anchors and endpoints only.
-4. One `themes/<name>/theme.css`: intentional custom-property overrides only.
+1. `themes/base.css` — defaults and palette derivation.
+2. Collected component CSS or `styles/structural.css` — selectors and layout.
+3. One `colors/<name>/colors.css` — palette anchors and endpoints.
+4. One `themes/<name>/theme.css` — intentional semantic-role overrides.
 
-Application-owned layout CSS is separate from these Fray inputs.
+Application layout CSS is separate from these inputs.
 
 ## Base file
 
-`base.css` provides usable default palette anchors, derives the primary,
-secondary, and neutral ramps, and declares semantic defaults. It contains no
-component selectors and no declarations that consume those variables.
+`base.css` provides usable default palette anchors, derives primary, secondary,
+and neutral ramps, and declares the semantic variable fallback hierarchy. It
+contains no component selectors and no declarations that consume those
+variables.
 
-The application imports it explicitly. Named themes and colors never import it,
-which keeps ownership and load order visible.
+Applications import the base explicitly. Named themes and palettes never
+import it, so the cascade and ownership order remain visible.
 
 ## Theme files
 
-A theme changes only variables. The sole ordinary-property exception is
-`color-scheme`, because it informs browser-native rendering. A theme must not
-contain component, trait, part, ARIA-state, or pseudo-element selectors. Those
-selectors belong to component `static css` even when their values are driven by
-theme variables.
+Published themes are:
 
-Start with no overrides. Add a variable only when it produces a deliberate
-visual difference from `base.css`; do not repeat defaults for completeness.
+| Theme | Appearance capability | Intent |
+| --- | --- | --- |
+| `minimal` | Adaptive (`light`, `dark`, or system) | Restrained platform-oriented treatment |
+| `java` | Light | Desktop control treatment inspired by classic Java interfaces |
+| `shiny` | Light | Gloss, depth, and chromed graphical surfaces |
+
+A theme changes custom properties. The sole ordinary-property exception is
+`color-scheme`, which informs browser-native rendering. Themes must not contain
+component, trait, part, ARIA-state, or pseudo-element selectors; those belong
+to the component's `static css`.
+
+Start a new theme with no overrides and add a variable only when it creates an
+intentional difference from `base.css`:
 
 ```css
 @layer theme {
@@ -39,6 +47,22 @@ visual difference from `base.css`; do not repeat defaults for completeness.
 }
 ```
 
-`frayThemeVariableCatalog` publishes the supported palette and semantic
-variable contract. Component-specific variables should fall back through a
-shared family so a theme can remain small.
+`frayThemeVariableCatalog` is the machine-readable public contract. Its
+fallback chain runs from palette roles through global UI roles and shared
+families, then to optional component-specific roles. A small theme can
+therefore override a family without naming every component.
+
+## Runtime selection and appearance
+
+`frayThemeOptions` lists built-in theme links and their light/dark capability.
+`ThemePicker` or `replaceFrayStylesheet('theme', option)` replaces the marked
+theme link. `setFrayAppearance('light' | 'dark' | 'system')` controls adaptive
+themes; `system` removes the explicit root attribute so browser preference
+applies.
+
+Theme availability, default selection, persistence, and whether users can
+switch at runtime are application policy.
+
+When changing a theme, verify all supported palettes, native control states,
+keyboard focus, disabled/error/selection contrast, forced colors, reduced
+motion, and 200% text.

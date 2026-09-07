@@ -1,270 +1,229 @@
 # Public API surface
 
-Status: accepted for the current public `0.x` line
-Updated: 2026-09-04
+Status: current package-root and documented CSS entry points
+Updated: 2026-09-07
 
-This document identifies the public `0.x` APIs that receive compatibility
-notes and migration guidance. It is not a promise of `1.0` stability.
+This inventory describes the supported public surface of Glue 0.8, Fray 1.1,
+and Fray Visualization 0.9. Fray follows 1.x semantic-versioning guarantees.
+Glue and Fray Visualization remain on 0.x lines and may make documented
+breaking changes in minor releases.
 
-## Glue stable entry point
+Anything exported only from a source file, test fixture, or build directory is
+internal unless it appears below or in a package export map.
 
-| Export | Purpose | Owner |
+## Glue
+
+`@sylwellsoftware/glue` is platform-neutral and exports everything through its
+package root.
+
+| Area | Runtime exports | Public type families |
 | --- | --- | --- |
-| `FetchState` | Shared `initial`/`loading`/`ready`/`error` state vocabulary. | Glue core |
-| `BaseEmitter` | Read/subscription/disposal base contract. | Glue core |
-| `Emitter` | Mutable reactive value. | Glue core |
-| `DerivedEmitter` | Reactive computation over one or more emitters. | Glue core |
-| `EventBubble` | Optional immutable-enough causal event record. | Glue diagnostics |
-| `EventBus` | Multi-listener diagnostic observer. | Glue diagnostics |
-| `QueryArg` | Named reactive query argument. | Glue query layer |
-| `QueryHandler` | Query-handler interface/base class. | Glue query layer |
-| `LiveQuery` | Abortable reactive asynchronous query. | Glue query layer |
-| `LiveResult`, `RefreshableLiveResult` | Shared local/remote result contract and remote lifecycle extension. | Glue query layer |
-| `RestQueryHandler` | Injectable Fetch/URL JSON adapter. | Glue REST adapter |
-| `QueryEndpoint` | Immutable custom-handler endpoint declaration. | Glue query layer |
-| `RestEndpoint` | Immutable REST endpoint declaration with result parsing. | Glue REST adapter |
-| `DerivedEndpoint`, `DerivedLiveResult` | Immutable local endpoint declaration and caller-owned result. | Glue query layer |
-| `AsyncCommand` | Abortable mutation lifecycle with explicit concurrency policy. | Glue command layer |
+| Reactive values | `BaseEmitter`, `Emitter`, `DerivedEmitter` | readable emitter, notification, snapshot update, source/value inference, mapping and option types |
+| Fetch state | `FetchState`, `FetchStateValues`, `combineFetchStates` | `FetchStateValue` |
+| Live queries | `QueryArg`, `LiveQuery` | argument, polling, scheduler, `LiveResult`, and `RefreshableLiveResult` contracts |
+| Retrieval | `QueryHandler`, `RestQueryHandler` | handler, request, Fetch/URL/response, serializer, parser, and REST option contracts |
+| Endpoints | `QueryEndpoint`, `RestEndpoint`, `DerivedEndpoint`, `DerivedLiveResult`, `queryEndpoint`, `restEndpoint`, `derivedEndpoint` | declaration and open-result option types |
+| Commands | `AsyncCommand`, `AsyncCommandConcurrencyError` | executor, context, concurrency, and option types |
+| Diagnostics | `EventBubble`, `EventBus` | event options/listener and `BubbleGraph` |
+| Utility | — | `NonEmptyArray` |
 
-The empty `emitters/derivedEmitter.js` target is not an API. `DerivedEmitter`
-is owned by its implementation module and exported once from the package root.
-The full emitter, query refresh/error-retention, serializer, and tracing
-contracts are documented in `packages/glue/README.md`. Endpoint declarations
-are reusable and immutable; each opened query/result is mutable and
-caller-owned. Application classes and composition roots own service lifetimes.
+Important compatibility boundaries:
 
-## Fray stable entry point
+- Every readable value provides a synchronous value, fetch state, error, and
+  subscription. Notifications have one `{value, fetchState, error, event}`
+  shape.
+- Endpoint declarations are immutable and reusable. Each `open()` result is
+  mutable and caller-owned.
+- `LiveQuery` decides when to execute and protects latest-result ownership. Its
+  handler decides how retrieval, authentication, wire serialization, and
+  response validation work.
+- `AsyncCommand` owns one mutation lifecycle and an explicit `ignore`,
+  `replace`, or `reject` concurrency policy. Follow-up query state remains
+  independent.
+- Diagnostics observe causality but do not retain event history or owners.
 
-| Export | Purpose | Owner |
-| --- | --- | --- |
-| `Component` | Browser component lifecycle and renderer. | Fray runtime |
-| `ComponentProps.island` | Explicit themeable surface-boundary modifier for fixed component hosts. | Fray styling/runtime |
-| `h`, `css`, `live` | Vnode/CSS authoring and explicit one-way emitter property binding. | Fray runtime |
-| `jsx`, `jsxs`, `jsxDEV`, `Fragment` | Automatic JSX runtime. | Fray runtime |
-| `FrayRuntime`, `createFrayRuntime`, `defaultFrayRuntime` | Immutable application-scoped services, optional router, sizing-neutral root mounting, fixed host resolution, creation, and styles. | Fray runtime |
-| `ServiceScope`, `createServiceScope`, `defineService`, `provideService` | Typed application service declaration, composition, lazy resolution, and disposal. | Fray runtime |
-| `StyleRegistry`, `createStyleRegistry`, `styleRegistry` | Isolated or default idempotent structural-style collection/injection. | Fray styling |
-| `frayThemeVariableCatalog` | Machine-readable palette/theme variable hierarchy and fallbacks. | Fray styling |
-| `frayThemeOptions`, `frayColorOptions`, `findFrayStylesheetOption`, `replaceFrayStylesheet`, `setFrayAppearance`, `getFrayAppearance` | Runtime-selectable treatment/palette catalogs, independent link replacement, and document appearance selection. | Fray styling |
-| `Button`, `Toolbar` | Action and action-layout primitives, including presentation-only busy state. | Fray controls |
-| `Textbox`, `Dropdown`, `Toggle`, `ThemePicker`, `ColorPicker`, `Label` | Value controls and accessible field labeling, including runtime presentation selection. | Fray controls |
-| `Checkbox`, `TriCheckbox`, `QuadCheckbox` | Multi-state controls. | Fray controls |
-| `FilterMode` | Semantic vocabulary used by multi-state controls. | Fray controls |
-| `Header`, `GroupPanel`, `Panel`, `Sidebar`, `SplitView`, `Tab`, `TabLine`, `TabPanel` | Heading surface, bordered control group, region, sidebar, split-pane, and tab layout primitives. | Fray layout |
-| `DescriptionList`, `DescriptionItem` | Native term/value record summaries. | Fray data display |
-| `ListView`, selection handlers | Keyed single/multi list selection with refresh reconciliation and keyboard/pointer behavior. | Fray data workflow |
-| `TreeView`, `TreeItem`, tree model helpers | Accessible keyed trees, node projection, per-label class/style callbacks, and explicit immutable root updates. | Fray data workflow |
-| `DataTable`, table source/query helpers, `FilterPanel` | Local, caller-query, or REST-backed tables with explicit ownership. | Fray data workflow |
-| `FilterState` helpers | Semantic multi-dimension matching, reactive derivation, and versioned plain-data persistence. | Fray data workflow |
-| `Dialog` | Controlled native modal behavior, focus containment/restoration, and cleanup. | Fray dialog |
-| `Placeholder` | Loading-content placeholder used by data components. | Fray data display |
-| `ProgressBar` | Determinate or indeterminate native progress semantics with a clipped-label visual surface. | Fray status |
-| `defineRoute`, `defineRouteParameter`, `routeParameter`, `routeTarget`, `withRouteQuery`, route descriptor/target/codec types | Immutable relative route vocabulary, typed dynamic segments, explicit root chains, and query-bearing targets. | Fray routing |
-| `BrowserRouter`, `createBrowserRouter`, transition/issue/binding types | Progressive contextual discovery, ordered restoration, navigation, canonicalization, and structured fallback state. | Fray routing |
-| `NavigationAdapter`, `createHistoryNavigation`, `createHashNavigation`, `MemoryNavigationAdapter` | Injected URL placement and deterministic navigation-history seams. | Fray routing |
-| `RouteScope`, `RouteValue`, `RouteQuery`, `RouteLink`, `waitForRouteValue` | Mounted route context, dynamic/query emitter bindings, native links, and cancellable Glue-readable prerequisites. | Fray routing/components |
+See the [Glue guide](../packages/glue/README.md) for full behavior and ownership
+rules.
 
-The package also exposes `./jsx-runtime`, `./jsx-dev-runtime`, variable-only
-`./themes/base.css`, complete generated `./styles/structural.css`, replaceable
-`./themes/*/theme.css`, and replaceable `./colors/*/colors.css` subpaths.
-Normal applications collect structural CSS from their declared root component
-rather than loading the complete artifact. Built-in hosts have fixed
-`fray-<stem>` names; Fray-created elements carry `data-fray` for diagnostics.
+## Fray
 
-Root sizing is an application presentation choice rather than a runtime mount
-option. A rendered root with `fray-fill-horizontal` claims `100vw`; one with
-`fray-fill-vertical` claims `100vh`; combining both produces a fullscreen app.
-The two modifiers independently provide axis-specific overflow and
-zero-minimum behavior on the root itself. Descendant islands receive a matching
-maximum size and scroll fallback only on the selected axes; other components
-retain their intrinsic minimums and owned overflow. Either modifier applies the
-theme's `--font-family`, `--font-size`, and `--line-height` to the application
-root for inherited typography. With neither class, a mounted root retains
-ordinary embedded/content-sized behavior and host-page typography.
+`@sylwellsoftware/fray` is a browser-only presentation runtime with Glue as a
+peer dependency.
 
-`ComponentProps.island` adds the public `island` trait class to a component's
-fixed host while preserving consumer classes. Applications may place the same
-class on a deliberate native surface. The structural rule consumes the
-catalogued `--island-*` variables; themes decide whether that explicit boundary
-gets spacing, an edge, and elevation. The modifier does not infer boundaries
-from nesting and does not establish a nested theme or palette. Component
-ancestry rejects nested islands, including a parent that tries to become an
-island while it already owns an island descendant; native application markup
-must preserve the same single-layer invariant.
-
-The public `colored` trait applies the shared dark/base/light gradient to an
-element with explicit `--c1`, `--c2`, and `--c3` values. Its
-`--colored-shadow` role is flat by default and receives the Shiny depth
-treatment. `TreeView.itemLabelClassName` and `TreeView.itemLabelStyle` let an
-application apply the trait and its triplet to the block label beside the
-native tree row's expander.
-
-`Component.read()` and `Component.snapshot()` are the supported render-time
-tracked-read APIs. `WritableEmitter`, `LiveBinding`, `LivePropContract`,
-`EmitterSnapshot`, `TemplateProps`, component/vnode/ref types, and
-runtime/style option types are public declaration contracts for typed
-consumers. A class component declares `static liveProps` together with
-`LivePropContract` metadata for one-way bindings consistently in typed JSX/`h()`
-authoring and at runtime. Every built-in component has an explicit allowlist;
-validation controls expose live availability/error state while value and data
-sources remain raw emitter contracts.
-
-Component subclasses author markup in TSX. A wrapped component renders its
-runtime-configured element with the protected `this.Host` function component;
-native-root components write the native element directly. `h()` remains the
-supported no-JSX frontend and canonical vnode operation, but Fray's own
-built-in templates do not use it directly.
-
-## Fray host and template contract
-
-Wrapped components render standards-valid custom host elements. The default
-runtime uses the `fray-` namespace, while an application-created runtime may
-choose another namespace, prefixless standalone names, or exact valid
-overrides. Native semantic roots remain their HTML element. Element mapping is
-fixed for a runtime, nested components inherit it, each runtime owns an
-isolated structural-style registry, and consumer classes are never used as
-Fray identity.
-
-TSX, classic JSX, and `h()` share one vnode renderer. A readable emitter is a
-fine-grained reactive child when used in child position, but remains the same
-object when passed as a normal component prop. `live()` opts a scalar DOM or
-component-declared prop into one-way updates. `bind:value` and `bind:checked` are typed
-two-way native-control bindings. `read()` and `snapshot()` opt the surrounding
-component into rerendering for value/control-flow or value-state-error output.
-All renderer-created subscriptions are lifecycle-owned and cleaned up.
-
-## Fray service-scope contract
-
-`defineService<T>()` creates an immutable typed key and `provideService()`
-selects its factory at the application composition root. `ServiceScope`
-validates fixed provider registrations, creates each service lazily once,
-supports explicit factory-to-factory resolution, detects cycles, and disposes
-initialized disposable services in reverse creation order. It has no global
-registry, decorator metadata, constructor inspection, or transient lookup.
-
-An application passes one scope to `createFrayRuntime({services})`. Nested
-class components inherit that runtime, list keys in `static requiredServices`,
-and call protected `requireService()` during `initialize()` or later. Missing
-services fail before initialization and undeclared lookup fails explicitly.
-Function components remain presentation-oriented. Components dispose the live
-queries/results they open; they do not dispose scope-shared services.
-
-## Fray routing contract
-
-Route descriptors are immutable relative vocabulary. Mounted `RouteScope`
-boundaries assign their resolved parent lineage and explicitly complete
-registration; the runtime supplies the root boundary. `TabPanel` registers all
-immediate `Tab.route` literals and scopes the selected content. Completed
-sibling scopes reject duplicate IDs/paths and more than one parameter route,
-with literals taking match precedence.
-
-`RouteValue` binds a typed dynamic segment to an application-owned nullable
-writable emitter. Its optional resolver runs in path order, can await
-application prerequisites, receives settled ancestor values and an
-`AbortSignal`, and may normalize the value or return an explicit redirect.
-`scopeChildren` places further routed descendants below the current dynamic
-value; leaf bindings leave it unset to preserve the mounted view. `RouteQuery`
-binds one explicit query name, codec, default, and optional equality function
-to its current scope. It neither discovers nor serializes arbitrary component
-or domain state.
-
-`BrowserRouter` is caller-owned and passed through
-`createFrayRuntime({router})`. Explicit tab, native-link, and imperative
-navigation pushes by default. Redirects, fallback, canonicalization, and
-passive emitter changes replace. Restoration never pushes. A superseding
-transition aborts outstanding resolvers. Failure settles at the deepest valid
-parent (or active/default root lineage), replaces the failed entry, and exposes
-a structured readable issue; application UI owns localized accessible
-presentation.
-
-`RouteLink` always renders a real `a[href]`, resolves a descriptor against its
-current lineage, exposes `aria-current`, and only intercepts an unmodified
-primary `_self` activation. An explicit `routeTarget` chain addresses a route
-outside the current lineage. Query defaults are omitted, owned names format
-deterministically and are removed outside their active lineage, and undeclared
-query keys are preserved.
-
-The History adapter supports an optional base path and requires deployment
-fallback for direct deep requests. The hash adapter reserves the fragment.
-The memory adapter is for deterministic tests; it does not add SSR support.
-Router disposal removes its adapter listener and subscriptions. Component
-destruction removes mounted registrations but does not dispose the
-caller-owned router.
-
-## Fray Visualization entry point
+### Runtime and templates
 
 | Export | Purpose |
 | --- | --- |
-| `GroupingCriterion`, `staticCriterion`, `derivedCriterion` | Stable-key static or reactive category declarations with sticky visibility state. |
-| `filterByHidden`, `categoryCounts` | Reactive blacklist filtering and unfiltered live counts. |
-| `SplitSelectionModel`, `createSplitSelection` | Ordered active split state, exact presets, and checkbox adapters. |
-| `BlockSelectionModel`, `createBlockSelection` | Reactive strict-partition layout and rebuild-safe path/item selection. |
-| `buildBlockLayout`, `criterionSnapshot`, `findBlock` | Pure block calculation and lookup. |
-| `CategoryHidePanel`, `SplitSelectionPanel` | Accessible category visibility and pointer/keyboard split controls. |
-| `BlockGraph` | Nested proportional mosaic with partition diagnostics and keyboard selection. |
-| `SeriesBuilder` | Ordinary and cumulative civil-date history construction. |
-| `buildLineChartModel`, path/tick/date helpers | Pure responsive chart calculations. |
-| `LineGraph` | Responsive SVG line/stacked-area rendering and pointer/keyboard readout. |
+| `Component` | Explicit class-component lifecycle, tracked emitter reads, cleanup, service access, and keyed rendering |
+| `Fragment`, `jsx`, `jsxs`, `jsxDEV` | Automatic JSX runtime |
+| `h` | Low-level vnode factory retained for non-JSX integrations |
+| `css` | Static CSS template helper |
+| `live` | Explicit one-way emitter binding for DOM properties and allowlisted component props |
+| `FrayRuntime`, `createFrayRuntime`, `defaultFrayRuntime` | Application-scoped component creation, mounting, styles, services, and optional routing |
+| `StyleRegistry`, `createStyleRegistry`, `styleRegistry` | Dependency-aware structural CSS collection and injection |
 
-The package also exports generated `./styles/structural.css`. Components
-consume caller-owned models and emitters; they do not fetch, persist, or infer
-domain policy. Filter predicates may overlap, but every active BlockGraph
-criterion must assign each item to exactly one category. History dates are
-strict `YYYY-MM-DD` civil dates calculated with UTC-day arithmetic.
-BlockGraph bakes each dark/base/light category triple into its `--c1`, `--c2`,
-and `--c3` block variables and applies Fray's shared `colored` gradient trait.
-Fray themes can opt into block border and radius through the catalogued
-`--block-graph-block-*` variables; the compatible block shadow role delegates
-to `--colored-shadow`. Each nested
-child mosaic is inset from its parent through
-`--viz-block-graph-child-inset`, which defaults to `1.6em`. Labels overlay
-their block surfaces rather than participating in flex sizing, preserving the
-count-to-area relationship.
-CategoryHidePanel renders the same triplet as a muted-on-hidden swatch.
+Public declaration contracts include component constructors/dependencies,
+props, children, vnodes, keys, refs, writable emitters, live bindings and prop
+contracts, emitter snapshots, template props, runtime options, and style
+registry types.
 
-The four component roots are fixed Fray hosts: `fray-categoryhidepanel`,
-`fray-splitselectionpanel`, `fray-blockgraph`, and `fray-linegraph`.
-Component-owned HTML parts use fixed `fray-*` elements, while SVG drawing parts
-use private classes. Native and ARIA state remains the public interaction-state
-contract; structural `data-part` and `data-fray-visualization` selectors are no
-longer emitted.
+TSX is the primary documented authoring syntax. TSX and `h()` lower to the
+same vnode representation. A readable emitter in child position owns a
+fine-grained binding range; normal props preserve the original object.
+`Component.read()` and `snapshot()` establish render-time tracked dependencies.
+`bind:value` and `bind:checked` are typed two-way bindings for native controls.
 
-## Async command boundary
+Components with no suitable native root declare a fixed host stem. A runtime
+resolves it to `fray-<stem-without-hyphens>`. Runtime-configurable element names
+were removed and are not supported. These light-DOM hosts are not registered
+custom elements.
 
-`AsyncCommand` and `AsyncCommandConcurrencyError` are root exports. The command owns an explicitly configured
-abortable mutation lifecycle, observable result/fetch/error state, running
-state, concurrency policy, stale-result suppression, reset, and disposal. It
-does not provide queuing,
-retry, batch, notification, or DOM policy.
+### Components
 
-## Query endpoint boundary
+| Family | Public components |
+| --- | --- |
+| Actions | `Button`, `Toolbar` |
+| Text and choices | `Label`, `Textbox`, `Dropdown`, `RadioButton`, `RadioGroup`, `Toggle`, `Checkbox`, `TriCheckbox`, `QuadCheckbox` |
+| Layout | `Header`, `GroupPanel`, `Panel`, `Sidebar`, `SplitView`, `Tab`, `TabLine`, `TabPanel` |
+| Records and collections | `DescriptionItem`, `DescriptionList`, `Placeholder`, `ListView`, `TreeItem`, `TreeView` |
+| Tables and filters | `DataTable`, `FilterPanel`, `TableHeader`, `TableHeaderCell` |
+| Dialog and status | `Dialog`, `ProgressBar` |
+| Presentation selection | `ThemePicker`, `ColorPicker` |
 
-`QueryEndpoint`, `RestEndpoint`, and `DerivedEndpoint` separate reusable
-declaration from live instance ownership. Remote and derived results share the
-`LiveResult` read/dispose shape; refresh, retry, abort, and polling are remote
-capabilities. `LiveQuery` polling accepts constant or reactive enablement and
-intervals plus an injectable scheduler. It skips overlaps and contains no
-retry/backoff or visibility policy.
+Every component and its key props are documented in the
+[Fray component reference](../packages/fray/README.md#component-reference).
+Notable public behavior:
 
-`RestQueryHandler.parseResult` is the optional unknown-to-domain boundary.
-Glue has no schema dependency. A body-based read uses an application-owned
-custom handler in `QueryEndpoint`; mutations remain `AsyncCommand` executors.
-Glue does not provide service registration, dependency injection, global
-singletons, or an implicit query cache.
+- Value controls expose `valueEmitter`; `defaultValue` initializes uncontrolled
+  state. The old `value` form is an initial-value compatibility alias, not a
+  continuously controlled prop.
+- `Button` busy state is presentational availability. Application commands and
+  their lifecycle stay in Glue/application code.
+- List, tree, and table selection reconcile fresh objects by stable key.
+- `TreeView` provides controlled selection and expansion, keyboard navigation,
+  typeahead, and per-label class/style callbacks.
+- `DataTable` accepts exactly one of direct `data`, a caller-owned
+  `dataSource`, or table-owned `rest` options.
+- `Dialog` uses a native modal surface with focus containment and restoration.
+- `GroupPanel` is a named group with a bordered body and vertical header.
 
-The empty `dialog.js`, `radiobox.js`, and `listviewitem.js` modules are not
-exported. They may be implemented by a future proposal, but their filenames do
-not reserve public APIs.
+### Data helpers
+
+Fray exports the following data-model utilities from its root:
+
+- `FilterMode` and semantic filter state types; `matchesFilterState`,
+  `filterByState`, `deriveFilterPredicate`, `deriveFilteredItems`,
+  `serializeFilterState`, and `parseFilterState`;
+- `BaseSelectionHandler`, `SingleSelectionHandler`, `MultiSelectionHandler`,
+  `createSelectionHandler`, `defaultItemKey`, and selection/key types;
+- `TreeNode`, `assertTreeNodes`, `findTreeNode`, `deriveTreeNode`,
+  `updateTreeNode`, and `updateWritableTreeNode`;
+- `createLocalTableDataSource`, `createQueryTableDataSource`,
+  `createHandlerTableDataSource`, `createRestTableDataSource`, table data-source
+  contracts, sort/filter/query types, local application and serialization
+  helpers;
+- column, row, header, and filter option types used by `DataTable`.
+
+Component-created sources are component-owned. Explicit sources passed by a
+caller remain caller-owned.
+
+### Services
+
+| Export | Purpose |
+| --- | --- |
+| `defineService`, `ServiceKey` | Typed service identity |
+| `provideService`, `ServiceProvider` | Composition-root factory selection |
+| `ServiceScope`, `createServiceScope`, `ServiceResolver` | Fixed lazy scope, explicit dependency resolution, reverse-order disposal |
+
+A runtime receives one scope through `createFrayRuntime({services})`. Nested
+class components list `static requiredServices` and call `requireService()`
+during `initialize()` or later. Missing providers, undeclared lookups, duplicate
+providers, and cycles fail explicitly. There is no global registry, decorator
+metadata, constructor inspection, or transient service lifetime.
+
+### Routing
+
+| Area | Public exports |
+| --- | --- |
+| Vocabulary | `defineRoute`, `defineRouteParameter`, `routeParameter`, `routeTarget`, `withRouteQuery`, route codecs/targets/descriptors, `redirectTo`, `RouteRedirect`, `RouteUnavailableError` |
+| Router | `BrowserRouter`, `createBrowserRouter`, resolved route, transition, issue, registration, and option types; `waitForRouteValue` |
+| Placement | `NavigationAdapter`, `createHistoryNavigation`, `createHashNavigation`, `MemoryNavigationAdapter`, location normalizer |
+| Components | `RouteScope`, `RouteValue`, `RouteQuery`, `RouteLink` and prop types |
+
+Descriptors are immutable relative vocabulary. Mounted scopes establish
+lineage and are discovered progressively. `RouteValue` binds one dynamic
+segment to a writable emitter; `RouteQuery` binds one explicit query name;
+`RouteLink` renders a real anchor. Routed `TabPanel` content registers immediate
+literal child routes.
+
+Restoration never pushes history. Explicit navigation pushes by default;
+redirects, fallback, canonicalization, and passive binding updates replace.
+Resolvers are application-owned and cancellable. Failure settles at the
+deepest valid parent and exposes structured issue state for application-owned
+presentation. The caller owns and disposes the router.
+
+### Styling and CSS entry points
+
+The package exports:
+
+- `./jsx-runtime` and `./jsx-dev-runtime`;
+- `./themes/base.css` for defaults and palette derivation;
+- `./styles/structural.css` for the complete generated component structure;
+- named `./themes/<name>/theme.css` files;
+- named `./colors/<name>/colors.css` files.
+
+The root also exports `frayThemeVariableCatalog`, theme/color option catalogs,
+stylesheet lookup and replacement helpers, and appearance get/set helpers.
+
+Presentation loads as base variables, structural CSS, color anchors, then
+theme overrides. Applications can collect structural CSS from declared root
+dependencies instead of loading the complete artifact.
+
+`fray-fill-horizontal` and `fray-fill-vertical` are application-root traits
+that claim a viewport axis and apply the published typography variables. With
+neither class, the root remains embedded/content-sized and inherits host-page
+typography.
+
+`island` marks one explicit, non-nestable surface boundary. `colored` consumes
+application-supplied `--c1`, `--c2`, and `--c3` values for a shared gradient
+and `--colored-shadow`. Themes may change the values consumed by these traits
+but do not own their selectors.
+
+## Fray Visualization
+
+`@sylwellsoftware/fray-visualization` is an optional analytical layer. It peers
+on Glue and Fray and exports a root module plus
+`./styles/structural.css`.
+
+| Area | Public exports |
+| --- | --- |
+| Categories | `GroupingCriterion`, `staticCriterion`, `derivedCriterion`, `deriveCategories`, `filterByHidden`, `categoryCounts`, `categoryColorVariables`, `setsEqual` and category/visibility option types |
+| Ordered splits | `SplitSelectionModel`, `createSplitSelection`, `SplitPreset` |
+| Blocks | `BlockSelectionModel`, `createBlockSelection`, `buildBlockLayout`, `criterionSnapshot`, `findBlock` and block node/path/layout/issue types |
+| History | `SeriesBuilder`, `HistoryShape`, `SeriesCategory` |
+| Civil dates | `CivilDate`, `civilDateToDay`, `dayToCivilDate`, `addCivilDays`, `todayCivilDate`, `compareCivilDates` |
+| Chart calculation | `buildLineChartModel`, `linePath`, `areaPath`, `valueAtDate`, `buildIntegerTicks` and chart model types |
+| Components | `CategoryHidePanel`, `SplitSelectionPanel`, `BlockGraph`, `LineGraph` and their props |
+
+The package never fetches or persists application data. Criteria, derived
+emitters, split models, and block models are caller-owned. Every active block
+criterion must partition each parent exactly; unmatched and multiply matched
+items are reported rather than guessed. Dates are strict civil `YYYY-MM-DD`
+values calculated with UTC-day arithmetic.
+
+See the [Visualization guide](../packages/fray-visualization/README.md) for the
+component contracts and examples.
 
 ## Non-goals
 
-- SSR or hydration, registered Web Components/Shadow DOM, and framework adapters.
-- A standalone `.fray` parser, compiler, or language server; TSX is the
-  template syntax and `h()`/vnodes are its canonical intermediate form.
-- Legacy browsers or a general concurrent/reconciler runtime.
-- A production-stable data grid, virtualized lists, or pagination.
-- CommonJS unless a concrete consumer demonstrates the need.
-- Compatibility promises for unpublished internals.
-- Supporting every possible application theme.
+The public stack does not provide:
 
-See [architecture.md](architecture.md) for the package and runtime boundaries.
+- server-side rendering or hydration;
+- registered Web Components or Shadow DOM;
+- a global application/service store, hooks, or hidden dependency discovery;
+- application authentication, persistence, endpoint vocabulary, or domain
+  validation policy;
+- built-in pagination or table virtualization;
+- CommonJS builds or legacy-browser compatibility;
+- automatic theme selection or a nested theme/palette scope;
+- a retained diagnostic history store.

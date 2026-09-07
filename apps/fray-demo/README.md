@@ -55,5 +55,6 @@ by ID when a local screen filter temporarily excludes it. The deterministic
 scenario has 144 varied changes, six complete grouping dimensions, three split
 presets, and hundreds of civil-date history values.
 
-The retired Meridian iterations remain historical evidence under
-[`docs/changes/009-css-overhaul/discussions/demo-app-concept/iterations/`](../../../docs/changes/009-css-overhaul/discussions/demo-app-concept/iterations/).
+The style lab is an example and regression surface, not a reusable application
+framework. Domain-specific model and layout decisions stay here; only broadly
+reusable presentation behavior belongs in Fray or Fray Visualization.

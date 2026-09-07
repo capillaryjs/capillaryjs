@@ -1,4 +1,4 @@
-# Architecture overview
+# Architecture
 
 Glue and Fray form a one-way dependency stack:
 
@@ -7,133 +7,164 @@ consumer application
         ↓
 @sylwellsoftware/fray-visualization — optional analytical models and views
         ↓ peer dependencies
-@sylwellsoftware/fray  — DOM components, JSX, structural CSS, themes/colors
+@sylwellsoftware/fray — TSX, DOM, lifecycle, accessibility, routing, styles
         ↓ peer dependency
-@sylwellsoftware/glue  — emitters, queries, commands, diagnostics
+@sylwellsoftware/glue — values, derivation, queries, commands, diagnostics
 ```
 
-Glue owns reactive values and asynchronous state without depending on the DOM.
-Fray watches Glue emitters, renders component-owned DOM, collects structural
-styles, propagates explicit application service and route scopes, and can
-coordinate browser navigation through an injected adapter. Consumers own
-application state, service implementations, endpoints, concrete service
-registration, route vocabulary and codecs, page composition, and theme
-selection.
+Applications own policy. Fray owns presentation. Glue owns reactive
+propagation.
 
-## Developer model
+## Reactive model
 
 The stack starts from application data rather than a framework-specific state
-shape. Most interface values are retrieved through a service, entered or
-selected by a user, or computed from those values. Each value stays with its
-natural owner: an input uses a writable emitter, a computation uses a derived
-emitter, and a live query owns its result, loading state, and error. Fray
-consumes that same graph.
+shape. A user-entered value naturally uses an `Emitter`; a calculation uses a
+`DerivedEmitter`; a remote result uses a `LiveQuery`. All expose the same small
+synchronous read/subscription contract, so Fray can consume the downstream
+value without mirroring it into a component store.
 
-State therefore exists without requiring the developer to mirror it into a
-parallel component store or maintain synchronization effects between the
-store, requests, and views. A table sort can flow from a header control into a
-query argument and return as newly retrieved rows. Glue owns propagation and
-request lifecycle; the application still owns meaningful decisions about
-mutation, domain policy, service composition, transport, and disposal.
+```text
+browser event
+    └─ Fray control writes an Emitter
+         └─ DerivedEmitter computes shared/domain state
+              ├─ Fray renders a local view
+              └─ LiveQuery executes through an application handler
+                   └─ Fray renders value + fetch state + error
+```
 
-Fray applies the same directness to presentation. Native HTML elements carry
-native meaning where possible, and readable custom hosts mark component
-boundaries that have no suitable native root. Framework identity does not
-occupy application classes. The current structural contract additionally uses
-stable component and part attributes where layout or exceptional theme rules
-need them; those hooks are explicit implementation contracts rather than
-domain state.
+Leaf controls do not know that a distant query may observe their values.
+Derivations do not know how data is transported. `LiveQuery` owns execution
+timing, cancellation, and stale-result protection; handlers own retrieval and
+wire encoding. Commands remain callbacks or `AsyncCommand` objects rather than
+being disguised as automatically rerunning queries.
 
-Fray Visualization is an optional layer over both packages. It owns reusable
-grouping/filtering coordination, strict partition diagnostics, block/history
-calculations, accessible analytical controls, and generated structural CSS.
-Consumers still own domain predicates, stable keys, presets, dates, and
-semantic colors. It never fetches application data.
+Every active edge has an owner. The object that creates a derived emitter,
+query, command, or long-lived subscription disposes it at the same lifetime
+boundary.
 
-The integration seam is the small readable/writable emitter contract. Leaf UI
-controls write ordinary emitters; components that understand an aggregate
-interaction own its derived value; data-aware owners construct or receive a
-`LiveQuery`; injected handlers own retrieval and wire serialization. Fray
-renders the downstream value or snapshot it consumes rather than subscribing
-to every upstream source. Commands remain callbacks when no reusable state must
-be observed.
+## Presentation model
 
-DataTable makes that ownership boundary concrete through `TableDataSource`.
-Direct local and inline REST inputs create component-owned sources; an explicit
-source remains caller-owned. Generic filter state stores semantic values and
-caller matchers while presentation symbols and wire serialization remain at
-their own boundaries. Tree node projections are read-only derivations over
-complete root snapshots; reverse changes are explicit commands against a
-writable root or the application's true domain source.
+Fray class components author TSX and return virtual nodes. The synchronous
+keyed patcher preserves compatible DOM/component identity, focus, stateful DOM
+properties, and event-listener cardinality. Components have explicit setup,
+render, post-commit, and destruction hooks; renderer-created subscriptions and
+registered cleanups are lifecycle-owned.
 
-Fray uses a synchronous keyed DOM patcher. It preserves stable node identity,
-focus, stateful DOM properties, and event-listener cardinality. Components have
-explicit mount, update, and destroy lifecycles; subscriptions and registered
-cleanups are lifecycle-owned.
+Native elements carry semantics whenever possible. A component with no
+suitable native root renders a fixed, readable `fray-*` light-DOM host. These
+hosts are not registered Web Components and do not use Shadow DOM. Application
+classes remain available for application meaning and reusable traits instead
+of framework identity.
 
-The application composition root supplies a fixed `ServiceScope` to
-`FrayRuntime`. Typed providers are lazy and scope-shared; nested class
-components inherit the runtime and may resolve only services they declare.
-Opened Glue queries/results remain component- or caller-owned. Service scope is
-explicit and disposable, with no process-global registry, constructor
-autowiring, decorators, or transient resolution.
+The automatic JSX runtime is the primary authoring frontend. It lowers to the
+same vnode representation as the exported low-level `h()` compatibility
+factory. Reactivity is explicit:
 
-The same runtime may carry one caller-owned `BrowserRouter`. Immutable route
-descriptors identify relative path segments, while mounted scopes assign their
-resolved parent lineage. Routed `TabPanel` instances register all immediate
-annotated tabs and activate the existing application-owned emitter during
-restoration. Dynamic values and explicit query arguments likewise bind to
-ordinary writable emitters; tables, filters, services, and domain models do
-not acquire router knowledge.
+- `read()` and `snapshot()` track render dependencies;
+- readable emitter children update fine-grained DOM ranges;
+- `live()` binds allowlisted properties one way;
+- `bind:value` and `bind:checked` bind native controls two ways;
+- ordinary component props preserve the objects supplied by the caller.
 
-Location restoration advances one discovered scope at a time. Each step may
-await a cancellable application resolver before its child scope mounts, so
-data-dependent entity paths retain application ownership and deterministic
-parent-to-child order. Explicit navigation pushes; redirects, fallback,
-canonicalization, and passive state synchronization replace. Failures preserve
-the deepest valid prefix and expose structured issue state for application-
-owned accessible presentation. History, hash, and memory adapters keep URL
-placement out of the route model, and destroying the caller-owned router
-releases browser listeners and state subscriptions.
+Fray introduces no hook system, global store, proxy tracking, or concurrent
+scheduler.
 
-The automatic JSX runtime and `h()` produce the same vnode representation.
-Readable emitters may be rendered as fine-grained children, bound to properties,
-or read as component dependencies. Glue remains an external Fray peer so a
-consumer resolves one reactive runtime instance.
+## Services and composition
+
+An application composition root may pass a fixed `ServiceScope` to
+`FrayRuntime`. Typed providers are immutable, lazy, and shared within that
+scope. Nested class components inherit the runtime and can resolve only keys
+listed in `static requiredServices`.
+
+The scope detects missing providers, duplicates, and cycles, then disposes
+initialized disposable services in reverse creation order. It has no process-
+global registry, constructor inspection, decorator metadata, or transient
+lookup. Components still own the live query/results they open; scope-shared
+services do not become component-owned.
+
+## Routing
+
+The same runtime may carry a caller-owned `BrowserRouter`. Applications define
+immutable route descriptors, codecs, data-dependent resolvers, and a history,
+hash, or memory navigation adapter. Mounted route components establish
+contextual lineage and bind path/query values to ordinary application-owned
+writable emitters.
+
+Restoration advances through discovered scopes in parent-to-child order. A
+resolver may await application data with an `AbortSignal`; a newer transition
+aborts older work. Explicit navigation pushes by default. Restoration never
+pushes, while redirect, fallback, canonicalization, and passive binding changes
+replace.
+
+Invalid locations settle at the deepest valid parent and expose a structured
+issue emitter. The application decides how to present that issue accessibly.
+Tables, filters, endpoints, and domain models do not acquire router knowledge.
+
+## Data components
+
+Selection components reconcile fresh objects by application-supplied stable
+keys. `ListView`, `TreeView`, and `DataTable` own browser interaction but not
+domain selection policy.
+
+`DataTable` makes source ownership explicit:
+
+- direct `data` creates a component-owned local source;
+- an explicit `TableDataSource` remains caller-owned;
+- inline `rest` options create a component-owned `LiveQuery` source.
+
+Table sort/filter state is exposed through emitters. Pure helpers own local
+calculation and query serialization, while pagination, virtualization, and
+server-specific formats stay outside the component.
+
+Tree node projections are read-only derivations over complete root snapshots.
+Reverse updates are explicit immutable root transformations or application
+commands rather than hidden two-way mutation.
+
+## Visualization layer
+
+Fray Visualization owns reusable analytical coordination and rendering:
+category visibility, split ordering, strict recursive partitions, block
+selection, civil-date series, and chart calculations. Applications still own
+item data, predicates, stable keys, colors, presets, and dates.
+
+Criteria and selection models are caller-owned. A block split must place each
+item in exactly one category beneath its parent; invalid partitions are
+diagnosed rather than silently coerced. The package never fetches data.
+
+## Styling layers
 
 Fray presentation has four ordered inputs:
 
 ```text
-themes/base.css (variables and palette derivation only)
-              │
-              ▼
-component static css (usage-specific, dependency-aware collection)
-              ▲
-              │ consumes hierarchical custom properties
-              │
-colors/<name>/colors.css  +  themes/<name>/theme.css
-anchors/endpoints only       intentional variable overrides only
+themes/base.css              variables and palette derivation
+        ↓
+component static CSS         selectors, layout, interaction mechanics
+        ↑
+colors/<name>/colors.css     palette anchors and endpoints
+        +
+themes/<name>/theme.css      intentional semantic-variable overrides
 ```
 
-The variable hierarchy proceeds from palette roles through global UI roles and
-generic semantic families such as headers, buttons, inputs, panels, and
-selection. Optional table-header, tab-button, toggle-button, dropdown-trigger,
-dialog, checkbox, and progress roles specialize those families. Custom
-components participate by consuming the generic fallbacks and may expose a
-narrower component override. Selectors, pseudo-elements, native pseudo-parts,
-and state rules remain with the owning component class; themes supply only the
-values they consume. Meaningful abstract component classes own CSS shared by
-descendants, and the collector emits inherited rules base-to-derived against
-each concrete host.
+The arrows indicate that structural CSS consumes variables supplied by the
+other files; load order is base, structure, color, then theme.
 
-Theme and color selection is application policy. Fray supplies pickers and
-independent stylesheet-link replacement; Glue is involved only if the
-application chooses to hold selection identifiers in ordinary emitters.
+`base.css` contains no component selectors. Color files contain no semantic
+component roles. Theme files change values, not component rules. Each component
+owns its hosts, native/ARIA state selectors, pseudo-elements, and fixed part
+elements through `static css`. The dependency collector emits only rules
+reachable from declared roots; a complete generated structural asset is also
+published.
 
-The workspace's dummy-server package owns transport mechanics only. A caller
-must inject a scenario implementing the public request/response contract. The
-embedded adapter is an in-memory transport; the Node adapter validates actual
-HTTP behavior. The package contains no application scenario or domain fixture.
+Application CSS owns page composition and decides whether the root fills a
+viewport. Theme and color selection is application policy even when Fray's
+pickers are used.
 
-See [API_SURFACE.md](API_SURFACE.md) for the current public exports and
-compatibility boundaries.
+## Transport test seam
+
+The repository's `dummy-server` workspace package provides browser-safe Fetch
+and Node HTTP adapters around an injected scenario contract. It contains no
+application endpoint vocabulary or fixture. This keeps transport verification
+reusable without moving application policy into Glue or Fray.
+
+See [API_SURFACE.md](API_SURFACE.md) for the public export inventory and the
+package guides for detailed contracts and examples.
