@@ -32,7 +32,7 @@ extends GroupPanel<CategoryHidePanelProps<TItem>> {
         const {
             criteria,
             label = 'Show or hide categories',
-            description = 'Hidden categories are excluded from every connected visualization.',
+            description = '',
             initiallyOpen = () => true,
         } = this.props
         const itemSnapshot = this.snapshot(this.props.items$)
@@ -93,6 +93,7 @@ extends GroupPanel<CategoryHidePanelProps<TItem>> {
             flex: 0 0 auto;
             min-width: 0;
         }
+        
 
         & > fray-content > fray-categoryhidecontent {
             display: grid;
@@ -128,7 +129,10 @@ extends GroupPanel<CategoryHidePanelProps<TItem>> {
             padding: 0 0 0.25em;
             cursor: pointer;
             border-bottom: 1px solid var(--ui-border-color);
-            font-weight: 650;
+            font-weight: 400;
+            font-family: sans-serif;
+            font-size: var(--font-size);
+            color: var(--palette-neutral-950);
         }
 
         & summary small {
@@ -146,35 +150,35 @@ extends GroupPanel<CategoryHidePanelProps<TItem>> {
         }
 
         & fray-categories {
-            display: grid;
+            display: flex;
             box-sizing: border-box;
-            gap: 0.25rem;
+            gap: .31em;
             min-width: 0;
-            max-height: var(--viz-category-max-height, 16rem);
+            flex-flow: column;
             padding: 0;
-            overflow: auto;
+            overflow: visible;
         }
 
         & fray-categoryoption {
-            display: grid;
-            grid-template-columns: 0.9rem minmax(0, 1fr);
+            display: flex;
+            flex-flow: row nowrap;
             align-items: center;
             gap: 0.45rem;
             min-width: 0;
+            max-height: 1em;
         }
 
         & fray-categoryswatch {
             display: block;
             width: 0.9rem;
-            height: 1.35rem;
+            height: 0.9rem;
             border: 1px solid var(--c1);
             border-radius: 0.2rem;
             background: linear-gradient(15deg, var(--c1) 0%, var(--c2) 65%, var(--c2) 65%, var(--c3) 100%);
         }
 
         & fray-categoryoption:has(input:not(:checked)) > fray-categoryswatch {
-            opacity: 0.42;
-            filter: saturate(0.45);
+            opacity: 0.22;
         }
 
         & fray-categoryoption > fray-checkbox,
