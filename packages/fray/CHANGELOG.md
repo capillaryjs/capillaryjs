@@ -6,11 +6,16 @@ Versioning.
 
 ## Unreleased
 
+## 1.1.1 - 2026-09-07
+
 ### Changed
 
 - Replaced legacy `h()`-first documentation with a comprehensive TSX-first
   guide covering every public component, reactive template form, data-source
   ownership rule, service/routing boundary, and styling contract.
+- Restored the framework overview's design rationale for native browser
+  semantics, meaningful HTML/CSS separation, and the complementary intent
+  behind the Glue and Fray names.
 
 ## 1.1.0 - 2026-09-07
 

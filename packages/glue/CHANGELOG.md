@@ -6,10 +6,15 @@ Versioning.
 
 ## Unreleased
 
+## 0.8.1 - 2026-09-07
+
 ### Changed
 
 - Reworked the package guide around current emitter, query, endpoint, command,
   diagnostic, ownership, and complete package-root export contracts.
+- Restored the framework overview's design rationale for keeping application
+  relationships direct instead of maintaining a framework-shaped copy of
+  application state, including the intent behind the Glue name.
 
 ## 0.8.0 - 2026-09-06
 

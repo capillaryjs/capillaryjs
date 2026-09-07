@@ -6,10 +6,14 @@ and Semantic Versioning.
 
 ## Unreleased
 
+## 0.9.1 - 2026-09-07
+
 ### Changed
 
 - Expanded the package guide to document every public model, component,
   calculation helper, ownership rule, keyboard interaction, and styling seam.
+- Restored the framework overview's explanation of how the optional
+  visualization layer fits the direct Glue-to-Fray application model.
 
 ## 0.9.0 - 2026-09-07
 
