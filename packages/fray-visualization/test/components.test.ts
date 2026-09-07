@@ -97,7 +97,7 @@ test('generated structural CSS uses fixed visualization hosts without theme sele
 describe('visualization controls', () => {
     test('CategoryHidePanel uses Fray checkboxes and unfiltered live counts', () => {
         assert.match(CategoryHidePanel.css, /flex: 0 0 auto/)
-        assert.match(GroupPanel.css, /grid-template-columns:\s*2rem minmax\(0, 1fr\)/)
+        assert.match(GroupPanel.css, /grid-template-columns:\s*1\.5rem minmax\(0, 1fr\)/)
         assert.match(GroupPanel.css, /> fray-header > h1,[\s\S]*writing-mode:\s*vertical-rl[^}]*transform:\s*rotate\(180deg\)/)
         assert.match(CategoryHidePanel.css, /summary[^}]*border-bottom:\s*1px solid var\(--ui-border-color\)/)
         assert.match(CategoryHidePanel.css, /fray-categoryoption > fray-checkbox > label/)

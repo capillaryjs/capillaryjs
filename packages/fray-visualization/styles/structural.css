@@ -258,13 +258,15 @@ fray-button > button {
 fray-categoryhidepanel,
 fray-splitselectionpanel {
             display: grid;
-            grid-template-columns: 2rem minmax(0, 1fr);
+            grid-template-columns: 1.5rem minmax(0, 1fr);
             align-items: stretch;
             box-sizing: border-box;
             min-width: 0;
             min-height: 0;
-            gap: 0.5rem;
-            padding: 0.25rem;
+            column-gap: 0.35rem;
+            row-gap: 0;
+            padding-block: 0.125rem;
+            padding-inline: 0.125rem 0.35rem;
             border: 1px solid var(--ui-border-color);
             border-radius: var(--ui-border-radius);
         }
@@ -273,9 +275,11 @@ fray-splitselectionpanel {
         fray-splitselectionpanel > fray-header {
             display: grid;
             place-items: center;
-            min-width: 2rem;
+            box-sizing: border-box;
+            width: 100%;
+            min-width: 0;
             min-height: 0;
-            padding: 0.25em;
+            padding: 0.125em;
             border-radius: var(--ui-border-radius);
         }
 
