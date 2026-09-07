@@ -28,8 +28,6 @@ export interface Change extends Record<string, unknown> {
     readonly affectedAssets: readonly string[]
 }
 
-export type RiskFilterMap = ReadonlyMap<string, FilterModeValue>
-
 export interface ScopeOption {
     readonly id: Scope
     readonly label: string

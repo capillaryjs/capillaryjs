@@ -40,14 +40,18 @@ import {
 } from '@sylwellsoftware/fray-visualization'
 import {AppHeader} from './components/AppHeader.js'
 import {DemoHarness} from './components/DemoHarness.js'
+import {NavigationRail} from './components/NavigationRail.js'
 import {ScopeSidebar} from './components/ScopeSidebar.js'
+import {ViewPanel} from './components/ViewPanel.js'
 import {WorkArea} from './components/WorkArea.js'
 import {MeridianModel} from './model/MeridianModel.js'
 
 export class MeridianApp extends Component {
     static override dependencies = [
         AppHeader,
+        NavigationRail,
         ScopeSidebar,
+        ViewPanel,
         WorkArea,
         DemoHarness,
         Button,
@@ -91,9 +95,9 @@ export class MeridianApp extends Component {
 
     render(): FrayChild {
         return <main class="meridian-app fray-fill-horizontal fray-fill-vertical">
-            <AppHeader key="masthead" model={this.model} />
+            <AppHeader key="masthead" />
             <div class="meridian-shell">
-                <ScopeSidebar key="scope" model={this.model} />
+                <NavigationRail key="navigation" model={this.model} />
                 <WorkArea key="work-area" model={this.model} />
             </div>
             <DemoHarness key="harness" model={this.model} />

@@ -1,4 +1,5 @@
 import {DerivedEmitter, Emitter, FetchState} from '@sylwellsoftware/glue'
+import type {ReadableEmitter} from '@sylwellsoftware/glue'
 import {
     FilterMode,
     createLocalTableDataSource,
@@ -24,10 +25,8 @@ import {changes} from './data.js'
 import type {
     AttentionFilter,
     Change,
-    ChangeRisk,
     DemoFetchState,
     PlanningHorizon,
-    RiskFilterMap,
     RiskFocus,
     Scope,
     ScopeTreeKey,
@@ -76,7 +75,15 @@ export class MeridianModel {
     })
     readonly selectedChange = new Emitter<Change | null>(changes[0] ?? null, {
         owner: this,
-        purpose: 'Meridian selected visible change',
+        purpose: 'Meridian durable selected change',
+    })
+    readonly portfolioSelection = new Emitter<Change | null>(changes[0] ?? null, {
+        owner: this,
+        purpose: 'Portfolio projection of the durable selection',
+    })
+    readonly registerSelection = new Emitter<Change | null>(changes[0] ?? null, {
+        owner: this,
+        purpose: 'Register projection of the durable selection',
     })
     readonly activeArea = new Emitter<WorkArea>('portfolio', {
         owner: this,
@@ -102,25 +109,33 @@ export class MeridianModel {
         owner: this,
         purpose: 'Meridian attention-only filter',
     })
-    readonly supplierFocus = new Emitter<FilterModeValue>(FilterMode.Prefer, {
+    readonly attentionSupplierFocus = new Emitter<FilterModeValue>(FilterMode.Neutral, {
         owner: this,
-        purpose: 'Meridian supplier involvement preference',
+        purpose: 'Portfolio attention supplier policy',
     })
-    readonly completedFocus = new Emitter<FilterModeValue>(FilterMode.Neutral, {
+    readonly attentionCompletedFocus = new Emitter<FilterModeValue>(FilterMode.Deny, {
         owner: this,
-        purpose: 'Meridian completed-change preference',
+        purpose: 'Portfolio attention completed-change policy',
     })
-    readonly safetyFocus = new Emitter<FilterModeValue>(FilterMode.Neutral, {
+    readonly attentionSafetyFocus = new Emitter<FilterModeValue>(FilterMode.Prefer, {
         owner: this,
-        purpose: 'Meridian safety-impact filter',
+        purpose: 'Portfolio attention safety-impact policy',
     })
-    readonly advancedRiskFilters = new Emitter<RiskFilterMap>(new Map(), {
+    readonly registerApprovalFocus = new Emitter<FilterModeValue>(FilterMode.Neutral, {
         owner: this,
-        purpose: 'Meridian advanced risk filters',
+        purpose: 'Register approval criterion',
     })
-    readonly advancedRiskFiltersOpen = new Emitter(false, {
+    readonly registerHighRiskFocus = new Emitter<FilterModeValue>(FilterMode.Neutral, {
         owner: this,
-        purpose: 'Meridian advanced risk filters visibility',
+        purpose: 'Register high-risk criterion',
+    })
+    readonly registerSupplierFocus = new Emitter<FilterModeValue>(FilterMode.Neutral, {
+        owner: this,
+        purpose: 'Register supplier criterion',
+    })
+    readonly registerCompletedFocus = new Emitter<FilterModeValue>(FilterMode.Neutral, {
+        owner: this,
+        purpose: 'Register completed-change criterion',
     })
     readonly registerSort = new Emitter<TableSort | null>(null, {
         owner: this,
@@ -171,43 +186,34 @@ export class MeridianModel {
         purpose: 'Meridian history curve presentation',
     })
 
-    readonly visibleChanges = new DerivedEmitter(
+    readonly scopedChanges = new DerivedEmitter(
         [
             this.sourceChanges,
             this.selectedScope,
             this.statusFocus,
             this.planningHorizon,
-            this.registerSearch,
-            this.riskFocus,
-            this.attentionOnly,
-            this.supplierFocus,
-            this.completedFocus,
-            this.safetyFocus,
-            this.advancedRiskFilters,
         ] as const,
-        ([
-            source,
-            scope,
-            status,
-            horizon,
-            search,
-            risk,
-            attentionOnly,
-            supplier,
-            completed,
-            safety,
-            advancedRisks,
-        ]) => source.filter((change) =>
+        ([source, scope, status, horizon]) => source.filter((change) =>
             (scope === 'all' || change.site === scope)
             && (status === 'all' || change.statusFocus === status)
-            && fallsWithinHorizon(change, horizon)
-            && matchesSearch(change, search)
-            && (risk === 'all' || change.risk === risk)
-            && (attentionOnly === 'all' || needsAttention(change))
+            && fallsWithinHorizon(change, horizon)),
+        {
+            owner: this,
+            purpose: 'Meridian changes in persistent scope',
+        },
+    )
+    readonly attentionChanges = new DerivedEmitter(
+        [
+            this.scopedChanges,
+            this.attentionSupplierFocus,
+            this.attentionCompletedFocus,
+            this.attentionSafetyFocus,
+        ] as const,
+        ([scoped, supplier, completed, safety]) => scoped.filter((change) =>
+            change.risk !== 'Low'
             && permitsBooleanMode(change.supplierInvolvement, supplier)
             && permitsCompletedMode(change, completed)
-            && permitsBooleanMode(change.safetyImpact, safety)
-            && matchesAdvancedRisks(change, advancedRisks))
+            && permitsBooleanMode(change.safetyImpact, safety))
             .sort((left, right) =>
                 comparePreference(left.supplierInvolvement, right.supplierInvolvement, supplier)
                 || comparePreference(
@@ -215,20 +221,53 @@ export class MeridianModel {
                     right.statusFocus === 'completed',
                     completed,
                 )
-                || comparePreference(left.safetyImpact, right.safetyImpact, safety)
-                || compareAdvancedRiskPreference(left, right, advancedRisks)),
+                || comparePreference(left.safetyImpact, right.safetyImpact, safety)),
+        {owner: this, purpose: 'Portfolio attention queue'},
+    )
+    readonly registerChanges = new DerivedEmitter(
+        [
+            this.scopedChanges,
+            this.registerSearch,
+            this.riskFocus,
+            this.attentionOnly,
+            this.registerApprovalFocus,
+            this.registerHighRiskFocus,
+            this.registerSupplierFocus,
+            this.registerCompletedFocus,
+        ] as const,
+        ([
+            scoped,
+            search,
+            risk,
+            attentionOnly,
+            approval,
+            highRisk,
+            supplier,
+            completed,
+        ]) => scoped.filter((change) =>
+            matchesSearch(change, search)
+            && (risk === 'all' || change.risk === risk)
+            && (attentionOnly === 'all' || needsAttention(change))
+            && permitsBooleanMode(needsApproval(change), approval)
+            && permitsBooleanMode(isHighRisk(change), highRisk)
+            && permitsBooleanMode(change.supplierInvolvement, supplier)
+            && permitsCompletedMode(change, completed))
+            .sort((left, right) =>
+                comparePreference(needsApproval(left), needsApproval(right), approval)
+                || comparePreference(isHighRisk(left), isHighRisk(right), highRisk)
+                || comparePreference(left.supplierInvolvement, right.supplierInvolvement, supplier)
+                || comparePreference(
+                    left.statusFocus === 'completed',
+                    right.statusFocus === 'completed',
+                    completed,
+                )),
         {
             owner: this,
-            purpose: 'Meridian globally visible changes',
+            purpose: 'Meridian Register result set',
         },
     )
-    readonly attentionChanges = new DerivedEmitter(
-        [this.visibleChanges] as const,
-        ([visible]) => visible.filter(needsAttention),
-        {owner: this, purpose: 'Meridian attention queue'},
-    )
     readonly groupingCriteria: readonly GroupingCriterion<Change>[] = createGroupingCriteria()
-    readonly visualizationChanges = filterByHidden(this.visibleChanges, this.groupingCriteria)
+    readonly visualizationChanges = filterByHidden(this.scopedChanges, this.groupingCriteria)
     readonly splitSelection = createSplitSelection(this.groupingCriteria, {
         active: ['risk', 'lifecycle', 'site'],
         presets: [
@@ -262,7 +301,7 @@ export class MeridianModel {
         {owner: this, purpose: 'Meridian in-flight risk history'},
     )
     readonly changeTable = createLocalTableDataSource<Change>({
-        data: this.visibleChanges,
+        data: this.registerChanges,
         sortEmitter: this.registerSort,
         filtersEmitter: this.registerFilters,
         owner: this,
@@ -271,6 +310,7 @@ export class MeridianModel {
     private refreshTimer: ReturnType<typeof setTimeout> | null = null
     private readonly stopSelectionReconciliation: () => void
     private readonly stopScopeReconciliation: () => void
+    private readonly stopSelectionProjections: readonly (() => void)[]
 
     constructor() {
         this.stopScopeReconciliation = this.selectedScope.subscribe(({value}) => {
@@ -278,31 +318,36 @@ export class MeridianModel {
             if (isScopeTreeKey(selectedKey) && scopeByTreeKey[selectedKey] === value) return
             this.selectedScopeKey.set(value, 'tree selection reconciled with scope')
         }, {emitCurrent: false})
-        this.stopSelectionReconciliation = this.visibleChanges.subscribe(({value}) => {
+        this.stopSelectionReconciliation = this.sourceChanges.subscribe(({value}) => {
             const selected = this.selectedChange.get()
             const retained = selected == null
                 ? null
                 : value.find((change) => change.id === selected.id) ?? null
             const next = retained ?? value[0] ?? null
             if (!Object.is(next, selected)) {
-                this.selectedChange.set(next, 'selection reconciled with global filters')
+                this.selectedChange.set(next, 'selection reconciled with source population')
             }
         }, {emitCurrent: true})
+        this.stopSelectionProjections = [
+            ...projectSelection(
+                this.selectedChange,
+                this.attentionChanges,
+                this.portfolioSelection,
+                'Portfolio',
+            ),
+            ...projectSelection(
+                this.selectedChange,
+                this.registerChanges,
+                this.registerSelection,
+                'Register',
+            ),
+        ]
     }
 
     setDemoFetchState(mode: DemoFetchState): void {
         this.demoFetchState.set(mode, 'demo fetch state changed')
         this.applyDemoFetchState(mode)
         this.note(`Fetch-state override → ${mode}`)
-    }
-
-    replaceAdvancedRiskFilters(filters: ReadonlyMap<string | number, FilterModeValue>): void {
-        const next = new Map<ChangeRisk, FilterModeValue>()
-        for (const [value, state] of filters) {
-            if (typeof value === 'string' && isChangeRisk(value)) next.set(value, state)
-        }
-        this.advancedRiskFilters.set(next, 'advanced risk filters changed')
-        this.note('Advanced risk policy changed')
     }
 
     selectScopeNode(key: ScopeTreeKey, scope: Scope): void {
@@ -322,17 +367,17 @@ export class MeridianModel {
         this.registerSearch.set('', 'register filters cleared')
         this.riskFocus.set('all', 'register filters cleared')
         this.attentionOnly.set('all', 'register filters cleared')
-        this.supplierFocus.set(FilterMode.Neutral, 'register filters cleared')
-        this.completedFocus.set(FilterMode.Neutral, 'register filters cleared')
-        this.safetyFocus.set(FilterMode.Neutral, 'register filters cleared')
-        this.advancedRiskFilters.set(new Map(), 'register filters cleared')
+        this.registerApprovalFocus.set(FilterMode.Neutral, 'register filters cleared')
+        this.registerHighRiskFocus.set(FilterMode.Neutral, 'register filters cleared')
+        this.registerSupplierFocus.set(FilterMode.Neutral, 'register filters cleared')
+        this.registerCompletedFocus.set(FilterMode.Neutral, 'register filters cleared')
         this.registerFilters.set({}, 'register filters cleared')
         this.registerSort.set(null, 'register filters cleared')
         this.note('Register filters and table state cleared')
     }
 
     selectNextCritical(): void {
-        const critical = this.visibleChanges.get().filter((change) => change.risk === 'Critical')
+        const critical = this.registerChanges.get().filter((change) => change.risk === 'Critical')
         if (critical.length === 0) {
             this.note('No critical change is visible')
             return
@@ -370,6 +415,7 @@ export class MeridianModel {
         if (this.refreshTimer != null) clearTimeout(this.refreshTimer)
         this.stopScopeReconciliation()
         this.stopSelectionReconciliation()
+        for (const stop of this.stopSelectionProjections) stop()
         this.changeTable.dispose()
         this.blockSelection.dispose()
         this.splitSelection.dispose()
@@ -378,7 +424,8 @@ export class MeridianModel {
         this.visualizationChanges.dispose()
         for (const criterion of this.groupingCriteria) criterion.dispose()
         this.attentionChanges.dispose()
-        this.visibleChanges.dispose()
+        this.registerChanges.dispose()
+        this.scopedChanges.dispose()
         for (const emitter of [
             this.sourceChanges,
             this.selectedScope,
@@ -387,17 +434,21 @@ export class MeridianModel {
             this.themeSelection,
             this.colorSelection,
             this.selectedChange,
+            this.portfolioSelection,
+            this.registerSelection,
             this.activeArea,
             this.statusFocus,
             this.planningHorizon,
             this.registerSearch,
             this.riskFocus,
             this.attentionOnly,
-            this.supplierFocus,
-            this.completedFocus,
-            this.safetyFocus,
-            this.advancedRiskFilters,
-            this.advancedRiskFiltersOpen,
+            this.attentionSupplierFocus,
+            this.attentionCompletedFocus,
+            this.attentionSafetyFocus,
+            this.registerApprovalFocus,
+            this.registerHighRiskFocus,
+            this.registerSupplierFocus,
+            this.registerCompletedFocus,
             this.registerSort,
             this.registerFilters,
             this.demoFetchState,
@@ -432,6 +483,32 @@ export class MeridianModel {
     }
 }
 
+function projectSelection(
+    selected: Emitter<Change | null>,
+    population: ReadableEmitter<readonly Change[]>,
+    projection: Emitter<Change | null>,
+    label: string,
+): readonly (() => void)[] {
+    const reconcile = (): void => {
+        const current = selected.get()
+        const next = current == null
+            ? null
+            : population.get().find(({id}) => id === current.id) ?? null
+        if (!Object.is(next, projection.get())) {
+            projection.set(next, `${label} selection projected`)
+        }
+    }
+    const stopSelected = selected.subscribe(reconcile, {emitCurrent: false})
+    const stopPopulation = population.subscribe(reconcile, {emitCurrent: false})
+    const stopProjection = projection.subscribe(({value}) => {
+        if (value != null && value.id !== selected.get()?.id) {
+            selected.set(value, `${label} selection changed`)
+        }
+    }, {emitCurrent: false})
+    reconcile()
+    return [stopSelected, stopPopulation, stopProjection]
+}
+
 function fallsWithinHorizon(change: Change, horizon: PlanningHorizon): boolean {
     const maximum = horizonAnchor + Number(horizon) * 24 * 60 * 60 * 1000
     return Date.parse(`${change.plannedStart}T00:00:00Z`) <= maximum
@@ -447,6 +524,14 @@ function needsAttention(change: Change): boolean {
     return change.statusFocus !== 'completed' && change.risk !== 'Low'
 }
 
+function needsApproval(change: Change): boolean {
+    return change.status === 'Awaiting approval' || change.status === 'Drafting scope'
+}
+
+function isHighRisk(change: Change): boolean {
+    return change.risk === 'Critical' || change.risk === 'High'
+}
+
 function permitsBooleanMode(matches: boolean, mode: FilterModeValue): boolean {
     if (mode === FilterMode.Deny) return !matches
     if (mode === FilterMode.Require) return matches
@@ -457,28 +542,8 @@ function permitsCompletedMode(change: Change, mode: FilterModeValue): boolean {
     return permitsBooleanMode(change.statusFocus === 'completed', mode)
 }
 
-function matchesAdvancedRisks(change: Change, filters: RiskFilterMap): boolean {
-    const state = filters.get(change.risk) ?? FilterMode.Neutral
-    if (state === FilterMode.Deny) return false
-    const hasRequired = [...filters.values()].some((value) => value === FilterMode.Require)
-    return !hasRequired || state === FilterMode.Require
-}
-
 function comparePreference(left: boolean, right: boolean, mode: FilterModeValue): number {
     return mode === FilterMode.Prefer ? Number(right) - Number(left) : 0
-}
-
-function compareAdvancedRiskPreference(
-    left: Change,
-    right: Change,
-    filters: RiskFilterMap,
-): number {
-    return Number(filters.get(right.risk) === FilterMode.Prefer)
-        - Number(filters.get(left.risk) === FilterMode.Prefer)
-}
-
-function isChangeRisk(value: string): value is ChangeRisk {
-    return changes.some((change) => change.risk === value)
 }
 
 function isScopeTreeKey(value: string | number | null): value is ScopeTreeKey {

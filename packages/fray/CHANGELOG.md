@@ -6,6 +6,14 @@ Versioning.
 
 ## Unreleased
 
+### Changed
+
+- Reorganized the public Meridian style lab around a persistent Scope/View
+  navigation rail and flat sibling-island layouts for Portfolio, Register,
+  Change, and Analysis. Portfolio attention, Register criteria, and Analysis
+  visibility now derive independently from shared application scope while the
+  selected change remains durable across local filtering.
+
 ## 1.0.0 - 2026-09-06
 
 ### Added

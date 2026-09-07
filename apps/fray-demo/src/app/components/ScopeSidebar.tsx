@@ -3,7 +3,6 @@ import {
     Component,
     Dialog,
     Sidebar,
-    Toggle,
     Toolbar,
     TreeItem,
     TreeView,
@@ -16,13 +15,6 @@ import type {Scope, ScopeTreeKey} from '../model/types.js'
 interface ScopeSidebarProps extends ComponentProps {
     readonly model: MeridianModel
 }
-
-const statusOptions = [
-    ['all', 'All'],
-    ['planned', 'Planned'],
-    ['active', 'Active'],
-    ['completed', 'Completed'],
-] as const
 
 export class ScopeSidebar extends Component<ScopeSidebarProps> {
     render(): FrayChild {
@@ -43,7 +35,6 @@ export class ScopeSidebar extends Component<ScopeSidebarProps> {
             </Toolbar>}
         >
             <div class="scope-content">
-                <p>Scope changes every work area; table sort remains local to Register.</p>
                 <TreeView<Scope>
                     className="scope-tree"
                     label="Organisational scope"
@@ -88,15 +79,6 @@ export class ScopeSidebar extends Component<ScopeSidebarProps> {
                         />
                     </TreeItem>
                 </TreeView>
-                <Toggle
-                    label="Status focus"
-                    valueEmitter={model.statusFocus}
-                    options={statusOptions}
-                    disabled={live(model.forceDisabled)}
-                    required={live(model.forceRequired)}
-                    error={live(model.statusFocusError)}
-                    onChange={(status) => model.note(`Status focus → ${status}`)}
-                />
             </div>
             <Dialog
                 title="Clear scope filters?"

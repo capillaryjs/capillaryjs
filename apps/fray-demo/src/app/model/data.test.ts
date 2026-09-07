@@ -2,6 +2,7 @@ import assert from 'node:assert/strict'
 import {test} from 'node:test'
 
 import type {BlockNode} from '@sylwellsoftware/fray-visualization'
+import {FilterMode} from '@sylwellsoftware/fray'
 
 import {changes} from './data.js'
 import {MeridianModel} from './MeridianModel.js'
@@ -25,7 +26,8 @@ test('Meridian scenario crosses the table and analytical volume boundaries', () 
 test('Meridian visualization models expose varied partitions and dense history', () => {
     const model = new MeridianModel()
 
-    assert.equal(model.visibleChanges.get().length, 144)
+    assert.equal(model.scopedChanges.get().length, 144)
+    assert.equal(model.registerChanges.get().length, 144)
     assert.equal(model.visualizationChanges.get().length, 144)
     assert.equal(model.groupingCriteria.length, 6)
     assert.deepEqual(model.splitSelection.activeSplits$.get().map(({key}) => key),
@@ -51,6 +53,64 @@ test('Meridian visualization models expose varied partitions and dense history',
     model.splitSelection.applyPreset('site-type')
     assert.deepEqual(model.splitSelection.activeSplits$.get().map(({key}) => key), ['site', 'type'])
     assert.equal(model.blockSelection.layout$.get().valid, true)
+
+    model.dispose()
+})
+
+test('Meridian keeps persistent, Portfolio, Register, and Analysis policy separate', () => {
+    const model = new MeridianModel()
+    const selected = model.selectedChange.get()
+
+    model.registerSearch.set('Emergency lighting renewal')
+    assert.equal(model.registerChanges.get().length, 1)
+    assert.equal(model.scopedChanges.get().length, 144)
+    assert.equal(model.visualizationChanges.get().length, 144)
+    assert.ok(model.attentionChanges.get().length > 1)
+
+    model.registerCompletedFocus.set(FilterMode.Require)
+    assert.equal(model.registerChanges.get().length, 0)
+    assert.equal(model.selectedChange.get(), selected)
+
+    model.registerSearch.set('')
+    assert.ok(model.registerChanges.get().length > 0)
+    assert.ok(model.registerChanges.get().every(({statusFocus}) => statusFocus === 'completed'))
+
+    const attentionBefore = model.attentionChanges.get().length
+    model.attentionSafetyFocus.set(FilterMode.Require)
+    assert.ok(model.attentionChanges.get().length < attentionBefore)
+    assert.ok(model.attentionChanges.get().every(({safetyImpact}) => safetyImpact))
+    assert.equal(model.scopedChanges.get().length, 144)
+
+    model.selectedScope.set('warehouse')
+    assert.ok(model.scopedChanges.get().length < 144)
+    assert.equal(model.selectedChange.get(), selected)
+
+    model.dispose()
+})
+
+test('Register semantic criteria filter and rank only Register records', () => {
+    const model = new MeridianModel()
+
+    model.registerApprovalFocus.set(FilterMode.Require)
+    assert.ok(model.registerChanges.get().length > 0)
+    assert.ok(model.registerChanges.get().every(({status}) =>
+        status === 'Awaiting approval' || status === 'Drafting scope'))
+
+    model.registerApprovalFocus.set(FilterMode.Neutral)
+    model.registerHighRiskFocus.set(FilterMode.Require)
+    assert.ok(model.registerChanges.get().every(({risk}) =>
+        risk === 'Critical' || risk === 'High'))
+
+    model.registerHighRiskFocus.set(FilterMode.Neutral)
+    model.registerSupplierFocus.set(FilterMode.Prefer)
+    const register = model.registerChanges.get()
+    const firstInternal = register.findIndex(({supplierInvolvement}) => !supplierInvolvement)
+    const lastSupplier = register.findLastIndex(({supplierInvolvement}) => supplierInvolvement)
+    assert.ok(lastSupplier < firstInternal)
+    assert.equal(model.scopedChanges.get().length, 144)
+
+    model.clearRegisterFilters()
+    assert.equal(model.registerChanges.get().length, 144)
 
     model.dispose()
 })
