@@ -1,5 +1,5 @@
-import {Button, Checkbox, GroupPanel, css} from '@sylwellsoftware/fray'
-import type {FrayChild, GroupPanelBaseProps} from '@sylwellsoftware/fray'
+import {Button, Checkbox, Component, GroupPanel, css} from '@sylwellsoftware/fray'
+import type {ComponentProps, FrayChild} from '@sylwellsoftware/fray'
 
 import type {CategoryVisibility} from '../grouping.js'
 import {SplitSelectionModel} from '../splits.js'
@@ -9,15 +9,16 @@ const activeSymbols = [
     ['✓', 'visible'],
 ] as const
 
-export interface SplitSelectionPanelProps<TItem> extends GroupPanelBaseProps {
+export interface SplitSelectionPanelProps<TItem> extends ComponentProps {
     readonly model: SplitSelectionModel<TItem>
     readonly label?: string
     readonly description?: string
+    readonly presetsLabel?: string
 }
 
 /** Ordered enablement, presets, pointer reordering, and keyboard reordering. */
 export class SplitSelectionPanel<TItem = unknown>
-extends GroupPanel<SplitSelectionPanelProps<TItem>> {
+extends Component<SplitSelectionPanelProps<TItem>> {
     static override liveProps: readonly string[] = []
     private draggingKey: string | null = null
     private pendingDrag: {key: string; clientX: number; clientY: number} | null = null
@@ -35,89 +36,109 @@ extends GroupPanel<SplitSelectionPanelProps<TItem>> {
         const {
             model,
             label = 'Select and order splits',
-            description = 'Enabled criteria recursively split each block in this order.',
+            description = '',
+            presetsLabel = 'Split presets',
         } = this.props
         const order = this.read(model.order$)
         this.read(model.activeSplits$)
         const activePreset = this.read(model.activePreset$)
-        return this.renderGroupPanel(label, [
-            <p>{description}</p>,
-            model.presets.length === 0 ? null : <fray-presets>
-                {model.presets.map((preset) => <Button
-                    key={preset.key}
-                    label={preset.label}
-                    pressed={activePreset === preset.key}
-                    onClick={() => {
-                        model.applyPreset(preset.key)
-                        this.announce(`${preset.label} split preset applied`)
-                    }}
-                />)}</fray-presets>,
-            <ol>{order.map((criterion) => <li
-                key={criterion.key}
-                className={this.draggingKey === criterion.key ? 'dragging' : undefined}
-                data-split-key={criterion.key}
-                onPointerDown={(event: PointerEvent) => this.startDragging(criterion.key, event)}
-                onClick={(event: MouseEvent) => this.suppressDraggedClick(event)}
-            >
-                <Checkbox<CategoryVisibility>
-                    symbols={activeSymbols}
-                    label={criterion.label}
-                    valueEmitter={model.activeState(criterion.key)}
-                />
-                <fray-draghandle
-                    role="button"
-                    tabIndex={0}
-                    aria-label={`Reorder ${criterion.label}`}
-                    title="Drag to reorder; use Alt+Arrow keys from the keyboard"
-                    onKeyDown={(event: KeyboardEvent) => {
-                        if (!event.altKey || (event.key !== 'ArrowUp' && event.key !== 'ArrowDown')) {
-                            return
-                        }
-                        event.preventDefault()
-                        const offset = event.key === 'ArrowUp' ? -1 : 1
-                        if (model.moveBy(criterion.key, offset, 'split reordered by keyboard')) {
-                            const position = model.order$.get().findIndex(({key}) =>
-                                key === criterion.key) + 1
-                            this.announce(`${criterion.label} moved to position ${position}`)
-                            queueMicrotask(() => this.focusHandle(criterion.key))
-                        }
-                    }}
-                />
-            </li>)}</ol>,
-            <p role="status" aria-live="polite" aria-atomic="true">
-                {this.announcement}
-            </p>,
-        ])
+        const Host = this.Host
+        return <Host>
+            {model.presets.length === 0 ? null : <GroupPanel header={presetsLabel}>
+                <fray-presets>
+                    {model.presets.map((preset) => <Button
+                        key={preset.key}
+                        label={preset.label}
+                        pressed={activePreset === preset.key}
+                        onClick={() => {
+                            model.applyPreset(preset.key)
+                            this.announce(`${preset.label} split preset applied`)
+                        }}
+                    />)}
+                </fray-presets>
+            </GroupPanel>}
+            <GroupPanel header={label}>
+                <p>{description}</p>
+                <ol>{order.map((criterion) => <li
+                    key={criterion.key}
+                    className={this.draggingKey === criterion.key ? 'dragging' : undefined}
+                    data-split-key={criterion.key}
+                    onPointerDown={(event: PointerEvent) => this.startDragging(criterion.key, event)}
+                    onClick={(event: MouseEvent) => this.suppressDraggedClick(event)}
+                >
+                    <Checkbox<CategoryVisibility>
+                        symbols={activeSymbols}
+                        label={criterion.label}
+                        valueEmitter={model.activeState(criterion.key)}
+                    />
+                    <fray-draghandle
+                        role="button"
+                        tabIndex={0}
+                        aria-label={`Reorder ${criterion.label}`}
+                        title="Drag to reorder; use Alt+Arrow keys from the keyboard"
+                        onKeyDown={(event: KeyboardEvent) => {
+                            if (!event.altKey || (event.key !== 'ArrowUp' && event.key !== 'ArrowDown')) {
+                                return
+                            }
+                            event.preventDefault()
+                            const offset = event.key === 'ArrowUp' ? -1 : 1
+                            if (model.moveBy(criterion.key, offset, 'split reordered by keyboard')) {
+                                const position = model.order$.get().findIndex(({key}) =>
+                                    key === criterion.key) + 1
+                                this.announce(`${criterion.label} moved to position ${position}`)
+                                queueMicrotask(() => this.focusHandle(criterion.key))
+                            }
+                        }}
+                    />
+                </li>)}</ol>
+                <p role="status" aria-live="polite" aria-atomic="true">
+                    {this.announcement}
+                </p>
+            </GroupPanel>
+        </Host>
     }
 
     static override hostName = 'split-selection-panel'
-    static dependencies = [Button, Checkbox]
+    static dependencies = [Button, Checkbox, GroupPanel]
 
     static css = css`
         & {
+            display: grid;
+            gap: var(--viz-space, 0.6rem);
             min-width: 0;
         }
 
-        & > fray-content {
-            display: grid;
-            align-content: start;
+        & > fray-grouppanel {
+            min-width: 0;
+        }
+
+        & > fray-grouppanel > fray-content {
+            display: flex;
+            flex-flow: column;
             gap: var(--viz-space, 0.6rem);
         }
 
-        & > fray-content > p,
-        & > fray-content > ol {
+        & > fray-grouppanel > fray-content > p,
+        & > fray-grouppanel > fray-content > ol {
             margin: 0;
         }
 
-        & > fray-content > p:first-child {
+        & > fray-grouppanel > fray-content > p:first-child {
             color: var(--viz-muted-color, var(--ui-muted-text-color, currentColor));
             font-size: 0.875em;
         }
 
-        & > fray-content > fray-presets {
-            display: flex;
-            flex-wrap: wrap;
+        & > fray-grouppanel > fray-content > fray-presets {
+            display: grid;
             gap: 0.35rem;
+            align-content: stretch;
+            justify-content: stretch;
+        }
+
+        & > fray-grouppanel > fray-content > fray-presets > fray-button {
+            display: flex;
+            flex-flow: column;
+            align-content: stretch;
         }
 
         & ol {
@@ -174,7 +195,7 @@ extends GroupPanel<SplitSelectionPanelProps<TItem>> {
             justify-content: flex-start;
         }
 
-        & > fray-content > p[role="status"][aria-live="polite"][aria-atomic="true"] {
+        & > fray-grouppanel > fray-content > p[role="status"][aria-live="polite"][aria-atomic="true"] {
             position: absolute;
             width: 1px;
             height: 1px;

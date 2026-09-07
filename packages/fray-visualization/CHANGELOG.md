@@ -8,6 +8,14 @@ and Semantic Versioning.
 
 ### Changed
 
+- `SplitSelectionPanel` now extends `Component` instead of `GroupPanel` and
+  renders two inner `GroupPanel` children — one for split presets and one for
+  the ordered enablement list — matching the two-panel layout shown in the
+  style lab. The `presetsLabel` prop customizes the presets panel header.
+  Preset buttons are now stacked vertically (full-width, stretched) instead of
+  flex-wrapped. The default `description` is now empty. The host element no
+  longer carries `role="group"`; each inner `GroupPanel` provides its own
+  labeled group semantics.
 - `CategoryHidePanel` now extends `OptionsPanel` instead of `GroupPanel` and
   renders each criterion as an `OptionGroup` with a `headerEnd` visible-count
   slot, replacing the previous `details`/`summary` disclosure structure.

@@ -18,5 +18,30 @@ export class OptionsPanel<TProps extends GroupPanelBaseProps = OptionsPanelProps
             flex-direction: column;
             gap: var(--options-panel-group-gap, 1.5em);
         }
+
+        & > fray-content * > fieldset > legend {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-sizing: border-box;
+            font-size: var(--ui-font-size);
+            color: var(--palette-neutral-950);
+            gap: 0.5rem;
+            width: 100%;
+            padding: 0 0 0.25em;
+            margin-bottom: 0.5em;
+            border-bottom: 1px solid var(--ui-border-color);
+        }
+
+        & > fray-content * > fieldset {
+            display: flex;
+            flex-flow: column;
+            justify-content: stretch;
+            justify-items: stretch;
+            align-items: stretch;
+            align-content: stretch;
+            box-sizing: border-box;
+            width: 100%;
+        }
     `
 }

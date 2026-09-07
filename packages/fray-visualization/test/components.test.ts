@@ -164,9 +164,9 @@ describe('visualization controls', () => {
         assert.equal(required('fray-splitselectionpanel').getAttribute('data-fray-component'),
             'split-selection-panel')
         const splitPanel = required('fray-splitselectionpanel')
-        assert.equal(splitPanel.getAttribute('role'), 'group')
-        assert.ok(splitPanel.querySelector(':scope > fray-header'))
-        assert.ok(splitPanel.querySelector(':scope > fray-content > ol'))
+        assert.equal(splitPanel.getAttribute('role'), null)
+        assert.ok(splitPanel.querySelector(':scope > fray-grouppanel > fray-header'))
+        assert.ok(splitPanel.querySelector(':scope > fray-grouppanel > fray-content > ol'))
         assert.equal(required('[data-split-key="state"]').className, '')
         assert.equal(document.querySelector('[data-part="position"]'), null)
         assert.equal(required('fray-draghandle').localName, 'fray-draghandle')
