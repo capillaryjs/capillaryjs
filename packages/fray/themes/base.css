@@ -70,8 +70,8 @@
 @layer theme {
   :root {
     /* Foundation */
-    --font-family: sans-serif;
-    --font-size: 14px;
+    --font-family: Helvetica, sans-serif;
+    --font-size: 12px;
     --line-height: normal;
     --control-min-height: calc(var(--ui-font-size) + var(--ui-padding) + var(--ui-padding));
     --space-xs: 0px;
@@ -243,8 +243,8 @@
     --block-graph-block-shadow: var(--colored-shadow);
 
     /* Structural compatibility aliases */
-    --base-font-size: 14px;
-    --ui-font-size: var(--base-font-size);
+    --base-font-size: var(--base-font-size);
+    --ui-font-size: var(--font-size);
     --ui-padding: 6px;
     --ui-padding-h: 6px;
     --ui-padding-v: 0px;

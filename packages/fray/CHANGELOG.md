@@ -12,6 +12,8 @@ Versioning.
   `fray-app` root, optional viewport-axis sizing, and a `main`/`none` landmark
   policy; the mount helper collects and injects its dependency CSS before the
   first commit.
+- Adjusted font-styling in general to be more sensible
+- Improved base css of CategoryHidepanel for more compact layout 
 
 ### Fixed
 

@@ -2,6 +2,10 @@
 /* Shiny changes theme tokens only. Components own all consuming selectors. */
 @layer theme {
   :root {
+    --base-font-size: 14px;
+    --font-size: 12px;
+    --font-family: Helvetica, sans-serif;
+
     /* Foundation and shared chrome */
     color-scheme: only light;
     --box-shadow: -1px 1px 2px 1px rgba(0,0,0,0.3);
