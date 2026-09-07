@@ -20,6 +20,21 @@ Versioning.
 - Adjusted font-styling in general to be more sensible
 - Improved base css of CategoryHidepanel for more compact layout
 
+### Changed
+
+- Refined `GroupPanel` layout from a rigid grid to a flexible row so the
+  vertical header and content adapt naturally to varying label lengths and
+  content sizes. The header chrome is now self-contained, removing the need
+  for per-heading-level style overrides.
+- Tightened `OptionsPanel` and `OptionGroup` spacing for a more compact,
+  form-like appearance that better suits dense control panels. The content
+  area now stretches to fill available height, and fieldset legends sit
+  closer to their controls with reduced gaps and padding.
+- Gave `CheckableControl` a fixed row height so checkboxes and radios align
+  consistently across different label and font configurations.
+- Added a shared `border-radius` to the `.colored` trait so gradient
+  surfaces round consistently with other bordered elements.
+
 ### Fixed
 
 - `FrayApp` now applies the theme canvas, text color, font family, font size,

@@ -103,7 +103,7 @@ extends OptionsPanel<CategoryHidePanelProps<TItem>> {
 
         & > fray-content > fray-categoryhidecontent > fray-criteriongroups {
             display: grid;
-            gap: 1.5em;
+            gap: 1em;
             min-width: 0;
         }
 

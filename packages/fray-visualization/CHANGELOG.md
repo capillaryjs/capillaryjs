@@ -22,6 +22,8 @@ and Semantic Versioning.
 - Replaced all explicit `h()` calls in `BlockGraph`, `CategoryHidePanel`,
   `LineGraph`, and `SplitSelectionPanel` with equivalent TSX syntax, using the
   new `FrayHostElementTagNameMap` intrinsic element types from Fray.
+- Reduced the criterion-group gap in `CategoryHidePanel` from `1.5em` to
+  `1em` for a denser, more compact panel layout.
 
 
 

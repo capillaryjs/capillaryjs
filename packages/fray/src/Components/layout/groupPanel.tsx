@@ -51,14 +51,13 @@ export class GroupPanel<
 
     static css = css`
         & {
-            display: grid;
-            grid-template-columns: 1.5rem minmax(0, 1fr);
+            display: flex;
+            flex-flow: row nowrap;
             align-items: stretch;
             box-sizing: border-box;
             min-width: 0;
             min-height: 0;
             column-gap: 0.35rem;
-            row-gap: 0;
             padding-block: 0.125rem;
             padding-inline: 0.125rem 0.35rem;
             border: 1px solid var(--ui-border-color);
@@ -69,29 +68,22 @@ export class GroupPanel<
             display: grid;
             place-items: center;
             box-sizing: border-box;
-            width: 100%;
+            width: 1.7em;
             min-width: 0;
             min-height: 0;
             padding: 0.125em;
             border-radius: var(--ui-border-radius);
-        }
-
-        & > fray-header > h1,
-        & > fray-header > h2,
-        & > fray-header > h3,
-        & > fray-header > h4,
-        & > fray-header > h5,
-        & > fray-header > h6 {
-            font-weight: 650;
-            white-space: nowrap;
             writing-mode: vertical-rl;
             transform: rotate(180deg);
+            font-weight: normal;
+            font-size: var(--ui-font-size);
         }
 
         & > fray-content {
             display: block;
             min-width: 0;
             min-height: 0;
+            margin-left: .25em;
         }
     `
 }

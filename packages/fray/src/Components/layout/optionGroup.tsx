@@ -74,6 +74,7 @@ export class OptionGroup<TProps extends OptionGroupBaseProps = OptionGroupBasePr
             padding: 0;
             min-inline-size: 0;
             border: 0;
+            width: 100%;
         }
 
         & > fieldset > legend {
