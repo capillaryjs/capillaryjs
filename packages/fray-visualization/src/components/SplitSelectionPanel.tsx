@@ -1,5 +1,5 @@
-import {Button, Checkbox, Component, css, h} from '@sylwellsoftware/fray'
-import type {ComponentProps, FrayChild} from '@sylwellsoftware/fray'
+import {Button, Checkbox, GroupPanel, css, h} from '@sylwellsoftware/fray'
+import type {FrayChild, GroupPanelBaseProps} from '@sylwellsoftware/fray'
 
 import type {CategoryVisibility} from '../grouping.js'
 import {SplitSelectionModel} from '../splits.js'
@@ -9,7 +9,7 @@ const activeSymbols = [
     ['✓', 'visible'],
 ] as const
 
-export interface SplitSelectionPanelProps<TItem> extends ComponentProps {
+export interface SplitSelectionPanelProps<TItem> extends GroupPanelBaseProps {
     readonly model: SplitSelectionModel<TItem>
     readonly label?: string
     readonly description?: string
@@ -17,7 +17,7 @@ export interface SplitSelectionPanelProps<TItem> extends ComponentProps {
 
 /** Ordered enablement, presets, pointer reordering, and keyboard reordering. */
 export class SplitSelectionPanel<TItem = unknown>
-extends Component<SplitSelectionPanelProps<TItem>> {
+extends GroupPanel<SplitSelectionPanelProps<TItem>> {
     static override liveProps: readonly string[] = []
     private draggingKey: string | null = null
     private pendingDrag: {key: string; clientX: number; clientY: number} | null = null
@@ -40,16 +40,9 @@ extends Component<SplitSelectionPanelProps<TItem>> {
         const order = this.read(model.order$)
         this.read(model.activeSplits$)
         const activePreset = this.read(model.activePreset$)
-        const Host = this.Host
-        return <Host
-            className={(this.props.className ?? this.props.class ?? '') || null}
-            aria-label={label}
-        >
-            <header>
-                <h2>{label}</h2>
-                <p>{description}</p>
-            </header>
-            {model.presets.length === 0 ? null : h('fray-presets', null,
+        return this.renderGroupPanel(label, [
+            <p>{description}</p>,
+            model.presets.length === 0 ? null : h('fray-presets', null,
                 model.presets.map((preset) => <Button
                     key={preset.key}
                     label={preset.label}
@@ -58,7 +51,7 @@ extends Component<SplitSelectionPanelProps<TItem>> {
                         model.applyPreset(preset.key)
                         this.announce(`${preset.label} split preset applied`)
                     }}
-                />))}
+                />)),
             <ol>{order.map((criterion) => <li
                 key={criterion.key}
                 className={this.draggingKey === criterion.key ? 'dragging' : undefined}
@@ -90,11 +83,11 @@ extends Component<SplitSelectionPanelProps<TItem>> {
                         }
                     },
                 })}
-            </li>)}</ol>
+            </li>)}</ol>,
             <p role="status" aria-live="polite" aria-atomic="true">
                 {this.announcement}
-            </p>
-        </Host>
+            </p>,
+        ])
     }
 
     static override hostName = 'split-selection-panel'
@@ -102,24 +95,26 @@ extends Component<SplitSelectionPanelProps<TItem>> {
 
     static css = css`
         & {
-            display: grid;
-            align-content: start;
-            gap: var(--viz-space, 0.6rem);
             min-width: 0;
         }
 
-        & h2,
-        & p,
-        & ol {
+        & > fray-content {
+            display: grid;
+            align-content: start;
+            gap: var(--viz-space, 0.6rem);
+        }
+
+        & > fray-content > p,
+        & > fray-content > ol {
             margin: 0;
         }
 
-        & header > p {
+        & > fray-content > p:first-child {
             color: var(--viz-muted-color, var(--ui-muted-text-color, currentColor));
             font-size: 0.875em;
         }
 
-        & > fray-presets {
+        & > fray-content > fray-presets {
             display: flex;
             flex-wrap: wrap;
             gap: 0.35rem;
@@ -134,12 +129,12 @@ extends Component<SplitSelectionPanelProps<TItem>> {
 
         & li {
             display: grid;
-            grid-template-columns: minmax(0, 1fr) 1.1rem;
+            grid-template-columns: minmax(0, 1fr) 1.0rem;
             align-items: center;
             gap: 0.35rem;
             min-width: 0;
-            min-height: 2.25rem;
-            padding: 0.25rem;
+            padding: 0 .35rem;
+            background: var(--button-background);
             border: 1px solid var(--ui-border-color);
             border-radius: var(--ui-border-radius);
         }
@@ -155,7 +150,7 @@ extends Component<SplitSelectionPanelProps<TItem>> {
         & fray-draghandle {
             display: block;
             width: 1.1rem;
-            min-height: 1.8rem;
+            min-height: 1.1rem;
             padding: 0;
             border: 0;
             border-radius: 0;
@@ -179,7 +174,7 @@ extends Component<SplitSelectionPanelProps<TItem>> {
             justify-content: flex-start;
         }
 
-        & > p[role="status"][aria-live="polite"][aria-atomic="true"] {
+        & > fray-content > p[role="status"][aria-live="polite"][aria-atomic="true"] {
             position: absolute;
             width: 1px;
             height: 1px;

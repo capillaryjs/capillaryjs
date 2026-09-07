@@ -15,8 +15,15 @@ export interface TreeViewProps<TValue = unknown> extends ComponentProps {
     selectedKeyEmitter?: ValueEmitter<Key | null>
     expandedKeysEmitter?: ValueEmitter<Key[]>
     renderItem?: (node: TreeNode<TValue>, depth: number) => FrayChild
+    itemLabelClassName?: (node: TreeNode<TValue>, depth: number) => string | null | undefined
+    itemLabelStyle?: (node: TreeNode<TValue>, depth: number) => TreeItemStyle | null | undefined
     onSelect?: (node: TreeNode<TValue>, event: Event) => void
 }
+
+export type TreeItemStyle = Readonly<Record<
+string,
+string | number | null | undefined
+>>
 
 interface VisibleNode<TValue> {
     node: TreeNode<TValue>
@@ -113,6 +120,8 @@ export class TreeView<TValue = unknown> extends Component<TreeViewProps<TValue>>
                         const isExpanded = hasChildren && expanded.has(node.id)
                         const isSelected = Object.is(node.id, selected)
                         const label = this.props.renderItem?.(node, depth) ?? node.label
+                        const labelClassName = this.props.itemLabelClassName?.(node, depth)
+                        const labelStyle = this.props.itemLabelStyle?.(node, depth)
                         return <li
                             key={node.id}
                             role="treeitem"
@@ -139,7 +148,10 @@ export class TreeView<TValue = unknown> extends Component<TreeViewProps<TValue>>
                         >
                             {h('fray-expander', {'aria-hidden': 'true'},
                                 hasChildren ? (isExpanded ? '▾' : '▸') : '•')}
-                            {h('fray-label', null, label)}
+                            {h('fray-label', {
+                                ...(labelClassName == null ? {} : {className: labelClassName}),
+                                ...(labelStyle == null ? {} : {style: labelStyle}),
+                            }, label)}
                         </li>
                     })}
                 </ul>}
@@ -210,6 +222,8 @@ export class TreeView<TValue = unknown> extends Component<TreeViewProps<TValue>>
         }
 
         & fray-label {
+            display: block;
+            flex: 1 1 auto;
             min-width: 0;
             overflow-wrap: anywhere;
         }

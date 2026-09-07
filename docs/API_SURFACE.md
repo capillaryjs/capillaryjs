@@ -50,10 +50,10 @@ caller-owned. Application classes and composition roots own service lifetimes.
 | `Textbox`, `Dropdown`, `Toggle`, `ThemePicker`, `ColorPicker`, `Label` | Value controls and accessible field labeling, including runtime presentation selection. | Fray controls |
 | `Checkbox`, `TriCheckbox`, `QuadCheckbox` | Multi-state controls. | Fray controls |
 | `FilterMode` | Semantic vocabulary used by multi-state controls. | Fray controls |
-| `Header`, `Panel`, `Sidebar`, `SplitView`, `Tab`, `TabLine`, `TabPanel` | Heading surface, region, sidebar, split-pane, and tab layout primitives. | Fray layout |
+| `Header`, `GroupPanel`, `Panel`, `Sidebar`, `SplitView`, `Tab`, `TabLine`, `TabPanel` | Heading surface, bordered control group, region, sidebar, split-pane, and tab layout primitives. | Fray layout |
 | `DescriptionList`, `DescriptionItem` | Native term/value record summaries. | Fray data display |
 | `ListView`, selection handlers | Keyed single/multi list selection with refresh reconciliation and keyboard/pointer behavior. | Fray data workflow |
-| `TreeView`, `TreeItem`, tree model helpers | Accessible keyed trees, node projection, and explicit immutable root updates. | Fray data workflow |
+| `TreeView`, `TreeItem`, tree model helpers | Accessible keyed trees, node projection, per-label class/style callbacks, and explicit immutable root updates. | Fray data workflow |
 | `DataTable`, table source/query helpers, `FilterPanel` | Local, caller-query, or REST-backed tables with explicit ownership. | Fray data workflow |
 | `FilterState` helpers | Semantic multi-dimension matching, reactive derivation, and versioned plain-data persistence. | Fray data workflow |
 | `Dialog` | Controlled native modal behavior, focus containment/restoration, and cleanup. | Fray dialog |
@@ -77,8 +77,10 @@ option. A rendered root with `fray-fill-horizontal` claims `100vw`; one with
 The two modifiers independently provide axis-specific overflow and
 zero-minimum behavior on the root itself. Descendant islands receive a matching
 maximum size and scroll fallback only on the selected axes; other components
-retain their intrinsic minimums and owned overflow. With neither class, a
-mounted root retains ordinary embedded/content-sized behavior.
+retain their intrinsic minimums and owned overflow. Either modifier applies the
+theme's `--font-family`, `--font-size`, and `--line-height` to the application
+root for inherited typography. With neither class, a mounted root retains
+ordinary embedded/content-sized behavior and host-page typography.
 
 `ComponentProps.island` adds the public `island` trait class to a component's
 fixed host while preserving consumer classes. Applications may place the same
@@ -89,6 +91,13 @@ from nesting and does not establish a nested theme or palette. Component
 ancestry rejects nested islands, including a parent that tries to become an
 island while it already owns an island descendant; native application markup
 must preserve the same single-layer invariant.
+
+The public `colored` trait applies the shared dark/base/light gradient to an
+element with explicit `--c1`, `--c2`, and `--c3` values. Its
+`--colored-shadow` role is flat by default and receives the Shiny depth
+treatment. `TreeView.itemLabelClassName` and `TreeView.itemLabelStyle` let an
+application apply the trait and its triplet to the block label beside the
+native tree row's expander.
 
 `Component.read()` and `Component.snapshot()` are the supported render-time
 tracked-read APIs. `WritableEmitter`, `LiveBinding`, `LivePropContract`,
@@ -203,9 +212,10 @@ domain policy. Filter predicates may overlap, but every active BlockGraph
 criterion must assign each item to exactly one category. History dates are
 strict `YYYY-MM-DD` civil dates calculated with UTC-day arithmetic.
 BlockGraph bakes each dark/base/light category triple into its `--c1`, `--c2`,
-and `--c3` block variables and paints its unornamented inline surface from
-`c2`. Fray themes can opt into block border, radius, shadow, and glossy-overlay
-chrome through the catalogued `--block-graph-block-*` variables. Each nested
+and `--c3` block variables and applies Fray's shared `colored` gradient trait.
+Fray themes can opt into block border and radius through the catalogued
+`--block-graph-block-*` variables; the compatible block shadow role delegates
+to `--colored-shadow`. Each nested
 child mosaic is inset from its parent through
 `--viz-block-graph-child-inset`, which defaults to `1.6em`. Labels overlay
 their block surfaces rather than participating in flex sizing, preserving the

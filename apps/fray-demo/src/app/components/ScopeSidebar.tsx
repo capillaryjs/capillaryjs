@@ -16,6 +16,18 @@ interface ScopeSidebarProps extends ComponentProps {
     readonly model: MeridianModel
 }
 
+const scopeColorTriplets = {
+    all: ['#294a63', '#527a96', '#91b8ce'],
+    'north-plant': ['#006076', '#078da8', '#69c6d8'],
+    warehouse: ['#68421c', '#a76f32', '#deb079'],
+    'south-plant': ['#493371', '#7958aa', '#b398d7'],
+} as const satisfies Record<Scope, readonly [string, string, string]>
+
+function scopeColorStyle(scope: Scope): Record<string, string> {
+    const [c1, c2, c3] = scopeColorTriplets[scope]
+    return {'--c1': c1, '--c2': c2, '--c3': c3}
+}
+
 export class ScopeSidebar extends Component<ScopeSidebarProps> {
     render(): FrayChild {
         const {model} = this.props
@@ -40,6 +52,8 @@ export class ScopeSidebar extends Component<ScopeSidebarProps> {
                     label="Organisational scope"
                     selectedKeyEmitter={model.selectedScopeKey}
                     expandedKeysEmitter={model.expandedScopeKeys}
+                    itemLabelClassName={() => 'colored'}
+                    itemLabelStyle={(node) => scopeColorStyle(node.value ?? 'all')}
                     onSelect={(node) => model.selectScopeNode(
                         node.id as ScopeTreeKey,
                         node.value ?? 'all',

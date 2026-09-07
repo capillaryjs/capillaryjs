@@ -8,6 +8,8 @@
       --palette-dark: #111827;
       --palette-contrast-light: var(--palette-light);
       --palette-contrast-dark: var(--palette-dark);
+      --palette-light-clear: color-mix(in srgb, var(--palette-light) 0%, transparent);
+      --palette-light-faint: color-mix(in srgb, var(--palette-light) 8%, transparent);
       --palette-red: #b3261e;
       --palette-green: #287a3c;
       --palette-primary-500: #2989d8;
@@ -236,9 +238,9 @@
     --colored-light: var(--palette-primary-light);
     --colored-dark: var(--palette-primary-dark);
     --colored-contrast: var(--palette-contrast-light);
+    --colored-shadow: none;
     --block-graph-block-radius: 0.25em;
-    --block-graph-block-shadow: none;
-    --block-graph-block-gloss-opacity: 0;
+    --block-graph-block-shadow: var(--colored-shadow);
 
     /* Structural compatibility aliases */
     --base-font-size: 14px;

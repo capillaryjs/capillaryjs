@@ -12,6 +12,7 @@ import {
     DescriptionList,
     Dropdown,
     FilterMode,
+    GroupPanel,
     Header,
     Label,
     Panel,
@@ -796,6 +797,23 @@ describe('layout controls', () => {
         assert.equal(requiredQuery<HTMLHeadingElement>('fray-header h6').textContent,
             'Deep heading')
         assert.throws(() => Header.new({level: 7 as never}).mount(), /integer from 1 to 6/)
+    })
+
+    test('GroupPanel labels a bordered group through a vertical Header', () => {
+        GroupPanel.new({
+            header: 'Select and order splits',
+            children: h('ol', null, h('li', null, 'Severity')),
+        }).attachTo(document.body)
+
+        const group = requiredQuery<HTMLElement>('fray-grouppanel')
+        const header = requiredQuery<HTMLElement>(':scope > fray-header', group)
+        const title = requiredQuery<HTMLHeadingElement>(':scope > h2', header)
+        const content = requiredQuery<HTMLElement>(':scope > fray-content', group)
+        assert.equal(group.getAttribute('role'), 'group')
+        assert.equal(group.getAttribute('aria-labelledby'), title.id)
+        assert.equal(title.textContent, 'Select and order splits')
+        assert.equal(content.textContent, 'Severity')
+        assert.equal(group.querySelector('div'), null)
     })
 
     test('Panel uses a labelled component host and explicit orientation', () => {

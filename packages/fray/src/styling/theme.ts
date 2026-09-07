@@ -53,6 +53,8 @@ export const frayThemeVariableCatalog = Object.freeze([
     variable('--palette-neutral-dark', 'palette', 'neutral', 'color', 'Dark neutral color', '--palette-neutral-800'),
     variable('--palette-light', 'palette', 'contrast', 'color', 'Light endpoint'),
     variable('--palette-dark', 'palette', 'contrast', 'color', 'Dark endpoint'),
+    variable('--palette-light-clear', 'palette', 'contrast', 'color', 'Transparent light endpoint'),
+    variable('--palette-light-faint', 'palette', 'contrast', 'color', 'Faint translucent light endpoint'),
     variable('--palette-primary-light-mix', 'palette', 'primary', 'color', 'Light-side primary ramp mix endpoint', '--palette-light'),
     variable('--palette-primary-dark-mix', 'palette', 'primary', 'color', 'Dark-side primary ramp mix endpoint', '--palette-dark'),
     variable('--palette-secondary-light-mix', 'palette', 'secondary', 'color', 'Light-side secondary ramp mix endpoint', '--palette-light'),
@@ -167,10 +169,10 @@ export const frayThemeVariableCatalog = Object.freeze([
     variable('--colored-light', 'theme', 'colored', 'color', 'Colored-trait light color', '--palette-primary-light'),
     variable('--colored-dark', 'theme', 'colored', 'color', 'Colored-trait dark color', '--palette-primary-dark'),
     variable('--colored-contrast', 'theme', 'colored', 'color', 'Colored-trait foreground', '--palette-contrast-light'),
+    variable('--colored-shadow', 'theme', 'colored', 'shadow', 'Colored-trait depth'),
     variable('--block-graph-block-border', 'theme', 'block graph', 'border', 'Block graph category border', '--ui-border'),
     variable('--block-graph-block-radius', 'theme', 'block graph', 'radius', 'Block graph category radius', '--radius-sm'),
     variable('--block-graph-block-shadow', 'theme', 'block graph', 'shadow', 'Block graph category depth'),
-    variable('--block-graph-block-gloss-opacity', 'theme', 'block graph', 'opacity', 'Block graph glossy overlay opacity'),
 ] satisfies readonly FrayThemeVariableDefinition[])
 
 export const frayThemeOptions = Object.freeze([

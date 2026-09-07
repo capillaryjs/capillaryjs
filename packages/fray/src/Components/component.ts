@@ -288,6 +288,9 @@ export class Component<TProps extends ComponentProps = ComponentProps> {
         .fray-fill-vertical {
             box-sizing: border-box;
             background: var(--application-background);
+            font-family: var(--font-family);
+            font-size: var(--font-size);
+            line-height: var(--line-height);
         }
 
         .fray-fill-horizontal {
@@ -302,6 +305,11 @@ export class Component<TProps extends ComponentProps = ComponentProps> {
             max-height: 100vh;
             min-height: 0;
             overflow-y: auto;
+        }
+
+        .colored {
+            background: linear-gradient(15deg, var(--c1) 0%, var(--c2) 65%, var(--c2) 65%, var(--c3) 100%);
+            box-shadow: var(--colored-shadow);
         }
 
         .island {

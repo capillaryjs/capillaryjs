@@ -13,9 +13,6 @@ body {
     overflow: hidden;
     color: var(--ui-color);
     background: var(--application-background);
-    font-family: var(--font-family);
-    font-size: var(--font-size);
-    line-height: var(--line-height);
 }
 
 button,

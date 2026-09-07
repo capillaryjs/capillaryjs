@@ -79,18 +79,22 @@ created them. Components do not take ownership of passed models.
 ## Components
 
 - `CategoryHidePanel` shows collapsible category controls and live counts from
-  the unfiltered item source.
+  the unfiltered item source. It inherits Fray's bordered `GroupPanel`, whose
+  normal chromed Header occupies a vertical bar on the left, while criterion
+  summaries remain horizontal above their options.
 - `SplitSelectionPanel` enables, presets, and reorders the active split subset.
-  It supports pointer dragging and `Alt+ArrowUp`/`Alt+ArrowDown`.
+  It uses the same `GroupPanel` structure and supports pointer dragging and
+  `Alt+ArrowUp`/`Alt+ArrowDown`.
 - `BlockGraph` renders a nested proportional mosaic. Selection is exposed by
   stable criterion/category path and selected-items emitters. Every block uses
-  its model-supplied `c1`/`c2`/`c3` category triplet even without an ornamental
-  theme; themes may add presentation such as Shiny's glossy chrome through
-  BlockGraph tokens. Child mosaics are inset from their parent by
+  its model-supplied `c1`/`c2`/`c3` category triplet through Fray's shared
+  `colored` gradient trait; themes may add presentation such as Shiny's shared
+  colored shadow. Child mosaics are inset from their parent by
   `--viz-block-graph-child-inset` (default `1.6em`) so the parent surface
   remains visible around every nested layer. Block labels are positioned over
-  their surfaces and do not reserve layout space, so area ratios continue to
-  represent item-count ratios.
+  their surfaces, with criterion and category value on one line, and do not
+  reserve layout space, so area ratios continue to represent item-count
+  ratios. Hover emphasis targets only the deepest block beneath the pointer.
 - `LineGraph` renders responsive SVG line or stacked-area history with pointer
   and keyboard readout.
 
@@ -132,10 +136,10 @@ the legacy `--c1`, `--c2`, and `--c3` inputs directly into every BlockGraph
 block, as well as `--colored-dark`, `--colored-base`, and `--colored-light`
 aliases. Series colors use the base value for legend swatches and paths.
 Missing block colors therefore default to the active theme's primary palette.
-The base block surface is painted directly from each block's `c2` inline value,
-so it remains colored even before structural CSS is available; themes may opt
-into the catalogued border, radius, shadow, and glossy-overlay variables to add
-ornament.
+Every block applies Fray's `colored` class, whose structural rule consumes the
+triplet as a gradient. Themes may opt into the catalogued border and radius;
+the compatible BlockGraph shadow role delegates to Fray's shared
+`--colored-shadow` role. No block pseudo-element is painted over that shadow.
 CategoryHidePanel renders the same small gradient swatch beside each category,
 muted when that category is hidden. Layout still exposes narrow `--viz-*`
 sizing and drawing inputs where no ordinary theme variable applies.

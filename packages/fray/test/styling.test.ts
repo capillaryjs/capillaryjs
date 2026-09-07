@@ -15,6 +15,7 @@ import {
     Dialog,
     Dropdown,
     FilterPanel,
+    GroupPanel,
     Header,
     ListView,
     Panel,
@@ -72,9 +73,11 @@ describe('style registry', () => {
         )
         assert.match(second.textContent, /fray-button > button/)
         assert.match(second.textContent, /fray-textbox > input/)
+        assert.match(second.textContent, /\.fray-fill-horizontal,\s*\.fray-fill-vertical\s*\{[^}]*font-family:\s*var\(--font-family\)[^}]*font-size:\s*var\(--font-size\)[^}]*line-height:\s*var\(--line-height\)/)
         assert.match(second.textContent, /\.fray-fill-horizontal\s*\{[^}]*width:\s*100vw[^}]*overflow-x:\s*auto/)
         assert.match(second.textContent, /\.fray-fill-vertical\s*\{[^}]*height:\s*100vh[^}]*overflow-y:\s*auto/)
         assert.doesNotMatch(second.textContent, /\.fray-fill-(?:horizontal|vertical) \[data-fray\]/)
+        assert.match(second.textContent, /\.colored\s*\{[^}]*background:\s*linear-gradient\(15deg, var\(--c1\) 0%, var\(--c2\) 65%, var\(--c2\) 65%, var\(--c3\) 100%\)[^}]*box-shadow:\s*var\(--colored-shadow\)/)
         assert.match(second.textContent, /\.island\s*\{[^}]*margin:\s*var\(--island-margin\)/)
         assert.match(second.textContent, /\.fray-fill-horizontal \.island\s*\{[^}]*max-width:[^}]*overflow-x:\s*auto/)
         assert.match(second.textContent, /\.fray-fill-vertical \.island\s*\{[^}]*max-height:[^}]*overflow-y:\s*auto/)
@@ -390,6 +393,18 @@ describe('style registry', () => {
         assert.doesNotMatch(stylesheet, /fray-sidebar|fray-dropdown|fray-checkbox|fray-textbox/)
     })
 
+    test('collects GroupPanel border and vertical Header treatment', () => {
+        const runtime = createFrayRuntime()
+        runtime.registerStyles(GroupPanel)
+        const stylesheet = runtime.styleRegistry.generateCSS()
+
+        assert.match(stylesheet, /fray-grouppanel\s*\{[^}]*grid-template-columns:\s*1\.5rem minmax\(0, 1fr\)[^}]*column-gap:\s*0\.35rem[^}]*padding-inline:\s*0\.125rem 0\.35rem[^}]*border:\s*1px solid var\(--ui-border-color\)/)
+        assert.match(stylesheet, /fray-grouppanel > fray-header\s*\{[^}]*place-items:\s*center[^}]*box-sizing:\s*border-box[^}]*width:\s*100%[^}]*min-width:\s*0[^}]*border-radius:\s*var\(--ui-border-radius\)/)
+        assert.match(stylesheet, /fray-grouppanel > fray-header > h1,[\s\S]*writing-mode:\s*vertical-rl[^}]*transform:\s*rotate\(180deg\)/)
+        assert.match(stylesheet, /fray-header\s*\{[^}]*background:\s*var\(--section-header-background\)[^}]*box-shadow:\s*var\(--section-header-shadow\)/)
+        assert.doesNotMatch(stylesheet, /fray-panel|fray-sidebar|fray-checkbox/)
+    })
+
     test('collects Header CSS without unrelated component rules', () => {
         const runtime = createFrayRuntime()
         runtime.registerStyles(Header)
@@ -550,12 +565,18 @@ describe('four-file styling contract', () => {
         assert.match(css, /--island-margin:\s*var\(--space-sm\)/)
         assert.match(css, /--island-border:\s*1px solid rgb\(255 255 255 \/ 0\.45\)/)
         assert.match(css, /--island-shadow:\s*0px 1px 2\.5px 0px #666/)
+        assert.match(css, /--section-header-background:[\s\S]*var\(--palette-light-clear\)[\s\S]*var\(--palette-light-faint\)[\s\S]*linear-gradient\(1deg, var\(--palette-primary-900\) 0%, var\(--palette-primary\) 65%, var\(--palette-primary\) 65%, var\(--palette-primary-200\) 100%\)/)
+        const sectionHeaderBackground = css.match(
+            /--section-header-background:\s*([\s\S]*?);/,
+        )?.[1]
+        assert.ok(sectionHeaderBackground)
+        assert.doesNotMatch(sectionHeaderBackground, /#|rgba?\(/)
         assert.doesNotMatch(css, /--panel-shadow:/)
         assert.match(css, /--progress-value-background:[\s\S]*radial-gradient/)
         assert.match(css, /--progress-value-shadow:[\s\S]*inset -1px 1px 3px 0 #0003/)
         assert.match(css, /--block-graph-block-border:\s*none/)
-        assert.match(css, /--block-graph-block-gloss-opacity:\s*1/)
-        assert.match(css, /--block-graph-block-shadow:[\s\S]*inset -10px 10px 28px 0 #0006/)
+        assert.match(css, /--colored-shadow:[\s\S]*inset -2px 2px 2px 0px #0006,[\s\S]*inset 2px -2px 2px 0px #fff5,[\s\S]*-3px 3px 4px 0px #0006/)
+        assert.doesNotMatch(css, /--block-graph-block-shadow:/)
     })
 
     test('base BlockGraph tokens retain flat semantic category colors', async () => {
@@ -563,8 +584,8 @@ describe('four-file styling contract', () => {
             fileURLToPath(new URL('../themes/base.css', import.meta.url)),
             'utf8',
         )
-        assert.match(css, /--block-graph-block-shadow:\s*none/)
-        assert.match(css, /--block-graph-block-gloss-opacity:\s*0/)
+        assert.match(css, /--colored-shadow:\s*none/)
+        assert.match(css, /--block-graph-block-shadow:\s*var\(--colored-shadow\)/)
     })
 
     test('base and Minimal keep island layout neutral', async () => {

@@ -42,6 +42,13 @@ test('Meridian renders one flat island layer around its routed workspace', () =>
     assert.ok(document.querySelector('.meridian-navigation > fray-sidebar.meridian-scope.island'))
     assert.ok(document.querySelector('.meridian-navigation > fray-panel.meridian-view.island'))
     assert.ok(document.querySelector('body > main > fray-panel.demo-harness.island'))
+    const scopeLabels = [...document.querySelectorAll<HTMLElement>(
+        '.scope-tree [role="treeitem"] > fray-label',
+    )]
+    assert.ok(scopeLabels.length > 0)
+    assert.ok(scopeLabels.every((label) => label.classList.contains('colored')))
+    assert.ok(scopeLabels.every((label) => ['--c1', '--c2', '--c3'].every((property) =>
+        label.style.getPropertyValue(property) !== '')))
     assert.equal(document.querySelectorAll('.island .island').length, 0)
     assert.equal(document.querySelectorAll('.meridian-masthead .appearance-controls').length, 0)
     assert.equal(document.querySelectorAll('.demo-harness .appearance-controls').length, 1)

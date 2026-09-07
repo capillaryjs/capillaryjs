@@ -6,13 +6,36 @@ Versioning.
 
 ## Unreleased
 
+### Added
+
+- Added `GroupPanel`, a labelled control-group surface with a bordered body
+  and a full-height vertical `Header` using the normal section-header chrome.
+
 ### Changed
 
+- Added a reusable `colored` presentation trait that paints explicit
+  `--c1`/`--c2`/`--c3` triplets as a gradient and lets Shiny add shared depth
+  through `--colored-shadow`. `TreeView` now accepts `itemLabelClassName` and
+  `itemLabelStyle` callbacks so applications can decorate the block label next
+  to an expander without painting the entire semantic tree row.
+- Made `GroupPanel` headers narrower and corrected their box model, with a
+  small content gap, right inset, and a minimal inset between the vertical
+  header and the group border.
+- Replaced Shiny's hard-coded blue section-header gradient stop with the
+  existing primary palette anchor and derived its translucent highlight stops
+  from the light palette endpoint.
 - Reorganized the public Meridian style lab around a persistent Scope/View
   navigation rail and flat sibling-island layouts for Portfolio, Register,
   Change, and Analysis. Portfolio attention, Register criteria, and Analysis
   visibility now derive independently from shared application scope while the
   selected change remains durable across local filtering.
+
+### Fixed
+
+- Application roots using either `fray-fill-horizontal` or
+  `fray-fill-vertical` now consume the published `--font-family`,
+  `--font-size`, and `--line-height` tokens, preventing inherited controls and
+  native content from falling back to the browser's serif defaults.
 
 ## 1.0.0 - 2026-09-06
 

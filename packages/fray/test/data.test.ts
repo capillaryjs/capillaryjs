@@ -232,6 +232,13 @@ describe('stable data components', () => {
             nodes,
             selectedKeyEmitter: selected,
             expandedKeysEmitter: expanded,
+            itemLabelClassName: () => 'colored',
+            itemLabelStyle: (node, depth) => ({
+                '--c1': node.id === 'workspace' ? '#123' : '#456',
+                '--c2': '#789',
+                '--c3': '#abc',
+                '--application-depth': depth,
+            }),
         }).attachTo(document.body)
 
         assert.equal(requiredQuery('fray-treeview').dataset.frayComponent, 'tree-view')
@@ -242,8 +249,15 @@ describe('stable data components', () => {
         assert.equal(document.querySelectorAll('[role="treeitem"]').length, 2)
         let first = requiredQuery<HTMLElement>('[role="treeitem"]')
         assert.equal(first.tagName, 'LI')
+        assert.equal(first.className, '')
+        assert.equal(first.style.getPropertyValue('--tree-depth'), '0')
         assert.ok(first.querySelector(':scope > fray-expander'))
-        assert.ok(first.querySelector(':scope > fray-label'))
+        const firstLabel = requiredQuery<HTMLElement>(':scope > fray-label', first)
+        assert.equal(firstLabel.className, 'colored')
+        assert.equal(firstLabel.style.getPropertyValue('--c1'), '#123')
+        assert.equal(firstLabel.style.getPropertyValue('--c2'), '#789')
+        assert.equal(firstLabel.style.getPropertyValue('--c3'), '#abc')
+        assert.equal(firstLabel.style.getPropertyValue('--application-depth'), '0')
         first.focus()
         first.dispatchEvent(new KeyboardEvent('keydown', {key: 'ArrowRight', bubbles: true}))
         assert.deepEqual(expanded.get(), ['workspace'])
@@ -252,6 +266,11 @@ describe('stable data components', () => {
         first = requiredQuery<HTMLElement>('[role="treeitem"]')
         first.dispatchEvent(new KeyboardEvent('keydown', {key: 'ArrowRight', bubbles: true}))
         const child = requiredAt(document.querySelectorAll<HTMLElement>('[role="treeitem"]'), 1)
+        const childLabel = requiredQuery<HTMLElement>(':scope > fray-label', child)
+        assert.equal(child.className, '')
+        assert.equal(childLabel.className, 'colored')
+        assert.equal(childLabel.style.getPropertyValue('--application-depth'), '1')
+        assert.equal(child.style.getPropertyValue('--tree-depth'), '1')
         assert.equal(document.activeElement, child)
         child.dispatchEvent(new KeyboardEvent('keydown', {key: 'Enter', bubbles: true}))
         assert.equal(selected.get(), 'service-a')

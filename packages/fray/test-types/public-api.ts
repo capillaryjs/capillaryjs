@@ -8,6 +8,7 @@ import {
     DataTable,
     Dialog,
     Dropdown,
+    GroupPanel,
     ListView,
     Panel,
     ProgressBar,
@@ -46,6 +47,7 @@ import type {
 const textboxValue = new Emitter('Ada')
 const textbox = new Textbox({label: 'Name', valueEmitter: textboxValue})
 textbox.valueEmitter.get().toUpperCase()
+new GroupPanel({header: 'Grouping', children: 'Controls'})
 
 const numericValue = new Emitter(1)
 const radioOptions = new Emitter([['one', 'One']] as const)
@@ -172,6 +174,12 @@ new ListView<Row>({
 new TreeView<Row>({
     label: 'Rows',
     nodes: [{id: 1, label: 'Ada', value: {id: 1, name: 'Ada'}}],
+    itemLabelClassName(node, depth) {
+        return `${node.value?.name ?? 'unknown'} depth-${depth}`
+    },
+    itemLabelStyle(node) {
+        return {'--c1': node.value?.name === 'Ada' ? '#123' : '#456'}
+    },
     onSelect(node) {
         node.value?.name.toUpperCase()
     },

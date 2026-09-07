@@ -11,6 +11,7 @@ import {TableHeaderCell} from '../src/Components/data/table/TableHeaderCell.tsx'
 import {TreeItem} from '../src/Components/data/treeview/treeitem.tsx'
 import {TreeView} from '../src/Components/data/treeview/treeview.tsx'
 import {Dialog} from '../src/Components/dialog/dialog.tsx'
+import {GroupPanel} from '../src/Components/layout/groupPanel.tsx'
 import {Panel} from '../src/Components/layout/panel.tsx'
 import {Sidebar} from '../src/Components/layout/sidebar.tsx'
 import {SplitView} from '../src/Components/layout/splitView.tsx'
@@ -39,6 +40,7 @@ const components = [
     Dialog,
     Dropdown,
     FilterPanel,
+    GroupPanel,
     ListView,
     Panel,
     Placeholder,

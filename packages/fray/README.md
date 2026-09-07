@@ -146,8 +146,11 @@ application root to claim exactly `100vw`, `fray-fill-vertical` to claim
 exactly `100vh`, or both for a fullscreen application. Each axis supplies its
 own root overflow fallback and zero minimum; descendant islands are bounded
 and scroll on only the opted-in axes. Other components retain their intrinsic
-minimums and their own structural overflow contracts. A root with neither
-modifier keeps its ordinary embedded/content-sized behavior.
+minimums and their own structural overflow contracts. Either modifier also
+establishes the theme's `--font-family`, `--font-size`, and `--line-height` on
+the application root so native content and Fray controls inherit the published
+typography without application CSS. A root with neither modifier keeps its
+ordinary embedded/content-sized behavior, including its host page's typography.
 
 The prebuilt structural file targets Fray's default `fray-` hosts. Applications
 with custom components or configured host names may instead register their root
@@ -410,8 +413,8 @@ Native semantics remain native: `Button` renders `button`, `Toggle` renders
 independent root. The
 `data-fray-component` keeps diagnostics unambiguous. It is not a structural or
 theme selector. Fray may merge public presentation traits such as `island`
-with an application-supplied `class`/`className`; those traits describe a
-reusable capability, not component identity.
+and `colored` with an application-supplied `class`/`className`; those traits
+describe a reusable capability, not component identity.
 
 Pass `island` to a fixed-host component when that surface should be visually
 separated from the page. Fray adds the reusable `island` class to its host;
@@ -422,6 +425,12 @@ modifier visually neutral. Islands are one surface layer: nesting an `island`
 component below another island is rejected. Application-authored native island
 classes must follow the same no-nesting invariant. A surface island never
 creates a nested theme or palette scope.
+
+Apply `colored` only to an element that supplies an ordered dark/base/light
+triplet through `--c1`, `--c2`, and `--c3`. The shared component rule paints
+that triplet as a gradient; named themes can add depth through
+`--colored-shadow`. Shiny supplies its glossy shadow while the base and other
+themes remain flat.
 
 Built-in host names are fixed public DOM: Fray adds its one required custom
 element hyphen and removes internal word separators from the component stem.
@@ -723,6 +732,7 @@ property.
 | `TriCheckbox` | Checkbox props except `symbols` | `onChange(value, event)` | Cycles deny → neutral → prefer using `FilterMode`. |
 | `QuadCheckbox` | Checkbox props except `symbols` | `onChange(value, event)` | Cycles deny → neutral → prefer → require using `FilterMode`. |
 | `Header` | `id`, `headingId`, `level`, `children` | None | Styled heading surface using a native `h1`–`h6`; level defaults to `2`. |
+| `GroupPanel` | `header`, `id`, `children` | None | Labelled bordered control group with a full-height vertical Header. |
 | `Panel` | `header`, `toolbar`, `orientation`, `disabled`, `id`, `children` | None | Stateless labelled section that composes Header when header content exists; `disabled` describes the region but does not mutate descendant controls. |
 | `Sidebar` | `header`, `toolbar`, `ariaLabel`, `id`, `children` | None | Fixed `fray-sidebar` host containing a native complementary region with fixed header/toolbar parts and independently scrolling content. |
 | `SplitView` | `primary`, `secondary`, `direction`, `primarySize`, pane labels | None | Stateless, non-resizable two-pane flex layout with explicit overflow ownership and keyboard-focusable panes; `primarySize` is a flex-basis value. |
@@ -754,7 +764,7 @@ set invalid state, and associate the control or group with that message.
 | `Panel` | `disabled` | None |
 | `ProgressBar` | None | `valueEmitter` |
 | `ListView` | None | `items` may be an array or readable emitter; selection emitters are outputs |
-| `TreeView` | None | `nodes` may be an array or readable emitter; selected/expanded emitters are outputs |
+| `TreeView` | None | `nodes` may be an array or readable emitter; selected/expanded emitters are outputs; `itemLabelClassName` and `itemLabelStyle` decorate each block label beside its expander |
 | `DataTable` | None | `data` may be an array or readable emitter; `dataSource`/`rest` and selection emitters are explicit source/state contracts |
 | `FilterPanel` | None | `options` may be an array or readable emitter |
 | Layout, tab, description, toolbar, placeholder, and routing components | None | Their ordinary structural/configuration props require an owner rerender when changed |
@@ -1027,6 +1037,11 @@ The explicit `island` modifier consumes `--island-margin`,
 elevation neutral; Shiny uses it for Bank2-style separated surfaces. Themes do
 not infer island boundaries from component type or nesting, and islands cannot
 contain other islands.
+
+The reusable `colored` trait consumes a required `--c1`/`--c2`/`--c3`
+dark/base/light triplet and `--colored-shadow`. Its base treatment is the
+shared three-stop gradient; Shiny adds depth without changing the
+application-owned triplet.
 
 ### Runtime selection
 

@@ -6,6 +6,12 @@ import type {BlockNode, BlockPath} from '../block.js'
 import {BlockSelectionModel, findBlock} from '../block.js'
 import {categoryColorVariables} from '../grouping.js'
 
+const fallbackCategoryColors = [
+    'var(--colored-dark)',
+    'var(--colored-base)',
+    'var(--colored-light)',
+] as const
+
 export interface BlockGraphProps<TItem> extends ComponentProps {
     readonly model: BlockSelectionModel<TItem>
     readonly label?: string
@@ -155,21 +161,8 @@ export class BlockGraph<TItem = unknown> extends Component<BlockGraphProps<TItem
             overflow: hidden;
             border: var(--block-graph-block-border, 1px solid var(--c1, var(--colored-dark)));
             border-radius: var(--block-graph-block-radius, 0.25em);
-            background: var(--c2, var(--colored-base));
             box-shadow: var(--block-graph-block-shadow, none);
             color: var(--colored-contrast);
-        }
-
-        & [role="treeitem"]::before {
-            position: absolute;
-            z-index: 0;
-            inset: 0;
-            pointer-events: none;
-            content: "";
-            background:
-                radial-gradient(100% 60% at 30% 0%, #0000, #0000 60%, #eeeeee06 110%, #eeeeee08 120%, #0000 calc(120% + 1%)),
-                linear-gradient(15deg, var(--c1) 0%, var(--c2) 65%, var(--c2) 65%, var(--c3) 100%);
-            opacity: var(--block-graph-block-gloss-opacity, 0);
         }
 
         & [role="treeitem"] > fray-blocklabel {
@@ -180,10 +173,10 @@ export class BlockGraph<TItem = unknown> extends Component<BlockGraphProps<TItem
             box-sizing: border-box;
             display: grid;
             grid-template-columns: minmax(0, 1fr) auto;
-            grid-template-areas: "criterion count" "label count";
+            grid-template-areas: "label count";
+            align-items: center;
             gap: 0 0.35rem;
             width: 100%;
-            min-height: 2.5rem;
             padding: 0.25rem 0.4rem;
             overflow: hidden;
             text-align: start;
@@ -203,8 +196,18 @@ export class BlockGraph<TItem = unknown> extends Component<BlockGraphProps<TItem
             outline-offset: -3px;
         }
 
-        & fray-blocklabel > small {
-            grid-area: criterion;
+        & fray-blocklabel > fray-blockname {
+            grid-area: label;
+            display: grid;
+            grid-template-columns: auto minmax(0, 1fr);
+            align-items: baseline;
+            gap: 0.2rem;
+            min-width: 0;
+            overflow: hidden;
+            white-space: nowrap;
+        }
+
+        & fray-blockname > small {
             overflow: hidden;
             font-size: 0.68rem;
             opacity: 0.82;
@@ -212,8 +215,8 @@ export class BlockGraph<TItem = unknown> extends Component<BlockGraphProps<TItem
             white-space: nowrap;
         }
 
-        & fray-blocklabel > strong {
-            grid-area: label;
+        & fray-blockname > strong {
+            min-width: 0;
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
@@ -233,7 +236,7 @@ export class BlockGraph<TItem = unknown> extends Component<BlockGraphProps<TItem
             padding: var(--viz-block-graph-child-inset, 1.6em);
         }
 
-        & [role="treeitem"]:hover {
+        & [role="treeitem"]:hover:not(:has([role="treeitem"]:hover)) {
             filter: saturate(1.35) brightness(1.15);
         }
 
@@ -259,9 +262,11 @@ export class BlockGraph<TItem = unknown> extends Component<BlockGraphProps<TItem
     ): FrayChild {
         const selected = pathsEqual(node.path, selectedPath)
         const colors = node.colors
+        const colorVariables = categoryColorVariables(colors ?? fallbackCategoryColors)
         return <article
             key={node.key}
             role="treeitem"
+            className="colored"
             tabIndex={(selected || (selectedPath == null && node.key === tabbableKey)) ? 0 : -1}
             aria-level={Math.max(1, node.depth + 1)}
             aria-selected={selected ? 'true' : 'false'}
@@ -275,16 +280,17 @@ export class BlockGraph<TItem = unknown> extends Component<BlockGraphProps<TItem
             onKeyDown={(event: KeyboardEvent) => this.blockKeyDown(event, node)}
             style={{
                 flexGrow: node.count,
+                ...colorVariables,
                 ...(colors == null ? {} : {
-                    ...categoryColorVariables(colors),
-                    backgroundColor: colors[1],
                     borderColor: colors[0],
                 }),
             }}
         >
             {h('fray-blocklabel', null,
-                <small>{node.criterionLabel ?? 'Items'}</small>,
-                <strong>{node.label}</strong>,
+                h('fray-blockname', null,
+                    <small>{node.criterionLabel ?? 'Items'}:</small>,
+                    <strong>{node.label}</strong>,
+                ),
                 <data value={String(node.count)}>{node.count}</data>,
             )}
             {node.children.length === 0 ? null : h('fray-blockgroup', {

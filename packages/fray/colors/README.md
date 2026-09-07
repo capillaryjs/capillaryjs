@@ -12,8 +12,9 @@ A palette normally supplies:
   `--palette-neutral-500` anchors.
 
 `themes/base.css` derives the remaining numeric ramp stops and the ordinary
-`primary`, `light`, and `dark` aliases with `color-mix`. A palette may also
-override `--palette-<family>-light-mix` or
+`primary`, `light`, and `dark` aliases with `color-mix`. It also derives clear
+and faint translucent variants of the light endpoint for palette-aware chrome.
+A palette may override `--palette-<family>-light-mix` or
 `--palette-<family>-dark-mix` when a ramp intentionally changes hue.
 
 ```css

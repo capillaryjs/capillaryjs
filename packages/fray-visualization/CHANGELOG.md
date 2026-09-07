@@ -6,6 +6,21 @@ and Semantic Versioning.
 
 ## Unreleased
 
+### Changed
+
+- Every `BlockGraph` block now opts into Fray's reusable `colored` trait. Its
+  model-supplied `--c1`/`--c2`/`--c3` triplet drives the shared gradient, and
+  the existing BlockGraph shadow token delegates to the shared colored shadow.
+  The former block pseudo-element overlay was removed so it cannot cover that
+  shadow. Block labels now keep the criterion and category value on one line
+  without imposing a minimum height, and hover emphasis applies only to the
+  deepest block beneath the pointer rather than its ancestor blocks.
+- Tightened `SplitSelectionPanel` rows and drag handles while giving each row
+  the shared button background treatment.
+- `CategoryHidePanel` and `SplitSelectionPanel` now share Fray's `GroupPanel`
+  structure: a bordered control group with a normal chromed Header presented
+  vertically at the left. Category criterion summaries remain horizontal.
+
 ## 0.8.0 - 2026-09-06
 
 ### Changed

@@ -5,6 +5,7 @@ import {fileURLToPath} from 'node:url'
 import {Window} from 'happy-dom'
 
 import {Emitter, FetchState} from '@sylwellsoftware/glue'
+import {GroupPanel} from '@sylwellsoftware/fray'
 
 import {
     BlockGraph,
@@ -79,6 +80,9 @@ test('generated structural CSS uses fixed visualization hosts without theme sele
     ), 'utf8')
     assert.match(css, /fray-categoryhidepanel/)
     assert.match(css, /fray-splitselectionpanel/)
+    assert.match(css, /grid-template-columns:\s*minmax\(0, 1fr\) 1\.0rem/)
+    assert.match(css, /fray-splitselectionpanel li\s*\{[^}]*padding:\s*0 \.35rem[^}]*background:\s*var\(--button-background\)/)
+    assert.match(css, /fray-splitselectionpanel fray-draghandle\s*\{[^}]*min-height:\s*1\.1rem/)
     assert.match(css, /fray-blockgraph/)
     assert.match(css, /fray-linegraph/)
     assert.match(css, /\[role="treeitem"\]/)
@@ -93,6 +97,9 @@ test('generated structural CSS uses fixed visualization hosts without theme sele
 describe('visualization controls', () => {
     test('CategoryHidePanel uses Fray checkboxes and unfiltered live counts', () => {
         assert.match(CategoryHidePanel.css, /flex: 0 0 auto/)
+        assert.match(GroupPanel.css, /grid-template-columns:\s*2rem minmax\(0, 1fr\)/)
+        assert.match(GroupPanel.css, /> fray-header > h1,[\s\S]*writing-mode:\s*vertical-rl[^}]*transform:\s*rotate\(180deg\)/)
+        assert.match(CategoryHidePanel.css, /summary[^}]*border-bottom:\s*1px solid var\(--ui-border-color\)/)
         assert.match(CategoryHidePanel.css, /fray-categoryoption > fray-checkbox > label/)
         assert.doesNotMatch(CategoryHidePanel.css, /fray-check-box/)
         const items = new Emitter<readonly Item[]>(itemsValue)
@@ -102,8 +109,16 @@ describe('visualization controls', () => {
 
         assert.equal(required('fray-categoryhidepanel').getAttribute('data-fray-component'),
             'category-hide-panel')
+        const categoryPanel = required('fray-categoryhidepanel')
+        assert.equal(categoryPanel.getAttribute('role'), 'group')
+        assert.ok(categoryPanel.querySelector(':scope > fray-header'))
+        assert.ok(categoryPanel.querySelector(
+            ':scope > fray-content > fray-categoryhidecontent',
+        ))
         assert.equal(required('details').className, '')
+        assert.ok(required('fray-categoryhidecontent'))
         assert.ok(required('fray-criteriongroups'))
+        assert.ok(required('fray-categorygroupcontent'))
         assert.ok(required('fray-categories'))
         const categoryOptions = [...document.querySelectorAll<HTMLElement>('fray-categoryoption')]
         assert.equal(categoryOptions.length, 2)
@@ -151,6 +166,10 @@ describe('visualization controls', () => {
 
         assert.equal(required('fray-splitselectionpanel').getAttribute('data-fray-component'),
             'split-selection-panel')
+        const splitPanel = required('fray-splitselectionpanel')
+        assert.equal(splitPanel.getAttribute('role'), 'group')
+        assert.ok(splitPanel.querySelector(':scope > fray-header'))
+        assert.ok(splitPanel.querySelector(':scope > fray-content > ol'))
         assert.equal(required('[data-split-key="state"]').className, '')
         assert.equal(document.querySelector('[data-part="position"]'), null)
         assert.equal(required('fray-draghandle').localName, 'fray-draghandle')
@@ -225,12 +244,16 @@ describe('visualization controls', () => {
 
 describe('BlockGraph', () => {
     test('bakes each category c1/c2/c3 triplet into blocks while themes own chrome visibility', () => {
-        assert.match(BlockGraph.css, /background: var\(--c2, var\(--colored-base\)\)/)
+        assert.doesNotMatch(BlockGraph.css, /background: var\(--c2, var\(--colored-base\)\)/)
         assert.match(BlockGraph.css, /box-shadow: var\(--block-graph-block-shadow, none\)/)
-        assert.match(BlockGraph.css, /linear-gradient\(15deg, var\(--c1\) 0%, var\(--c2\) 65%/)
-        assert.match(BlockGraph.css, /opacity: var\(--block-graph-block-gloss-opacity, 0\)/)
+        assert.doesNotMatch(BlockGraph.css, /\[role="treeitem"\]::before/)
         assert.match(BlockGraph.css, /padding: var\(--viz-block-graph-child-inset, 1\.6em\)/)
         assert.match(BlockGraph.css, /\[role="treeitem"\] > fray-blocklabel\s*\{[^}]*position: absolute/)
+        assert.doesNotMatch(BlockGraph.css, /fray-blocklabel\s*\{[^}]*min-height:\s*2\.5rem/)
+        assert.match(BlockGraph.css, /grid-template-areas:\s*"label count"/)
+        assert.match(BlockGraph.css, /fray-blocklabel > fray-blockname\s*\{[^}]*grid-template-columns:\s*auto minmax\(0, 1fr\)/)
+        assert.match(BlockGraph.css, /\[role="treeitem"\]:hover:not\(:has\(\[role="treeitem"\]:hover\)\)/)
+        assert.doesNotMatch(BlockGraph.css, /& \[role="treeitem"\]:hover\s*\{/)
     })
 
     test('renders and updates an externally observable keyboard selection', () => {
@@ -246,16 +269,19 @@ describe('BlockGraph', () => {
         assert.ok(required('fray-scroller'))
         const blocks = [...document.querySelectorAll<HTMLElement>('[role="treeitem"]')]
         assert.equal(blocks.length, 2)
-        assert.ok(blocks.every((block) => block.className === ''))
+        assert.ok(blocks.every((block) => block.classList.contains('colored')))
         assert.equal(blocks[0]?.style.getPropertyValue('--colored-dark'), colors[0])
         assert.equal(blocks[0]?.style.getPropertyValue('--colored-base'), colors[1])
         assert.equal(blocks[0]?.style.getPropertyValue('--colored-light'), colors[2])
         assert.equal(blocks[0]?.style.getPropertyValue('--c1'), colors[0])
         assert.equal(blocks[0]?.style.getPropertyValue('--c2'), colors[1])
         assert.equal(blocks[0]?.style.getPropertyValue('--c3'), colors[2])
-        assert.equal(blocks[0]?.style.backgroundColor, colors[1])
+        assert.equal(blocks[0]?.style.backgroundColor, '')
         assert.equal(blocks[0]?.style.borderColor, colors[0])
-        assert.ok(required('[role="treeitem"] > fray-blocklabel'))
+        const blockName = required('[role="treeitem"] > fray-blocklabel > fray-blockname')
+        assert.equal(blockName.textContent, 'State:Open')
+        assert.equal(blockName.querySelector('small')?.textContent, 'State:')
+        assert.equal(blockName.querySelector('strong')?.textContent, 'Open')
         assert.match(blocks[0]?.getAttribute('aria-label') ?? '', /Open, 2 items/)
         blocks[0]?.dispatchEvent(new KeyboardEvent('keydown', {key: 'Enter', bubbles: true}))
         assert.deepEqual(selection.selectedItems$.get().map(({id}) => id), [1, 2])
