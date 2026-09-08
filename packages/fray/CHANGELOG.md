@@ -6,6 +6,8 @@ Versioning.
 
 ## Unreleased
 
+## 1.3.0 - 2026-09-08
+
 ### Added
 
 - Added independent `--navigation-bar-*` and `--navigation-link-*` theme

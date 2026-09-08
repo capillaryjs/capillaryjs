@@ -6,6 +6,8 @@ Versioning.
 
 ## Unreleased
 
+## 0.9.0 - 2026-09-08
+
 ### Added
 
 - Added `LiveQuery` `execution` policies for immediate loading, one-way deferred
