@@ -101,7 +101,7 @@ export class NavigationBar extends Component<NavigationBarProps> {
             box-shadow: var(--navigation-link-shadow);
             font-family: inherit;
             font-size: 1.1rem;
-            line-height: var(--navigation-link-line-height);
+            line-height: calc(var(--ui-font-size) + var(--ui-padding) + var(--ui-padding));
             text-decoration: none;
             white-space: nowrap;
         }

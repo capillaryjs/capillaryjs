@@ -231,7 +231,6 @@
     --navigation-link-shadow-current: none;
     --navigation-link-padding: var(--space-xs) var(--space-sm);
     --navigation-link-radius: var(--radius-sm);
-    --navigation-link-line-height: calc(var(--ui-font-size) + var(--ui-padding) + var(--ui-padding));
     --navigation-link-font-weight-current: 700;
     --tabline-background: var(--palette-neutral-100);
     --tabline-padding-inline-start: 0px;
@@ -263,6 +262,10 @@
     --colored-dark: var(--palette-primary-dark);
     --colored-contrast: var(--palette-contrast-light);
     --colored-shadow: none;
+    --c1: unset;
+    --c2: unset;
+    --c3: unset;
+    --colored-base-bg: linear-gradient(15deg, var(--c1) 0%, var(--c2) 65%, var(--c2) 65%, var(--c3) 100%);
     --block-graph-block-radius: 0.25em;
     --block-graph-block-shadow: var(--colored-shadow);
 

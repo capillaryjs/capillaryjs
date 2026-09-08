@@ -110,8 +110,6 @@
     --navigation-link-color-hover: white;
     --navigation-link-background-current: var(--section-header-background);
     --navigation-link-shadow-current: var(--mini-shadow);
-    --navigation-link-radius: var(--ui-border-radius);
-    --navigation-link-line-height: 1.7em;
     --tabline-background: var(--shiny-ui-gradient-2);
     --tabline-padding-inline-start: 5px;
     --tab-button-background: var(--shiny-ui-gradient);
@@ -133,7 +131,18 @@
       -1px 1px 3px 0 #0006;
 
     --colored-shadow: inset -2px 2px 2px 0px #0006, inset 2px -2px 2px 0px #fff5, -3px 3px 4px 0px #0006;
-    --colored-background: radial-gradient(140% 75% at 30% 10%, #fff0, #fff1 47%, #fff0 55%, #fff0), var(--colored-base-bg);
     --block-graph-block-border: none;
   }
+}
+
+.colored {
+ background: radial-gradient(140% 75% at 30% 10%, #fff0, #fff1 47%, #fff0 55%, #fff0), var(--colored-base-bg);
+}
+
+nav > ul > li {
+  border-radius: var(--ui-border-radius);
+}
+
+fray-navigationbar nav > ul > li > a {
+  line-height: 1.7em;
 }
