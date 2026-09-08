@@ -13,6 +13,7 @@
     --ui-gradient-2: linear-gradient( to bottom, var(--ui-primary-bg-color) 9px, var(--ui-primary-bg-color) 13px, var(--ui-dark-bg-color) 100% );
     --shiny-ui-gradient: var(--ui-gradient);
     --shiny-ui-gradient-2: var(--ui-gradient-2);
+    --shiny-background: radial-gradient(140% 75% at 30% 10%, #fff2, #fff3 47%, #fff0 55%, #fff0), linear-gradient(to bottom, var(--palette-primary-900) 0%, var(--palette-primary) 65%, var(--palette-primary) 66%, var(--palette-primary-400) 100%);
     --text-color: var(--palette-primary-900);
     --ui-color: var(--text-color);
 
@@ -24,9 +25,7 @@
     --island-margin: var(--space-sm);
     --island-border: 1px solid rgb(255 255 255 / 0.45);
     --island-shadow: 0px 1px 2.5px 0px #666;
-    --section-header-background:
-      radial-gradient(100% 50% at 40% 10%, var(--palette-light-clear), var(--palette-light-clear) 30%, var(--palette-light-faint) 110%, var(--palette-light-clear) 120%, var(--palette-light-clear) calc(120% + 1%)),
-      linear-gradient(1deg, var(--palette-primary-900) 0%, var(--palette-primary) 65%, var(--palette-primary) 65%, var(--palette-primary-200) 100%);
+    --section-header-background: var(--shiny-background);
     --section-header-color: var(--palette-contrast-light);
     --section-header-shadow:
       inset -1px 1px 2px 0px #0003,
@@ -34,6 +33,7 @@
       inset -1px 1px 1px 0px #0006,
       inset 1px -1px 1px 0px #fff5,
       0px 1px 2px 0px #000a;
+    --mini-shadow: 0px 1px 1px 0px #000a;
 
     --sidebar-background:
       linear-gradient(135deg, rgb(255 255 255 / 0.4), transparent 55%),
@@ -105,9 +105,13 @@
     --navigation-bar-background: var(--ui-gradient-2);
     --navigation-bar-color: var(--text-color);
     --navigation-bar-shadow: var(--panel-shadow);
-    --navigation-link-color-current: var(--palette-primary-900);
-    --navigation-link-background-hover: color-mix(in oklch, var(--palette-primary-100) 65%, transparent);
-    --navigation-link-background-active: var(--shiny-ui-gradient-2);
+    --navigation-link-color-current: white;
+    --navigation-link-background-hover: var(--section-header-background);
+    --navigation-link-color-hover: white;
+    --navigation-link-background-current: var(--section-header-background);
+    --navigation-link-shadow-current: var(--mini-shadow);
+    --navigation-link-radius: var(--ui-border-radius);
+    --navigation-link-line-height: 1.7em;
     --tabline-background: var(--shiny-ui-gradient-2);
     --tabline-padding-inline-start: 5px;
     --tab-button-background: var(--shiny-ui-gradient);
@@ -127,7 +131,9 @@
       inset -1px 1px 1px 1px #0006,
       inset 1px -1px 1px 1px #fff5,
       -1px 1px 3px 0 #0006;
+
     --colored-shadow: inset -2px 2px 2px 0px #0006, inset 2px -2px 2px 0px #fff5, -3px 3px 4px 0px #0006;
+    --colored-background: radial-gradient(140% 75% at 30% 10%, #fff0, #fff1 47%, #fff0 55%, #fff0), var(--colored-base-bg);
     --block-graph-block-border: none;
   }
 }

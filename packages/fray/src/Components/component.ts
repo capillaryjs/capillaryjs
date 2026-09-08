@@ -343,7 +343,7 @@ export class Component<TProps extends ComponentProps = ComponentProps> {
         }
 
         .colored {
-            background: linear-gradient(15deg, var(--c1) 0%, var(--c2) 65%, var(--c2) 65%, var(--c3) 100%);
+            background: var(--colored-background);
             box-shadow: var(--colored-shadow);
             border-radius: var(--ui-border-radius);
         }

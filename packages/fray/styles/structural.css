@@ -25,7 +25,7 @@
         }
 
         .colored {
-            background: linear-gradient(15deg, var(--c1) 0%, var(--c2) 65%, var(--c2) 65%, var(--c3) 100%);
+            background: var(--colored-background);
             box-shadow: var(--colored-shadow);
             border-radius: var(--ui-border-radius);
         }
@@ -762,7 +762,9 @@ fray-navigationbar {
             display: flex;
             flex-flow: row wrap;
             gap: var(--navigation-bar-gap);
+
             align-items: center;
+            justify-content: center;
             margin: 0;
             padding: var(--navigation-bar-padding);
             list-style: none;
@@ -785,8 +787,8 @@ fray-navigationbar {
             border-radius: var(--navigation-link-radius);
             box-shadow: var(--navigation-link-shadow);
             font-family: inherit;
-            font-size: var(--ui-font-size);
-            line-height: calc(var(--ui-font-size) + var(--ui-padding) + var(--ui-padding));
+            font-size: 1.1rem;
+            line-height: var(--navigation-link-line-height);
             text-decoration: none;
             white-space: nowrap;
         }
@@ -804,7 +806,6 @@ fray-navigationbar {
         fray-navigationbar > nav > ul > li > a[aria-current="page"] {
             color: var(--navigation-link-color-current);
             background: var(--navigation-link-background-current);
-            border-block-end: var(--navigation-link-border-current);
             box-shadow: var(--navigation-link-shadow-current);
             font-weight: var(--navigation-link-font-weight-current);
         }
