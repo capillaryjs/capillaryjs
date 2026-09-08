@@ -9,7 +9,6 @@ export abstract class CheckableControl<
         & {
             display: inline-flex;
             line-height: 1;
-            height: 1.4em;
         }
 
         & > label {

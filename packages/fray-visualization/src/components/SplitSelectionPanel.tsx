@@ -116,6 +116,7 @@ extends Component<SplitSelectionPanelProps<TItem>> {
             display: flex;
             flex-flow: column;
             padding: .25em;
+            flex: 1 1 0;
         }
 
         & > fray-grouppanel > fray-content > p,

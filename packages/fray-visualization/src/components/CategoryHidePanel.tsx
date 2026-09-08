@@ -117,10 +117,6 @@ extends OptionsPanel<CategoryHidePanelProps<TItem>> {
             flex-flow: column;
             padding: 0;
             overflow: visible;
-            align-content: center;
-            justify-items: center;
-            .align-items: center;
-            justify-content: center;
         }
 
         & fray-categoryoption {
