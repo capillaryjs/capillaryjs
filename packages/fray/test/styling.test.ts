@@ -81,7 +81,7 @@ describe('style registry', () => {
         assert.match(second.textContent, /\.fray-fill-horizontal\s*\{[^}]*width:\s*100vw[^}]*overflow-x:\s*auto/)
         assert.match(second.textContent, /\.fray-fill-vertical\s*\{[^}]*height:\s*100vh[^}]*overflow-y:\s*auto/)
         assert.doesNotMatch(second.textContent, /\.fray-fill-(?:horizontal|vertical) \[data-fray\]/)
-        assert.match(second.textContent, /\.colored\s*\{[^}]*background:\s*linear-gradient\(15deg, var\(--c1\) 0%, var\(--c2\) 65%, var\(--c2\) 65%, var\(--c3\) 100%\)[^}]*box-shadow:\s*var\(--colored-shadow\)/)
+        assert.match(second.textContent, /\.colored\s*\{[^}]*--colored-base-bg:[\s\S]*linear-gradient\([^}]*background:\s*var\(--colored-base-bg\)[^}]*box-shadow:\s*var\(--colored-shadow\)/)
         assert.match(second.textContent, /\.island\s*\{[^}]*margin:\s*var\(--island-margin\)/)
         assert.match(second.textContent, /\.fray-fill-horizontal \.island\s*\{[^}]*max-width:[^}]*overflow-x:\s*auto/)
         assert.match(second.textContent, /\.fray-fill-vertical \.island\s*\{[^}]*max-height:[^}]*overflow-y:\s*auto/)
@@ -211,7 +211,7 @@ describe('style registry', () => {
         assert.match(stylesheet, /fray-navigationbar\s*\{[^}]*color:\s*var\(--navigation-bar-color\)[^}]*background:\s*var\(--navigation-bar-background\)[^}]*border:\s*var\(--navigation-bar-border\)/)
         assert.match(stylesheet, /fray-navigationbar > nav > ul\s*\{[^}]*display:\s*flex[^}]*list-style:\s*none/)
         assert.match(stylesheet, /fray-navigationbar > nav > ul > li > a,\s*fray-navigationbar > nav > ul > li > span\[aria-disabled="true"\]\s*\{[^}]*color:\s*var\(--navigation-link-color\)[^}]*background:\s*var\(--navigation-link-background\)[^}]*border:\s*var\(--navigation-link-border\)/)
-        assert.match(stylesheet, /fray-navigationbar > nav > ul > li > a\[aria-current="page"\]\s*\{[^}]*border-block-end:\s*var\(--navigation-link-border-current\)[^}]*font-weight:\s*var\(--navigation-link-font-weight-current\)/)
+        assert.match(stylesheet, /fray-navigationbar > nav > ul > li > a\[aria-current="page"\]\s*\{[^}]*color:\s*var\(--navigation-link-color-current\)[^}]*background:\s*var\(--navigation-link-background-current\)[^}]*box-shadow:\s*var\(--navigation-link-shadow-current\)[^}]*font-weight:\s*var\(--navigation-link-font-weight-current\)/)
         assert.match(stylesheet, /fray-routeoutlet\s*\{[^}]*display:\s*flex[^}]*overflow:\s*hidden/)
         assert.match(stylesheet, /fray-routeoutlet > div\[hidden\]\s*\{[^}]*display:\s*none/)
         assert.doesNotMatch(stylesheet, /fray-tabline|role="tab"|data-part/)
@@ -586,9 +586,16 @@ describe('four-file styling contract', () => {
         const baseDeclarations = oneLineCustomProperties(base)
         for (const option of frayThemeOptions) {
             const css = await readFile(fileURLToPath(option.href), 'utf8')
-            assertVariableOnly(css, true)
             assert.doesNotMatch(css, /@import/)
-            assert.doesNotMatch(css, /fray-|\[data-fray|\.buttonlike|\.selectshell/)
+            if (option.value === 'shiny') {
+                assert.doesNotMatch(css, /@scope|:where\(|@media/)
+                assert.match(css, /\.colored\s*\{[^}]*background:/)
+                assert.match(css, /^nav > ul > li\s*\{[^}]*border-radius:/m)
+                assert.match(css, /^fray-navigationbar nav > ul > li > a\s*\{[^}]*line-height:/m)
+            } else {
+                assertVariableOnly(css, true)
+                assert.doesNotMatch(css, /fray-|\[data-fray|\.buttonlike|\.selectshell/)
+            }
             assert.doesNotMatch(css, /^\s*--palette-[a-z0-9-]+\s*:/m)
             for (const [name, value] of oneLineCustomProperties(css)) {
                 assert.notEqual(value, baseDeclarations.get(name),
@@ -608,15 +615,14 @@ describe('four-file styling contract', () => {
         assert.match(css, /--island-margin:\s*var\(--space-sm\)/)
         assert.match(css, /--island-border:\s*1px solid rgb\(255 255 255 \/ 0\.45\)/)
         assert.match(css, /--island-shadow:\s*0px 1px 2\.5px 0px #666/)
-        assert.match(css, /--section-header-background:[\s\S]*var\(--palette-light-clear\)[\s\S]*var\(--palette-light-faint\)[\s\S]*linear-gradient\(1deg, var\(--palette-primary-900\) 0%, var\(--palette-primary\) 65%, var\(--palette-primary\) 65%, var\(--palette-primary-200\) 100%\)/)
-        assert.match(css, /--navigation-bar-background:\s*linear-gradient\(/)
+        assert.match(css, /--shiny-background:[\s\S]*radial-gradient\(140% 75% at 30% 10%, #fff2, #fff3 47%, #fff0 55%, #fff0\)[\s\S]*linear-gradient\(to bottom, var\(--palette-primary-900\) 0%, var\(--palette-primary\) 65%, var\(--palette-primary\) 66%, var\(--palette-primary-400\) 100%\)/)
+        assert.match(css, /--section-header-background:\s*var\(--shiny-background\)/)
+        assert.match(css, /--navigation-bar-background:\s*var\(--ui-gradient-2\)/)
         assert.match(css, /--navigation-bar-color:\s*var\(--text-color\)/)
-        assert.doesNotMatch(css, /--navigation-link-color:\s*var\(--palette-contrast-light\)/)
-        const sectionHeaderBackground = css.match(
-            /--section-header-background:\s*([\s\S]*?);/,
-        )?.[1]
-        assert.ok(sectionHeaderBackground)
-        assert.doesNotMatch(sectionHeaderBackground, /#|rgba?\(/)
+        assert.match(css, /--navigation-link-color-current:\s*white/)
+        assert.match(css, /--navigation-link-background-current:\s*var\(--section-header-background\)/)
+        assert.match(css, /\.colored\s*\{[^}]*background:\s*radial-gradient/)
+        assert.match(css, /fray-navigationbar nav > ul > li > a\s*\{[^}]*line-height:\s*1\.7em/)
         assert.doesNotMatch(css, /--panel-shadow:/)
         assert.match(css, /--progress-value-background:[\s\S]*radial-gradient/)
         assert.match(css, /--progress-value-shadow:[\s\S]*inset -1px 1px 3px 0 #0003/)
