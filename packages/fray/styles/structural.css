@@ -110,7 +110,6 @@ fray-quadcheckbox,
 fray-tricheckbox {
             display: inline-flex;
             line-height: 1;
-            height: 1.4em;
         }
 
         fray-checkbox > label,

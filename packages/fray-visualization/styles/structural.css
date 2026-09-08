@@ -376,10 +376,6 @@ fray-categoryhidepanel {
             flex-flow: column;
             padding: 0;
             overflow: visible;
-            align-content: center;
-            justify-items: center;
-            .align-items: center;
-            justify-content: center;
         }
 
         fray-categoryhidepanel fray-categoryoption {
@@ -440,7 +436,6 @@ fray-header {
 fray-checkbox {
             display: inline-flex;
             line-height: 1;
-            height: 1.4em;
         }
 
         fray-checkbox > label {
@@ -711,6 +706,7 @@ fray-splitselectionpanel {
             display: flex;
             flex-flow: column;
             padding: .25em;
+            flex: 1 1 0;
         }
 
         fray-splitselectionpanel > fray-grouppanel > fray-content > p,
