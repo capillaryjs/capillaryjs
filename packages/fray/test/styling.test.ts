@@ -81,7 +81,7 @@ describe('style registry', () => {
         assert.match(second.textContent, /\.fray-fill-horizontal\s*\{[^}]*width:\s*100vw[^}]*overflow-x:\s*auto/)
         assert.match(second.textContent, /\.fray-fill-vertical\s*\{[^}]*height:\s*100vh[^}]*overflow-y:\s*auto/)
         assert.doesNotMatch(second.textContent, /\.fray-fill-(?:horizontal|vertical) \[data-fray\]/)
-        assert.match(second.textContent, /\.colored\s*\{[^}]*background:\s*var\(--colored-background\)[^}]*box-shadow:\s*var\(--colored-shadow\)/)
+        assert.match(second.textContent, /\.colored\s*\{[^}]*--colored-base-bg:[\s\S]*linear-gradient\([^}]*background:\s*var\(--colored-background, var\(--colored-base-bg\)\)[^}]*box-shadow:\s*var\(--colored-shadow\)/)
         assert.match(second.textContent, /\.island\s*\{[^}]*margin:\s*var\(--island-margin\)/)
         assert.match(second.textContent, /\.fray-fill-horizontal \.island\s*\{[^}]*max-width:[^}]*overflow-x:\s*auto/)
         assert.match(second.textContent, /\.fray-fill-vertical \.island\s*\{[^}]*max-height:[^}]*overflow-y:\s*auto/)

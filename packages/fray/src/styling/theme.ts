@@ -194,7 +194,7 @@ export const frayThemeVariableCatalog = Object.freeze([
     variable('--colored-dark', 'theme', 'colored', 'color', 'Colored-trait dark color', '--palette-primary-dark'),
     variable('--colored-contrast', 'theme', 'colored', 'color', 'Colored-trait foreground', '--palette-contrast-light'),
     variable('--colored-shadow', 'theme', 'colored', 'shadow', 'Colored-trait depth'),
-    variable('--colored-background', 'theme', 'colored', 'background', 'Colored-trait surface'),
+    variable('--colored-background', 'theme', 'colored', 'background', 'Colored-trait surface', '--colored-base-bg'),
     variable('--block-graph-block-border', 'theme', 'block graph', 'border', 'Block graph category border', '--ui-border'),
     variable('--block-graph-block-radius', 'theme', 'block graph', 'radius', 'Block graph category radius', '--radius-sm'),
     variable('--block-graph-block-shadow', 'theme', 'block graph', 'shadow', 'Block graph category depth'),

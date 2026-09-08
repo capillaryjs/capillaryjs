@@ -263,11 +263,6 @@
     --colored-dark: var(--palette-primary-dark);
     --colored-contrast: var(--palette-contrast-light);
     --colored-shadow: none;
-    --c1: unset;
-    --c2: unset;
-    --c3: unset;
-    --colored-base-bg: linear-gradient(15deg, var(--c1) 0%, var(--c2) 65%, var(--c2) 65%, var(--c3) 100%);
-    --colored-background: var(--colored-base-bg);
     --block-graph-block-radius: 0.25em;
     --block-graph-block-shadow: var(--colored-shadow);
 
