@@ -8,6 +8,9 @@ Versioning.
 
 ### Fixed
 
+- Removed the fixed height from checkable controls so their layout follows the
+  active line-height and supports wrapped label content.
+
 - Published npm packages now include this changelog alongside their release
   history.
 

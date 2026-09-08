@@ -8,6 +8,9 @@ and Semantic Versioning.
 
 ### Fixed
 
+- Corrected category and split-selection panel layout so their option content
+  can size and flex correctly.
+
 - Published npm packages now include this changelog alongside their release
   history.
 
