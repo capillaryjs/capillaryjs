@@ -102,6 +102,12 @@
     --toggle-inactive-separator-block-inset: 0.35rem;
 
     /* Navigation components */
+    --navigation-bar-background: var(--ui-gradient-2);
+    --navigation-bar-color: var(--text-color);
+    --navigation-bar-shadow: var(--panel-shadow);
+    --navigation-link-color-current: var(--palette-primary-900);
+    --navigation-link-background-hover: color-mix(in oklch, var(--palette-primary-100) 65%, transparent);
+    --navigation-link-background-active: ;
     --tabline-background: var(--shiny-ui-gradient-2);
     --tabline-padding-inline-start: 5px;
     --tab-button-background: var(--shiny-ui-gradient);

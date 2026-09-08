@@ -209,6 +209,29 @@
     --toggle-inactive-separator-block-inset: 0;
 
     /* Navigation components */
+    --navigation-bar-background: transparent;
+    --navigation-bar-color: var(--ui-color);
+    --navigation-bar-border: 0 solid transparent;
+    --navigation-bar-shadow: none;
+    --navigation-bar-padding: var(--space-sm);
+    --navigation-bar-gap: var(--space-md);
+    --navigation-link-color: var(--palette-primary-700);
+    --navigation-link-color-hover: var(--palette-primary-900);
+    --navigation-link-color-active: var(--palette-primary-900);
+    --navigation-link-color-current: var(--ui-color);
+    --navigation-link-color-disabled: var(--input-color-disabled);
+    --navigation-link-background: transparent;
+    --navigation-link-background-hover: var(--palette-primary-100);
+    --navigation-link-background-active: var(--palette-primary-100);
+    --navigation-link-background-current: transparent;
+    --navigation-link-background-disabled: transparent;
+    --navigation-link-border: 0 solid transparent;
+    --navigation-link-border-current: 2px solid var(--palette-primary);
+    --navigation-link-shadow: none;
+    --navigation-link-shadow-current: none;
+    --navigation-link-padding: var(--space-xs) var(--space-sm);
+    --navigation-link-radius: var(--radius-sm);
+    --navigation-link-font-weight-current: 700;
     --tabline-background: var(--palette-neutral-100);
     --tabline-padding-inline-start: 0px;
     --tab-active-background: var(--palette-neutral-50);

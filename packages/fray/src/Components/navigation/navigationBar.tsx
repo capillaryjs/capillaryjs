@@ -60,6 +60,10 @@ export class NavigationBar extends Component<NavigationBarProps> {
             display: block;
             flex: 0 0 auto;
             min-width: 0;
+            color: var(--navigation-bar-color);
+            background: var(--navigation-bar-background);
+            border: var(--navigation-bar-border);
+            box-shadow: var(--navigation-bar-shadow);
         }
 
         & > nav,
@@ -70,10 +74,12 @@ export class NavigationBar extends Component<NavigationBarProps> {
         & > nav > ul {
             display: flex;
             flex-flow: row wrap;
-            gap: var(--space-xs);
+            gap: var(--navigation-bar-gap);
+
             align-items: center;
+            justify-content: center;
             margin: 0;
-            padding: var(--space-xs);
+            padding: var(--navigation-bar-padding);
             list-style: none;
         }
 
@@ -86,29 +92,35 @@ export class NavigationBar extends Component<NavigationBarProps> {
             display: inline-flex;
             align-items: center;
             min-height: var(--control-min-height, 2rem);
-            padding: var(--space-xs) var(--space-sm);
+            padding: var(--navigation-link-padding);
             box-sizing: border-box;
-            color: var(--button-color);
-            background: var(--button-background);
-            border: var(--button-border);
-            border-radius: var(--radius-md);
-            box-shadow: var(--button-shadow);
+            color: var(--navigation-link-color);
+            background: var(--navigation-link-background);
+            border: var(--navigation-link-border);
+            border-radius: var(--navigation-link-radius);
+            box-shadow: var(--navigation-link-shadow);
             font-family: inherit;
-            font-size: var(--ui-font-size);
+            font-size: 1.1rem;
             line-height: calc(var(--ui-font-size) + var(--ui-padding) + var(--ui-padding));
             text-decoration: none;
             white-space: nowrap;
         }
 
         & > nav > ul > li > a:hover {
-            background: var(--button-background-hover);
+            color: var(--navigation-link-color-hover);
+            background: var(--navigation-link-background-hover);
         }
 
-        & > nav > ul > li > a:active,
+        & > nav > ul > li > a:active {
+            color: var(--navigation-link-color-active);
+            background: var(--navigation-link-background-active);
+        }
+
         & > nav > ul > li > a[aria-current="page"] {
-            background: var(--button-background-active);
-            border-style: var(--button-border-style-active);
-            box-shadow: var(--button-shadow-active);
+            color: var(--navigation-link-color-current);
+            background: var(--navigation-link-background-current);
+            box-shadow: var(--navigation-link-shadow-current);
+            font-weight: var(--navigation-link-font-weight-current);
         }
 
         & > nav > ul > li > a:focus-visible {
@@ -118,9 +130,9 @@ export class NavigationBar extends Component<NavigationBarProps> {
         }
 
         & > nav > ul > li > span[aria-disabled="true"] {
-            color: var(--input-color-disabled);
-            background: var(--button-background-disabled);
-            border: var(--button-border-disabled);
+            color: var(--navigation-link-color-disabled);
+            background: var(--navigation-link-background-disabled);
+            border: var(--navigation-link-border);
             cursor: not-allowed;
         }
     `

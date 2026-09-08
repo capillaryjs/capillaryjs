@@ -208,8 +208,10 @@ describe('style registry', () => {
         runtime.registerStyles(RouteOutlet)
         const stylesheet = runtime.styleRegistry.generateCSS()
 
+        assert.match(stylesheet, /fray-navigationbar\s*\{[^}]*color:\s*var\(--navigation-bar-color\)[^}]*background:\s*var\(--navigation-bar-background\)[^}]*border:\s*var\(--navigation-bar-border\)/)
         assert.match(stylesheet, /fray-navigationbar > nav > ul\s*\{[^}]*display:\s*flex[^}]*list-style:\s*none/)
-        assert.match(stylesheet, /fray-navigationbar > nav > ul > li > a\[aria-current="page"\]/)
+        assert.match(stylesheet, /fray-navigationbar > nav > ul > li > a,\s*fray-navigationbar > nav > ul > li > span\[aria-disabled="true"\]\s*\{[^}]*color:\s*var\(--navigation-link-color\)[^}]*background:\s*var\(--navigation-link-background\)[^}]*border:\s*var\(--navigation-link-border\)/)
+        assert.match(stylesheet, /fray-navigationbar > nav > ul > li > a\[aria-current="page"\]\s*\{[^}]*border-block-end:\s*var\(--navigation-link-border-current\)[^}]*font-weight:\s*var\(--navigation-link-font-weight-current\)/)
         assert.match(stylesheet, /fray-routeoutlet\s*\{[^}]*display:\s*flex[^}]*overflow:\s*hidden/)
         assert.match(stylesheet, /fray-routeoutlet > div\[hidden\]\s*\{[^}]*display:\s*none/)
         assert.doesNotMatch(stylesheet, /fray-tabline|role="tab"|data-part/)
@@ -595,7 +597,7 @@ describe('four-file styling contract', () => {
         }
     })
 
-    test('Shiny preserves Bank2 Toolbar, primary text, and glossy graphical tokens', async () => {
+    test('Shiny preserves its chrome, light navigation strip, and glossy graphical tokens', async () => {
         const css = await readFile(
             fileURLToPath(new URL('../themes/shiny/theme.css', import.meta.url)),
             'utf8',
@@ -607,6 +609,9 @@ describe('four-file styling contract', () => {
         assert.match(css, /--island-border:\s*1px solid rgb\(255 255 255 \/ 0\.45\)/)
         assert.match(css, /--island-shadow:\s*0px 1px 2\.5px 0px #666/)
         assert.match(css, /--section-header-background:[\s\S]*var\(--palette-light-clear\)[\s\S]*var\(--palette-light-faint\)[\s\S]*linear-gradient\(1deg, var\(--palette-primary-900\) 0%, var\(--palette-primary\) 65%, var\(--palette-primary\) 65%, var\(--palette-primary-200\) 100%\)/)
+        assert.match(css, /--navigation-bar-background:\s*linear-gradient\(/)
+        assert.match(css, /--navigation-bar-color:\s*var\(--text-color\)/)
+        assert.doesNotMatch(css, /--navigation-link-color:\s*var\(--palette-contrast-light\)/)
         const sectionHeaderBackground = css.match(
             /--section-header-background:\s*([\s\S]*?);/,
         )?.[1]
@@ -641,6 +646,9 @@ describe('four-file styling contract', () => {
         assert.match(base, /--island-border:\s*var\(--panel-border\)/)
         assert.match(base, /--island-radius:\s*var\(--panel-radius\)/)
         assert.match(base, /--island-shadow:\s*var\(--panel-shadow\)/)
+        assert.match(base, /--navigation-bar-background:\s*transparent/)
+        assert.match(base, /--navigation-link-background:\s*transparent/)
+        assert.match(base, /--navigation-link-border-current:\s*2px solid var\(--palette-primary\)/)
         assert.doesNotMatch(minimal, /--island-(?:margin|padding|background|border|radius|shadow):/)
     })
 

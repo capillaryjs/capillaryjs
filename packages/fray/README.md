@@ -390,6 +390,12 @@ model. A disabled item is rendered as a visible non-link with
 `aria-disabled="true"`. The bar navigates only; it never locates or owns the
 content affected by a route.
 
+Its `--navigation-bar-*` and `--navigation-link-*` theme variables are
+independent from `--button-*`. The base theme deliberately presents navigation
+as text links with a subtle hover surface and current-route underline. Themes
+may opt into boxed or button-like navigation without changing the component's
+native link semantics.
+
 ### Data and record views
 
 | Component | Purpose | Key props and state |

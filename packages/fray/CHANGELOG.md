@@ -8,6 +8,9 @@ Versioning.
 
 ### Added
 
+- Added independent `--navigation-bar-*` and `--navigation-link-*` theme
+  variables. Navigation now defaults to text-link presentation rather than
+  inheriting generic button chrome.
 - Added `NavigationBar`, a labelled native navigation list over `RouteLink`
   destinations, and `RouteOutlet`, an application-emitter-backed owner for
   non-tab literal routes with nested scope propagation.
@@ -19,6 +22,11 @@ Versioning.
   current eager default. Routed panels preselect a matching pending literal
   route before first content render, avoiding transient default-view mounts
   during direct nested restoration.
+
+### Changed
+
+- Shiny now presents `NavigationBar` as a light, text-link navigation strip
+  beneath application chrome instead of a dark action-bar surface.
 
 ## 1.2.0 - 2026-09-08
 

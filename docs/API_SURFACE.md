@@ -195,6 +195,10 @@ Presentation loads as base variables, structural CSS, color anchors, then
 theme overrides. Applications can collect structural CSS from declared root
 dependencies instead of loading the complete artifact.
 
+`NavigationBar` consumes its own `--navigation-bar-*` container and
+`--navigation-link-*` item variables. These defaults are text-link navigation,
+not aliases of the generic `--button-*` action family.
+
 `FrayApp` has a fixed `fray-app` host, applies the published canvas, color, and
 typography variables even when embedded, and offers independent viewport-axis
 settings plus a `main`/`none` landmark policy. `mountFrayApp()` collects and

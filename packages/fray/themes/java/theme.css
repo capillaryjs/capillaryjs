@@ -12,6 +12,9 @@
     --button-border: 2px outset var(--palette-light);
     --input-shadow: inset 1px 1px 1px color-mix(in oklch, var(--palette-dark) 30%, transparent);
     --toolbar-border: 2px outset var(--palette-light);
+    --navigation-bar-border: 2px outset var(--palette-light);
+    --navigation-link-border: 1px outset var(--palette-light);
+    --navigation-link-border-current: 1px inset var(--palette-dark);
     --working-background-image: repeating-linear-gradient(135deg, transparent 0 4px, color-mix(in oklch, var(--palette-dark) 12%, transparent) 4px 8px);
     --button-border-style-active: inset;
   }
