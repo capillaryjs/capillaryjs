@@ -6,13 +6,20 @@ import {
     createValueEmitter,
 } from '../../controlUtils.js'
 import type {ValueControlProps, ValueEmitter} from '../../controlUtils.js'
+import {
+    RoutedSelectionController,
+    readContentMountPolicy,
+} from '../routedSelection.js'
+import type {
+    ContentMountPolicy,
+    RoutedSelectionItem,
+} from '../routedSelection.js'
 import {Tab} from './tab.js'
 import type {TabProps} from './tab.js'
 import {TabLine, tabButtonId, tabPanelId} from './tabline.js'
 import type {TabLineTab} from './tabline.js'
 import {RouteScope} from '../../../routing/RouteScope.js'
 import type {LiteralRouteDescriptor} from '../../../routing/route.js'
-import type {ResolvedRoute} from '../../../routing/router.js'
 
 export interface TabDefinition {
     id: Key
@@ -23,7 +30,7 @@ export interface TabDefinition {
     route?: LiteralRouteDescriptor
 }
 
-export type TabPanelMountPolicy = 'eager' | 'lazy' | 'active-only'
+export type TabPanelMountPolicy = ContentMountPolicy
 
 export interface TabPanelProps extends ValueControlProps<Key | null> {
     id?: string | number | null
@@ -36,7 +43,7 @@ export interface TabPanelProps extends ValueControlProps<Key | null> {
     onChange?: (value: Key, event: Event | null) => void
 }
 
-interface NormalizedTab {
+interface NormalizedTab extends RoutedSelectionItem {
     id: Key
     label: FrayChild
     disabled: boolean
@@ -49,8 +56,7 @@ export class TabPanel extends Component<TabPanelProps> {
     readonly valueEmitter: ValueEmitter<Key | null>
     readonly activeTabEmitter: ValueEmitter<Key | null>
     readonly baseId: string
-    private routeContexts = new Map<LiteralRouteDescriptor, ResolvedRoute>()
-    private readonly mountedTabIds = new Set<Key>()
+    private readonly selection: RoutedSelectionController<NormalizedTab>
 
     constructor(props: TabPanelProps = {}) {
         super(props)
@@ -70,42 +76,34 @@ export class TabPanel extends Component<TabPanelProps> {
         )
         this.activeTabEmitter = this.valueEmitter
         this.baseId = controlId('tabs', props.id)
+        this.selection = new RoutedSelectionController(this, this.valueEmitter, {
+            subject: 'tabs',
+            restoredCause: 'route tab restored',
+            pendingCause: 'pending route tab selected',
+            selectedCause: 'tab selected',
+        })
     }
 
     initialize(): void {
         const tabs = extractTabs(this.props)
-        readMountPolicy(this.props)
-        this.registerRoutes(tabs)
-        const requestedTab = this.pendingRouteTab(tabs)
-        if (requestedTab != null) {
-            this.valueEmitter.set(requestedTab.id, 'pending route tab selected')
-        } else if (!tabs.some(({id}) => Object.is(id, this.valueEmitter.get()))) {
-            this.valueEmitter.set(tabs.find((tab) => !tab.disabled)?.id ?? null)
-        }
+        readContentMountPolicy(this.props.mountPolicy, 'TabPanel')
+        this.selection.prepare(tabs)
         this.watch(this.valueEmitter)
     }
 
     setProps(nextProps: TabPanelProps): this {
-        readMountPolicy(nextProps)
+        readContentMountPolicy(nextProps.mountPolicy, 'TabPanel')
         super.setProps(nextProps)
-        const tabs = extractTabs(nextProps)
-        this.registerRoutes(tabs)
-        const requestedTab = this.pendingRouteTab(tabs)
-        if (requestedTab != null) {
-            this.valueEmitter.set(requestedTab.id, 'pending route tab selected')
-        } else if (!tabs.some(({id}) => Object.is(id, this.valueEmitter.get()))) {
-            this.valueEmitter.set(tabs.find((tab) => !tab.disabled)?.id ?? null)
-        }
+        this.selection.prepare(extractTabs(nextProps))
+        this.update()
         return this
     }
 
     render(): FrayChild {
         const tabs = extractTabs(this.props)
-        const mountPolicy = readMountPolicy(this.props)
-        const selectedId = (tabs.find(({id}) => Object.is(id, this.valueEmitter.get()))
-            ?? tabs.find((tab) => !tab.disabled)
-            ?? null)?.id
-        this.updateMountedTabIds(tabs, selectedId, mountPolicy)
+        const mountPolicy = readContentMountPolicy(this.props.mountPolicy, 'TabPanel')
+        const selectedId = this.selection.selected(tabs)?.id
+        const mountedTabIds = this.selection.updateMounted(tabs, mountPolicy)
         const Host = this.Host
         return <Host
             id={this.baseId}
@@ -129,92 +127,20 @@ export class TabPanel extends Component<TabPanelProps> {
                     aria-labelledby={tabButtonId(this.baseId, tab.id)}
                     tabIndex={selected ? 0 : -1}
                     hidden={!selected}
-                >{this.mountedTabIds.has(tab.id) ? this.routedContent(tab) : null}</section>
+                >{mountedTabIds.has(tab.id)
+                        ? this.selection.scopedContent(tab, tab.content)
+                        : null}</section>
             })}
         </Host>
     }
 
     override onDestroy(): void {
-        this._runtime.router?.unregisterRoutes(this._routeContext ?? this._runtime.router.root, this)
-        this.routeContexts.clear()
-        this.mountedTabIds.clear()
-    }
-
-    private registerRoutes(tabs: readonly NormalizedTab[]): void {
-        const routed = tabs.filter((tab): tab is NormalizedTab & {
-            route: LiteralRouteDescriptor
-        } => tab.route != null)
-        const router = this._runtime.router
-        const parent = this._routeContext
-        if (router != null && parent != null) router.unregisterRoutes(parent, this)
-        this.routeContexts.clear()
-        if (routed.length === 0) return
-        if (router == null || parent == null) {
-            throw new Error('Routed tabs require a router and contextual route scope')
-        }
-        this.routeContexts = new Map(router.registerSelectionRoutes(
-            parent,
-            this,
-            routed.map((tab) => ({
-                route: tab.route,
-                disabled: tab.disabled,
-                active: () => Object.is(this.valueEmitter.get(), tab.id),
-                activate: () => {
-                    this.valueEmitter.set(tab.id, 'route tab restored')
-                },
-            })),
-            (listener) => this.valueEmitter.subscribe(listener, {emitCurrent: false}),
-        ))
+        this.selection.dispose()
     }
 
     private selectTab(tab: TabLineTab, _event: Event | null): void {
         const selected = extractTabs(this.props).find(({id}) => Object.is(id, tab.id))
-        const context = selected?.route == null ? null : this.routeContexts.get(selected.route)
-        if (context == null) {
-            this.valueEmitter.set(tab.id, 'tab selected')
-        } else {
-            void this._runtime.router?.navigate(context)
-        }
-    }
-
-    private pendingRouteTab(tabs: readonly NormalizedTab[]): NormalizedTab | undefined {
-        const router = this._runtime.router
-        const transition = router?.transition.get()
-        if (router == null || transition?.state !== 'pending') return undefined
-        const requestedPathname = transition.requestedLocation.split('?', 1)[0] || '/'
-        return tabs.find((tab) => {
-            if (tab.disabled || tab.route == null) return false
-            const context = this.routeContexts.get(tab.route)
-            return context != null && (
-                requestedPathname === context.pathname
-                || requestedPathname.startsWith(`${context.pathname}/`)
-            )
-        })
-    }
-
-    private updateMountedTabIds(
-        tabs: readonly NormalizedTab[],
-        selectedId: Key | undefined,
-        mountPolicy: TabPanelMountPolicy,
-    ): void {
-        const availableIds = new Set(tabs.map(({id}) => id))
-        for (const id of this.mountedTabIds) {
-            if (!availableIds.has(id)) this.mountedTabIds.delete(id)
-        }
-
-        if (mountPolicy === 'eager') {
-            for (const {id} of tabs) this.mountedTabIds.add(id)
-            return
-        }
-        if (mountPolicy === 'active-only') this.mountedTabIds.clear()
-        if (selectedId !== undefined) this.mountedTabIds.add(selectedId)
-    }
-
-    private routedContent(tab: NormalizedTab): FrayChild {
-        const context = tab.route == null ? null : this.routeContexts.get(tab.route)
-        return context == null
-            ? tab.content
-            : <RouteScope key={context.pathname} context={context}>{tab.content}</RouteScope>
+        if (selected != null) this.selection.select(selected)
     }
 
     static dependencies = [RouteScope, TabLine, Tab]
@@ -291,12 +217,4 @@ function extractTabs(props: TabPanelProps): NormalizedTab[] {
         ids.add(tab.id)
     }
     return tabs
-}
-
-function readMountPolicy(props: TabPanelProps): TabPanelMountPolicy {
-    const policy = props.mountPolicy ?? 'eager'
-    if (policy !== 'eager' && policy !== 'lazy' && policy !== 'active-only') {
-        throw new TypeError('TabPanel mountPolicy must be eager, lazy, or active-only')
-    }
-    return policy
 }

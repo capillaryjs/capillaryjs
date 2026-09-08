@@ -8,6 +8,12 @@ Versioning.
 
 ### Added
 
+- Added `NavigationBar`, a labelled native navigation list over `RouteLink`
+  destinations, and `RouteOutlet`, an application-emitter-backed owner for
+  non-tab literal routes with nested scope propagation.
+- Added the shared `ContentMountPolicy` type. Outlets support eager,
+  lazy-retained, and active-only branch lifetime and preselect a pending direct
+  route before mounting content.
 - Added `TabPanel.mountPolicy` with eager, lazy-retained, and active-only
   content lifecycles while preserving stable semantic tabpanel shells and the
   current eager default. Routed panels preselect a matching pending literal

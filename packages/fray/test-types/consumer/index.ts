@@ -6,9 +6,11 @@ import {
     DataTable,
     Dialog,
     Dropdown,
+    NavigationBar,
     FrayApp,
     ProgressBar,
     RouteLink,
+    RouteOutlet,
     SplitView,
     Textbox,
     TreeView,
@@ -88,6 +90,15 @@ const adapter: NavigationAdapter = {
 const router = createBrowserRouter({adapter})
 createFrayRuntime({router})
 new RouteLink({to: routeTarget(homeRoute), children: 'Home'})
+new NavigationBar({
+    label: 'Primary',
+    items: [{id: 'home', label: 'Home', to: routeTarget(homeRoute)}],
+})
+new RouteOutlet({
+    valueEmitter: new Emitter<string | number | null>('home'),
+    mountPolicy: 'active-only',
+    views: [{id: 'home', route: homeRoute, content: 'Home'}],
+})
 
 // @ts-expect-error Built declarations preserve Textbox's string value contract.
 new Textbox({valueEmitter: new Emitter(42)})

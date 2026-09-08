@@ -19,6 +19,7 @@ import {SplitView} from '../src/Components/layout/splitView.tsx'
 import {Tab} from '../src/Components/layout/tabpanel/tab.ts'
 import {TabLine} from '../src/Components/layout/tabpanel/tabline.tsx'
 import {TabPanel} from '../src/Components/layout/tabpanel/tabpanel.tsx'
+import {NavigationBar} from '../src/Components/navigation/navigationBar.tsx'
 import {Checkbox} from '../src/Components/lineinputs/checkbox/Checkbox.tsx'
 import {QuadCheckbox} from '../src/Components/lineinputs/checkbox/QuadCheckbox.ts'
 import {TriCheckbox} from '../src/Components/lineinputs/checkbox/TriCheckbox.ts'
@@ -29,6 +30,7 @@ import {Button} from '../src/Components/menu/button.tsx'
 import {Toolbar} from '../src/Components/menu/toolbar.tsx'
 import {ProgressBar} from '../src/Components/status/progressBar.tsx'
 import {ColorPicker, ThemePicker} from '../src/Components/theme/stylesheetPicker.tsx'
+import {RouteOutlet} from '../src/routing/RouteOutlet.tsx'
 import {createFrayRuntime} from '../src/runtime.ts'
 
 const components = [
@@ -44,10 +46,12 @@ const components = [
     FrayApp,
     GroupPanel,
     ListView,
+    NavigationBar,
     Panel,
     Placeholder,
     ProgressBar,
     QuadCheckbox,
+    RouteOutlet,
     Sidebar,
     SplitView,
     Tab,

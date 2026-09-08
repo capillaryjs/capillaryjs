@@ -90,7 +90,7 @@ custom elements.
 | --- | --- |
 | Actions | `Button`, `Toolbar` |
 | Text and choices | `Label`, `Textbox`, `Dropdown`, `RadioButton`, `RadioGroup`, `Toggle`, `Checkbox`, `TriCheckbox`, `QuadCheckbox` |
-| Layout | `FrayApp`, `Header`, `GroupPanel`, `OptionGroup`, `OptionsPanel`, `Panel`, `Sidebar`, `SplitView`, `Tab`, `TabLine`, `TabPanel` |
+| Layout and navigation | `FrayApp`, `Header`, `GroupPanel`, `NavigationBar`, `OptionGroup`, `OptionsPanel`, `Panel`, `Sidebar`, `SplitView`, `Tab`, `TabLine`, `TabPanel` |
 | Records and collections | `DescriptionItem`, `DescriptionList`, `Placeholder`, `ListView`, `TreeItem`, `TreeView` |
 | Tables and filters | `DataTable`, `FilterPanel`, `TableHeader`, `TableHeaderCell` |
 | Dialog and status | `Dialog`, `ProgressBar` |
@@ -114,8 +114,9 @@ Notable public behavior:
 - `GroupPanel` is a named group with a bordered body and vertical header.
 - `OptionGroup` renders a labelled `fieldset`/`legend` shell with a `headerEnd` slot.
 - `OptionsPanel` extends `GroupPanel` with a flex-column content area for `OptionGroup` children.
-- `TabPanelMountPolicy` selects eager, lazy-retained, or active-only content
-  lifetime while preserving semantic tabpanel shells.
+- `ContentMountPolicy` selects eager, lazy-retained, or active-only content
+  lifetime for `TabPanel` and `RouteOutlet`; `TabPanelMountPolicy` remains an
+  alias while tabs preserve semantic tabpanel shells.
 
 ### Data helpers
 
@@ -158,13 +159,18 @@ metadata, constructor inspection, or transient service lifetime.
 | Vocabulary | `defineRoute`, `defineRouteParameter`, `routeParameter`, `routeTarget`, `withRouteQuery`, route codecs/targets/descriptors, `redirectTo`, `RouteRedirect`, `RouteUnavailableError` |
 | Router | `BrowserRouter`, `createBrowserRouter`, resolved route, transition, issue, registration, and option types; `waitForRouteValue` |
 | Placement | `NavigationAdapter`, `createHistoryNavigation`, `createHashNavigation`, `MemoryNavigationAdapter`, location normalizer |
-| Components | `RouteScope`, `RouteValue`, `RouteQuery`, `RouteLink` and prop types |
+| Components | `RouteScope`, `RouteValue`, `RouteQuery`, `RouteLink`, `RouteOutlet`, `NavigationBar`, and prop/definition types |
 
 Descriptors are immutable relative vocabulary. Mounted scopes establish
 lineage and are discovered progressively. `RouteValue` binds one dynamic
 segment to a writable emitter; `RouteQuery` binds one explicit query name;
-`RouteLink` renders a real anchor. Routed `TabPanel` content registers immediate
-literal child routes.
+`RouteLink` renders a real anchor, and `NavigationBar` groups those links in a
+labelled native navigation list without owning destination DOM. Routed
+`TabPanel` and `RouteOutlet` content register immediate literal child routes.
+An outlet applies `ContentMountPolicy`, writes restoration to an
+application-owned selection emitter, and supplies the selected branch's nested
+scope; disconnected projections observe the same emitter without registering
+the routes again.
 
 Restoration never pushes history. Explicit navigation pushes by default;
 redirects, fallback, canonicalization, and passive binding updates replace.

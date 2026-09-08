@@ -348,6 +348,7 @@ const view = new Emitter<'list' | 'grid'>('list')
 | `Panel` | Optional labelled region with toolbar and content flow | `header`, `toolbar`, `orientation`, `disabled`; live: `disabled` |
 | `Sidebar` | Labelled `aside` with fixed header/toolbar and scrolling content | `header`, `toolbar`, `ariaLabel`, content |
 | `SplitView` | Two-pane layout | `primary`, `secondary`, `direction`, `primarySize`, region labels |
+| `NavigationBar` | Labelled native navigation list over router-aware anchors | required `label`, `items`; per-item route target, `exact`, disabled/link options |
 | `Tab` | Declarative tab definition consumed by `TabPanel` | `id`, `label`, `disabled`, optional literal `route`, content |
 | `TabLine` | Standalone keyboard-operable tab list | `tabs`, `valueEmitter`/`activeTabEmitter`, initial value, `label`, `onChange` |
 | `TabPanel` | Tab list plus owned tabpanel sections | declarative `Tab` children or `tabs` definitions; value props, `mountPolicy`, `label`, `onChange` |
@@ -381,6 +382,13 @@ activate its application service/query during `initialize()`.
 
 `SplitView` is a fixed two-pane composition primitive. It does not impose
 application resizing policy or persist pane sizes.
+
+`NavigationBar` uses a native `nav`, list, and anchors. It preserves
+`RouteLink` href generation, current-route state, modified clicks, targets,
+and downloads. It has ordinary link tab order and no tab or ARIA-menu keyboard
+model. A disabled item is rendered as a visible non-link with
+`aria-disabled="true"`. The bar navigates only; it never locates or owns the
+content affected by a route.
 
 ### Data and record views
 
@@ -508,23 +516,41 @@ navigation adapter.
 
 ```tsx
 const portfolioRoute = defineRoute('portfolio')
+const registerRoute = defineRoute('register')
 const projectRoute = defineRouteParameter('project', stringRouteCodec)
 const selectedProject = new Emitter<string | null>(null)
+const activeApplication = new Emitter<Key | null>('portfolio')
 
 const router = createBrowserRouter({adapter: createHashNavigation()})
 const runtime = createFrayRuntime({router})
 
-<TabPanel label="Application sections">
-    <Tab id="portfolio" label="Portfolio" route={portfolioRoute}>
+<NavigationBar
+    label="Application sections"
+    items={[
+        {id: 'portfolio', label: 'Portfolio', to: routeTarget(portfolioRoute)},
+        {id: 'register', label: 'Register', to: routeTarget(registerRoute)},
+    ]}
+/>
+<RouteOutlet
+    valueEmitter={activeApplication}
+    mountPolicy="active-only"
+    views={[{
+        id: 'portfolio',
+        route: portfolioRoute,
+        content:
         <RouteValue
             route={projectRoute}
             valueEmitter={selectedProject}
             scopeChildren={true}
         >
             <ProjectScreen selectedProject={selectedProject} />
-        </RouteValue>
-    </Tab>
-</TabPanel>
+        </RouteValue>,
+    }, {
+        id: 'register',
+        route: registerRoute,
+        content: <RegisterScreen />,
+    }]}
+/>
 ```
 
 Core routing exports:
@@ -537,6 +563,9 @@ Core routing exports:
   `MemoryNavigationAdapter` decide where locations live.
 - `RouteScope` establishes lineage; `RouteValue` binds dynamic path values;
   `RouteQuery` binds one named query value; `RouteLink` renders a real anchor.
+- `NavigationBar` groups native route links but does not own destination DOM.
+- `RouteOutlet` registers one sibling literal-route set against an
+  application-owned emitter and gives selected content its resolved scope.
 - `waitForRouteValue` lets a resolver await a readable application
   prerequisite with cancellation.
 
@@ -553,6 +582,16 @@ application.
 The history adapter needs server fallback for direct deep requests. The hash
 adapter reserves the fragment. The memory adapter is intended for deterministic
 tests. The caller owns and disposes the router.
+
+`RouteOutlet.mountPolicy` uses the same `ContentMountPolicy` values as
+`TabPanel`: `eager`, `lazy`, and `active-only`. Immediate routes are registered
+whether or not their content is mounted. During direct restoration, the
+matching pending branch is selected before the first content render, so an
+active-only default branch cannot initialize and activate unrequested work.
+Other page regions may independently read `activeApplication`; only the outlet
+registers that sibling route set. Application-global navigation should usually
+use explicit `routeTarget(...)` values, while relative descriptors are suited
+to a navigation bar inside the route scope that registered them.
 
 ## Styling contract
 

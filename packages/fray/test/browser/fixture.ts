@@ -10,8 +10,10 @@ import {
     Dropdown,
     FilterMode,
     Fragment,
+    NavigationBar,
     Panel,
     ProgressBar,
+    RouteOutlet,
     Sidebar,
     SplitView,
     Tab,
@@ -26,6 +28,7 @@ import {
     defineRoute,
     h,
     live,
+    routeTarget,
     styleRegistry,
 } from '../../src/index.js'
 import {jsx} from '../../src/jsx-runtime.js'
@@ -207,18 +210,36 @@ if (new URLSearchParams(location.search).get('routing') === 'true') {
     const activeRoute = new Emitter('first')
     const router = createBrowserRouter({adapter: createHistoryNavigation(window)})
     const runtime = createFrayRuntime({router})
-    const routedTabs = runtime.mount(runtime.create(TabPanel, {
-        id: 'browser-routing',
-        label: 'Browser routes',
-        mountPolicy: 'active-only',
-        valueEmitter: activeRoute,
-        children: [
-            h(Tab, {id: 'first', label: 'First route', route: firstRoute}, 'First page'),
-            h(Tab, {id: 'second', label: 'Second route', route: secondRoute}, 'Second page'),
-        ],
-    }), requiredElement('#routing-root'))
+    class RoutingProbe extends Component {
+        render() {
+            return h(Fragment, null,
+                h(NavigationBar, {
+                    label: 'Browser routes',
+                    items: [
+                        {id: 'first', label: 'First route', to: routeTarget(firstRoute)},
+                        {id: 'second', label: 'Second route', to: routeTarget(secondRoute)},
+                    ],
+                }),
+                h(RouteOutlet, {
+                    id: 'browser-routing',
+                    mountPolicy: 'active-only',
+                    valueEmitter: activeRoute,
+                    views: [
+                        {id: 'first', route: firstRoute, content: 'First page'},
+                        {id: 'second', route: secondRoute, content: 'Second page'},
+                    ],
+                }),
+            )
+        }
+
+        static dependencies = [NavigationBar, RouteOutlet]
+    }
+    const routedNavigation = runtime.mount(
+        runtime.create(RoutingProbe),
+        requiredElement('#routing-root'),
+    )
     destroyRouting = () => {
-        routedTabs.destroy()
+        routedNavigation.destroy()
         router.dispose()
         return activeRoute.subscriberCount
     }

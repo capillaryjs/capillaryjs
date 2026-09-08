@@ -1,6 +1,7 @@
 import {Emitter} from '@sylwellsoftware/glue'
 import {
     Button,
+    NavigationBar,
     Panel,
     ProgressBar,
     RadioGroup,
@@ -8,6 +9,9 @@ import {
     SplitView,
     Tab,
     TabPanel,
+    RouteOutlet,
+    defineRoute,
+    routeTarget,
     live,
 } from '@sylwellsoftware/fray'
 
@@ -19,6 +23,16 @@ const progress = <ProgressBar label="Loading" value={null} />
 const tabs = <TabPanel mountPolicy="active-only">
     <Tab id="first" label="First">First content</Tab>
 </TabPanel>
+const firstRoute = defineRoute('automatic-first')
+const activeRoute = new Emitter<string | number | null>('first')
+const navigation = <NavigationBar label="Primary" items={[
+    {id: 'first', label: 'First', to: routeTarget(firstRoute)},
+]} />
+const outlet = <RouteOutlet
+    valueEmitter={activeRoute}
+    mountPolicy="lazy"
+    views={[{id: 'first', route: firstRoute, content: 'First view'}]}
+/>
 const radioOptions = new Emitter([['one', 'One']] as const)
 const radioDisabled = new Emitter(false)
 const radio = <RadioGroup
@@ -40,6 +54,8 @@ void sidebar
 void split
 void progress
 void tabs
+void navigation
+void outlet
 void radio
 void invalid
 void invalidRadioOptions
