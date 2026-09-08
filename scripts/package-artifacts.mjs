@@ -24,6 +24,7 @@ const definitions = [
         name: '@sylwellsoftware/glue',
         allow(path) {
             return false
+                || path === 'CHANGELOG.md'
                 || path === 'LICENSE'
                 || path === 'NOTICE'
                 || path === 'README.md'
@@ -36,6 +37,7 @@ const definitions = [
         name: '@sylwellsoftware/fray',
         allow(path) {
             return false
+                || path === 'CHANGELOG.md'
                 || path === 'LICENSE'
                 || path === 'NOTICE'
                 || path === 'README.md'
@@ -51,6 +53,7 @@ const definitions = [
         name: '@sylwellsoftware/fray-visualization',
         allow(path) {
             return false
+                || path === 'CHANGELOG.md'
                 || path === 'LICENSE'
                 || path === 'NOTICE'
                 || path === 'README.md'
@@ -219,6 +222,7 @@ function validateAllowedFiles(definition, paths) {
         assert(definition.allow(path), `${definition.name} contains unexpected file ${path}`)
     }
     assert(paths.includes('README.md'), `${definition.name} tarball omits README.md`)
+    assert(paths.includes('CHANGELOG.md'), `${definition.name} tarball omits CHANGELOG.md`)
     assert(paths.includes('LICENSE'), `${definition.name} tarball omits LICENSE`)
     assert(paths.includes('NOTICE'), `${definition.name} tarball omits NOTICE`)
     assert(paths.includes('package.json'), `${definition.name} tarball omits package.json`)

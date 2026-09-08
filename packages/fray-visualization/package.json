@@ -43,6 +43,7 @@
   "files": [
     "dist",
     "styles",
+    "CHANGELOG.md",
     "LICENSE",
     "NOTICE"
   ],
