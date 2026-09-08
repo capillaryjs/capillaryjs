@@ -6,6 +6,8 @@ and Semantic Versioning.
 
 ## Unreleased
 
+## 0.10.0 - 2026-09-08
+
 ### Changed
 
 - `SplitSelectionPanel` now extends `Component` instead of `GroupPanel` and
@@ -24,8 +26,6 @@ and Semantic Versioning.
   new `FrayHostElementTagNameMap` intrinsic element types from Fray.
 - Reduced the criterion-group gap in `CategoryHidePanel` from `1.5em` to
   `1em` for a denser, more compact panel layout.
-
-
 
 ## 0.9.1 - 2026-09-07
 

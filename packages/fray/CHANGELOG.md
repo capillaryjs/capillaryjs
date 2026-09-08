@@ -6,6 +6,8 @@ Versioning.
 
 ## Unreleased
 
+## 1.2.0 - 2026-09-08
+
 ### Added
 
 - Added `OptionGroup`, a labelled `fieldset`/`legend` shell with a `headerEnd` slot for controls that need a standardized semantic grouping.

@@ -63,6 +63,12 @@ const definitions = [
 
 resetArtifactDirectory()
 
+const workspaceVersions = new Map()
+for (const definition of definitions) {
+    const manifest = readJson(join(definition.directory, 'package.json'))
+    workspaceVersions.set(manifest.name, manifest.version)
+}
+
 const packageReports = []
 for (const definition of definitions) {
     const sourceManifest = readJson(join(definition.directory, 'package.json'))
@@ -74,6 +80,10 @@ for (const definition of definitions) {
     assert(dryRun.name === definition.name, `${definition.name} npm dry-run name drifted`)
     assert(dryRun.version === sourceManifest.version, `${definition.name} version drifted`)
     validateAllowedFiles(definition, dryRun.files.map(({path}) => path))
+
+    const manifestPath = join(definition.directory, 'package.json')
+    const originalManifest = readFileSync(manifestPath, 'utf8')
+    writeFileSync(manifestPath, resolveWorkspaceManifest(sourceManifest))
 
     const firstPackDirectory = join(artifactRoot, `pack-a-${basename(definition.directory)}`)
     const secondPackDirectory = join(artifactRoot, `pack-b-${basename(definition.directory)}`)
@@ -128,6 +138,7 @@ for (const definition of definitions) {
 
     rmSync(firstPackDirectory, {recursive: true, force: true})
     rmSync(secondPackDirectory, {recursive: true, force: true})
+    writeFileSync(manifestPath, originalManifest)
 }
 
 const reportPath = join(artifactRoot, 'package-artifacts.json')
@@ -155,9 +166,37 @@ function npmDryRun(directory) {
     return parsed[0]
 }
 
+function resolveWorkspaceManifest(manifest) {
+    const groups = ['dependencies', 'devDependencies', 'optionalDependencies', 'peerDependencies']
+    const resolved = {...manifest}
+    for (const group of groups) {
+        if (resolved[group] == null) continue
+        resolved[group] = {}
+        for (const [name, range] of Object.entries(manifest[group]).sort(([a], [b]) => a.localeCompare(b))) {
+            resolved[group][name] = range.startsWith('workspace:')
+                ? resolveWorkspaceRange(range, name)
+                : range
+        }
+    }
+    return `${JSON.stringify(resolved, null, 2)}\n`
+}
+
+function resolveWorkspaceRange(range, name) {
+    const version = workspaceVersions.get(name)
+    assert(version != null, `Cannot resolve workspace range for ${name}`)
+    return range.replace('workspace:*', version).replace('workspace:^', `^${version}`).replace('workspace:~', `~${version}`)
+}
+
 function createPack(directory, destination) {
     mkdirSync(destination, {recursive: true})
-    run('pnpm', ['pack', '--pack-destination', destination], {cwd: directory})
+    run('npm', [
+        'pack',
+        '--pack-destination',
+        destination,
+        '--ignore-scripts',
+        '--cache',
+        npmCache,
+    ], {cwd: directory})
     const archives = readdirSync(destination)
         .filter((name) => name.endsWith('.tgz'))
         .map((name) => join(destination, name))
@@ -352,11 +391,11 @@ function readJson(path) {
     return JSON.parse(readFileSync(path, 'utf8'))
 }
 
-function run(command, args, {cwd = workspaceRoot} = {}) {
+function run(command, args, {cwd = workspaceRoot, env = process.env} = {}) {
     const result = spawnSync(command, args, {
         cwd,
         encoding: 'utf8',
-        env: process.env,
+        env,
         maxBuffer: 64 * 1024 * 1024,
     })
     if (result.status !== 0) {
