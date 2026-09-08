@@ -970,6 +970,7 @@ describe('layout controls', () => {
         assert.equal(firstPanel.getAttribute('aria-labelledby'), requiredAt(tabs, 0).id)
         assert.equal(firstPanel.textContent, 'First content')
         assert.equal(firstPanel.hidden, false)
+        assert.equal(secondPanel.textContent, 'Second content')
         assert.equal(secondPanel.hidden, true)
 
         requiredAt(tabs, 1).click()
@@ -991,6 +992,153 @@ describe('layout controls', () => {
         }))
         assert.equal(active.get(), 'first')
         assert.equal(document.activeElement, requiredAt(tabs, 0))
+    })
+
+    test('TabPanel lazily mounts content once and retains visited components', () => {
+        const active = new Emitter('first')
+        const lifecycle: string[] = []
+        class Probe extends Component<{name: string}> {
+            initialize(): void {
+                lifecycle.push(`initialize ${this.props.name}`)
+            }
+
+            render() {
+                return h('p', null, this.props.name)
+            }
+
+            override onDestroy(): void {
+                lifecycle.push(`destroy ${this.props.name}`)
+            }
+        }
+        const panel = TabPanel.new({
+            id: 'lazy-tabs',
+            mountPolicy: 'lazy',
+            valueEmitter: active,
+            tabs: [
+                {id: 'first', content: h(Probe, {name: 'first'})},
+                {id: 'second', content: h(Probe, {name: 'second'})},
+            ],
+        }).attachTo(document.body)
+        const firstPanel = requiredQuery<HTMLElement>('#lazy-tabs-panel-first')
+        const secondPanel = requiredQuery<HTMLElement>('#lazy-tabs-panel-second')
+
+        assert.deepEqual(lifecycle, ['initialize first'])
+        assert.equal(firstPanel.textContent, 'first')
+        assert.equal(secondPanel.textContent, '')
+        active.set('second')
+        assert.deepEqual(lifecycle, ['initialize first', 'initialize second'])
+        assert.equal(firstPanel.textContent, 'first')
+        assert.equal(secondPanel.textContent, 'second')
+        active.set('first')
+        assert.deepEqual(lifecycle, ['initialize first', 'initialize second'])
+
+        panel.destroy()
+        assert.deepEqual(lifecycle, [
+            'initialize first',
+            'initialize second',
+            'destroy first',
+            'destroy second',
+        ])
+    })
+
+    test('TabPanel active-only policy destroys and recreates selected content', () => {
+        const active = new Emitter('first')
+        const lifecycle: string[] = []
+        class Probe extends Component<{name: string}> {
+            initialize(): void {
+                lifecycle.push(`initialize ${this.props.name}`)
+            }
+
+            render() {
+                return h('p', null, this.props.name)
+            }
+
+            override onDestroy(): void {
+                lifecycle.push(`destroy ${this.props.name}`)
+            }
+        }
+        const panel = TabPanel.new({
+            id: 'active-tabs',
+            mountPolicy: 'active-only',
+            valueEmitter: active,
+            tabs: [
+                {id: 'first', content: h(Probe, {name: 'first'})},
+                {id: 'second', content: h(Probe, {name: 'second'})},
+            ],
+        }).attachTo(document.body)
+        const firstPanel = requiredQuery<HTMLElement>('#active-tabs-panel-first')
+        const secondPanel = requiredQuery<HTMLElement>('#active-tabs-panel-second')
+
+        assert.deepEqual(lifecycle, ['initialize first'])
+        assert.equal(secondPanel.textContent, '')
+        active.set('second')
+        assert.deepEqual(lifecycle, [
+            'initialize first',
+            'destroy first',
+            'initialize second',
+        ])
+        assert.equal(firstPanel.textContent, '')
+        assert.equal(secondPanel.textContent, 'second')
+        active.set('first')
+        assert.equal(lifecycle.filter((event) => event === 'initialize first').length, 2)
+        assert.equal(lifecycle.filter((event) => event === 'destroy first').length, 1)
+        assert.equal(lifecycle.filter((event) => event === 'initialize second').length, 1)
+        assert.equal(lifecycle.filter((event) => event === 'destroy second').length, 1)
+        assert.equal(firstPanel.textContent, 'first')
+        assert.equal(secondPanel.textContent, '')
+
+        panel.destroy()
+        assert.equal(lifecycle.at(-1), 'destroy first')
+    })
+
+    test('TabPanel prunes removed lazy content and applies policy changes', () => {
+        const active = new Emitter('first')
+        const lifecycle: string[] = []
+        class Probe extends Component<{name: string}> {
+            initialize(): void {
+                lifecycle.push(`initialize ${this.props.name}`)
+            }
+
+            render() {
+                return this.props.name
+            }
+
+            override onDestroy(): void {
+                lifecycle.push(`destroy ${this.props.name}`)
+            }
+        }
+        const tabs = [
+            {id: 'first', content: h(Probe, {name: 'first'})},
+            {id: 'second', content: h(Probe, {name: 'second'})},
+            {id: 'third', content: h(Probe, {name: 'third'})},
+        ]
+        const panel = TabPanel.new({mountPolicy: 'lazy', valueEmitter: active, tabs})
+            .attachTo(document.body)
+
+        active.set('second')
+        assert.deepEqual(lifecycle, ['initialize first', 'initialize second'])
+        panel.setProps({mountPolicy: 'lazy', valueEmitter: active, tabs: tabs.slice(1)})
+        assert.deepEqual(lifecycle, [
+            'initialize first',
+            'initialize second',
+            'destroy first',
+        ])
+
+        panel.setProps({mountPolicy: 'active-only', valueEmitter: active, tabs: tabs.slice(1)})
+        active.set('third')
+        assert.equal(lifecycle.filter((event) => event === 'destroy second').length, 1)
+        assert.equal(lifecycle.filter((event) => event === 'initialize third').length, 1)
+        assert.equal(requiredQuery('[role="tabpanel"]:not([hidden])').textContent, 'third')
+
+        panel.destroy()
+    })
+
+    test('TabPanel rejects unsupported mount policies', () => {
+        assert.throws(() => TabPanel.new({
+            // @ts-expect-error Runtime validation remains for JavaScript consumers.
+            mountPolicy: 'sometimes',
+            tabs: [{id: 'first', content: 'First'}],
+        }), /eager, lazy, or active-only/)
     })
 
     test('TabLine uses native disabled tabs and skips them while roving', () => {

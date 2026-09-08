@@ -20,7 +20,7 @@ package root.
 | --- | --- | --- |
 | Reactive values | `BaseEmitter`, `Emitter`, `DerivedEmitter` | readable emitter, notification, snapshot update, source/value inference, mapping and option types |
 | Fetch state | `FetchState`, `FetchStateValues`, `combineFetchStates` | `FetchStateValue` |
-| Live queries | `QueryArg`, `LiveQuery` | argument, polling, scheduler, `LiveResult`, and `RefreshableLiveResult` contracts |
+| Live queries | `QueryArg`, `LiveQuery` | argument, `LiveQueryExecution`, polling, scheduler, `LiveResult`, and `RefreshableLiveResult` contracts |
 | Retrieval | `QueryHandler`, `RestQueryHandler` | handler, request, Fetch/URL/response, serializer, parser, and REST option contracts |
 | Endpoints | `QueryEndpoint`, `RestEndpoint`, `DerivedEndpoint`, `DerivedLiveResult`, `queryEndpoint`, `restEndpoint`, `derivedEndpoint` | declaration and open-result option types |
 | Commands | `AsyncCommand`, `AsyncCommandConcurrencyError` | executor, context, concurrency, and option types |
@@ -37,6 +37,10 @@ Important compatibility boundaries:
 - `LiveQuery` decides when to execute and protects latest-result ownership. Its
   handler decides how retrieval, authentication, wire serialization, and
   response validation work.
+- The `LiveQuery` `execution` option is `immediate`, one-way `deferred` activation, or
+  permanently `explicit`; `activate()` is idempotent and subscriptions never
+  imply activation. Historical `autoFetch: false` still skips only the
+  initial request.
 - `AsyncCommand` owns one mutation lifecycle and an explicit `ignore`,
   `replace`, or `reject` concurrency policy. Follow-up query state remains
   independent.
@@ -110,6 +114,8 @@ Notable public behavior:
 - `GroupPanel` is a named group with a bordered body and vertical header.
 - `OptionGroup` renders a labelled `fieldset`/`legend` shell with a `headerEnd` slot.
 - `OptionsPanel` extends `GroupPanel` with a flex-column content area for `OptionGroup` children.
+- `TabPanelMountPolicy` selects eager, lazy-retained, or active-only content
+  lifetime while preserving semantic tabpanel shells.
 
 ### Data helpers
 

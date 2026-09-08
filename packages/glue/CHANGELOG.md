@@ -6,6 +6,18 @@ Versioning.
 
 ## Unreleased
 
+### Added
+
+- Added `LiveQuery` `execution` policies for immediate loading, one-way deferred
+  activation, and permanently explicit refreshes, plus idempotent
+  `LiveQuery.activate()` and endpoint option propagation.
+
+### Changed
+
+- Deferred queries now suppress argument subscriptions and polling until
+  activation. Existing `autoFetch` behavior remains compatible and is
+  mutually exclusive with the named policy.
+
 ## 0.8.1 - 2026-09-07
 
 ### Changed

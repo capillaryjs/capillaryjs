@@ -4,6 +4,7 @@ import {BaseEmitter} from '../emitters/baseEmitter.js'
 import type {ReadableEmitter} from '../emitters/baseEmitter.js'
 import {LiveQuery} from '../emitters/liveQuery.js'
 import type {
+    LiveQueryExecution,
     LiveQueryPollingOptions,
     QueryArgumentValues,
 } from '../emitters/liveQuery.js'
@@ -17,6 +18,7 @@ export type EndpointArgumentEmitters<TArguments extends QueryValues> = {
 }
 
 export interface EndpointQueryOptions {
+    execution?: LiveQueryExecution
     autoFetch?: boolean
     keepPreviousValue?: boolean
     polling?: LiveQueryPollingOptions

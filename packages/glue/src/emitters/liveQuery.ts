@@ -22,12 +22,23 @@ export interface LiveQueryPollingOptions {
     scheduler?: PollingScheduler
 }
 
+export type LiveQueryExecution = 'immediate' | 'deferred' | 'explicit'
+
 export interface LiveQueryOptions<
     TResult,
     TArguments extends QueryArgumentEmitters,
 > {
     handler: QueryHandlerLike<QueryArgumentValues<TArguments>, TResult>
     args?: TArguments
+    /**
+     * Controls whether this query starts live, becomes live on first activation,
+     * or executes only through explicit refresh/retry calls.
+     */
+    execution?: LiveQueryExecution
+    /**
+     * Compatibility option that suppresses only the initial fetch. Prefer
+     * execution for new code; the two options are mutually exclusive.
+     */
     autoFetch?: boolean
     keepPreviousValue?: boolean
     polling?: LiveQueryPollingOptions
@@ -54,9 +65,12 @@ implements RefreshableLiveResult<TResult | undefined, unknown> {
     readonly handler: QueryHandlerLike<QueryArgumentValues<TArguments>, TResult>
     readonly args: TArguments
     readonly keepPreviousValue: boolean
+    private readonly execution: LiveQueryExecution | null
     private lastSuccessfulValue: TResult | undefined
     private hasSuccessfulValue = false
-    private argumentUnsubscribers: Array<() => void>
+    private automaticTriggersInitialized = false
+    private activated: boolean
+    private argumentUnsubscribers: Array<() => void> = []
     private pollingUnsubscribers: Array<() => void> = []
     private readonly polling: LiveQueryPollingOptions | undefined
     private readonly pollingScheduler: PollingScheduler
@@ -73,6 +87,7 @@ implements RefreshableLiveResult<TResult | undefined, unknown> {
         const {
             handler,
             args = {} as TArguments,
+            execution,
             autoFetch = true,
             keepPreviousValue = true,
             polling,
@@ -85,6 +100,7 @@ implements RefreshableLiveResult<TResult | undefined, unknown> {
         }
         assertNamedArgs(args)
         if (polling != null) assertPollingOptions(polling)
+        assertExecutionOptions(execution, options.autoFetch, polling)
 
         super(undefined, {
             fetchState: FetchState.Initial,
@@ -96,18 +112,18 @@ implements RefreshableLiveResult<TResult | undefined, unknown> {
         this.handler = handler
         this.args = {...args}
         this.keepPreviousValue = keepPreviousValue
+        this.execution = execution ?? null
+        this.activated = execution !== 'deferred'
         this.polling = polling
         this.pollingScheduler = polling?.scheduler ?? defaultPollingScheduler
         this.lastSuccessfulValue = undefined
-        this.argumentUnsubscribers = Object.values(this.args).map((argument) =>
-            argument.subscribe(({event}) => {
-                void this.refresh(event)
-            }, {emitCurrent: false}),
-        )
 
-        if (polling != null) this.initializePolling(polling)
-
-        if (autoFetch) this._activeRequest = this.refresh('initial fetch')
+        if (execution !== 'deferred' && execution !== 'explicit') {
+            this.initializeAutomaticTriggers()
+        }
+        if (execution === 'immediate' || (execution == null && autoFetch)) {
+            this._activeRequest = this.executeRequest('initial fetch')
+        }
         this.scheduleNextPoll()
     }
 
@@ -117,8 +133,36 @@ implements RefreshableLiveResult<TResult | undefined, unknown> {
         ) as QueryArgumentValues<TArguments>
     }
 
+    /**
+     * Activates a deferred query exactly once. Concurrent callers share the
+     * first request; later calls return the current value without reloading.
+     */
+    activate(eventOrCause: EventBubble<unknown> | unknown = 'query activated'):
+    Promise<TResult | undefined> {
+        if (this.isDisposed) return Promise.resolve(undefined)
+        if (this.execution === 'explicit') {
+            return Promise.reject(new Error('Explicit LiveQuery execution cannot be activated'))
+        }
+        if (this.activated) {
+            return this._activeRequest ?? Promise.resolve(this.get())
+        }
+
+        this.activated = true
+        this.initializeAutomaticTriggers()
+        const request = this.executeRequest(eventOrCause)
+        this.scheduleNextPoll()
+        return request
+    }
+
     refresh(eventOrCause: EventBubble<unknown> | unknown = 'refresh'): Promise<TResult | undefined> {
         if (this.isDisposed) return Promise.resolve(undefined)
+        if (!this.activated) return this.activate(eventOrCause)
+        return this.executeRequest(eventOrCause)
+    }
+
+    private executeRequest(
+        eventOrCause: EventBubble<unknown> | unknown,
+    ): Promise<TResult | undefined> {
 
         const requestId = ++this.requestId
         this.abortController?.abort()
@@ -214,6 +258,17 @@ implements RefreshableLiveResult<TResult | undefined, unknown> {
         super.dispose()
     }
 
+    private initializeAutomaticTriggers(): void {
+        if (this.automaticTriggersInitialized || this.execution === 'explicit') return
+        this.automaticTriggersInitialized = true
+        this.argumentUnsubscribers = Object.values(this.args).map((argument) =>
+            argument.subscribe(({event}) => {
+                void this.refresh(event)
+            }, {emitCurrent: false}),
+        )
+        if (this.polling != null) this.initializePolling(this.polling)
+    }
+
     private initializePolling(polling: LiveQueryPollingOptions): void {
         for (const source of [polling.intervalMs, polling.enabled]) {
             if (!isReadableEmitter(source)) continue
@@ -227,7 +282,10 @@ implements RefreshableLiveResult<TResult | undefined, unknown> {
     }
 
     private scheduleNextPoll(): void {
-        if (this.isDisposed || this.polling == null || this.pollingHandle != null) return
+        if (this.isDisposed
+            || !this.automaticTriggersInitialized
+            || this.polling == null
+            || this.pollingHandle != null) return
         if (!readPollingValue(this.polling.enabled, true)) return
         const intervalMs = readPollingValue(this.polling.intervalMs)
         assertPollingInterval(intervalMs)
@@ -291,6 +349,25 @@ function assertPollingOptions(polling: LiveQueryPollingOptions): void {
         && (typeof polling.scheduler.schedule !== 'function'
             || typeof polling.scheduler.cancel !== 'function')) {
         throw new TypeError('LiveQuery polling scheduler must implement schedule() and cancel()')
+    }
+}
+
+function assertExecutionOptions(
+    execution: LiveQueryExecution | undefined,
+    autoFetch: boolean | undefined,
+    polling: LiveQueryPollingOptions | undefined,
+): void {
+    if (execution !== undefined
+        && execution !== 'immediate'
+        && execution !== 'deferred'
+        && execution !== 'explicit') {
+        throw new TypeError('LiveQuery execution must be immediate, deferred, or explicit')
+    }
+    if (execution !== undefined && autoFetch !== undefined) {
+        throw new TypeError('LiveQuery execution and autoFetch are mutually exclusive')
+    }
+    if (execution === 'explicit' && polling !== undefined) {
+        throw new TypeError('Explicit LiveQuery execution does not support polling')
     }
 }
 

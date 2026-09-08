@@ -6,6 +6,8 @@ import {
     RadioGroup,
     Sidebar,
     SplitView,
+    Tab,
+    TabPanel,
     live,
 } from '@sylwellsoftware/fray'
 
@@ -14,6 +16,9 @@ const input = <input aria-label="Name" ref={{current: null} as {current: HTMLInp
 const sidebar = <Sidebar header="Requests">Request one</Sidebar>
 const split = <SplitView primary="Navigation" secondary="Content" />
 const progress = <ProgressBar label="Loading" value={null} />
+const tabs = <TabPanel mountPolicy="active-only">
+    <Tab id="first" label="First">First content</Tab>
+</TabPanel>
 const radioOptions = new Emitter([['one', 'One']] as const)
 const radioDisabled = new Emitter(false)
 const radio = <RadioGroup
@@ -34,6 +39,7 @@ void input
 void sidebar
 void split
 void progress
+void tabs
 void radio
 void invalid
 void invalidRadioOptions

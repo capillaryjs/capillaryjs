@@ -210,6 +210,7 @@ if (new URLSearchParams(location.search).get('routing') === 'true') {
     const routedTabs = runtime.mount(runtime.create(TabPanel, {
         id: 'browser-routing',
         label: 'Browser routes',
+        mountPolicy: 'active-only',
         valueEmitter: activeRoute,
         children: [
             h(Tab, {id: 'first', label: 'First route', route: firstRoute}, 'First page'),

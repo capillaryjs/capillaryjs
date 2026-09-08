@@ -27,6 +27,7 @@ export type {
 } from './commands/asyncCommand.js'
 export {LiveQuery} from './emitters/liveQuery.js'
 export type {
+    LiveQueryExecution,
     LiveQueryPollingOptions,
     LiveQueryOptions,
     PollingScheduler,

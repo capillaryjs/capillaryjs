@@ -4,7 +4,7 @@ import {
     LiveQuery,
     RestEndpoint,
 } from '@sylwellsoftware/glue'
-import type {QueryHandlerLike} from '@sylwellsoftware/glue'
+import type {LiveQueryExecution, QueryHandlerLike} from '@sylwellsoftware/glue'
 import {AsyncCommand} from '@sylwellsoftware/glue'
 
 const left = new Emitter(2)
@@ -27,6 +27,13 @@ const query = new LiveQuery<Result, {term: Emitter<string>}>({
     autoFetch: false,
 })
 query.get()?.id.toUpperCase()
+const execution: LiveQueryExecution = 'deferred'
+const deferredQuery = new LiveQuery<Result, {term: Emitter<string>}>({
+    handler,
+    args: {term},
+    execution,
+})
+void deferredQuery.activate().then((result) => result?.id.toUpperCase())
 
 const endpoint = new RestEndpoint<Arguments, Result>({
     url: 'https://example.test/items',
@@ -36,7 +43,7 @@ const endpoint = new RestEndpoint<Arguments, Result>({
     }),
     parseResult: (value) => value as Result,
 })
-const endpointResult = endpoint.open({term})
+const endpointResult = endpoint.open({term}, {execution: 'explicit'})
 endpointResult.get()?.id.toUpperCase()
 
 const command = new AsyncCommand<{id: string}, Result>({

@@ -23,11 +23,15 @@ export interface TabDefinition {
     route?: LiteralRouteDescriptor
 }
 
+export type TabPanelMountPolicy = 'eager' | 'lazy' | 'active-only'
+
 export interface TabPanelProps extends ValueControlProps<Key | null> {
     id?: string | number | null
     tabs?: readonly TabDefinition[]
     activeTabEmitter?: ValueEmitter<Key | null>
     initialActiveTabId?: Key | null
+    /** Controls when tab content is mounted and whether inactive content is retained. */
+    mountPolicy?: TabPanelMountPolicy
     label?: string
     onChange?: (value: Key, event: Event | null) => void
 }
@@ -46,6 +50,7 @@ export class TabPanel extends Component<TabPanelProps> {
     readonly activeTabEmitter: ValueEmitter<Key | null>
     readonly baseId: string
     private routeContexts = new Map<LiteralRouteDescriptor, ResolvedRoute>()
+    private readonly mountedTabIds = new Set<Key>()
 
     constructor(props: TabPanelProps = {}) {
         super(props)
@@ -69,28 +74,38 @@ export class TabPanel extends Component<TabPanelProps> {
 
     initialize(): void {
         const tabs = extractTabs(this.props)
-        if (!tabs.some(({id}) => Object.is(id, this.valueEmitter.get()))) {
+        readMountPolicy(this.props)
+        this.registerRoutes(tabs)
+        const requestedTab = this.pendingRouteTab(tabs)
+        if (requestedTab != null) {
+            this.valueEmitter.set(requestedTab.id, 'pending route tab selected')
+        } else if (!tabs.some(({id}) => Object.is(id, this.valueEmitter.get()))) {
             this.valueEmitter.set(tabs.find((tab) => !tab.disabled)?.id ?? null)
         }
-        this.registerRoutes(tabs)
         this.watch(this.valueEmitter)
     }
 
     setProps(nextProps: TabPanelProps): this {
+        readMountPolicy(nextProps)
         super.setProps(nextProps)
         const tabs = extractTabs(nextProps)
-        if (!tabs.some(({id}) => Object.is(id, this.valueEmitter.get()))) {
+        this.registerRoutes(tabs)
+        const requestedTab = this.pendingRouteTab(tabs)
+        if (requestedTab != null) {
+            this.valueEmitter.set(requestedTab.id, 'pending route tab selected')
+        } else if (!tabs.some(({id}) => Object.is(id, this.valueEmitter.get()))) {
             this.valueEmitter.set(tabs.find((tab) => !tab.disabled)?.id ?? null)
         }
-        this.registerRoutes(tabs)
         return this
     }
 
     render(): FrayChild {
         const tabs = extractTabs(this.props)
+        const mountPolicy = readMountPolicy(this.props)
         const selectedId = (tabs.find(({id}) => Object.is(id, this.valueEmitter.get()))
             ?? tabs.find((tab) => !tab.disabled)
             ?? null)?.id
+        this.updateMountedTabIds(tabs, selectedId, mountPolicy)
         const Host = this.Host
         return <Host
             id={this.baseId}
@@ -114,7 +129,7 @@ export class TabPanel extends Component<TabPanelProps> {
                     aria-labelledby={tabButtonId(this.baseId, tab.id)}
                     tabIndex={selected ? 0 : -1}
                     hidden={!selected}
-                >{this.routedContent(tab)}</section>
+                >{this.mountedTabIds.has(tab.id) ? this.routedContent(tab) : null}</section>
             })}
         </Host>
     }
@@ -122,6 +137,7 @@ export class TabPanel extends Component<TabPanelProps> {
     override onDestroy(): void {
         this._runtime.router?.unregisterRoutes(this._routeContext ?? this._runtime.router.root, this)
         this.routeContexts.clear()
+        this.mountedTabIds.clear()
     }
 
     private registerRoutes(tabs: readonly NormalizedTab[]): void {
@@ -159,6 +175,39 @@ export class TabPanel extends Component<TabPanelProps> {
         } else {
             void this._runtime.router?.navigate(context)
         }
+    }
+
+    private pendingRouteTab(tabs: readonly NormalizedTab[]): NormalizedTab | undefined {
+        const router = this._runtime.router
+        const transition = router?.transition.get()
+        if (router == null || transition?.state !== 'pending') return undefined
+        const requestedPathname = transition.requestedLocation.split('?', 1)[0] || '/'
+        return tabs.find((tab) => {
+            if (tab.disabled || tab.route == null) return false
+            const context = this.routeContexts.get(tab.route)
+            return context != null && (
+                requestedPathname === context.pathname
+                || requestedPathname.startsWith(`${context.pathname}/`)
+            )
+        })
+    }
+
+    private updateMountedTabIds(
+        tabs: readonly NormalizedTab[],
+        selectedId: Key | undefined,
+        mountPolicy: TabPanelMountPolicy,
+    ): void {
+        const availableIds = new Set(tabs.map(({id}) => id))
+        for (const id of this.mountedTabIds) {
+            if (!availableIds.has(id)) this.mountedTabIds.delete(id)
+        }
+
+        if (mountPolicy === 'eager') {
+            for (const {id} of tabs) this.mountedTabIds.add(id)
+            return
+        }
+        if (mountPolicy === 'active-only') this.mountedTabIds.clear()
+        if (selectedId !== undefined) this.mountedTabIds.add(selectedId)
     }
 
     private routedContent(tab: NormalizedTab): FrayChild {
@@ -242,4 +291,12 @@ function extractTabs(props: TabPanelProps): NormalizedTab[] {
         ids.add(tab.id)
     }
     return tabs
+}
+
+function readMountPolicy(props: TabPanelProps): TabPanelMountPolicy {
+    const policy = props.mountPolicy ?? 'eager'
+    if (policy !== 'eager' && policy !== 'lazy' && policy !== 'active-only') {
+        throw new TypeError('TabPanel mountPolicy must be eager, lazy, or active-only')
+    }
+    return policy
 }

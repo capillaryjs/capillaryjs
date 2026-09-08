@@ -350,14 +350,30 @@ const view = new Emitter<'list' | 'grid'>('list')
 | `SplitView` | Two-pane layout | `primary`, `secondary`, `direction`, `primarySize`, region labels |
 | `Tab` | Declarative tab definition consumed by `TabPanel` | `id`, `label`, `disabled`, optional literal `route`, content |
 | `TabLine` | Standalone keyboard-operable tab list | `tabs`, `valueEmitter`/`activeTabEmitter`, initial value, `label`, `onChange` |
-| `TabPanel` | Tab list plus owned tabpanel sections | declarative `Tab` children or `tabs` definitions; value props, `label`, `onChange` |
+| `TabPanel` | Tab list plus owned tabpanel sections | declarative `Tab` children or `tabs` definitions; value props, `mountPolicy`, `label`, `onChange` |
 
 `TabLine` supports Home, End, and orientation-appropriate arrow navigation and
 skips disabled tabs. `TabPanel` can register routed tabs when it is mounted in
-a router-backed route scope.
+a router-backed route scope. Its `mountPolicy` controls content lifetime while
+keeping every semantic tabpanel shell stable:
+
+- `eager` (the compatibility default) mounts and retains every tab's content;
+- `lazy` mounts the selected content and retains each visited tab; and
+- `active-only` mounts only the selected content and destroys it on leave.
+
+During initial restoration of a direct nested URL, a routed panel preselects
+the matching pending literal route before its first content render. An
+`active-only` panel therefore does not briefly mount its default branch while
+the router progressively discovers the requested child scopes.
+
+Use `active-only` with recreatable TSX/VNodes. A prebuilt component instance
+cannot be mounted again after destruction. Put state that must survive a view
+instance in application-owned Glue emitters/services, or choose a retaining
+policy. Fray does not call data-loading methods implicitly; a mounted view may
+activate its application service/query during `initialize()`.
 
 ```tsx
-<TabPanel id="profile" label="Profile sections">
+<TabPanel id="profile" label="Profile sections" mountPolicy="active-only">
     <Tab id="summary" label="Summary">Summary content</Tab>
     <Tab id="details" label="Details">Details content</Tab>
 </TabPanel>

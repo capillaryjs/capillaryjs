@@ -6,6 +6,14 @@ Versioning.
 
 ## Unreleased
 
+### Added
+
+- Added `TabPanel.mountPolicy` with eager, lazy-retained, and active-only
+  content lifecycles while preserving stable semantic tabpanel shells and the
+  current eager default. Routed panels preselect a matching pending literal
+  route before first content render, avoiding transient default-view mounts
+  during direct nested restoration.
+
 ## 1.2.0 - 2026-09-08
 
 ### Added

@@ -49,6 +49,17 @@ describe('routed Fray components', () => {
         const active = new Emitter('first')
         const adapter = new MemoryNavigationAdapter('/second')
         const router = createBrowserRouter({adapter})
+        let firstMounts = 0
+
+        class FirstPage extends Component {
+            initialize(): void {
+                firstMounts += 1
+            }
+
+            render(): FrayChild {
+                return 'First page'
+            }
+        }
 
         interface ProbeProps extends ComponentProps {
             value: Emitter<string>
@@ -59,9 +70,10 @@ describe('routed Fray components', () => {
                 return h('main', null,
                     h(TabPanel, {
                         id: 'routed-tabs',
+                        mountPolicy: 'active-only',
                         valueEmitter: this.props.value,
                         children: [
-                            h(Tab, {id: 'first', label: 'First', route: firstRoute}, 'First page'),
+                            h(Tab, {id: 'first', label: 'First', route: firstRoute}, h(FirstPage)),
                             h(Tab, {id: 'second', label: 'Second', route: secondRoute}, 'Second page'),
                         ],
                     }),
@@ -73,7 +85,7 @@ describe('routed Fray components', () => {
                 )
             }
 
-            static dependencies = [RouteLink, Tab, TabPanel]
+            static dependencies = [FirstPage, RouteLink, Tab, TabPanel]
         }
 
         const runtime = createFrayRuntime({router})
@@ -81,7 +93,9 @@ describe('routed Fray components', () => {
         await waitUntil(() => router.transition.get().state === 'idle')
 
         assert.equal(active.get(), 'second')
+        assert.equal(firstMounts, 0)
         assert.equal(visibleTabPanel().textContent, 'Second page')
+        assert.equal(requiredQuery('#routed-tabs-panel-first').textContent, '')
         const links = [...document.querySelectorAll<HTMLAnchorElement>('a')]
         assert.equal(requiredAt(links, 0).href, 'https://example.test/first')
         assert.equal(requiredAt(links, 1).getAttribute('aria-current'), 'page')
@@ -91,7 +105,9 @@ describe('routed Fray components', () => {
         await waitUntil(() => router.transition.get().state === 'idle'
             && active.get() === 'first')
         assert.equal(adapter.read(), '/first')
+        assert.equal(firstMounts, 1)
         assert.equal(adapter.length, 2)
+        assert.equal(requiredQuery('#routed-tabs-panel-second').textContent, '')
         assert.equal(requiredAt(links, 0).getAttribute('aria-current'), 'page')
 
         const modified = new window.MouseEvent('click', {

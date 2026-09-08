@@ -176,6 +176,149 @@ describe('LiveQuery', () => {
         assert.equal(source.subscriberCount, 0)
     })
 
+    test('defers all automatic work until one shared activation using current arguments', async () => {
+        type Arguments = {term: string}
+        const term = new Emitter('first')
+        const requests: Array<{args: Arguments, request: Deferred<string>}> = []
+        const query = new LiveQuery<string, {term: Emitter<string>}>({
+            execution: 'deferred',
+            handler: {
+                fetch(args) {
+                    const request = deferred<string>()
+                    requests.push({args, request})
+                    return request.promise
+                },
+            },
+            args: {term},
+        })
+
+        query.subscribe(() => undefined)
+        term.set('latest before activation')
+        await nextMicrotask()
+        assert.equal(query.getFetchState(), FetchState.Initial)
+        assert.equal(requests.length, 0)
+        assert.equal(term.subscriberCount, 0)
+
+        const firstActivation = query.activate('first consumer mounted')
+        const concurrentActivation = query.activate('second consumer mounted')
+        assert.equal(firstActivation, concurrentActivation)
+        assert.equal(query.getFetchState(), FetchState.Loading)
+        assert.equal(term.subscriberCount, 1)
+        await nextMicrotask()
+        assert.deepEqual(requests[0]?.args, {term: 'latest before activation'})
+
+        requests[0]?.request.resolve('loaded')
+        await firstActivation
+        assert.equal(query.get(), 'loaded')
+        await query.activate('later consumer mounted')
+        assert.equal(requests.length, 1)
+
+        term.set('reactive after activation')
+        await nextMicrotask()
+        assert.deepEqual(requests[1]?.args, {term: 'reactive after activation'})
+        requests[1]?.request.resolve('updated')
+        await query._activeRequest
+        query.dispose()
+        assert.equal(term.subscriberCount, 0)
+    })
+
+    test('a dormant refresh activates and a failed first attempt stays reactive', async () => {
+        const source = new Emitter(1)
+        const failure = new Error('first request failed')
+        const calls: number[] = []
+        const query = new LiveQuery<number, {source: Emitter<number>}>({
+            execution: 'deferred',
+            handler: {
+                async fetch({source: value}) {
+                    calls.push(value)
+                    if (calls.length === 1) throw failure
+                    return value
+                },
+            },
+            args: {source},
+        })
+
+        await query.refresh('explicit first load')
+        assert.equal(query.getFetchState(), FetchState.Error)
+        assert.equal(query.getError(), failure)
+        source.set(2)
+        await query._activeRequest
+        assert.deepEqual(calls, [1, 2])
+        assert.equal(query.get(), 2)
+    })
+
+    test('disposing a dormant query prevents later activation', async () => {
+        const source = new Emitter(1)
+        let calls = 0
+        const query = new LiveQuery<number, {source: Emitter<number>}>({
+            execution: 'deferred',
+            handler: {
+                fetch() {
+                    calls += 1
+                    return 1
+                },
+            },
+            args: {source},
+        })
+
+        query.dispose()
+        assert.equal(source.subscriberCount, 0)
+        assert.equal(await query.activate(), undefined)
+        assert.equal(await query.refresh(), undefined)
+        assert.equal(calls, 0)
+        assert.equal(query.getFetchState(), FetchState.Initial)
+    })
+
+    test('explicit execution only fetches through refresh or retry', async () => {
+        const page = new Emitter(1)
+        const calls: number[] = []
+        const query = new LiveQuery<number, {page: Emitter<number>}>({
+            execution: 'explicit',
+            handler: {
+                fetch({page: value}) {
+                    calls.push(value)
+                    return value
+                },
+            },
+            args: {page},
+        })
+
+        query.subscribe(() => undefined)
+        page.set(2)
+        await nextMicrotask()
+        assert.deepEqual(calls, [])
+        assert.equal(page.subscriberCount, 0)
+        assert.equal(query.getFetchState(), FetchState.Initial)
+
+        await query.refresh('user reload')
+        assert.deepEqual(calls, [2])
+        page.set(3)
+        await nextMicrotask()
+        assert.deepEqual(calls, [2])
+        await query.retry('user retry')
+        assert.deepEqual(calls, [2, 3])
+        await assert.rejects(query.activate(), /cannot be activated/)
+    })
+
+    test('validates execution policies and compatibility option combinations', () => {
+        const handler = {fetch: () => 1}
+        assert.throws(() => new LiveQuery({
+            execution: 'deferred',
+            autoFetch: false,
+            handler,
+        }), /mutually exclusive/)
+        assert.throws(() => new LiveQuery({
+            execution: 'explicit',
+            handler,
+            polling: {intervalMs: 1000},
+        }), /does not support polling/)
+        assert.throws(() => new LiveQuery({
+            // @ts-expect-error Runtime validation remains for JavaScript consumers.
+            execution: 'sometimes',
+            handler,
+        }), /immediate, deferred, or explicit/)
+    })
+
     test('rejects the imported array argument representation', () => {
         assert.throws(() => new LiveQuery({
             handler: {fetch() { return undefined }},

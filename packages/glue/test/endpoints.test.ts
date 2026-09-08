@@ -92,6 +92,37 @@ describe('endpoint declarations', () => {
             result.dispose()
         })
 
+    test('propagates deferred execution defaults and per-open explicit overrides', async () => {
+        const argument = new Emitter('first')
+        const calls: string[] = []
+        const endpoint = new QueryEndpoint<{value: string}, string>({
+            handler: {
+                fetch({value}) {
+                    calls.push(value)
+                    return value
+                },
+            },
+            query: {execution: 'deferred'},
+        })
+        const deferredResult = endpoint.open({value: argument})
+
+        argument.set('latest')
+        await nextMicrotask()
+        assert.deepEqual(calls, [])
+        await deferredResult.activate()
+        assert.deepEqual(calls, ['latest'])
+
+        const explicitResult = endpoint.open({value: argument}, {execution: 'explicit'})
+        argument.set('manual')
+        await nextMicrotask()
+        assert.deepEqual(calls, ['latest', 'manual'])
+        await explicitResult.refresh()
+        assert.deepEqual(calls, ['latest', 'manual', 'manual'])
+
+        deferredResult.dispose()
+        explicitResult.dispose()
+    })
+
     test('derived endpoints react locally and retain their last value with source state', () => {
         type Movie = {title: string; genre: string}
         const endpoint = new DerivedEndpoint<Movie[], {genre: string}, Movie[]>({
@@ -143,6 +174,32 @@ describe('endpoint declarations', () => {
 })
 
 describe('LiveQuery polling', () => {
+    test('does not subscribe or schedule before deferred activation', async () => {
+        const scheduler = new ManualScheduler()
+        const enabled = new Emitter(true)
+        const intervalMs = new Emitter(1000)
+        let requests = 0
+        const query = new LiveQuery<number>({
+            execution: 'deferred',
+            handler: {fetch: () => ++requests},
+            polling: {enabled, intervalMs, scheduler},
+        })
+
+        assert.equal(scheduler.pending, 0)
+        assert.equal(enabled.subscriberCount, 0)
+        assert.equal(intervalMs.subscriberCount, 0)
+        await query.activate()
+        assert.equal(requests, 1)
+        assert.equal(scheduler.pending, 1)
+        assert.equal(enabled.subscriberCount, 1)
+        assert.equal(intervalMs.subscriberCount, 1)
+
+        query.dispose()
+        assert.equal(scheduler.pending, 0)
+        assert.equal(enabled.subscriberCount, 0)
+        assert.equal(intervalMs.subscriberCount, 0)
+    })
+
     test('reacts to enablement and intervals, skips overlap, and releases timers', async () => {
         const scheduler = new ManualScheduler()
         const enabled = new Emitter(false)

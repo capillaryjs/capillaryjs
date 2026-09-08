@@ -200,11 +200,40 @@ const handler = new RestQueryHandler({
 const users = new LiveQuery({handler, args: {search}})
 ```
 
-Arguments are a named record of emitters. Construction fetches immediately
-unless `autoFetch: false`; `refresh()` and `retry()` return the active request
-promise. A newer request aborts and supersedes the older request, and stale
-results cannot overwrite current state. `abort()` cancels without disposing;
-`dispose()` aborts the active request and releases argument subscriptions.
+Arguments are a named record of emitters. By default construction fetches
+immediately and later argument changes refresh. The named `execution` policy
+makes other timing explicit:
+
+| Policy | Initial behavior | Later behavior |
+| --- | --- | --- |
+| `immediate` | Fetch immediately. | Arguments and configured polling refresh automatically. |
+| `deferred` | Stay `FetchState.Initial` with no argument subscriptions, request, or poll until `activate()` (or a dormant `refresh()`). | Become an ordinary reactive query after the first activation attempt. |
+| `explicit` | Stay `FetchState.Initial`. | Fetch only through `refresh()`/`retry()`; never react to arguments and reject polling. |
+
+```ts
+const deferredUsers = new LiveQuery({
+    handler,
+    args: {search},
+    execution: 'deferred',
+})
+await deferredUsers.activate('users view mounted')
+```
+
+Deferred activation is one-way, idempotent, and independent of whether the
+first request succeeds. Concurrent activators share the first request, which
+uses the current argument values. Subscribing to the query does not activate
+it. A later `activate()` does not reload; use `refresh()` for an intentional
+reload.
+
+`autoFetch: false` remains a compatibility option with its historical narrow
+meaning: it skips only the constructor request while argument and polling
+triggers are already live. It cannot be combined with `execution`; new code
+should choose a named policy.
+
+`refresh()` and `retry()` return the active request promise. A newer request
+aborts and supersedes the older request, and stale results cannot overwrite
+current state. `abort()` cancels without disposing; `dispose()` aborts the
+active request and releases argument/polling subscriptions.
 
 By default the last successful value remains visible while refreshing and after
 a refresh error. Set `keepPreviousValue: false` to clear it while loading or in
@@ -247,7 +276,8 @@ application chooses and constructs its service scope. Fray applications may
 expose those services through Fray's typed runtime `ServiceScope`; non-Fray
 applications use their own explicit composition. Every `open()` call creates a
 caller-owned result with independent arguments, request state, polling, and
-disposal.
+disposal. Endpoint `query` defaults and per-`open()` options accept the same
+`execution` policy as `LiveQuery`.
 
 ```ts
 import {DerivedEndpoint, RestEndpoint} from '@sylwellsoftware/glue'
