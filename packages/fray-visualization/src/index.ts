@@ -1,6 +1,7 @@
 export * from './block.js'
 export * from './components/BlockGraph.js'
 export * from './components/CategoryHidePanel.js'
+export * from './components/CollapsibleOptionGroup.js'
 export * from './components/LineGraph.js'
 export * from './components/SplitSelectionPanel.js'
 export * from './dates.js'

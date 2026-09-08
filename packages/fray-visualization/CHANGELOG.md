@@ -6,6 +6,17 @@ and Semantic Versioning.
 
 ## Unreleased
 
+### Added
+
+- `CollapsibleOptionGroup` component extending `OptionGroup` with an
+  expand/collapse toggle button in the legend, supporting an optional
+  `collapsed` prop to start collapsed.
+
+### Changed
+
+- `CategoryHidePanel` now uses `CollapsibleOptionGroup` instead of `OptionGroup`
+  for each criterion, giving each criterion group an expand/collapse toggle.
+
 ## 0.10.0 - 2026-09-08
 
 ### Changed

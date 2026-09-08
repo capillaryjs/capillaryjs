@@ -355,7 +355,7 @@ fray-categoryhidepanel {
             min-width: 0;
         }
 
-        fray-categoryhidepanel fray-option-group > fieldset > legend small {
+        fray-categoryhidepanel fray-collapsible-option-group > fieldset > legend small {
             white-space: nowrap;
         }
 
@@ -367,6 +367,10 @@ fray-categoryhidepanel {
             flex-flow: column;
             padding: 0;
             overflow: visible;
+            align-content: center;
+            justify-items: center;
+            .align-items: center;
+            justify-content: center;
         }
 
         fray-categoryhidepanel fray-categoryoption {
@@ -380,8 +384,8 @@ fray-categoryhidepanel {
 
         fray-categoryhidepanel fray-categoryswatch {
             display: block;
-            width: 0.9rem;
-            height: 0.9rem;
+            width: 1rem;
+            height: 1rem;
             border: 1px solid var(--c1);
             border-radius: 0.2rem;
             background: linear-gradient(15deg, var(--c1) 0%, var(--c2) 65%, var(--c2) 65%, var(--c3) 100%);
@@ -395,6 +399,7 @@ fray-categoryhidepanel {
         fray-categoryhidepanel fray-categoryoption > fray-checkbox > label {
             min-width: 0;
             width: 100%;
+            height: unset;
         }
 
         fray-categoryhidepanel fray-categoryoption > fray-checkbox > label {
@@ -516,12 +521,12 @@ fray-checkbox > label > input[value="require"] + fray-checkshell {
             box-shadow: var(--checkbox-box-shadow-checked);
         }
 
-fray-optiongroup {
+fray-collapsibleoptiongroup {
             display: block;
             min-width: 0;
         }
 
-        fray-optiongroup > fieldset {
+        fray-collapsibleoptiongroup > fieldset {
             margin: 0;
             padding: 0;
             min-inline-size: 0;
@@ -529,7 +534,7 @@ fray-optiongroup {
             width: 100%;
         }
 
-        fray-optiongroup > fieldset > legend {
+        fray-collapsibleoptiongroup > fieldset > legend {
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -542,13 +547,46 @@ fray-optiongroup {
             font: inherit;
         }
 
-        fray-optiongroup > fieldset > legend > span {
+        fray-collapsibleoptiongroup > fieldset > legend > span {
             flex: 1;
             min-width: 0;
         }
 
-        fray-optiongroup > p[role="alert"] {
+        fray-collapsibleoptiongroup > p[role="alert"] {
             margin: 0.25em 0 0;
+        }
+
+fray-collapsibleoptiongroup > fieldset > legend > button.fray-collapse-toggle {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 1.2em;
+            height: 1.2em;
+            padding: 0;
+            border: 0;
+            border-radius: var(--ui-border-radius);
+            background: transparent;
+            color: inherit;
+            font: inherit;
+            cursor: pointer;
+            flex: 0 0 auto;
+        }
+
+        fray-collapsibleoptiongroup > fieldset > legend > button.fray-collapse-toggle:hover {
+            background: var(--button-background-hover, rgba(0, 0, 0, 0.05));
+        }
+
+        fray-collapsibleoptiongroup > fieldset > legend > button.fray-collapse-toggle:focus-visible {
+            outline: 2px solid var(--focus-color, var(--ui-accent-color));
+            outline-offset: 1px;
+        }
+
+        fray-collapsibleoptiongroup > fieldset > div {
+            display: contents;
+        }
+
+        fray-collapsibleoptiongroup > fieldset > div[hidden] {
+            display: none;
         }
 
 fray-linegraph {

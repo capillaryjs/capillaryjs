@@ -2,11 +2,12 @@ import {FetchState} from '@sylwellsoftware/glue'
 import type {ReadableEmitter} from '@sylwellsoftware/glue'
 import {
     Checkbox,
-    OptionGroup,
     OptionsPanel,
     css,
 } from '@sylwellsoftware/fray'
 import type {FrayChild, GroupPanelBaseProps} from '@sylwellsoftware/fray'
+
+import {CollapsibleOptionGroup} from './CollapsibleOptionGroup.js'
 
 import type {CategoryVisibility} from '../grouping.js'
 import {categoryColorVariables, GroupingCriterion} from '../grouping.js'
@@ -48,7 +49,7 @@ extends OptionsPanel<CategoryHidePanelProps<TItem>> {
                         ? categorySnapshot.value
                         : []
                     const visibleCount = categories.filter(({key}) => !hidden.has(key)).length
-                    return <OptionGroup
+                    return <CollapsibleOptionGroup
                         key={criterion.key}
                         label={criterion.label}
                         headerEnd={<small>{visibleCount}/{categories.length} visible</small>}
@@ -73,14 +74,14 @@ extends OptionsPanel<CategoryHidePanelProps<TItem>> {
                                 />
                             </fray-categoryoption>
                         })}</fray-categories>
-                    </OptionGroup>
+                    </CollapsibleOptionGroup>
                 })}</fray-criteriongroups>
             </fray-categoryhidecontent>,
         )
     }
 
     static override hostName = 'category-hide-panel'
-    static dependencies = [Checkbox, OptionGroup]
+    static dependencies = [Checkbox, CollapsibleOptionGroup]
 
     static css = css`
         & {
@@ -107,7 +108,7 @@ extends OptionsPanel<CategoryHidePanelProps<TItem>> {
             min-width: 0;
         }
 
-        & fray-option-group > fieldset > legend small {
+        & fray-collapsible-option-group > fieldset > legend small {
             white-space: nowrap;
         }
 
@@ -119,6 +120,10 @@ extends OptionsPanel<CategoryHidePanelProps<TItem>> {
             flex-flow: column;
             padding: 0;
             overflow: visible;
+            align-content: center;
+            justify-items: center;
+            .align-items: center;
+            justify-content: center;
         }
 
         & fray-categoryoption {
@@ -132,8 +137,8 @@ extends OptionsPanel<CategoryHidePanelProps<TItem>> {
 
         & fray-categoryswatch {
             display: block;
-            width: 0.9rem;
-            height: 0.9rem;
+            width: 1rem;
+            height: 1rem;
             border: 1px solid var(--c1);
             border-radius: 0.2rem;
             background: linear-gradient(15deg, var(--c1) 0%, var(--c2) 65%, var(--c2) 65%, var(--c3) 100%);
@@ -147,6 +152,7 @@ extends OptionsPanel<CategoryHidePanelProps<TItem>> {
         & fray-categoryoption > fray-checkbox > label {
             min-width: 0;
             width: 100%;
+            height: unset;
         }
 
         & fray-categoryoption > fray-checkbox > label {

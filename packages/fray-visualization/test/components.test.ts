@@ -99,7 +99,7 @@ describe('visualization controls', () => {
         assert.match(CategoryHidePanel.css, /flex: 0 0 auto/)
         assert.match(GroupPanel.css, /display:\s*flex[^}]*flex-flow:\s*row nowrap/)
         assert.match(GroupPanel.css, /> fray-header\s*\{[^}]*writing-mode:\s*vertical-rl[^}]*transform:\s*rotate\(180deg\)/)
-        assert.match(CategoryHidePanel.css, /fray-option-group > fieldset > legend small/)
+        assert.match(CategoryHidePanel.css, /fray-collapsible-option-group > fieldset > legend small/)
         assert.match(CategoryHidePanel.css, /fray-categoryoption > fray-checkbox > label/)
         assert.doesNotMatch(CategoryHidePanel.css, /fray-check-box/)
         const items = new Emitter<readonly Item[]>(itemsValue)
@@ -115,7 +115,7 @@ describe('visualization controls', () => {
         assert.ok(categoryPanel.querySelector(
             ':scope > fray-content > fray-categoryhidecontent',
         ))
-        assert.ok(required('fray-optiongroup'))
+        assert.ok(required('fray-collapsibleoptiongroup'))
         assert.ok(required('fray-categories'))
         const categoryOptions = [...document.querySelectorAll<HTMLElement>('fray-categoryoption')]
         assert.equal(categoryOptions.length, 2)
