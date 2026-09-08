@@ -115,7 +115,7 @@ extends Component<SplitSelectionPanelProps<TItem>> {
         & > fray-grouppanel > fray-content {
             display: flex;
             flex-flow: column;
-            gap: var(--viz-space, 0.6rem);
+            padding: .25em;
         }
 
         & > fray-grouppanel > fray-content > p,
@@ -149,15 +149,15 @@ extends Component<SplitSelectionPanelProps<TItem>> {
         }
 
         & li {
-            display: grid;
-            grid-template-columns: minmax(0, 1fr) 1.0rem;
+            display: flex;
+            flex-flow: row nowrap;
             align-items: center;
+            justify-content: space-between;
             gap: 0.35rem;
             min-width: 0;
             padding: 0 .35rem;
-            background: var(--button-background);
-            border: 1px solid var(--ui-border-color);
             border-radius: var(--ui-border-radius);
+            box-shadow: var(--box-shadow);
         }
 
         & li:has(input[type="checkbox"]:not(:checked)) {
@@ -171,7 +171,8 @@ extends Component<SplitSelectionPanelProps<TItem>> {
         & fray-draghandle {
             display: block;
             width: 1.1rem;
-            min-height: 1.1rem;
+            height: .9rem;
+            min-height: .9rem;
             padding: 0;
             border: 0;
             border-radius: 0;
@@ -191,8 +192,11 @@ extends Component<SplitSelectionPanelProps<TItem>> {
 
         & li > :has(> [role="checkbox"]),
         & [role="checkbox"] {
-            width: 100%;
-            justify-content: flex-start;
+
+            justify-content: center;
+            align-items: center;
+            justify-items: center;
+            align-content: center;
         }
 
         & > fray-grouppanel > fray-content > p[role="status"][aria-live="polite"][aria-atomic="true"] {

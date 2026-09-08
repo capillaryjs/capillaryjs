@@ -44,15 +44,12 @@ extends OptionsPanel<CategoryHidePanelProps<TItem>> {
                     : null}
                 <fray-criteriongroups>{criteria.map((criterion) => {
                     const categorySnapshot = this.snapshot(criterion.categories$)
-                    const hidden = this.read(criterion.hidden$)
                     const categories = Array.isArray(categorySnapshot.value)
                         ? categorySnapshot.value
                         : []
-                    const visibleCount = categories.filter(({key}) => !hidden.has(key)).length
                     return <CollapsibleOptionGroup
                         key={criterion.key}
                         label={criterion.label}
-                        headerEnd={<small>{visibleCount}/{categories.length} visible</small>}
                     >
                         {categorySnapshot.fetchState === FetchState.Error
                             ? <p role="alert">{criterion.label} categories are unavailable.</p>

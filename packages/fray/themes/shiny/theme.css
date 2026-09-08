@@ -107,7 +107,7 @@
     --navigation-bar-shadow: var(--panel-shadow);
     --navigation-link-color-current: var(--palette-primary-900);
     --navigation-link-background-hover: color-mix(in oklch, var(--palette-primary-100) 65%, transparent);
-    --navigation-link-background-active: ;
+    --navigation-link-background-active: var(--shiny-ui-gradient-2);
     --tabline-background: var(--shiny-ui-gradient-2);
     --tabline-padding-inline-start: 5px;
     --tab-button-background: var(--shiny-ui-gradient);
