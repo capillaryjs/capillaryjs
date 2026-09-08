@@ -351,7 +351,7 @@ export class Component<TProps extends ComponentProps = ComponentProps> {
                             var(--c2) 65%,
                             var(--c3) 100%
                     );
-            
+
             background: var(--colored-base-bg);
             box-shadow: var(--colored-shadow);
             border-radius: var(--ui-border-radius);
