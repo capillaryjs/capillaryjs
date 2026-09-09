@@ -6,6 +6,8 @@ Versioning.
 
 ## Unreleased
 
+## 0.9.1 - 2026-09-08
+
 ### Fixed
 
 - Published npm packages now include this changelog alongside their release

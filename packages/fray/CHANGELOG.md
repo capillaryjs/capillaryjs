@@ -6,6 +6,8 @@ Versioning.
 
 ## Unreleased
 
+## 1.3.1 - 2026-09-08
+
 ### Fixed
 
 - Removed the fixed height from checkable controls so their layout follows the

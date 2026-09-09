@@ -6,6 +6,8 @@ and Semantic Versioning.
 
 ## Unreleased
 
+## 0.11.1 - 2026-09-08
+
 ### Fixed
 
 - Corrected category and split-selection panel layout so their option content
