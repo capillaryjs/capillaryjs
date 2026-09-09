@@ -29,13 +29,10 @@ Published themes are:
 | `java` | Light | Desktop control treatment inspired by classic Java interfaces |
 | `shiny` | Light | Gloss, depth, and chromed graphical surfaces |
 
-A theme changes custom properties. The sole ordinary-property exception is
-`color-scheme`, which informs browser-native rendering. Themes must not contain
-component, trait, part, ARIA-state, or pseudo-element selectors; those belong
-to the component's `static css`.
-
-Start a new theme with no overrides and add a variable only when it creates an
-intentional difference from `base.css`:
+Custom properties are the primary instrument. A theme declares them on `:root`
+inside `@layer theme`, and `color-scheme` is the only ordinary property that
+belongs in that block. Start a new theme with no overrides and add a variable
+only when it creates an intentional difference from `base.css`:
 
 ```css
 @layer theme {
@@ -46,6 +43,40 @@ intentional difference from `base.css`:
   }
 }
 ```
+
+### Ordinary rules and cascade ordering
+
+A theme may also write ordinary CSS rules, including component-host, trait,
+part, ARIA-state, and pseudo-element selectors, when no variable can express
+the intended difference. Those rules must sit **outside** `@layer theme`, after
+the closing brace:
+
+```css
+@layer theme {
+  :root { --navigation-link-radius: 0; }
+}
+
+fray-navigationbar nav > ul > li > a {
+  line-height: 1.7em;
+}
+```
+
+The placement is a cascade requirement, not a style preference. Component CSS
+is injected as an unlayered `<style>` element prepended to `<head>`, and the
+theme link is loaded after it. Unlayered rules always outrank layered ones, so
+a rule written inside `@layer theme` loses to component CSS no matter how
+specific it is, while an unlayered theme rule wins at equal specificity through
+document order.
+
+Variables remain preferable because they compose with the fallback hierarchy
+and survive component markup changes. Reach for a rule when the difference is
+structural — layout, stacking, clipping, disclosure treatment — and keep it
+scoped to a trait class the application opts into rather than retargeting every
+instance of a component.
+
+Themes still must not `@import`, must not declare `--palette-*` anchors, which
+belong to `colors/<name>/colors.css`, and must not restate a value already set
+by `base.css`.
 
 `frayThemeVariableCatalog` is the machine-readable public contract. Its
 fallback chain runs from palette roles through global UI roles and shared

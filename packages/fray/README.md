@@ -609,9 +609,17 @@ Load presentation in this order:
 4. One `@sylwellsoftware/fray/themes/<name>/theme.css`
 
 `base.css` declares variables and derives palette roles but contains no
-component selectors. Color files provide anchors and endpoints. Theme files
-provide intentional variable overrides. Component `static css` owns selectors,
-layout, pseudo-elements, native states, and interaction mechanics.
+component selectors. Color files provide anchors and endpoints. Component
+`static css` owns selectors, layout, pseudo-elements, native states, and
+interaction mechanics.
+
+Theme files provide intentional overrides. Custom properties are the primary
+instrument and belong on `:root` inside `@layer theme`, with `color-scheme` as
+the only ordinary property in that block. A theme may also write ordinary CSS
+rules when no variable expresses the intended difference, but those rules must
+be placed after the `@layer theme` block: component CSS is injected as an
+unlayered `<style>` element prepended to `<head>`, so unlayered theme rules win
+by document order while layered ones would always lose.
 
 `frayThemeVariableCatalog` describes the supported palette and semantic
 variable hierarchy. `findFrayStylesheetOption`, `replaceFrayStylesheet`,

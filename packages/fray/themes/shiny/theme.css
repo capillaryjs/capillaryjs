@@ -1,5 +1,5 @@
 @charset "utf-8";
-/* Shiny changes theme tokens only. Components own all consuming selectors. */
+/* Tokens live in @layer theme; the few rules tokens cannot express follow it. */
 @layer theme {
   :root {
     --base-font-size: 14px;

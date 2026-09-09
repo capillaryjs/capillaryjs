@@ -578,7 +578,7 @@ describe('four-file styling contract', () => {
         }
     })
 
-    test('theme files contain intentional overrides only and never import base.css', async () => {
+    test('theme files layer tokens, keep ordinary rules unlayered, and never import base.css', async () => {
         const base = await readFile(
             fileURLToPath(new URL('../themes/base.css', import.meta.url)),
             'utf8',
@@ -587,15 +587,16 @@ describe('four-file styling contract', () => {
         for (const option of frayThemeOptions) {
             const css = await readFile(fileURLToPath(option.href), 'utf8')
             assert.doesNotMatch(css, /@import/)
-            if (option.value === 'shiny') {
-                assert.doesNotMatch(css, /@scope|:where\(|@media/)
-                assert.match(css, /\.colored\s*\{[^}]*background:/)
-                assert.match(css, /^nav > ul > li\s*\{[^}]*border-radius:/m)
-                assert.match(css, /^fray-navigationbar nav > ul > li > a\s*\{[^}]*line-height:/m)
-            } else {
-                assertVariableOnly(css, true)
-                assert.doesNotMatch(css, /fray-|\[data-fray|\.buttonlike|\.selectshell/)
-            }
+            assert.doesNotMatch(css, /@scope|:where\(|@media/)
+
+            const {layered, unlayered} = splitThemeLayer(css)
+            assert.match(layered, /:root\s*\{/,
+                `${option.value} declares no @layer theme token block`)
+            assertVariableOnly(layered, true)
+            // Component CSS is unlayered, so a layered theme rule could never win.
+            assert.doesNotMatch(unlayered, /@layer/,
+                `${option.value} must keep ordinary rules outside @layer theme`)
+
             assert.doesNotMatch(css, /^\s*--palette-[a-z0-9-]+\s*:/m)
             for (const [name, value] of oneLineCustomProperties(css)) {
                 assert.notEqual(value, baseDeclarations.get(name),
@@ -621,8 +622,10 @@ describe('four-file styling contract', () => {
         assert.match(css, /--navigation-bar-color:\s*var\(--text-color\)/)
         assert.match(css, /--navigation-link-color-current:\s*white/)
         assert.match(css, /--navigation-link-background-current:\s*var\(--section-header-background\)/)
-        assert.match(css, /\.colored\s*\{[^}]*background:\s*radial-gradient/)
-        assert.match(css, /fray-navigationbar nav > ul > li > a\s*\{[^}]*line-height:\s*1\.7em/)
+        const {unlayered} = splitThemeLayer(css)
+        assert.match(unlayered, /\.colored\s*\{[^}]*background:\s*radial-gradient/)
+        assert.match(unlayered, /^nav > ul > li\s*\{[^}]*border-radius:/m)
+        assert.match(unlayered, /^fray-navigationbar nav > ul > li > a\s*\{[^}]*line-height:\s*1\.7em/m)
         assert.doesNotMatch(css, /--panel-shadow:/)
         assert.match(css, /--progress-value-background:[\s\S]*radial-gradient/)
         assert.match(css, /--progress-value-shadow:[\s\S]*inset -1px 1px 3px 0 #0003/)
@@ -716,6 +719,25 @@ function assertVariableOnly(css: string, allowColorScheme: boolean): void {
         !name.startsWith('--') && !(allowColorScheme && name === 'color-scheme'))
     assert.deepEqual(unexpected, [])
     assert.doesNotMatch(css, /@scope|:where\(|@media/)
+}
+
+/** Separate a theme's `@layer theme` token block from its ordinary rules. */
+function splitThemeLayer(css: string): {layered: string; unlayered: string} {
+    const start = css.indexOf('@layer theme')
+    if (start < 0) return {layered: '', unlayered: css}
+    let depth = 0
+    let end = css.length
+    for (let index = start; index < css.length; index += 1) {
+        if (css[index] === '{') depth += 1
+        else if (css[index] === '}') {
+            depth -= 1
+            if (depth === 0) {
+                end = index + 1
+                break
+            }
+        }
+    }
+    return {layered: css.slice(start, end), unlayered: css.slice(0, start) + css.slice(end)}
 }
 
 function oneLineCustomProperties(css: string): Map<string, string> {

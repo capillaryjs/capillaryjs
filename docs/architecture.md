@@ -150,18 +150,23 @@ component static CSS         selectors, layout, interaction mechanics
         ↑
 colors/<name>/colors.css     palette anchors and endpoints
         +
-themes/<name>/theme.css      intentional semantic-variable overrides
+themes/<name>/theme.css      intentional semantic overrides, tokens first
 ```
 
 The arrows indicate that structural CSS consumes variables supplied by the
 other files; load order is base, structure, color, then theme.
 
 `base.css` contains no component selectors. Color files contain no semantic
-component roles. Theme files change values, not component rules. Each component
-owns its hosts, native/ARIA state selectors, pseudo-elements, and fixed part
-elements through `static css`. The dependency collector emits only rules
-reachable from declared roots; a complete generated structural asset is also
-published.
+component roles. Each component owns its hosts, native/ARIA state selectors,
+pseudo-elements, and fixed part elements through `static css`. The dependency
+collector emits only rules reachable from declared roots; a complete generated
+structural asset is also published.
+
+A theme changes values first, declaring custom properties inside `@layer
+theme`, and may write ordinary component-targeting rules when no variable
+expresses the difference. Those rules must sit outside the layer: component CSS
+is injected unlayered and prepended to `<head>`, so only an unlayered theme
+rule can outrank it.
 
 Application CSS owns page composition and decides whether the root fills a
 viewport. Theme and color selection is application policy even when Fray's

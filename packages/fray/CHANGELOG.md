@@ -6,6 +6,19 @@ Versioning.
 
 ## Unreleased
 
+### Changed
+
+- Documented and enforced the theme contract as it actually works. Custom
+  properties remain the primary instrument and must be declared on `:root`
+  inside `@layer theme`, but a theme may also write ordinary CSS rules,
+  including component-host, trait, part, ARIA-state, and pseudo-element
+  selectors, when no variable expresses the intended difference. Such rules
+  must sit outside `@layer theme`, since component CSS is injected as an
+  unlayered `<style>` element prepended to `<head>` and would otherwise outrank
+  them. The previous documentation restricted every theme except Shiny to
+  variables only, which contradicted both the cascade design and the shipped
+  Shiny theme.
+
 ## 1.3.1 - 2026-09-08
 
 ### Fixed
