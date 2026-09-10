@@ -45,7 +45,6 @@
 
     /* Input components */
     --input-shadow: inset -1px 1px 3px -2px rgba(0,0,0,0.45);
-    --dropdown-trigger-content: '\23F7';
 
     /* Action components */
     --button-background: var(--ui-gradient-2);

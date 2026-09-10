@@ -162,7 +162,7 @@
     --dropdown-underlay-border-disabled: var(--ui-input-border-disabled);
     --dropdown-underlay-shadow: var(--input-shadow);
     --dropdown-underlay-start-radius: var(--ui-border-radius);
-    --dropdown-trigger-content: none;
+    --dropdown-trigger-content: '\25BE';
     --dropdown-trigger-width: calc(var(--dd-btn-width) - 1px);
     --dropdown-trigger-color: var(--button-color);
     --dropdown-trigger-background: var(--button-background);

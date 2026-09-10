@@ -6,6 +6,14 @@ Versioning.
 
 ## Unreleased
 
+### Fixed
+
+- The dropdown trigger glyph now defaults to a universally supported Unicode
+  character (U+25BE) in `base.css` instead of `none`, so all themes render the
+  `::before` pseudo-element glyph without a per-theme override. The previous
+  Shiny-only value used U+23F7, which is absent from Helvetica and common
+  sans-serif fonts and did not display in Chrome.
+
 ### Changed
 
 - Documented and enforced the theme contract as it actually works. Custom
