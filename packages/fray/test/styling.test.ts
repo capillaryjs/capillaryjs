@@ -14,6 +14,8 @@ import {
     DescriptionList,
     Dialog,
     Dropdown,
+    InfoField,
+    InfoPanel,
     FilterPanel,
     GroupPanel,
     Header,
@@ -233,6 +235,25 @@ describe('style registry', () => {
         assert.match(stylesheet, /fray-descriptionlist\s*\{[^}]*display:\s*block/)
         assert.match(stylesheet, /fray-descriptionlist > dl\s*\{[^}]*display:\s*grid[^}]*margin:\s*0/)
         assert.doesNotMatch(stylesheet, /(?:^|\n)dl:has\(|data-fray-component|fray-panel|fray-sidebar/)
+    })
+
+    test('InfoField emits direct native terms and values without structural CSS', () => {
+        const runtime = createFrayRuntime()
+        runtime.registerStyles(InfoField)
+        const stylesheet = runtime.styleRegistry.generateCSS()
+
+        assert.doesNotMatch(stylesheet, /info-field|fray-infofield/)
+    })
+
+    test('collects InfoPanel through its fixed host with panel chrome and grid layout', () => {
+        const runtime = createFrayRuntime()
+        runtime.registerStyles(InfoPanel)
+        const stylesheet = runtime.styleRegistry.generateCSS()
+
+        assert.match(stylesheet, /fray-infopanel\s*\{[\s\S]*border:[\s\S]*display:\s*flex/)
+        assert.match(stylesheet, /fray-infopanel > dl\s*\{[\s\S]*display:\s*grid[\s\S]*grid-template-columns:\s*auto 1fr/)
+        assert.match(stylesheet, /fray-infopanel > dl > dt\s*\{[\s\S]*font-weight:\s*600/)
+        assert.match(stylesheet, /fray-infopanel > dl > dd\s*\{[\s\S]*margin:\s*0/)
     })
 
     test('collects Placeholder through its fixed host and working texture only', () => {

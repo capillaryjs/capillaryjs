@@ -11,6 +11,8 @@ import {
     DescriptionItem,
     DescriptionList,
     Dropdown,
+    InfoField,
+    InfoPanel,
     FilterMode,
     GroupPanel,
     Header,
@@ -696,6 +698,48 @@ describe('layout controls', () => {
             'High',
             'Example team',
         ])
+    })
+
+    test('InfoPanel renders panel chrome with optional title and key-value fields', () => {
+        InfoPanel.new({
+            title: 'Employee',
+            label: 'Employee details',
+            children: [
+                h(InfoField, {label: 'Name', value: 'Arthur Morgan'}),
+                h(InfoField, {label: 'Role'}, 'Project Manager'),
+            ],
+        }).attachTo(document.body)
+
+        const host = requiredQuery('fray-infopanel')
+        assert.equal(host.getAttribute('role'), 'region')
+        assert.ok(host.getAttribute('aria-labelledby'))
+        const header = requiredQuery('fray-header', host)
+        assert.ok(header, 'header rendered when title is provided')
+        const list = requiredQuery<HTMLDListElement>('dl', host)
+        assert.equal(list.getAttribute('aria-label'), 'Employee details')
+        assert.deepEqual([...list.querySelectorAll('dt')].map(({textContent}) => textContent), [
+            'Name',
+            'Role',
+        ])
+        assert.deepEqual([...list.querySelectorAll('dd')].map(({textContent}) => textContent), [
+            'Arthur Morgan',
+            'Project Manager',
+        ])
+    })
+
+    test('InfoPanel without title omits header and region role', () => {
+        InfoPanel.new({
+            children: [
+                h(InfoField, {label: 'Team', value: 'Accounting'}),
+            ],
+        }).attachTo(document.body)
+
+        const host = requiredQuery('fray-infopanel')
+        assert.equal(host.getAttribute('role'), null)
+        assert.equal(host.querySelector('fray-header'), null)
+        const list = requiredQuery<HTMLDListElement>('dl', host)
+        assert.equal(list.querySelector('dt')?.textContent, 'Team')
+        assert.equal(list.querySelector('dd')?.textContent, 'Accounting')
     })
 
     test('SplitView owns two panes, labels optional regions, and validates layout props', () => {

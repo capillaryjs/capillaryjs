@@ -91,7 +91,7 @@ custom elements.
 | Actions | `Button`, `Toolbar` |
 | Text and choices | `Label`, `Textbox`, `Dropdown`, `RadioButton`, `RadioGroup`, `Toggle`, `Checkbox`, `TriCheckbox`, `QuadCheckbox` |
 | Layout and navigation | `FrayApp`, `Header`, `GroupPanel`, `NavigationBar`, `OptionGroup`, `OptionsPanel`, `Panel`, `Sidebar`, `SplitView`, `Tab`, `TabLine`, `TabPanel` |
-| Records and collections | `DescriptionItem`, `DescriptionList`, `Placeholder`, `ListView`, `TreeItem`, `TreeView` |
+| Records and collections | `DescriptionItem`, `DescriptionList`, `InfoField`, `InfoPanel`, `Placeholder`, `ListView`, `TreeItem`, `TreeView` |
 | Tables and filters | `DataTable`, `FilterPanel`, `TableHeader`, `TableHeaderCell` |
 | Dialog and status | `Dialog`, `ProgressBar` |
 | Presentation selection | `ThemePicker`, `ColorPicker` |

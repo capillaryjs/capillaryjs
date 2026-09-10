@@ -276,6 +276,7 @@ export interface FrayHostElementTagNameMap {
     'fray-categories': HTMLElement
     'fray-categoryoption': HTMLElement
     'fray-categoryswatch': HTMLElement
+    'fray-infopanel': HTMLElement
 }
 
 export type FrayElementTagNameMap = HTMLElementTagNameMap & FrayHostElementTagNameMap

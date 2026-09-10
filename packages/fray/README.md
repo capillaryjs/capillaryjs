@@ -402,6 +402,8 @@ native link semantics.
 | --- | --- | --- |
 | `DescriptionList` | Native `dl` record summary | `label`, `DescriptionItem` children |
 | `DescriptionItem` | Native `dt`/`dd` pair | required `term`, `value` or content |
+| `InfoPanel` | Bordered info panel with optional title and key-value fields | `title`, `label`, `InfoField` children |
+| `InfoField` | Native `dt`/`dd` key-value pair | required `label`, `value` or content |
 | `Placeholder` | Decorative loading placeholder | numeric `width`, clamped to 10–100 percent |
 | `ListView<T>` | Keyed single- or multi-select ARIA listbox | `items`, `itemKey`, `label`, `renderItem`, `multiSelect`, selected emitter |
 | `TreeItem<T>` | Declarative tree-node marker | `id`, `label`, `textValue`, `value`, nested `TreeItem` children |

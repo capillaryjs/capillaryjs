@@ -249,6 +249,9 @@
     --table-row-background: var(--palette-neutral-50);
     --table-row-alt-background: var(--palette-neutral-100);
 
+    /* Info panel */
+    --info-panel-label-color: var(--ui-muted-text-color);
+
     /* Status and graphical components */
     --progress-track-background: var(--palette-neutral-200);
     --progress-track-color: var(--ui-text-color);

@@ -6,6 +6,14 @@ Versioning.
 
 ## Unreleased
 
+### Added
+
+- `InfoPanel` and `InfoField` components for presenting key-value summary
+  information in a bordered panel with an optional title. `InfoPanel` renders
+  panel chrome (background, border, shadow) with a `Header` when a `title` is
+  provided, and a native `<dl>` grid of `InfoField` children. `InfoField` renders
+  a native `dt`/`dd` pair with `label` and `value` props.
+
 ### Fixed
 
 - The dropdown trigger glyph now defaults to a universally supported Unicode

@@ -15,6 +15,7 @@ export * from './Components/layout/sidebar.js'
 export * from './Components/layout/splitView.js'
 
 export * from './Components/data/descriptionList.js'
+export * from './Components/data/infoPanel.js'
 export * from './Components/Placeholder.js'
 export * from './Components/data/filterState.js'
 export * from './Components/data/listview/listview.js'
