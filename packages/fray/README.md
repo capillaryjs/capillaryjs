@@ -109,13 +109,15 @@ class ProfileApp extends FrayApp {
 const runtime = createFrayRuntime()
 mountFrayApp(runtime, ProfileApp, document.querySelector('#app')!, {
     sizing: 'viewport',
+    layout: 'vertical',
 })
 ```
 
 `FrayApp` may also be instantiated directly with `children`. Derived apps
 override `renderContent()`. Its `sizing` is `embedded`, `viewport-width`,
-`viewport-height`, or `viewport`; `landmark` is `main` (the default) or `none`
-for an embedded app. `static dependencies` is transitive and idempotent. It
+`viewport-height`, or `viewport`; `layout` is `horizontal` or `vertical` and
+arranges application-owned children directly on that bounded host; `landmark`
+is `main` (the default) or `none` for an embedded app. `static dependencies` is transitive and idempotent. It
 declares the Fray and application components whose structural CSS the root can
 render. `FrayApp` itself registers and injects those styles whenever it
 attaches; `mountFrayApp()` is the concise normal entry point. Applications that
@@ -342,7 +344,7 @@ const view = new Emitter<'list' | 'grid'>('list')
 
 | Component | Purpose | Key props and state |
 | --- | --- | --- |
-| `FrayApp` | Fixed `fray-app` application shell and theme-text boundary | `sizing`: `embedded`/viewport axes; `landmark`: `main`/`none`; content or overridden `renderContent()` |
+| `FrayApp` | Fixed `fray-app` application shell and theme-text boundary | `sizing`: `embedded`/viewport axes; `layout`: `horizontal`/`vertical`; `landmark`: `main`/`none`; content or overridden `renderContent()` |
 | `Header` | Styled native heading surface | `level` (1–6), `headingId`, content |
 | `GroupPanel` | Labelled bordered group with a vertical header | required `header`, content |
 | `Panel` | Optional labelled region with toolbar and content flow | `header`, `toolbar`, `orientation`, `disabled`; live: `disabled` |
@@ -635,6 +637,10 @@ runtime selection.
 its native and Fray descendants inherit theme text treatment even when it is
 embedded. Its `sizing` prop maps to `fray-fill-horizontal`,
 `fray-fill-vertical`, or both to claim `100vw`, `100vh`, or the full viewport.
+Its optional `layout` prop maps to the direction trait on that same host. This
+is important for viewport shells: Flexbox only distributes an already bounded
+size, so an auto-height intermediate wrapper does not inherit the root's
+height constraint automatically.
 
 The traits remain available for applications that use a plain `Component`
 root. They now apply the same canvas, text color, and typography values. A
@@ -642,6 +648,29 @@ plain root without either trait remains content-sized and inherits host-page
 text treatment.
 
 ### Reusable traits
+
+The allocation traits are structural and independently composable:
+
+- `fray-layout-horizontal` and `fray-layout-vertical` arrange direct children
+  and stretch them across the other axis;
+- `fray-size-natural` keeps a direct child's application/content allocation;
+- `fray-size-flexible` shares remaining main-axis space and supplies zero
+  logical minimums so nested content can shrink;
+- `fray-scroll` makes a bounded node the explicit overflow owner.
+
+`Header`, `NavigationBar`, `Panel`, `Sidebar`, and `Toolbar` accept
+`allocation="natural" | "flexible"` and map it to their outer host. `Panel`
+continues to use `orientation` for its application-owned content node;
+components do not accept a generic arrangement prop when it would rearrange
+their generated chrome. Application-owned elements may use the classes
+directly.
+
+Flexible siblings have equal growth shares only when their box decoration is
+equivalent. Application CSS may override ratios, sizes, and gaps. Flexible
+allocation does not imply scrolling, and an island does not select the scroll
+owner; filled-root island overflow remains a compatibility fallback. Rules use
+no `!important`, so later application CSS can refine them. Fray does not yet
+provide breakpoint variants.
 
 `island` marks one deliberate themeable surface boundary. Pass
 `island={true}` to a wrapped component or use the class on application-owned

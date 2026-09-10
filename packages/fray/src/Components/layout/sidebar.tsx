@@ -1,9 +1,10 @@
 import {Component, css} from '../component.js'
 import type {ComponentProps, FrayChild} from '../component.js'
+import type {FrayLayoutParticipantProps} from './layoutTraits.js'
 import {Header} from './header.js'
-import {componentClass, controlId} from '../controlUtils.js'
+import {controlId, layoutParticipantClass} from '../controlUtils.js'
 
-export interface SidebarProps extends ComponentProps {
+export interface SidebarProps extends ComponentProps, FrayLayoutParticipantProps {
     id?: string | number | null
     header?: FrayChild
     toolbar?: FrayChild
@@ -37,7 +38,7 @@ export class Sidebar extends Component<SidebarProps> {
                 headingId={this.headerId}
             >{header}</Header>
 
-        return <Host className={componentClass(this.props) || null}>
+        return <Host className={layoutParticipantClass(this.props) || null}>
             <aside
                 id={this.sidebarId}
                 aria-label={header == null ? ariaLabel : null}

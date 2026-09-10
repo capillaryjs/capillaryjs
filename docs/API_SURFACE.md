@@ -59,7 +59,7 @@ peer dependency.
 | Export | Purpose |
 | --- | --- |
 | `Component` | Explicit class-component lifecycle, tracked emitter reads, cleanup, service access, and keyed rendering |
-| `FrayApp`, `mountFrayApp` | Fixed `fray-app` root, theme-text boundary, and CSS-registering application mount helper |
+| `FrayApp`, `mountFrayApp` | Fixed `fray-app` root, theme-text boundary, bounded child-layout option, and CSS-registering application mount helper |
 | `Fragment`, `jsx`, `jsxs`, `jsxDEV` | Automatic JSX runtime |
 | `h` | Low-level vnode factory retained for non-JSX integrations |
 | `FrayHostElementTagNameMap`, `FrayElementTagNameMap` | Custom `fray-*` host element tag maps that extend JSX intrinsic elements |
@@ -72,6 +72,15 @@ Public declaration contracts include component constructors/dependencies,
 props, children, vnodes, keys, refs, writable emitters, live bindings and prop
 contracts, emitter snapshots, template props, runtime options, and style
 registry types.
+
+The root exports `FrayLayoutDirection`, `FrayLayoutAllocation`, and
+`FrayLayoutParticipantProps`. Public structural classes provide horizontal or
+vertical direct-child arrangement, natural or flexible main-axis allocation,
+and explicit bounded scrolling. `FrayApp.layout` targets the bounded root;
+`Header`, `NavigationBar`, `Panel`, `Sidebar`, and `Toolbar` opt into the
+`allocation` argument. Application-owned neutral elements may use the same
+classes directly. Breakpoints, exact dimensions, ratios, and gaps remain
+application CSS.
 
 TSX is the primary documented authoring syntax. TSX and `h()` lower to the
 same vnode representation. A readable emitter in child position owns a
@@ -202,10 +211,17 @@ not aliases of the generic `--button-*` action family.
 
 `FrayApp` has a fixed `fray-app` host, applies the published canvas, color, and
 typography variables even when embedded, and offers independent viewport-axis
-settings plus a `main`/`none` landmark policy. `mountFrayApp()` collects and
+settings, horizontal/vertical child arrangement on the bounded root, plus a
+`main`/`none` landmark policy. `mountFrayApp()` collects and
 injects its declared structural CSS before mounting. The legacy
 `fray-fill-horizontal` and `fray-fill-vertical` application-root traits remain
 available and apply the same canvas, color, and typography values.
+
+`fray-layout-horizontal`, `fray-layout-vertical`, `fray-size-natural`,
+`fray-size-flexible`, and `fray-scroll` are additive structural traits. Layout
+only distributes an existing bound; flexible allocation does not imply
+overflow. Existing component and filled-island overflow remain compatibility
+defaults, while an explicit inner scroll owner determines actual scroll range.
 
 `island` marks one explicit, non-nestable surface boundary. `colored` consumes
 application-supplied `--c1`, `--c2`, and `--c3` values for a shared gradient

@@ -880,6 +880,24 @@ describe('layout controls', () => {
         assert.equal(section.querySelector('div'), null)
     })
 
+    test('shell components map explicit allocation to their intentional hosts', () => {
+        const panel = Panel.new({allocation: 'flexible', children: 'Flexible'})
+        panel.attachTo(document.body)
+        assert.equal(requiredQuery<HTMLElement>('fray-panel').className, 'fray-size-flexible')
+        assert.equal(requiredQuery<HTMLElement>('fray-panel > fray-content').className, 'vertical')
+        panel.destroy()
+
+        const sidebar = Sidebar.new({allocation: 'natural', children: 'Natural'})
+        sidebar.attachTo(document.body)
+        assert.equal(requiredQuery<HTMLElement>('fray-sidebar').className, 'fray-size-natural')
+        sidebar.destroy()
+
+        assert.throws(
+            () => Panel.new({allocation: 'fixed' as never}),
+            /Layout allocation must be natural or flexible/,
+        )
+    })
+
     test('fixed component hosts opt into island treatment explicitly', () => {
         const panel = Panel.new({
             className: 'portfolio-summary',

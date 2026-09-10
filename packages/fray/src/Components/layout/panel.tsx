@@ -1,11 +1,13 @@
 import {Component, css} from '../component.js'
 import type {ComponentProps, FrayChild, LivePropContract} from '../component.js'
+import type {FrayLayoutParticipantProps} from './layoutTraits.js'
 import {Header} from './header.js'
-import {componentClass, controlId} from '../controlUtils.js'
+import {controlId, layoutParticipantClass} from '../controlUtils.js'
 
 const panelLiveProps = ['disabled'] as const
 
 export interface PanelProps extends ComponentProps,
+    FrayLayoutParticipantProps,
     LivePropContract<(typeof panelLiveProps)[number]> {
     id?: string | number | null
     header?: FrayChild
@@ -48,7 +50,7 @@ export class Panel extends Component<PanelProps> {
         return <Host
             id={this.panelId}
             role={header == null ? null : 'region'}
-            className={componentClass(this.props)}
+            className={layoutParticipantClass(this.props)}
             aria-disabled={disabled ? 'true' : null}
             aria-labelledby={header == null ? null : this.headerId}
         >

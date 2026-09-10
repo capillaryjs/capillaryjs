@@ -1,6 +1,7 @@
 import {Component, css} from '../component.js'
 import type {ComponentProps, FrayChild, Key} from '../component.js'
-import {componentClass} from '../controlUtils.js'
+import type {FrayLayoutParticipantProps} from '../layout/layoutTraits.js'
+import {layoutParticipantClass} from '../controlUtils.js'
 import {RouteLink} from '../../routing/RouteLink.js'
 import type {RouteDescriptor, RouteTarget} from '../../routing/route.js'
 import type {ResolvedRoute} from '../../routing/router.js'
@@ -17,7 +18,7 @@ export interface NavigationBarItem {
     onClick?: (event: MouseEvent) => void
 }
 
-export interface NavigationBarProps extends ComponentProps {
+export interface NavigationBarProps extends ComponentProps, FrayLayoutParticipantProps {
     items: readonly NavigationBarItem[]
     label: string
 }
@@ -34,7 +35,7 @@ export class NavigationBar extends Component<NavigationBarProps> {
     render(): FrayChild {
         validateNavigation(this.props)
         const Host = this.Host
-        return <Host className={componentClass(this.props) || null}>
+        return <Host className={layoutParticipantClass(this.props) || null}>
             <nav aria-label={this.props.label}>
                 <ul>{this.props.items.map((item) => <li key={String(item.id)}>
                     {item.disabled

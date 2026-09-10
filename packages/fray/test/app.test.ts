@@ -39,6 +39,7 @@ test('FrayApp renders a themed, landmarked fray-app shell', () => {
         id: 'profile',
         className: 'profile-app',
         sizing: 'viewport',
+        layout: 'vertical',
         children: 'Profile',
     })
     const root = requiredQuery<HTMLElement>('fray-app')
@@ -46,7 +47,10 @@ test('FrayApp renders a themed, landmarked fray-app shell', () => {
     assert.equal(root.id, 'profile')
     assert.equal(root.getAttribute('role'), 'main')
     assert.equal(root.dataset.frayComponent, 'app')
-    assert.equal(root.className, 'profile-app fray-fill-horizontal fray-fill-vertical')
+    assert.equal(
+        root.className,
+        'profile-app fray-fill-horizontal fray-fill-vertical fray-layout-vertical',
+    )
     assert.equal(root.textContent, 'Profile')
 
     const stylesheet = requiredQuery<HTMLStyleElement>('style[data-fray-structural-styles]')
@@ -100,5 +104,9 @@ test('FrayApp rejects unsupported sizing and landmark policies', () => {
     assert.throws(
         () => FrayApp.new({landmark: 'banner' as never}),
         /FrayApp landmark must be main or none/,
+    )
+    assert.throws(
+        () => FrayApp.new({layout: 'grid' as never}),
+        /Layout direction must be horizontal or vertical/,
     )
 })

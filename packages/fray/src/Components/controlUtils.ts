@@ -2,6 +2,8 @@ import {Emitter} from '@sylwellsoftware/glue'
 import type {EmitterOptions, ReadableEmitter} from '@sylwellsoftware/glue'
 
 import type {Component, ComponentProps} from './component.js'
+import {layoutAllocationClassName} from './layout/layoutTraits.js'
+import type {FrayLayoutParticipantProps} from './layout/layoutTraits.js'
 import {isFilterMode} from '../util/filterMode.js'
 
 export interface ValueEmitter<TValue> extends ReadableEmitter<TValue, unknown> {
@@ -62,6 +64,13 @@ export function classNames(...values: unknown[]): string {
 
 export function componentClass(props: Pick<ComponentProps, 'class' | 'className'>): string {
     return props.className ?? props.class ?? ''
+}
+
+/** Build the host class for a component that intentionally exposes allocation. */
+export function layoutParticipantClass(
+    props: Pick<ComponentProps, 'class' | 'className'> & FrayLayoutParticipantProps,
+): string {
+    return classNames(componentClass(props), layoutAllocationClassName(props.allocation))
 }
 
 export function invoke<TArguments extends unknown[]>(

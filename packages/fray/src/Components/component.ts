@@ -346,6 +346,38 @@ export class Component<TProps extends ComponentProps = ComponentProps> {
             overflow-y: auto;
         }
 
+        .fray-layout-horizontal,
+        .fray-layout-vertical {
+            display: flex;
+            align-items: stretch;
+            min-inline-size: 0;
+            min-block-size: 0;
+        }
+
+        .fray-layout-horizontal {
+            flex-direction: row;
+        }
+
+        .fray-layout-vertical {
+            flex-direction: column;
+        }
+
+        .fray-size-natural {
+            flex: 0 0 auto;
+        }
+
+        .fray-size-flexible {
+            flex: 1 1 0;
+            min-inline-size: 0;
+            min-block-size: 0;
+        }
+
+        .fray-scroll {
+            overflow: auto;
+            min-inline-size: 0;
+            min-block-size: 0;
+        }
+
         .colored {
             --colored-base-bg:
                     linear-gradient(

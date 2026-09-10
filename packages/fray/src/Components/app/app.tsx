@@ -1,6 +1,8 @@
 import {Component, css} from '../component.js'
 import type {ComponentDependency, ComponentProps, FrayChild} from '../component.js'
 import {FrayRuntime} from '../../runtime.js'
+import {layoutDirectionClassName} from '../layout/layoutTraits.js'
+import type {FrayLayoutDirection} from '../layout/layoutTraits.js'
 
 /** Viewport sizing policy for a Fray application root. */
 export type FrayAppSizing =
@@ -18,6 +20,8 @@ export interface FrayAppProps extends ComponentProps {
      * sizing-neutral; the other values use Fray's public fill traits.
      */
     sizing?: FrayAppSizing
+    /** Arrange application-owned root children on the bounded host. */
+    layout?: FrayLayoutDirection
     /**
      * `main` exposes the app as the document's primary-content landmark.
      * Embedded applications should select `none`.
@@ -53,11 +57,17 @@ export class FrayApp extends Component<FrayAppProps> {
             className,
             island: _island,
             sizing = 'embedded',
+            layout,
             landmark = 'main',
             ...hostProps
         } = this.props
         const Host = this.Host
-        const rootClassName = mergeClassNames(classAlias, className, sizingClassName(sizing))
+        const rootClassName = mergeClassNames(
+            classAlias,
+            className,
+            sizingClassName(sizing),
+            layout == null ? undefined : layoutDirectionClassName(layout),
+        )
         return <Host
             {...hostProps}
             role={landmarkRole(landmark)}

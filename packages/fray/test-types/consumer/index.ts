@@ -10,6 +10,7 @@ import {
     Dropdown,
     NavigationBar,
     FrayApp,
+    Panel,
     ProgressBar,
     RouteLink,
     RouteOutlet,
@@ -28,7 +29,11 @@ import {
     routeTarget,
     serializeTableQuery,
 } from '@sylwellsoftware/fray'
-import type {NavigationAdapter} from '@sylwellsoftware/fray'
+import type {
+    FrayLayoutAllocation,
+    FrayLayoutDirection,
+    NavigationAdapter,
+} from '@sylwellsoftware/fray'
 import {Fragment, jsx} from '@sylwellsoftware/fray/jsx-runtime'
 
 const text = new Emitter('typed')
@@ -47,9 +52,14 @@ new TreeView({label: 'Projects', nodes: [{id: 'one', label: 'One'}]})
 new Dialog({title: 'Confirm', children: 'Continue?'})
 mountFrayApp(createFrayRuntime(), FrayApp, document.body, {
     sizing: 'viewport',
+    layout: 'vertical',
     landmark: 'main',
     children: 'Application',
 })
+const direction: FrayLayoutDirection = 'horizontal'
+const allocation: FrayLayoutAllocation = 'flexible'
+new FrayApp({layout: direction})
+new Panel({allocation, orientation: 'vertical'})
 
 type Row = {id: number; name: string}
 new DataTable<Row>({

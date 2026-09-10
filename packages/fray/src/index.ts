@@ -13,6 +13,11 @@ export * from './Components/layout/optionsPanel.js'
 export * from './Components/layout/panel.js'
 export * from './Components/layout/sidebar.js'
 export * from './Components/layout/splitView.js'
+export type {
+    FrayLayoutAllocation,
+    FrayLayoutDirection,
+    FrayLayoutParticipantProps,
+} from './Components/layout/layoutTraits.js'
 
 export * from './Components/data/descriptionList.js'
 export * from './Components/data/infoPanel.js'

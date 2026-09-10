@@ -8,6 +8,11 @@ Versioning.
 
 ### Added
 
+- Added bounded layout allocation traits: `fray-layout-horizontal`,
+  `fray-layout-vertical`, `fray-size-natural`, `fray-size-flexible`, and
+  `fray-scroll`. `FrayApp` accepts root `layout`; `Header`, `NavigationBar`,
+  `Panel`, `Sidebar`, and `Toolbar` accept explicit host `allocation`.
+
 - **Experimental:** `DatePicker`, `TimePicker`, and `DateTimePicker` components,
   plus `CivilDate` and `TimeString` utility types and helpers. These are exported
   from the package root and tagged `@experimental`; they may change in any

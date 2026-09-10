@@ -1,10 +1,11 @@
 import {Component, css} from '../component.js'
 import type {ComponentProps, FrayChild} from '../component.js'
-import {componentClass, controlId} from '../controlUtils.js'
+import type {FrayLayoutParticipantProps} from './layoutTraits.js'
+import {controlId, layoutParticipantClass} from '../controlUtils.js'
 
 export type HeaderLevel = 1 | 2 | 3 | 4 | 5 | 6
 
-export interface HeaderProps extends ComponentProps {
+export interface HeaderProps extends ComponentProps, FrayLayoutParticipantProps {
     id?: string | number | null
     headingId?: string | number | null
     level?: HeaderLevel
@@ -31,7 +32,7 @@ export class Header extends Component<HeaderProps> {
         const Host = this.Host
         return <Host
             id={this.headerId}
-            className={componentClass(this.props) || null}
+            className={layoutParticipantClass(this.props) || null}
         >
             {(() => {
                 const Heading = `h${level}` as 'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6'

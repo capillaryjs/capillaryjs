@@ -1,8 +1,9 @@
 import {Component, css} from '../component.js'
 import type {ComponentProps, FrayChild} from '../component.js'
-import {componentClass} from '../controlUtils.js'
+import type {FrayLayoutParticipantProps} from '../layout/layoutTraits.js'
+import {layoutParticipantClass} from '../controlUtils.js'
 
-export interface ToolbarProps extends ComponentProps {
+export interface ToolbarProps extends ComponentProps, FrayLayoutParticipantProps {
     id?: string
     label?: string
     orientation?: 'horizontal' | 'vertical'
@@ -25,7 +26,7 @@ export class Toolbar extends Component<ToolbarProps> {
         return <Host
             id={id}
             role="toolbar"
-            className={componentClass(this.props) || null}
+            className={layoutParticipantClass(this.props) || null}
             aria-label={label}
             aria-orientation={orientation}
         >{children}</Host>
