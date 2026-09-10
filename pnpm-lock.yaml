@@ -30,6 +30,34 @@ importers:
         specifier: ^6.4.3
         version: 6.4.3(@types/node@26.4.1)(tsx@4.23.13)
 
+  apps/buildco-control:
+    dependencies:
+      '@sylwellsoftware/fray':
+        specifier: workspace:^
+        version: link:../../packages/fray
+      '@sylwellsoftware/fray-visualization':
+        specifier: workspace:^
+        version: link:../../packages/fray-visualization
+      '@sylwellsoftware/glue':
+        specifier: workspace:^
+        version: link:../../packages/glue
+    devDependencies:
+      '@playwright/test':
+        specifier: ^1.62.1
+        version: 1.62.1
+      '@types/node':
+        specifier: ^26.4.0
+        version: 26.4.1
+      tsx:
+        specifier: ^4.23.13
+        version: 4.23.13
+      typescript:
+        specifier: ^5.9.2
+        version: 5.9.3
+      vite:
+        specifier: ^6.4.3
+        version: 6.4.3(@types/node@26.4.1)(tsx@4.23.13)
+
   apps/dummy-server: {}
 
   apps/fray-demo:
