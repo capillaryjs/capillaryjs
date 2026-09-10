@@ -10,6 +10,8 @@ import {
     ColorPicker,
     Component,
     DataTable,
+    DatePicker,
+    DateTimePicker,
     DescriptionItem,
     DescriptionList,
     Dialog,
@@ -35,6 +37,7 @@ import {
     TabPanel,
     Textbox,
     ThemePicker,
+    TimePicker,
     Toggle,
     Toolbar,
     TreeView,
@@ -549,6 +552,26 @@ describe('style registry', () => {
         assert.match(stylesheet, /button\[role="radio"\]\[aria-checked="false"\]\s*\+\s*\[role="radio"\]\[aria-checked="false"\]::after/)
         assert.match(stylesheet, /button\[role="radio"\]:disabled\s*\{[^}]*cursor:\s*not-allowed/)
         assert.doesNotMatch(stylesheet, /:has\(|fieldset|\.options|data-part|data-disabled|fray-panel|fray-sidebar|fray-dropdown/)
+    })
+
+    test('collects DatePicker, TimePicker, and DateTimePicker structural CSS', () => {
+        const runtime = createFrayRuntime()
+        runtime.registerStyles(DatePicker)
+        runtime.registerStyles(TimePicker)
+        runtime.registerStyles(DateTimePicker)
+        const stylesheet = runtime.styleRegistry.generateCSS()
+
+        assert.match(stylesheet, /fray-datepicker\s*\{[^}]*display:\s*flex/)
+        assert.match(stylesheet, /fray-datepicker > input\s*\{[^}]*cursor:\s*text/)
+        assert.match(stylesheet, /fray-datepicker > dialog\s*\{[^}]*position:/)
+
+        assert.match(stylesheet, /fray-timepicker\s*\{[^}]*display:\s*flex/)
+        assert.match(stylesheet, /fray-timepicker > fray-selectshell\s*\{/)
+        assert.match(stylesheet, /fray-timepicker > fray-selectshell > select\s*\{[^}]*min-height:\s*var\(--control-min-height, 2rem\)/)
+
+        assert.match(stylesheet, /fray-datetimepicker\s*\{[^}]*display:\s*block/)
+        assert.match(stylesheet, /fray-datetimepicker > fieldset\s*\{[^}]*display:\s*flex/)
+        assert.doesNotMatch(stylesheet, /data-(?:disabled|required|error)|fray-textbox|fray-dropdown/)
     })
 
     test('uses fixed one-hyphen host names and resolves ampersands', () => {

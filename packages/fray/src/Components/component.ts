@@ -277,6 +277,9 @@ export interface FrayHostElementTagNameMap {
     'fray-categoryoption': HTMLElement
     'fray-categoryswatch': HTMLElement
     'fray-infopanel': HTMLElement
+    'fray-datepicker': HTMLElement
+    'fray-timepicker': HTMLElement
+    'fray-datetimepicker': HTMLElement
 }
 
 export type FrayElementTagNameMap = HTMLElementTagNameMap & FrayHostElementTagNameMap

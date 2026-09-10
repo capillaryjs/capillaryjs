@@ -3,6 +3,8 @@ import {Emitter} from '@sylwellsoftware/glue'
 import {
     Button,
     Component,
+    DatePicker,
+    DateTimePicker,
     DescriptionItem,
     DescriptionList,
     DataTable,
@@ -22,6 +24,7 @@ import {
     Tab,
     TabPanel,
     Textbox,
+    TimePicker,
     TreeView,
     createBrowserRouter,
     createFrayRuntime,
@@ -49,6 +52,22 @@ import type {
 const textboxValue = new Emitter('Ada')
 const textbox = new Textbox({label: 'Name', valueEmitter: textboxValue})
 textbox.valueEmitter.get().toUpperCase()
+
+const dateValue = new Emitter<string | null>('2026-09-10')
+const date = new DatePicker({label: 'Start', valueEmitter: dateValue})
+date.valueEmitter.get()?.slice(0, 4)
+
+const timeValue = new Emitter<string | null>('10:00')
+const time = new TimePicker({label: 'Start time', valueEmitter: timeValue})
+time.valueEmitter.get()?.slice(0, 2)
+
+const combinedValue = new Emitter<{date: string | null; time: string | null} | null>({
+    date: '2026-09-10',
+    time: '10:00',
+})
+const combined = new DateTimePicker({label: 'Schedule', valueEmitter: combinedValue})
+combined.valueEmitter.get()?.date?.slice(0, 4)
+
 new GroupPanel({header: 'Grouping', children: 'Controls'})
 new FrayApp({sizing: 'viewport', landmark: 'main', children: 'Application'})
 const appRuntime = createFrayRuntime()

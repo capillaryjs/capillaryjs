@@ -1,6 +1,8 @@
 import {Emitter} from '@sylwellsoftware/glue'
 import {
     Component,
+    DatePicker,
+    DateTimePicker,
     DescriptionItem,
     DescriptionList,
     DataTable,
@@ -13,6 +15,7 @@ import {
     RouteOutlet,
     SplitView,
     Textbox,
+    TimePicker,
     TreeView,
     createBrowserRouter,
     createFrayRuntime,
@@ -53,6 +56,30 @@ new DataTable<Row>({
     columns: [{field: 'name', render: (row) => row.name.toUpperCase()}],
     data: [{id: 1, name: 'Ada'}],
 })
+
+const date = new DatePicker({
+    label: 'Start date',
+    valueEmitter: new Emitter<string | null>('2026-09-10'),
+    onChange: (value) => {
+        value?.slice(0, 4)
+    },
+})
+date.valueEmitter.get()?.slice(0, 4)
+
+const time = new TimePicker({
+    label: 'Start time',
+    valueEmitter: new Emitter<string | null>('10:00'),
+})
+time.valueEmitter.get()?.slice(0, 2)
+
+const combined = new DateTimePicker({
+    label: 'Schedule',
+    valueEmitter: new Emitter<{date: string | null; time: string | null} | null>({
+        date: '2026-09-10',
+        time: '10:00',
+    }),
+})
+combined.valueEmitter.get()?.date?.slice(0, 4)
 
 const url = serializeTableQuery(new URL('https://example.test/rows'), {
     sort: {field: 'name', direction: 'desc'},

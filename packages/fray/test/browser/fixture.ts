@@ -3,6 +3,8 @@ import {
     Button,
     Checkbox,
     Component,
+    DatePicker,
+    DateTimePicker,
     DescriptionItem,
     DescriptionList,
     DataTable,
@@ -19,6 +21,7 @@ import {
     Tab,
     TabPanel,
     Textbox,
+    TimePicker,
     Toggle,
     Toolbar,
     TreeView,
@@ -151,6 +154,8 @@ FormsProbe.new().attachTo(requiredElement('#forms-root'))
 
 Button.registerStyles()
 Checkbox.registerStyles()
+DatePicker.registerStyles()
+DateTimePicker.registerStyles()
 Dropdown.registerStyles()
 DescriptionList.registerStyles()
 Dialog.registerStyles()
@@ -161,6 +166,7 @@ Sidebar.registerStyles()
 SplitView.registerStyles()
 TabPanel.registerStyles()
 Textbox.registerStyles()
+TimePicker.registerStyles()
 Toggle.registerStyles()
 Toolbar.registerStyles()
 TreeView.registerStyles()
@@ -306,6 +312,15 @@ class PanelReviewProbe extends Component {
     }
 }
 PanelReviewProbe.new().attachTo(requiredElement('#panel-review-root'))
+
+const datetimeValue = new Emitter<{date: string | null; time: string | null} | null>(null)
+DateTimePicker.new({
+    label: 'Schedule',
+    valueEmitter: datetimeValue,
+    minDate: '2026-01-01',
+    maxDate: '2026-12-31',
+    onChange: (next) => datetimeValue.set(next),
+}).attachTo(requiredElement('#datetime-root'))
 
 globalThis.frayTest = {
     setRevision(value) {

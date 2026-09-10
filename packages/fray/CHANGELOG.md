@@ -8,6 +8,11 @@ Versioning.
 
 ### Added
 
+- **Experimental:** `DatePicker`, `TimePicker`, and `DateTimePicker` components,
+  plus `CivilDate` and `TimeString` utility types and helpers. These are exported
+  from the package root and tagged `@experimental`; they may change in any
+  release until they stabilize and are not yet covered by the 1.x semver
+  guarantee.
 - `InfoPanel` and `InfoField` components for presenting key-value summary
   information in a bordered panel with an optional title. `InfoPanel` renders
   panel chrome (background, border, shadow) with a `Header` when a `title` is

@@ -95,6 +95,7 @@ custom elements.
 | Tables and filters | `DataTable`, `FilterPanel`, `TableHeader`, `TableHeaderCell` |
 | Dialog and status | `Dialog`, `ProgressBar` |
 | Presentation selection | `ThemePicker`, `ColorPicker` |
+| Date and time (experimental) | `DatePicker`, `DateTimePicker`, `TimePicker` |
 
 Every component and its key props are documented in the
 [Fray component reference](../packages/fray/README.md#component-reference).
