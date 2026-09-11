@@ -42,6 +42,11 @@ export const router = createBrowserRouter({
 });
 export const routes = Object.fromEntries(SCREENS.map(s => [s, defineRoute(s, s)])) as Record<Screen, ReturnType<typeof defineRoute>>;
 
+export const demoRoutes = {
+    projects: defineRoute("projects-demo", "projects-demo"),
+    teams: defineRoute("teams-demo", "teams-demo"),
+} as const;
+
 const defaults: Record<Screen, Parameters> = {
     overview: {scope: "all"},
     projects: {tab: "summary"},

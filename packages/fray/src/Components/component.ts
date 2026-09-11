@@ -393,6 +393,7 @@ export class Component<TProps extends ComponentProps = ComponentProps> {
             border-radius: var(--ui-border-radius);
         }
 
+        .app-footer.island,
         .island {
             box-sizing: border-box;
             min-width: 0;
