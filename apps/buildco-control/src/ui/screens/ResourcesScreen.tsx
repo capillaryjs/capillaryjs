@@ -16,7 +16,7 @@ export class ResourcesScreen extends ScreenView {
         : ["name", "project", "status", "unit", "planned", "ordered", "delivered", "used", "available", "due", "cost"];
 
     return (
-      <Panel island>
+      <Panel island allocation="flexible">
         <Metrics items={result?.metrics ?? []} />
         {this.tabs(
           [

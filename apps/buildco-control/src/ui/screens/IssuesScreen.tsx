@@ -50,8 +50,8 @@ export class IssuesScreen extends ScreenView {
       : ["name", "project", "status", "severity", "cause", "person", "due", "estimate", "cost"];
 
     return (
-      <>
-        <Panel island>
+      <div className="fray-layout-vertical fray-size-flexible">
+        <Panel island allocation="flexible">
           <Metrics items={result?.metrics ?? []} />
           {this.tabs(
             [["issues", "Issues"], ["delays", "Delays"]],
@@ -116,7 +116,7 @@ export class IssuesScreen extends ScreenView {
           )}
         </Panel>
         <RecordEditor />
-      </>
+      </div>
     );
   }
 }

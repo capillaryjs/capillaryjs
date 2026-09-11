@@ -4,7 +4,7 @@ import { createPlan } from "./plan.ts";
 import { simulate } from "./simulate.ts";
 import { validateScenario } from "./validate.ts";
 
-export const DEFAULT_SCENARIO: ScenarioGenerationOptions = { seed: 18431, anchorDate: "2026-09-01", profile: "demo" };
+export const DEFAULT_SCENARIO: ScenarioGenerationOptions = { seed: 18431, anchorDate: "2026-09-01", profile: "small" };
 
 export async function generateScenario(options: ScenarioGenerationOptions = DEFAULT_SCENARIO, onProgress?: (progress: number) => void): Promise<ScenarioData> {
   const context = createPlan(options);

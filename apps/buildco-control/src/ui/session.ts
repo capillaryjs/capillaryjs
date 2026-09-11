@@ -7,6 +7,9 @@ import type { ScenarioFetch, ScenarioFetchInit } from "../transport/contract.js"
 
 const initial = new URLSearchParams(location.search);
 export const transport = initial.get("transport") === "http" ? "http" : "embedded";
+const initialProfile = initial.get("profile");
+const defaultProfile: "small" | "demo" | "stress" = initialProfile === "demo" || initialProfile === "stress" ? initialProfile : "small";
+
 const pending = new Map<number, { resolve: (value: { status: number; body: unknown }) => void; reject: (error: Error) => void }>();
 let sequence = 0;
 const worker = transport === "embedded" ? new Worker(new URL("./scenario.worker.ts", import.meta.url), { type: "module" }) : undefined;
@@ -33,7 +36,7 @@ export const apiFetch: ScenarioFetch = async (url, init = {}) => {
     pending.set(id, { resolve: v => { init.signal?.removeEventListener?.("abort", abort); resolve(v); }, reject: e => { init.signal?.removeEventListener?.("abort", abort); reject(e); } });
     init.signal?.addEventListener?.("abort", abort, { once: true });
     const { signal: _signal, ...serializable } = init;
-    worker.postMessage({ id, url, init: serializable, profile: initial.get("profile") });
+    worker.postMessage({ id, url, init: serializable, profile: demo.profile.get() });
   });
   return { ok: response.status < 400, status: response.status, headers: {}, json: async () => response.body };
 };
@@ -62,7 +65,7 @@ export const bootstrap = new LiveQuery<Bootstrap>({ handler: new RestQueryHandle
 export const demo = {
   mode: new Emitter("live"), previous: new Emitter("keep"), disabled: new Emitter("off"), required: new Emitter("off"), error: new Emitter("off"),
   theme: new Emitter(localStorage.getItem("buildco-theme") || "minimal"), palette: new Emitter(localStorage.getItem("buildco-palette") || "ocean"),
-  seed: new Emitter("18431"), profile: new Emitter(initial.get("profile") === "small" ? "small" : "demo"), notice: new Emitter(""),
+  seed: new Emitter("18431"), profile: new Emitter(defaultProfile), notice: new Emitter(""),
   progress: new Emitter<number | null>(null),
 };
 export const flags = {

@@ -25,7 +25,7 @@ export class QueueScreen extends ScreenView {
         primaryLabel="Work conditions"
         secondaryLabel="Matching work"
         primary={
-          <Sidebar island ariaLabel="Work conditions" header={<h2>Build your work queue</h2>}>
+          <Sidebar island allocation="flexible" ariaLabel="Work conditions" header={<h2>Build your work queue</h2>}>
             <Toolbar label="Work queue filters">
               {this.text("search", "Work")}
               {this.project()}
@@ -64,6 +64,7 @@ export class QueueScreen extends ScreenView {
         secondary={
           <Panel
             island
+            allocation="flexible"
             header={
               <div className="section-heading">
                 <h2>Matching work</h2>

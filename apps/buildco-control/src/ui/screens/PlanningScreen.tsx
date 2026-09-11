@@ -6,8 +6,8 @@ import { ScreenView, options } from "./base.tsx";
 export class PlanningScreen extends ScreenView {
   protected renderContent(result?: ViewResult): FrayChild {
     return (
-      <>
-        <Panel island>
+      <div className="fray-layout-vertical fray-size-flexible">
+        <Panel island allocation="natural">
           <Toolbar label="Planning filters">
             {this.text("focus", "Focus date", "date")}
             {this.project()}
@@ -27,11 +27,11 @@ export class PlanningScreen extends ScreenView {
             {this.check("critical", "Critical / at-risk only")}
           </Toolbar>
         </Panel>
-        <Panel island header={<h2>Phase schedule</h2>}>
+        <Panel island allocation="flexible" header={<h2>Phase schedule</h2>}>
           {this.table(["name", "project", "status", "progress", "start", "finish", "forecast", "variance"], result)}
           {this.selected(result)}
         </Panel>
-      </>
+      </div>
     );
   }
 }

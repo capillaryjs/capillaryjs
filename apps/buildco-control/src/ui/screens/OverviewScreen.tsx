@@ -17,9 +17,9 @@ export class OverviewScreen extends ScreenView {
 
   protected renderContent(result?: ViewResult): FrayChild {
     return (
-      <>
-        <Metrics items={result?.metrics ?? []} />
-        <div className="overview-grid">
+      <div className="fray-layout-vertical fray-size-flexible">
+        <div className="fray-size-natural"><Metrics items={result?.metrics ?? []} /></div>
+        <div className="overview-grid fray-size-flexible">
           <Panel
             island
             header={
@@ -94,7 +94,7 @@ export class OverviewScreen extends ScreenView {
             )}
           </Panel>
         </div>
-      </>
+      </div>
     );
   }
 }

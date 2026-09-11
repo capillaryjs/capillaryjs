@@ -10,7 +10,7 @@ export class AnalyticsScreen extends ScreenView {
     const trends = this.field("tab").get() === "trends";
 
     return (
-      <Panel island>
+      <Panel island allocation="flexible">
         {this.tabs(
           [
             ["distribution", "Distribution"],

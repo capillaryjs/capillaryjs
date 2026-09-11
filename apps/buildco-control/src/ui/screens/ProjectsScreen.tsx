@@ -57,7 +57,7 @@ export class ProjectsScreen extends ScreenView {
         primaryLabel="Project structure"
         secondaryLabel="Scope detail"
         primary={
-          <Sidebar island ariaLabel="Project structure" header={<h2>Project structure</h2>}>
+          <Sidebar island allocation="flexible" ariaLabel="Project structure" header={<h2>Project structure</h2>}>
             {this.select("project", "Project", this.read(bootstrap)?.choices.projects ?? [], false)}
             <Textbox
               label="Find a scope"
@@ -81,7 +81,7 @@ export class ProjectsScreen extends ScreenView {
           </Sidebar>
         }
         secondary={
-          <Panel island>
+          <Panel island allocation="flexible">
             <Metrics items={result?.metrics ?? []} />
             {this.tabs(
               [

@@ -1,5 +1,6 @@
 import { ConstructionScenario } from "../server/scenario.ts";
 import { DEFAULT_SCENARIO } from "../generator/generate.ts";
+import type { ScenarioGenerationOptions } from "../domain/model.ts";
 import { createScenarioFetch } from "../transport/embedded/createScenarioFetch.js";
 import type { ScenarioFetch, ScenarioFetchInit } from "../transport/contract.js";
 
@@ -13,7 +14,7 @@ self.onmessage = async (event: MessageEvent<{ id: number; url?: string; init?: S
   const controller = new AbortController(); controllers.set(id, controller);
   try {
     scenario ??= await ConstructionScenario.create(
-      { ...DEFAULT_SCENARIO, profile: profile === "small" ? "small" : "demo" },
+      { ...DEFAULT_SCENARIO, profile: (profile && ["small", "demo", "stress"].includes(profile) ? profile : DEFAULT_SCENARIO.profile) as ScenarioGenerationOptions["profile"] },
       (progress) => self.postMessage({ id, progress: Math.round(progress * 100) })
     );
     scenarioFetch ??= createScenarioFetch({
