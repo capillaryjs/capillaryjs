@@ -8,6 +8,10 @@ Versioning.
 
 ### Added
 
+- Added a packaged application composition guide covering workflow-led screen
+  design, persistent shells, state lifetime, layout and scrolling contracts,
+  content composition, and component reuse, alongside the repository layout guide.
+
 - Added bounded layout allocation traits: `fray-layout-horizontal`,
   `fray-layout-vertical`, `fray-size-natural`, `fray-size-flexible`, and
   `fray-scroll`. `FrayApp` accepts root `layout`; `Header`, `NavigationBar`,

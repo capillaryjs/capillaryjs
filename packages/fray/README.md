@@ -700,7 +700,8 @@ legacy browsers, or a concurrent rendering scheduler.
 
 - [Public API surface](../../docs/API_SURFACE.md)
 - [Architecture](../../docs/architecture.md)
-- [Application layout guide](docs/application-layout-guide.md)
+- [Application composition guide](docs/application-composition-guide.md) — design screens, component boundaries, state lifetimes, and layouts.
+- [Repository layout guide](docs/application-layout-guide.md) — organize application source by responsibility and feature.
 - [Theme contract](themes/README.md)
 - [Color palette contract](colors/README.md)
 - [Release history](CHANGELOG.md)

@@ -2,6 +2,9 @@
 
 These guidelines describe a recommended source layout for applications built with Fray and Glue. They are conventions rather than framework requirements.
 
+For deciding how screens, components, state lifetimes, and visual layouts fit
+together, see the companion [application composition guide](application-composition-guide.md).
+
 The main goals are:
 
 * make application structure easy to understand by browsing the repository;
