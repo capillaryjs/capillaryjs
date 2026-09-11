@@ -2,7 +2,9 @@ import {
     Button,
     Component,
     Dialog,
+    DialogActions,
     Sidebar,
+    SidebarToolbar,
     Toolbar,
     TreeItem,
     TreeView,
@@ -35,7 +37,8 @@ export class ScopeSidebar extends Component<ScopeSidebarProps> {
             island
             className="meridian-scope"
             header="Scope"
-            toolbar={<Toolbar label="Scope actions">
+        >
+            <SidebarToolbar><Toolbar label="Scope actions">
                 <Button
                     label="Clear scope"
                     disabled={live(model.forceDisabled)}
@@ -44,8 +47,7 @@ export class ScopeSidebar extends Component<ScopeSidebarProps> {
                         'scope clear requested',
                     )}
                 />
-            </Toolbar>}
-        >
+            </Toolbar></SidebarToolbar>
             <div class="scope-content">
                 <TreeView<Scope>
                     className="scope-tree"
@@ -98,11 +100,12 @@ export class ScopeSidebar extends Component<ScopeSidebarProps> {
                 title="Clear scope filters?"
                 description="This resets site and status focus in every work area."
                 valueEmitter={model.clearScopeDialogOpen}
-                actions={<Button
+            >
+                <DialogActions><Button
                     label="Clear filters"
                     onClick={() => model.clearScopeFilters()}
-                />}
-            />
+                /></DialogActions>
+            </Dialog>
         </Sidebar>
     }
 }

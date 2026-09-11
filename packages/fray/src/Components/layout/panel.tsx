@@ -2,16 +2,21 @@ import {Component, css} from '../component.js'
 import type {ComponentProps, FrayChild, LivePropContract} from '../component.js'
 import type {FrayLayoutParticipantProps} from './layoutTraits.js'
 import {Header} from './header.js'
+import {DeclarativeRegion, readDeclarativeRegions} from './declarativeRegion.js'
 import {controlId, layoutParticipantClass} from '../controlUtils.js'
 
 const panelLiveProps = ['disabled'] as const
+
+/** Toolbar content rendered between a Panel heading and its ordinary children. */
+export class PanelToolbar extends DeclarativeRegion {}
 
 export interface PanelProps extends ComponentProps,
     FrayLayoutParticipantProps,
     LivePropContract<(typeof panelLiveProps)[number]> {
     id?: string | number | null
     header?: FrayChild
-    toolbar?: FrayChild
+    /** @deprecated Supply `<PanelToolbar>` as a direct child. */
+    toolbar?: never
     orientation?: 'horizontal' | 'vertical'
     disabled?: boolean
 }
@@ -28,13 +33,18 @@ export class Panel extends Component<PanelProps> {
     }
 
     render() {
+        if (this.props.toolbar != null) {
+            throw new Error('Panel toolbar content must use a direct PanelToolbar child')
+        }
         const {
             header = null,
-            toolbar = null,
             children = [],
             orientation = 'vertical',
             disabled = false,
         } = this.props
+        const {content, regions} = readDeclarativeRegions('Panel', children, {
+            toolbar: PanelToolbar,
+        })
         if (!['horizontal', 'vertical'].includes(orientation)) {
             throw new TypeError('Panel orientation must be horizontal or vertical')
         }
@@ -55,13 +65,13 @@ export class Panel extends Component<PanelProps> {
             aria-labelledby={header == null ? null : this.headerId}
         >
             {title}
-            {toolbar}
-            <fray-content className={orientation}>{children}</fray-content>
+            {regions.toolbar ?? null}
+            <fray-content className={orientation}>{content}</fray-content>
         </Host>
     }
 
     static override hostName = 'panel'
-    static override dependencies = [Header]
+    static override dependencies = [Header, PanelToolbar]
 
     static css = css`
         & {

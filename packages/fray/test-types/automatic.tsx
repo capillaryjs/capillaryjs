@@ -8,6 +8,8 @@ import {
     RadioGroup,
     RouteLink,
     Sidebar,
+    SplitPrimary,
+    SplitSecondary,
     SplitView,
     Textbox,
     defineRoute,
@@ -36,7 +38,10 @@ const inputRef: {current: HTMLInputElement | null} = {current: null}
 const input = <input aria-label="Name" ref={inputRef} />
 const sidebar = <Sidebar header="Requests" ariaLabel="Fallback">Request one</Sidebar>
 const details = <DescriptionList><DescriptionItem term="Owner" value="Team" /></DescriptionList>
-const split = <SplitView primary="Navigation" secondary="Content" />
+const split = <SplitView>
+    <SplitPrimary>Navigation</SplitPrimary>
+    <SplitSecondary>Content</SplitSecondary>
+</SplitView>
 const progress = <ProgressBar label="Refresh" value={2} max={4} />
 const overviewRoute = defineRoute('overview')
 const routedLink = <RouteLink to={overviewRoute}>Overview</RouteLink>
@@ -58,6 +63,10 @@ const invalidValueBinding = <input bind:value={numericValue} />
 const invalidCheckedBinding = <input bind:checked={inputValue} />
 // @ts-expect-error RadioGroup options are structural and do not accept live bindings.
 const invalidLiveRadioOptions = <RadioGroup options={live(radioOptions)} />
+// @ts-expect-error SplitView pane content uses parent-specific region children.
+const invalidSplitContentProps = <SplitView primary="Navigation" secondary="Content" />
+// @ts-expect-error Panel toolbar content uses a PanelToolbar child.
+const invalidPanelToolbarProp = <Panel toolbar={<Button label="Save" />} />
 // @ts-expect-error RadioGroup options do not accept a raw emitter either.
 const invalidRawRadioOptions = <RadioGroup options={radioOptions} />
 // @ts-expect-error RadioGroup labels are not declared live inputs.

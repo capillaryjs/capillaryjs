@@ -2,10 +2,12 @@ import {Emitter} from '@sylwellsoftware/glue'
 import {
     BlockGraph,
     CategoryHidePanel,
+    CollapsibleOptionGroup,
     createBlockSelection,
     createSplitSelection,
     staticCriterion,
 } from '@sylwellsoftware/fray-visualization'
+import {OptionGroupHeaderEnd} from '@sylwellsoftware/fray'
 
 type Row = {id: number; state: 'open' | 'closed'}
 const rows$ = new Emitter<readonly Row[]>([{id: 1, state: 'open'}])
@@ -28,6 +30,10 @@ const selection = createBlockSelection(rows$, splits.activeSplits$)
 
 class App extends CategoryHidePanel<Row> {}
 new App({items$: rows$, criteria: [state]})
+const collapsible = <CollapsibleOptionGroup label="Kinds">
+    <OptionGroupHeaderEnd>2 visible</OptionGroupHeaderEnd>
+    Options
+</CollapsibleOptionGroup>
 new BlockGraph({model: selection})
 
 // @ts-expect-error BlockGraph requires a block-selection model.

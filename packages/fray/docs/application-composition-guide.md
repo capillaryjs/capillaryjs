@@ -428,7 +428,7 @@ Use this decision table when similar markup appears:
 | What is actually shared? | A useful starting point |
 | --- | --- |
 | Styling, spacing, or widths, with varying anatomy | Native markup and shared CSS traits/tokens |
-| A fixed arrangement with a few meaningful content regions | A shared layout component accepting content |
+| A fixed arrangement with a few meaningful content regions | A shared layout component accepting parent-specific named region children |
 | An accessible interaction or recognizable widget | A component such as `GroupPanel`, `Sidebar`, or a domain-specific presentation |
 | A substantial part of one screen | A component colocated with that screen, even if it has only one caller |
 | Mostly another component's props, passed straight through | Keep the direct use unless the wrapper adds a meaningful contract |
@@ -445,6 +445,30 @@ component that owns a recognizable set of application filters and their reset
 interaction provides a stronger contract, even if its implementation is small.
 
 ### Pass content as content
+
+Use props to configure a component. Use ordinary children for ordered content
+in one region. Use parent-specific named region children when a template has
+several distinct content roles.
+
+Configuration props include identifiers, short labels, state bindings,
+callbacks, allocation modes, accessibility names, and other values that remain
+easy to read on the component's opening tag. A compact heading such as
+`header="Display options"` is also reasonable there. Props should rarely carry
+a substantial `FrayChild` tree: important structure becomes punctuation-heavy
+and disappears from the visible parent/child hierarchy.
+
+Choose the content API from what the parent does with it:
+
+| Content relationship | Preferred API |
+| --- | --- |
+| One body whose children render in authored sequence | Ordinary children |
+| A homogeneous ordered collection | Ordered declarative item children such as `Tab` |
+| Several regions with different roles | Parent-specific declarative region children |
+| Elements genuinely generated from metadata | A typed data/model prop |
+
+If a component simply renders several supplied elements in one panel body,
+ordinary children are already the ordered contract. Do not assign special
+meaning to child indexes unnecessarily:
 
 `GroupPanel` owns its labeled group structure and presentation. Its caller owns
 the controls. For example, `state.colorBy` and `state.relativeTo` below are
@@ -481,11 +505,118 @@ control capability. Prefer the existing composition when the structure is
 authored directly. Data-driven definitions are appropriate when the controls
 really come from metadata or when the component owns a meaningful model.
 
-Named content props are also useful. `Panel.header` and `Panel.toolbar`, or
-`SplitView.primary` and `SplitView.secondary`, describe a small, stable anatomy.
-Application components can similarly accept `FrayChild` inputs alongside
-`children`. Keep each region's inner controls and their props with its content;
-a layout should not need every label, option, and callback those controls use.
+When regions have different meanings, name them with parent-specific marker
+components. Current Fray components follow this convention:
+
+```tsx
+<SplitView direction="horizontal" primarySize="18rem">
+    <SplitPrimary>
+        <RecordNavigator selection={selection} />
+    </SplitPrimary>
+    <SplitSecondary>
+        <RecordSummary selection={selection} />
+        <RecordHistory selection={selection} />
+    </SplitSecondary>
+</SplitView>
+```
+
+`PanelToolbar`, `SidebarToolbar`, `DialogActions`, and
+`OptionGroupHeaderEnd` provide the corresponding named insertion points for
+those components. Their contents remain nested in the call site instead of
+being hidden in `toolbar={...}` or `actions={...}` props. Short heading and
+label props remain configuration:
+
+```tsx
+<Panel header="Matching records">
+    <PanelToolbar>
+        <Toolbar label="Result actions">
+            <Button label="Export" onClick={exportRecords} />
+        </Toolbar>
+    </PanelToolbar>
+    <RecordsResults />
+</Panel>
+```
+
+Use positional region assignment only when every position receives the same
+treatment and ordering is the complete meaning—for example, an equal-panel
+component that wraps each ordinary child in the same panel. If “first” means
+navigation and “second” means workspace, explicit names are more resilient and
+readable.
+
+Prefer semantic marker names such as `ShellHeader` and `ShellContent` over a
+universal `<Slot name="header">`. The supported anatomy is then visible in the
+import and TSX types; two parents cannot silently give the same string name
+different contracts. The shared parsing mechanism may be generic, but the
+public composition language should describe the region's role.
+
+### Define a component with named regions
+
+Application-defined templates can extend `DeclarativeRegion` for each role and
+use `readDeclarativeRegions()` to consume their direct children:
+
+```tsx
+class ShellHeader extends DeclarativeRegion {}
+class ShellContent extends DeclarativeRegion {}
+class ShellFooter extends DeclarativeRegion {}
+
+class ApplicationShell extends Component {
+    render() {
+        const {regions} = readDeclarativeRegions(
+            'ApplicationShell',
+            this.props.children,
+            {
+                header: ShellHeader,
+                content: ShellContent,
+                footer: ShellFooter,
+            },
+            {allowContent: false, required: ['content']},
+        )
+
+        return <div className="application-shell fray-layout-vertical">
+            {regions.header == null ? null : <header>{regions.header}</header>}
+            <main className="fray-size-flexible">{regions.content}</main>
+            {regions.footer == null ? null : <footer>{regions.footer}</footer>}
+        </div>
+    }
+
+    static dependencies = [ShellHeader, ShellContent, ShellFooter]
+}
+```
+
+The resulting use keeps the supplied anatomy visible:
+
+```tsx
+<ApplicationShell>
+    <ShellHeader>
+        <Brand />
+        <NavigationBar label="Application sections" items={navigationItems} />
+    </ShellHeader>
+    <ShellContent>
+        <RouteOutlet views={routes} />
+    </ShellContent>
+    <ShellFooter>
+        <ConnectionStatus />
+    </ShellFooter>
+</ApplicationShell>
+```
+
+Region markers are non-visual instructions, not additional surfaces or DOM
+wrappers. They must be direct children of the parent that documents them.
+`readDeclarativeRegions()` preserves ordinary content order, rejects duplicate
+or foreign region markers, can reject ordinary content, and can require named
+regions. Keep the region set small and stable. Put reactive values inside a
+region rather than making the template anatomy itself a changing stream.
+
+A named region exposes where caller-owned content belongs; it does not reveal
+or transfer the parent's other responsibilities. The parent still owns the
+rendered landmarks, allocation, scrolling, accessibility wiring, and region
+order. Source order should normally match rendered and keyboard order.
+
+Expose only genuine variability. If every caller receives the same application
+header or footer, render it inside the shell rather than adding a region merely
+because the structure has a name. A single-use shell can remain direct markup
+in the application root; named regions do not make an otherwise unnecessary
+abstraction valuable.
 
 Prefer a few meaningful regions over a universal panel whose many options
 change its topology. If callers repeatedly need to inspect internals or target

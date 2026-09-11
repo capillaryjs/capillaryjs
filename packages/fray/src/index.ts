@@ -12,6 +12,7 @@ export * from './Components/layout/optionGroup.js'
 export * from './Components/layout/optionsPanel.js'
 export * from './Components/layout/panel.js'
 export * from './Components/layout/sidebar.js'
+export * from './Components/layout/declarativeRegion.js'
 export * from './Components/layout/splitView.js'
 export type {
     FrayLayoutAllocation,

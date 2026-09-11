@@ -1,4 +1,4 @@
-import {Button, Component, ListView, Panel, live} from '@sylwellsoftware/fray'
+import {Button, Component, ListView, Panel, PanelToolbar, live} from '@sylwellsoftware/fray'
 import type {ComponentProps, FrayChild} from '@sylwellsoftware/fray'
 import type {MeridianModel} from '../../model/MeridianModel.js'
 import type {Change} from '../../model/types.js'
@@ -14,13 +14,13 @@ export class AttentionQueuePanel extends Component<AttentionQueuePanelProps> {
             island
             className="attention-queue-panel"
             header="Attention queue"
-            toolbar={<Button
+        >
+            <PanelToolbar><Button
                 label="Refresh data"
                 busy={live(model.refreshing)}
                 busyLabel="Refreshing…"
                 onClick={() => model.refreshData()}
-            />}
-        >
+            /></PanelToolbar>
             <ListView
                 className="attention-list"
                 label="Changes in the attention profile"

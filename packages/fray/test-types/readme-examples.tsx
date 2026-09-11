@@ -12,6 +12,7 @@ import {
     Panel,
     RadioGroup,
     Sidebar,
+    SidebarToolbar,
     Textbox,
     createFrayRuntime,
     live,
@@ -28,8 +29,8 @@ interface BadgeProps extends ComponentProps {
 
 const sidebarExample = <Sidebar
     header="Projects"
-    toolbar={<Textbox label="Search projects" />}
 >
+    <SidebarToolbar><Textbox label="Search projects" /></SidebarToolbar>
     <ul><li>Release automation</li></ul>
 </Sidebar>
 

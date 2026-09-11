@@ -1,4 +1,4 @@
-import {Button, Component, Panel, Toolbar, live} from '@sylwellsoftware/fray'
+import {Button, Component, Panel, PanelToolbar, Toolbar, live} from '@sylwellsoftware/fray'
 import type {ComponentProps, FrayChild} from '@sylwellsoftware/fray'
 import type {MeridianModel} from '../../model/MeridianModel.js'
 import type {Change} from '../../model/types.js'
@@ -15,11 +15,11 @@ export class AffectedAssetsPanel extends Component<AffectedAssetsPanelProps> {
             island
             className="affected-assets-panel"
             header="Affected assets"
-            toolbar={<Toolbar label="Affected asset actions">
+        >
+            <PanelToolbar><Toolbar label="Affected asset actions">
                 <Button label="Add affected asset" disabled />
                 <Button label="Remove affected asset" disabled />
-            </Toolbar>}
-        >
+            </Toolbar></PanelToolbar>
             <p class="supporting-copy">
                 Asset hierarchy is pending; this list preserves the current source data.
             </p>

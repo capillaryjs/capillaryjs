@@ -1,4 +1,4 @@
-import {Component, Panel, Toolbar} from '@sylwellsoftware/fray'
+import {Component, Panel, PanelToolbar, Toolbar} from '@sylwellsoftware/fray'
 import type {ComponentProps, FrayChild} from '@sylwellsoftware/fray'
 import {LineGraph} from '@sylwellsoftware/fray-visualization'
 import type {MeridianModel} from '../../model/MeridianModel.js'
@@ -14,7 +14,8 @@ export class ChangeHistory extends Component<ChangeHistoryProps> {
             island
             className="history-panel"
             header="Change history"
-            toolbar={<Toolbar label="Chart presentation" className="history-options">
+        >
+            <PanelToolbar><Toolbar label="Chart presentation" className="history-options">
                 <label>
                     <input type="checkbox" bind:checked={model.historyStacked} />
                     Stacked areas
@@ -23,8 +24,7 @@ export class ChangeHistory extends Component<ChangeHistoryProps> {
                     <input type="checkbox" bind:checked={model.historySmooth} />
                     Smooth curves
                 </label>
-            </Toolbar>}
-        >
+            </Toolbar></PanelToolbar>
             <LineGraph
                 shapes$={model.historyShapes}
                 stacked$={model.historyStacked}

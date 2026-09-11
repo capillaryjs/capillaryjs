@@ -9,6 +9,7 @@ import {
     DescriptionList,
     DataTable,
     Dialog,
+    DialogActions,
     Dropdown,
     GroupPanel,
     FrayApp,
@@ -20,6 +21,9 @@ import {
     RouteQuery,
     RouteValue,
     Sidebar,
+    SidebarToolbar,
+    SplitPrimary,
+    SplitSecondary,
     SplitView,
     Tab,
     TabPanel,
@@ -136,15 +140,20 @@ routeParameter(projectRoute, 42)
 new Sidebar({
     header: 'Requests',
     ariaLabel: 'Fallback name',
-    toolbar: h(Button, {label: 'Refresh'}),
-    children: ['Request one'],
+    children: [
+        h(SidebarToolbar, null, h(Button, {label: 'Refresh'})),
+        'Request one',
+    ],
 })
 
 new DescriptionList({
     label: 'Details',
     children: [h(DescriptionItem, {term: 'Severity', value: 'High'})],
 })
-new SplitView({primary: 'Tree', secondary: 'Details', direction: 'horizontal'})
+new SplitView({
+    direction: 'horizontal',
+    children: [h(SplitPrimary, null, 'Tree'), h(SplitSecondary, null, 'Details')],
+})
 new ProgressBar({label: 'Refresh', valueEmitter: new Emitter<number | null>(1), max: 4})
 new Button({label: 'Refresh', busy: true, busyLabel: 'Refreshing'})
 
@@ -210,7 +219,11 @@ new TreeView<Row>({
         node.value?.name.toUpperCase()
     },
 })
-new Dialog({title: 'Confirm', valueEmitter: new Emitter(false), children: 'Continue?'})
+new Dialog({
+    title: 'Confirm',
+    valueEmitter: new Emitter(false),
+    children: ['Continue?', h(DialogActions, null, h(Button, {label: 'Apply'}))],
+})
 new DataTable<Row>({
     data: [{id: 1, name: 'Ada'}],
     selectedItemEmitter: selectedRow,

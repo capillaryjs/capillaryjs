@@ -1,5 +1,5 @@
 import type {FrayChild} from "@sylwellsoftware/fray";
-import {Button, Component, Dialog, Dropdown, live, Textbox} from "@sylwellsoftware/fray";
+import {Button, Component, Dialog, DialogActions, Dropdown, live, Textbox} from "@sylwellsoftware/fray";
 import {Emitter} from "@sylwellsoftware/glue";
 import type {Choice, Mutation, Row} from "../../api/ScenarioApi.ts";
 import {human} from "../../api/ScenarioApi.ts";
@@ -42,10 +42,10 @@ export class RecordEditor extends Component {
         const title = resolving ? delay ? "End delay" : "Resolve issue" : `${current?.action === "edit" ? "Edit" : "Report"} ${delay ? "delay" : "issue"}`;
         return <Dialog title={title} valueEmitter={this.open}
                        description="Changes apply to this shared in-memory scenario. Regenerating the scenario resets edits."
-                       onClose={() => editor.set(null)}
-                       actions={<><Button label="Cancel" disabled={busy} onClick={() => editor.set(null)}/><Button
-                           label={resolving ? title : "Save record"} busy={live(mutate.isRunning)} disabled={busy}
-                           onClick={() => void this.save()}/></>}>
+                       onClose={() => editor.set(null)}>
+            <DialogActions><Button label="Cancel" disabled={busy} onClick={() => editor.set(null)}/><Button
+                label={resolving ? title : "Save record"} busy={live(mutate.isRunning)} disabled={busy}
+                onClick={() => void this.save()}/></DialogActions>
             {error && <p role="alert" className="fetch-notice error">{error}</p>}
             {resolving ? <p>Mark “{current?.row?.name}”
                     as {delay ? "ended" : "resolved"} on {bootstrap.get()?.metadata.anchorDate}?</p> :

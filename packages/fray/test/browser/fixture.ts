@@ -9,6 +9,7 @@ import {
     DescriptionList,
     DataTable,
     Dialog,
+    DialogActions,
     Dropdown,
     FilterMode,
     Fragment,
@@ -17,6 +18,9 @@ import {
     ProgressBar,
     RouteOutlet,
     Sidebar,
+    SidebarToolbar,
+    SplitPrimary,
+    SplitSecondary,
     SplitView,
     Tab,
     TabPanel,
@@ -204,9 +208,12 @@ Sidebar.new({
     id: 'browser-sidebar',
     className: 'browser-sidebar',
     header: 'Scrollable requests',
-    toolbar: h(Toolbar, {label: 'Request actions'}, h(Button, {label: 'Refresh requests'})),
-    children: h('ol', null, Array.from({length: 40}, (_unused, index) =>
-        h('li', {key: index}, `Change request ${index + 1}`))),
+    children: [
+        h(SidebarToolbar, null,
+            h(Toolbar, {label: 'Request actions'}, h(Button, {label: 'Refresh requests'}))),
+        h('ol', null, Array.from({length: 40}, (_unused, index) =>
+            h('li', {key: index}, `Change request ${index + 1}`))),
+    ],
 }).attachTo(requiredElement('#sidebar-root'))
 
 let destroyRouting = () => 0
@@ -266,22 +273,23 @@ Panel.new({
         h(SplitView, {
             primaryLabel: 'Project navigation',
             secondaryLabel: 'Refresh status',
-            primary: h(TreeView, {
-                label: 'Security projects',
-                nodes: [{
-                    id: 'workspace',
-                    label: 'Workspace',
-                    children: [{id: 'service-alpha', label: 'Service Alpha'}],
-                }, {id: 'tools', label: 'Tools'}],
-                selectedKeyEmitter: primitiveTreeSelection,
-                expandedKeysEmitter: primitiveTreeExpansion,
-            }),
-            secondary: h(ProgressBar, {
-                label: 'Projects processed',
-                valueEmitter: primitiveProgress,
-                max: 4,
-            }),
-        }),
+        }, [
+            h(SplitPrimary, null, h(TreeView, {
+                    label: 'Security projects',
+                    nodes: [{
+                        id: 'workspace',
+                        label: 'Workspace',
+                        children: [{id: 'service-alpha', label: 'Service Alpha'}],
+                    }, {id: 'tools', label: 'Tools'}],
+                    selectedKeyEmitter: primitiveTreeSelection,
+                    expandedKeysEmitter: primitiveTreeExpansion,
+                })),
+            h(SplitSecondary, null, h(ProgressBar, {
+                    label: 'Projects processed',
+                    valueEmitter: primitiveProgress,
+                    max: 4,
+                })),
+        ]),
         h(Button, {label: 'Refresh', busy: true, busyLabel: 'Refreshing…'}),
         h(Button, {
             label: 'Open reset dialog',
@@ -292,11 +300,13 @@ Panel.new({
             description: 'Restore deterministic fixture data.',
             valueEmitter: primitiveDialogOpen,
             closeLabel: 'Keep data',
-            actions: h(Button, {
+        }, [
+            'No durable records are changed.',
+            h(DialogActions, null, h(Button, {
                 label: 'Confirm reset',
                 onClick: () => primitiveDialogOpen.set(false),
-            }),
-        }, 'No durable records are changed.'),
+            })),
+        ]),
     ],
 }).attachTo(requiredElement('#record-primitives-root'))
 

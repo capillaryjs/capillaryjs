@@ -1,5 +1,12 @@
-import type {FrayChild, TableColumn} from "@sylwellsoftware/fray";
-import {Button, DescriptionItem, DescriptionList, ProgressBar} from "@sylwellsoftware/fray";
+import type {ComponentProps, FrayChild, TableColumn} from "@sylwellsoftware/fray";
+import {
+    Button,
+    DeclarativeRegion,
+    DescriptionItem,
+    DescriptionList,
+    ProgressBar,
+    readDeclarativeRegions
+} from "@sylwellsoftware/fray";
 import type {Detail, Metric, Row} from "../../api/ScenarioApi.ts";
 import {human} from "../../api/ScenarioApi.ts";
 import {openProject} from "../../app/routing.ts";
@@ -98,12 +105,19 @@ export function columns(fields: string[]): TableColumn<Row>[] {
     }));
 }
 
-export function DetailView({detail, actions}: { detail: Detail; actions?: FrayChild }) {
+export class DetailActions extends DeclarativeRegion {}
+
+interface DetailViewProps extends ComponentProps {
+    detail: Detail;
+}
+
+export function DetailView({detail, children}: DetailViewProps) {
+    const {regions} = readDeclarativeRegions("DetailView", children, {actions: DetailActions});
     return <section className="detail" aria-label={`${detail.title} details`}>
         <div className="section-heading">
             <div><span className="eyebrow">Selected record</span><h2>{detail.title}</h2><p
                 className="muted">{detail.subtitle}</p></div>
-            {actions}</div>
+            {regions.actions}</div>
         <DescriptionList label="Record facts">{detail.fields.map(f => <DescriptionItem key={f.label} term={f.label}
                                                                                        value={format(f.value, f.format)}/>)}</DescriptionList>
         {detail.projectId && <Button label="Open in Projects ↗" onClick={() => openProject({

@@ -168,6 +168,26 @@ For non-reactive use, `buildBlockLayout()` performs the pure calculation,
 
 ## Component reference
 
+### CollapsibleOptionGroup
+
+`CollapsibleOptionGroup` extends Fray's `OptionGroup` with disclosure behavior.
+Its ordinary children are the ordered option content. Supply optional trailing
+legend content with Fray's parent-specific `OptionGroupHeaderEnd` marker:
+
+```tsx
+<CollapsibleOptionGroup label="Severity">
+    <OptionGroupHeaderEnd>
+        <small>4 visible</small>
+    </OptionGroupHeaderEnd>
+    <Checkbox label="Critical" value="critical" />
+    <Checkbox label="High" value="high" />
+</CollapsibleOptionGroup>
+```
+
+`collapsed` configures only the initial disclosure state. The marker is a
+direct-child declaration consumed by the option group; it does not render an
+extra component host.
+
 ### CategoryHidePanel
 
 `CategoryHidePanel<T>` renders collapsible criterion groups, per-category

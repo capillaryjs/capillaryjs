@@ -8,15 +8,20 @@ import {
     invoke,
 } from '../controlUtils.js'
 import type {ValueControlProps, ValueEmitter} from '../controlUtils.js'
+import {DeclarativeRegion, readDeclarativeRegions} from '../layout/declarativeRegion.js'
 
 const dialogLiveProps = ['showCloseButton'] as const
+
+/** Caller-defined actions rendered in a Dialog footer before its close button. */
+export class DialogActions extends DeclarativeRegion {}
 
 export interface DialogProps extends ValueControlProps<boolean>,
     LivePropContract<(typeof dialogLiveProps)[number]> {
     id?: string | number | null
     title: FrayChild
     description?: FrayChild
-    actions?: FrayChild
+    /** @deprecated Supply `<DialogActions>` as a direct child. */
+    actions?: never
     closeLabel?: string
     showCloseButton?: boolean
     initialFocusRef?: Ref<HTMLElement>
@@ -47,14 +52,19 @@ export class Dialog extends Component<DialogProps> {
     }
 
     render(): FrayChild {
+        if (this.props.actions != null) {
+            throw new Error('Dialog action content must use a direct DialogActions child')
+        }
         const {
             title,
             description,
-            actions,
             closeLabel = 'Close',
             showCloseButton = true,
             children = [],
         } = this.props
+        const {content, regions} = readDeclarativeRegions('Dialog', children, {
+            actions: DialogActions,
+        })
         const Host = this.Host
         return <Host className={componentClass(this.props) || null}>
             <dialog
@@ -70,9 +80,9 @@ export class Dialog extends Component<DialogProps> {
                 {description == null ? null : <p id={this.descriptionId}>
                     {description}
                 </p>}
-                <fray-content>{children}</fray-content>
-                {actions == null && !showCloseButton ? null : <footer>
-                    {actions}
+                <fray-content>{content}</fray-content>
+                {regions.actions == null && !showCloseButton ? null : <footer>
+                    {regions.actions}
                     {showCloseButton ? <Button
                         label={closeLabel}
                         onClick={() => this.requestClose()}
@@ -112,7 +122,7 @@ export class Dialog extends Component<DialogProps> {
     }
 
     static override hostName = 'dialog'
-    static override dependencies = [Button]
+    static override dependencies = [Button, DialogActions]
 
     static override css = css`
         & > dialog {

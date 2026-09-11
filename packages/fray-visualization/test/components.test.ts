@@ -5,11 +5,12 @@ import {fileURLToPath} from 'node:url'
 import {Window} from 'happy-dom'
 
 import {Emitter, FetchState} from '@sylwellsoftware/glue'
-import {GroupPanel} from '@sylwellsoftware/fray'
+import {GroupPanel, OptionGroupHeaderEnd, h} from '@sylwellsoftware/fray'
 
 import {
     BlockGraph,
     CategoryHidePanel,
+    CollapsibleOptionGroup,
     LineGraph,
     SeriesBuilder,
     SplitSelectionPanel,
@@ -94,6 +95,32 @@ test('generated structural CSS uses fixed visualization hosts without theme sele
 })
 
 describe('visualization controls', () => {
+    test('CollapsibleOptionGroup preserves the parent-specific header region', () => {
+        new CollapsibleOptionGroup({
+            label: 'Severity',
+            children: [
+                h(OptionGroupHeaderEnd, null, h('small', null, '4 visible')),
+                h('p', null, 'Options'),
+            ],
+        }).mount(document.body)
+
+        assert.match(
+            required('fray-collapsibleoptiongroup legend').textContent ?? '',
+            /Severity4 visible/,
+        )
+        assert.equal(
+            required('fray-collapsibleoptiongroup fieldset > div > p').textContent,
+            'Options',
+        )
+        assert.throws(
+            () => new CollapsibleOptionGroup({
+                label: 'Legacy',
+                headerEnd: '4 visible',
+            } as never).mount(document.body),
+            /OptionGroupHeaderEnd/,
+        )
+    })
+
     test('CategoryHidePanel uses Fray checkboxes and unfiltered live counts', () => {
         assert.match(CategoryHidePanel.css, /flex: 0 0 auto/)
         assert.match(GroupPanel.css, /display:\s*flex[^}]*flex-flow:\s*row nowrap/)

@@ -5,6 +5,7 @@ import {Window} from 'happy-dom'
 import {
     DataTable,
     Dialog,
+    DialogActions,
     FilterMode,
     FilterPanel,
     ListView,
@@ -329,7 +330,10 @@ describe('stable data components', () => {
             description: 'This restores deterministic fixture data.',
             valueEmitter: open,
             onClose: () => closes += 1,
-            children: h('button', {autoFocus: true}, 'Confirm reset'),
+            children: [
+                h('button', {autoFocus: true}, 'Confirm reset'),
+                h(DialogActions, null, h('button', null, 'Apply')),
+            ],
         }).attachTo(document.body)
 
         open.set(true)
@@ -343,6 +347,7 @@ describe('stable data components', () => {
         assert.equal(element.open, true)
         assert.equal(element.getAttribute('aria-modal'), 'true')
         assert.equal(document.activeElement?.textContent, 'Confirm reset')
+        assert.equal(requiredQuery('dialog > footer', element).textContent, 'ApplyClose')
 
         const closeButton = Array.from(element.querySelectorAll('button'))
             .find((button) => button.textContent === 'Close')
@@ -361,6 +366,10 @@ describe('stable data components', () => {
         assert.equal(closes, 2)
         dialog.destroy()
         assert.equal(open.subscriberCount, 0)
+        assert.throws(
+            () => Dialog.new({title: 'Legacy', actions: 'Apply'} as never).mount(),
+            /DialogActions/,
+        )
     })
 
     test('ListView shares its selected emitter and preserves key selection on refresh', () => {

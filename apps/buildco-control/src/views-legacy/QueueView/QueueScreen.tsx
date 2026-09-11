@@ -8,6 +8,8 @@ import {
     Panel,
     QuadCheckbox,
     Sidebar,
+    SplitPrimary,
+    SplitSecondary,
     SplitView,
     Toolbar
 } from "@sylwellsoftware/fray";
@@ -38,8 +40,8 @@ export class QueueScreen extends ScreenView {
                 primarySize="285px"
                 primaryLabel="Work conditions"
                 secondaryLabel="Matching work"
-                primary={
-                    <Sidebar island allocation="flexible" ariaLabel="Work conditions"
+            >
+                <SplitPrimary><Sidebar island allocation="flexible" ariaLabel="Work conditions"
                              header={<h2>Build your work queue</h2>}>
                         <Toolbar label="Work queue filters">
                             {this.text("search", "Work")}
@@ -74,10 +76,8 @@ export class QueueScreen extends ScreenView {
                                 onChange={filters => this.field("lifecycle").set(JSON.stringify(Object.fromEntries(filters)))}
                             />
                         </details>
-                    </Sidebar>
-                }
-                secondary={
-                    <Panel
+                    </Sidebar></SplitPrimary>
+                <SplitSecondary><Panel
                         island
                         allocation="flexible"
                         header={
@@ -106,9 +106,8 @@ export class QueueScreen extends ScreenView {
                         />
                         {this.pager(result)}
                         {this.selected(result)}
-                    </Panel>
-                }
-            />
+                    </Panel></SplitSecondary>
+            </SplitView>
         );
     }
 }

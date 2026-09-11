@@ -1,5 +1,5 @@
 import type {FrayChild} from "@sylwellsoftware/fray";
-import {Button, Panel, Sidebar, SplitView, Textbox, TreeView} from "@sylwellsoftware/fray";
+import {Button, Panel, Sidebar, SplitPrimary, SplitSecondary, SplitView, Textbox, TreeView} from "@sylwellsoftware/fray";
 import type {ViewResult} from "../../api/ScenarioApi.ts";
 import {bootstrap} from "../../app/services.ts";
 import {Metrics, Status} from "../shared/ViewComponents.tsx";
@@ -56,8 +56,8 @@ export class ProjectsScreen extends ScreenView {
                 primarySize="270px"
                 primaryLabel="Project structure"
                 secondaryLabel="Scope detail"
-                primary={
-                    <Sidebar island allocation="flexible" ariaLabel="Project structure"
+            >
+                <SplitPrimary><Sidebar island allocation="flexible" ariaLabel="Project structure"
                              header={<h2>Project structure</h2>}>
                         {this.select("project", "Project", this.read(bootstrap)?.choices.projects ?? [], false)}
                         <Textbox
@@ -79,10 +79,8 @@ export class ProjectsScreen extends ScreenView {
                             expandedKeysEmitter={this.state.expanded}
                             label="Physical project hierarchy"
                         />
-                    </Sidebar>
-                }
-                secondary={
-                    <Panel island allocation="flexible">
+                    </Sidebar></SplitPrimary>
+                <SplitSecondary><Panel island allocation="flexible">
                         <Metrics items={result?.metrics ?? []}/>
                         {this.tabs(
                             [
@@ -118,9 +116,8 @@ export class ProjectsScreen extends ScreenView {
                                 )}
                             </>,
                         )}
-                    </Panel>
-                }
-            />
+                    </Panel></SplitSecondary>
+            </SplitView>
         );
     }
 }

@@ -1,4 +1,4 @@
-import {OptionGroup, css} from '@sylwellsoftware/fray'
+import {OptionGroup, OptionGroupHeaderEnd, css, readDeclarativeRegions} from '@sylwellsoftware/fray'
 import type {FrayChild, OptionGroupBaseProps} from '@sylwellsoftware/fray'
 
 export interface CollapsibleOptionGroupProps extends OptionGroupBaseProps {
@@ -20,17 +20,30 @@ export class CollapsibleOptionGroup<
         this.contentId = `${this.groupId}-content`
     }
 
+    override render(): FrayChild {
+        if (this.props.headerEnd != null) {
+            throw new Error(
+                'CollapsibleOptionGroup trailing header content must use a direct OptionGroupHeaderEnd child',
+            )
+        }
+        const {content, regions} = readDeclarativeRegions(
+            'CollapsibleOptionGroup',
+            this.props.children,
+            {headerEnd: OptionGroupHeaderEnd},
+        )
+        return this.renderOptionGroup(content, regions.headerEnd ?? null)
+    }
+
     private toggle(): void {
         this.collapsed = !this.collapsed
         this.update()
     }
 
-    protected override renderOptionGroup(content: FrayChild): FrayChild {
+    protected override renderOptionGroup(content: FrayChild, headerEnd: FrayChild): FrayChild {
         const Host = this.Host
         const {
             label,
             ariaLabel,
-            headerEnd = null,
             disabled = false,
             required = false,
             error = null,

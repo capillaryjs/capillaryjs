@@ -8,6 +8,7 @@ import {
     Checkbox,
     ColorPicker,
     Component,
+    DeclarativeRegion,
     DescriptionItem,
     DescriptionList,
     Dropdown,
@@ -17,13 +18,19 @@ import {
     GroupPanel,
     Header,
     Label,
+    OptionGroup,
+    OptionGroupHeaderEnd,
     Panel,
+    PanelToolbar,
     Placeholder,
     ProgressBar,
     QuadCheckbox,
     RadioButton,
     RadioGroup,
     Sidebar,
+    SidebarToolbar,
+    SplitPrimary,
+    SplitSecondary,
     SplitView,
     Tab,
     TabLine,
@@ -36,6 +43,7 @@ import {
     createFrayRuntime,
     h,
     live,
+    readDeclarativeRegions,
 } from '../src/index.js'
 import type {RadioOption} from '../src/index.js'
 import {requiredAt, requiredQuery} from './testUtils.js'
@@ -748,8 +756,10 @@ describe('layout controls', () => {
             primarySize: '18rem',
             primaryLabel: 'Project navigation',
             secondaryLabel: 'Project details',
-            primary: h('p', null, 'Tree'),
-            secondary: h('p', null, 'Details'),
+            children: [
+                h(SplitPrimary, null, h('p', null, 'Tree')),
+                h(SplitSecondary, null, h('p', null, 'Details')),
+            ],
         }).attachTo(document.body)
 
         const split = requiredQuery<HTMLElement>('fray-splitview')
@@ -768,8 +778,10 @@ describe('layout controls', () => {
         SplitView.new({
             direction: 'vertical',
             primarySize: '45%',
-            primary: 'Navigation',
-            children: 'Details from children',
+            children: [
+                h(SplitPrimary, null, 'Navigation'),
+                h(SplitSecondary, null, 'Details from children'),
+            ],
         }).attachTo(document.body)
         const vertical = requiredQuery<HTMLElement>('fray-splitview.vertical')
         assert.equal(vertical.style.getPropertyValue('--split-primary-size'), '45%')
@@ -785,6 +797,11 @@ describe('layout controls', () => {
         assert.throws(() => SplitView.new({primarySize: ''}).mount(), /primarySize/)
         assert.throws(() => SplitView.new({direction: 'diagonal' as 'horizontal'}).mount(),
             /direction/)
+        assert.throws(() => SplitView.new({children: 'Unnamed'}).mount(), /documented region/)
+        assert.throws(
+            () => SplitView.new({primary: 'Legacy'} as never).mount(),
+            /SplitPrimary and SplitSecondary/,
+        )
     })
 
     test('ProgressBar tracks an emitter in determinate and indeterminate modes', () => {
@@ -864,7 +881,10 @@ describe('layout controls', () => {
         Panel.new({
             header: 'Profile',
             orientation: 'horizontal',
-            children: [h('p', null, 'Details')],
+            children: [
+                h(PanelToolbar, null, h(Button, {label: 'Save'})),
+                h('p', null, 'Details'),
+            ],
         }).attachTo(document.body)
 
         const section = requiredQuery<HTMLElement>('fray-panel')
@@ -877,7 +897,61 @@ describe('layout controls', () => {
         assert.equal(section.hasAttribute('data-orientation'), false)
         assert.equal(content.className, 'horizontal')
         assert.equal(content.textContent, 'Details')
+        assert.equal(requiredQuery(':scope > fray-button', section).textContent, 'Save')
         assert.equal(section.querySelector('div'), null)
+        assert.throws(
+            () => Panel.new({toolbar: 'Legacy toolbar'} as never).mount(),
+            /PanelToolbar/,
+        )
+    })
+
+    test('parent-specific declarative regions expose named anatomy without string slots', () => {
+        class ShellHeader extends DeclarativeRegion {}
+        class ShellContent extends DeclarativeRegion {}
+        class ForeignRegion extends DeclarativeRegion {}
+        const result = readDeclarativeRegions('ApplicationShell', [
+            h(ShellHeader, null, h('strong', null, 'Product')),
+            h(ShellContent, null, h('main', null, 'Workspace')),
+        ], {header: ShellHeader, content: ShellContent}, {
+            allowContent: false,
+            required: ['header', 'content'],
+        })
+
+        assert.equal(result.regions.header?.length, 1)
+        assert.equal(result.regions.content?.length, 1)
+        assert.equal(result.content.length, 0)
+        assert.throws(
+            () => readDeclarativeRegions('ApplicationShell', h(ForeignRegion), {
+                header: ShellHeader,
+            }),
+            /does not support region: ForeignRegion/,
+        )
+        assert.throws(
+            () => readDeclarativeRegions('ApplicationShell', [
+                h(ShellHeader, null, 'One'),
+                h(ShellHeader, null, 'Two'),
+            ], {header: ShellHeader}),
+            /duplicate region: header/,
+        )
+        assert.throws(() => ForeignRegion.new().mount(), /direct child/)
+    })
+
+    test('OptionGroup uses a named marker for trailing legend content', () => {
+        OptionGroup.new({
+            label: 'Severity',
+            children: [
+                h(OptionGroupHeaderEnd, null, h('small', null, 'Required')),
+                h('p', null, 'Options'),
+            ],
+        }).attachTo(document.body)
+
+        const group = requiredQuery('fray-optiongroup')
+        assert.equal(requiredQuery('legend', group).textContent, 'SeverityRequired')
+        assert.equal(requiredQuery('fieldset > p', group).textContent, 'Options')
+        assert.throws(
+            () => OptionGroup.new({label: 'Legacy', headerEnd: 'Required'} as never).mount(),
+            /OptionGroupHeaderEnd/,
+        )
     })
 
     test('shell components map explicit allocation to their intentional hosts', () => {
@@ -975,8 +1049,11 @@ describe('layout controls', () => {
             id: 'change-requests',
             header: 'Change requests',
             ariaLabel: 'Ignored fallback',
-            toolbar: h(Toolbar, {label: 'Request filters'}, h(Button, {label: 'Refresh'})),
-            children: [h('ol', null, h('li', null, 'First request'))],
+            children: [
+                h(SidebarToolbar, null,
+                    h(Toolbar, {label: 'Request filters'}, h(Button, {label: 'Refresh'}))),
+                h('ol', null, h('li', null, 'First request')),
+            ],
         }).attachTo(document.body)
 
         const sidebar = requiredQuery<HTMLElement>('fray-sidebar')
@@ -1008,6 +1085,10 @@ describe('layout controls', () => {
         assert.equal(region.getAttribute('aria-label'), 'Saved views')
         assert.equal(region.hasAttribute('aria-labelledby'), false)
         assert.equal(region.querySelector('fray-header'), null)
+        assert.throws(
+            () => Sidebar.new({toolbar: 'Legacy toolbar'} as never).mount(),
+            /SidebarToolbar/,
+        )
     })
 
     test('TabPanel wires tab semantics, content, clicks, and arrow keys', () => {

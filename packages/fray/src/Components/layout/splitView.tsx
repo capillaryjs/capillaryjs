@@ -1,10 +1,19 @@
 import {Component, css} from '../component.js'
 import type {ComponentProps, FrayChild} from '../component.js'
 import {classNames, componentClass} from '../controlUtils.js'
+import {DeclarativeRegion, readDeclarativeRegions} from './declarativeRegion.js'
+
+/** Content rendered in the fixed-size pane of a SplitView. */
+export class SplitPrimary extends DeclarativeRegion {}
+
+/** Content rendered in the flexible pane of a SplitView. */
+export class SplitSecondary extends DeclarativeRegion {}
 
 export interface SplitViewProps extends ComponentProps {
-    primary?: FrayChild
-    secondary?: FrayChild
+    /** @deprecated Supply `<SplitPrimary>` as a direct child. */
+    primary?: never
+    /** @deprecated Supply `<SplitSecondary>` as a direct child. */
+    secondary?: never
     direction?: 'horizontal' | 'vertical'
     primarySize?: string
     primaryLabel?: string
@@ -15,14 +24,21 @@ export interface SplitViewProps extends ComponentProps {
 export class SplitView extends Component<SplitViewProps> {
     static override liveProps: readonly string[] = []
     render(): FrayChild {
+        if (this.props.primary != null || this.props.secondary != null) {
+            throw new Error('SplitView pane content must use direct SplitPrimary and SplitSecondary children')
+        }
         const {
-            primary = null,
-            secondary = null,
             direction = 'horizontal',
             primarySize,
             primaryLabel,
             secondaryLabel,
         } = this.props
+        const {regions} = readDeclarativeRegions(
+            'SplitView',
+            this.props.children,
+            {primary: SplitPrimary, secondary: SplitSecondary},
+            {allowContent: false},
+        )
         if (direction !== 'horizontal' && direction !== 'vertical') {
             throw new TypeError('SplitView direction must be horizontal or vertical')
         }
@@ -38,16 +54,17 @@ export class SplitView extends Component<SplitViewProps> {
                 role={primaryLabel == null ? null : 'region'}
                 aria-label={primaryLabel}
                 tabIndex={0}
-            >{primary}</fray-primary>
+            >{regions.primary ?? null}</fray-primary>
             <fray-secondary
                 role={secondaryLabel == null ? null : 'region'}
                 aria-label={secondaryLabel}
                 tabIndex={0}
-            >{secondary ?? this.props.children ?? []}</fray-secondary>
+            >{regions.secondary ?? null}</fray-secondary>
         </Host>
     }
 
     static override hostName = 'split-view'
+    static override dependencies = [SplitPrimary, SplitSecondary]
 
     static css = css`
         & {

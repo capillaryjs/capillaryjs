@@ -3,6 +3,7 @@ import {Emitter} from '@sylwellsoftware/glue'
 import {
     BlockGraph,
     CategoryHidePanel,
+    CollapsibleOptionGroup,
     LineGraph,
     SeriesBuilder,
     SplitSelectionPanel,
@@ -12,6 +13,7 @@ import {
     filterByHidden,
     staticCriterion,
 } from '../src/index.js'
+import {OptionGroupHeaderEnd, h} from '@sylwellsoftware/fray'
 
 type Item = {id: number; kind: string; date: `${number}-${number}-${number}`}
 const items$ = new Emitter<readonly Item[]>([{id: 1, kind: 'a', date: '2026-01-01'}])
@@ -37,6 +39,10 @@ const splits = createSplitSelection([kind], {active: ['kind']})
 const selection = createBlockSelection(filtered$, splits.activeSplits$)
 
 new CategoryHidePanel<Item>({items$, criteria: [kind, dynamic]})
+new CollapsibleOptionGroup({
+    label: 'Kinds',
+    children: h(OptionGroupHeaderEnd, null, '2 visible'),
+})
 new SplitSelectionPanel<Item>({model: splits})
 new BlockGraph({model: selection})
 

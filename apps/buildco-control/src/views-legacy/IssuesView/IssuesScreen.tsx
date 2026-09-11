@@ -2,7 +2,7 @@ import type {FrayChild} from "@sylwellsoftware/fray";
 import {Button, Panel, Toolbar} from "@sylwellsoftware/fray";
 import type {ViewResult} from "../../api/ScenarioApi.ts";
 import {bootstrap} from "../../app/services.ts";
-import {DetailView, Metrics} from "../shared/ViewComponents.tsx";
+import {DetailActions, DetailView, Metrics} from "../shared/ViewComponents.tsx";
 import {editor, RecordEditor} from "./RecordEditor.tsx";
 import {options, ScreenView} from "../shared/ScreenView.tsx";
 
@@ -100,10 +100,8 @@ export class IssuesScreen extends ScreenView {
                             {this.table(tableFields, result)}
 
                             {result?.detail ? (
-                                <DetailView
-                                    detail={result.detail}
-                                    actions={
-                                        <Toolbar label="Record actions">
+                                <DetailView detail={result.detail}>
+                                    <DetailActions><Toolbar label="Record actions">
                                             <Button
                                                 label="Edit record"
                                                 onClick={() => editor.set({
@@ -121,9 +119,8 @@ export class IssuesScreen extends ScreenView {
                                                     row: result.detail!.record
                                                 })}
                                             />
-                                        </Toolbar>
-                                    }
-                                />
+                                        </Toolbar></DetailActions>
+                                </DetailView>
                             ) : (
                                 this.selected(result)
                             )}

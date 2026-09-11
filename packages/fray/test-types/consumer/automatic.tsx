@@ -6,6 +6,8 @@ import {
     ProgressBar,
     RadioGroup,
     Sidebar,
+    SplitPrimary,
+    SplitSecondary,
     SplitView,
     Tab,
     TabPanel,
@@ -18,7 +20,10 @@ import {
 const tree = <Panel header="Automatic"><Button label="Save" /></Panel>
 const input = <input aria-label="Name" ref={{current: null} as {current: HTMLInputElement | null}} />
 const sidebar = <Sidebar header="Requests">Request one</Sidebar>
-const split = <SplitView primary="Navigation" secondary="Content" />
+const split = <SplitView>
+    <SplitPrimary>Navigation</SplitPrimary>
+    <SplitSecondary>Content</SplitSecondary>
+</SplitView>
 const progress = <ProgressBar label="Loading" value={null} />
 const tabs = <TabPanel mountPolicy="active-only">
     <Tab id="first" label="First">First content</Tab>

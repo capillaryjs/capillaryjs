@@ -88,6 +88,12 @@ fine-grained binding range; normal props preserve the original object.
 `Component.read()` and `snapshot()` establish render-time tracked dependencies.
 `bind:value` and `bind:checked` are typed two-way bindings for native controls.
 
+`DeclarativeRegion` and `readDeclarativeRegions()` support parent-specific,
+non-visual named content regions. `PanelToolbar`, `SidebarToolbar`,
+`SplitPrimary`, `SplitSecondary`, `DialogActions`, and
+`OptionGroupHeaderEnd` expose the built-in region contracts. Substantial
+rendered content stays in the JSX child tree; configuration remains in props.
+
 Components with no suitable native root declare a fixed host stem. A runtime
 resolves it to `fray-<stem-without-hyphens>`. Runtime-configurable element names
 were removed and are not supported. These light-DOM hosts are not registered
@@ -99,10 +105,10 @@ custom elements.
 | --- | --- |
 | Actions | `Button`, `Toolbar` |
 | Text and choices | `Label`, `Textbox`, `Dropdown`, `RadioButton`, `RadioGroup`, `Toggle`, `Checkbox`, `TriCheckbox`, `QuadCheckbox` |
-| Layout and navigation | `FrayApp`, `Header`, `GroupPanel`, `NavigationBar`, `OptionGroup`, `OptionsPanel`, `Panel`, `Sidebar`, `SplitView`, `Tab`, `TabLine`, `TabPanel` |
+| Layout and navigation | `FrayApp`, `Header`, `GroupPanel`, `NavigationBar`, `OptionGroup`, `OptionGroupHeaderEnd`, `OptionsPanel`, `Panel`, `PanelToolbar`, `Sidebar`, `SidebarToolbar`, `SplitPrimary`, `SplitSecondary`, `SplitView`, `Tab`, `TabLine`, `TabPanel` |
 | Records and collections | `DescriptionItem`, `DescriptionList`, `InfoField`, `InfoPanel`, `Placeholder`, `ListView`, `TreeItem`, `TreeView` |
 | Tables and filters | `DataTable`, `FilterPanel`, `TableHeader`, `TableHeaderCell` |
-| Dialog and status | `Dialog`, `ProgressBar` |
+| Dialog and status | `Dialog`, `DialogActions`, `ProgressBar` |
 | Presentation selection | `ThemePicker`, `ColorPicker` |
 | Date and time (experimental) | `DatePicker`, `DateTimePicker`, `TimePicker` |
 
@@ -122,7 +128,8 @@ Notable public behavior:
   `dataSource`, or table-owned `rest` options.
 - `Dialog` uses a native modal surface with focus containment and restoration.
 - `GroupPanel` is a named group with a bordered body and vertical header.
-- `OptionGroup` renders a labelled `fieldset`/`legend` shell with a `headerEnd` slot.
+- `OptionGroup` renders a labelled `fieldset`/`legend` shell and accepts an
+  `OptionGroupHeaderEnd` declarative region child.
 - `OptionsPanel` extends `GroupPanel` with a flex-column content area for `OptionGroup` children.
 - `ContentMountPolicy` selects eager, lazy-retained, or active-only content
   lifetime for `TabPanel` and `RouteOutlet`; `TabPanelMountPolicy` remains an

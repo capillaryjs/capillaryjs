@@ -4,6 +4,7 @@ import {
     Component,
     Dropdown,
     Panel,
+    PanelToolbar,
     Textbox,
     Toolbar,
     live,
@@ -28,7 +29,8 @@ export class RegisterControlsPanel extends Component<RegisterControlsPanelProps>
             island
             className="register-controls"
             header="Register controls"
-            toolbar={<Toolbar label="Register actions">
+        >
+            <PanelToolbar><Toolbar label="Register actions">
                 <Button
                     label="Reset filters"
                     disabled={live(model.forceDisabled)}
@@ -45,8 +47,7 @@ export class RegisterControlsPanel extends Component<RegisterControlsPanelProps>
                     busyLabel="Refreshing…"
                     onClick={() => model.refreshData()}
                 />
-            </Toolbar>}
-        >
+            </Toolbar></PanelToolbar>
             <div class="register-filter-grid">
                 <Textbox
                     label="Search changes"

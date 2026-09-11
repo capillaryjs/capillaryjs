@@ -6,6 +6,11 @@ and Semantic Versioning.
 
 ## Unreleased
 
+### Changed
+
+- `CollapsibleOptionGroup` now consumes `OptionGroupHeaderEnd` declarative
+  region children, matching Fray's parent-specific content-region contract.
+
 ## 0.11.1 - 2026-09-08
 
 ### Fixed

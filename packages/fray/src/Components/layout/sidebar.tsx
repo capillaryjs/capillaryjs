@@ -2,12 +2,17 @@ import {Component, css} from '../component.js'
 import type {ComponentProps, FrayChild} from '../component.js'
 import type {FrayLayoutParticipantProps} from './layoutTraits.js'
 import {Header} from './header.js'
+import {DeclarativeRegion, readDeclarativeRegions} from './declarativeRegion.js'
 import {controlId, layoutParticipantClass} from '../controlUtils.js'
+
+/** Toolbar content rendered between a Sidebar heading and its scrolling body. */
+export class SidebarToolbar extends DeclarativeRegion {}
 
 export interface SidebarProps extends ComponentProps, FrayLayoutParticipantProps {
     id?: string | number | null
     header?: FrayChild
-    toolbar?: FrayChild
+    /** @deprecated Supply `<SidebarToolbar>` as a direct child. */
+    toolbar?: never
     ariaLabel?: string
 }
 
@@ -24,12 +29,17 @@ export class Sidebar extends Component<SidebarProps> {
     }
 
     render(): FrayChild {
+        if (this.props.toolbar != null) {
+            throw new Error('Sidebar toolbar content must use a direct SidebarToolbar child')
+        }
         const {
             header = null,
-            toolbar = null,
             ariaLabel,
             children = [],
         } = this.props
+        const {content, regions} = readDeclarativeRegions('Sidebar', children, {
+            toolbar: SidebarToolbar,
+        })
         const Host = this.Host
         const title = header == null
             ? null
@@ -45,14 +55,14 @@ export class Sidebar extends Component<SidebarProps> {
                 aria-labelledby={header == null ? null : this.headerId}
             >
                 {title}
-                {toolbar == null ? null : <fray-toolbarcontent>{toolbar}</fray-toolbarcontent>}
-                <fray-content tabIndex={0}>{children}</fray-content>
+                {regions.toolbar == null ? null : <fray-toolbarcontent>{regions.toolbar}</fray-toolbarcontent>}
+                <fray-content tabIndex={0}>{content}</fray-content>
             </aside>
         </Host>
     }
 
     static override hostName = 'sidebar'
-    static override dependencies = [Header]
+    static override dependencies = [Header, SidebarToolbar]
 
     static css = css`
         & {

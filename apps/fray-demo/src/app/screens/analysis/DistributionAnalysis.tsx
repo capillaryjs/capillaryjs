@@ -1,4 +1,4 @@
-import {Button, Component, Panel, Toolbar} from '@sylwellsoftware/fray'
+import {Button, Component, Panel, PanelToolbar, Toolbar} from '@sylwellsoftware/fray'
 import type {ComponentProps, FrayChild} from '@sylwellsoftware/fray'
 import {BlockGraph} from '@sylwellsoftware/fray-visualization'
 import type {MeridianModel} from '../../model/MeridianModel.js'
@@ -14,8 +14,10 @@ export class DistributionAnalysis extends Component<DistributionAnalysisProps> {
             island
             className="distribution-panel"
             header="Portfolio distribution"
-            toolbar={<BlockSelectionToolbar key="block-selection-toolbar" model={model} />}
         >
+            <PanelToolbar>
+                <BlockSelectionToolbar key="block-selection-toolbar" model={model} />
+            </PanelToolbar>
             <BlockGraph
                 model={model.blockSelection}
                 label="Visible change distribution"

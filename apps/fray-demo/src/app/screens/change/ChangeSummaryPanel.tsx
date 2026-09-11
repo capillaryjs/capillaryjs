@@ -4,6 +4,7 @@ import {
     DescriptionItem,
     DescriptionList,
     Panel,
+    PanelToolbar,
     ProgressBar,
     Toolbar,
 } from '@sylwellsoftware/fray'
@@ -26,12 +27,12 @@ export class ChangeSummaryPanel extends Component<ChangeSummaryPanelProps> {
             island
             className="change-summary-panel"
             header="Change summary"
-            toolbar={<Toolbar label="Change actions">
+        >
+            <PanelToolbar><Toolbar label="Change actions">
                 <Button label="Edit change" disabled />
                 <Button label="Advance change" disabled />
                 <Button label="More change actions" disabled />
-            </Toolbar>}
-        >
+            </Toolbar></PanelToolbar>
             <div class="change-summary-heading">
                 <p class="eyebrow">{change.id}</p>
                 <h3>{change.title}</h3>

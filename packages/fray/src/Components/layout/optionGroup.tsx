@@ -1,12 +1,17 @@
 import {Component, css} from '../component.js'
 import type {ComponentProps, FrayChild} from '../component.js'
 import {componentClass, controlId} from '../controlUtils.js'
+import {DeclarativeRegion, readDeclarativeRegions} from './declarativeRegion.js'
+
+/** Trailing content rendered in an OptionGroup legend. */
+export class OptionGroupHeaderEnd extends DeclarativeRegion {}
 
 export interface OptionGroupBaseProps extends ComponentProps {
     id?: string | number | null
     label?: FrayChild
     ariaLabel?: string
-    headerEnd?: FrayChild
+    /** @deprecated Supply `<OptionGroupHeaderEnd>` as a direct child. */
+    headerEnd?: never
     disabled?: boolean
     required?: boolean
     error?: unknown
@@ -26,15 +31,20 @@ export class OptionGroup<TProps extends OptionGroupBaseProps = OptionGroupBasePr
     }
 
     render(): FrayChild {
-        return this.renderOptionGroup(this.props.children ?? [])
+        if (this.props.headerEnd != null) {
+            throw new Error('OptionGroup trailing header content must use a direct OptionGroupHeaderEnd child')
+        }
+        const {content, regions} = readDeclarativeRegions('OptionGroup', this.props.children, {
+            headerEnd: OptionGroupHeaderEnd,
+        })
+        return this.renderOptionGroup(content, regions.headerEnd ?? null)
     }
 
-    protected renderOptionGroup(content: FrayChild): FrayChild {
+    protected renderOptionGroup(content: FrayChild, headerEnd: FrayChild): FrayChild {
         const Host = this.Host
         const {
             label,
             ariaLabel,
-            headerEnd = null,
             disabled = false,
             required = false,
             error = null,
@@ -62,6 +72,7 @@ export class OptionGroup<TProps extends OptionGroupBaseProps = OptionGroupBasePr
     }
 
     static override hostName = 'option-group'
+    static override dependencies = [OptionGroupHeaderEnd]
 
     static css = css`
         & {

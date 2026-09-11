@@ -1,12 +1,14 @@
 import {Emitter} from '@sylwellsoftware/glue'
 import {
     Component,
+    DeclarativeRegion,
     DatePicker,
     DateTimePicker,
     DescriptionItem,
     DescriptionList,
     DataTable,
     Dialog,
+    DialogActions,
     Dropdown,
     NavigationBar,
     FrayApp,
@@ -14,6 +16,8 @@ import {
     ProgressBar,
     RouteLink,
     RouteOutlet,
+    SplitPrimary,
+    SplitSecondary,
     SplitView,
     Textbox,
     TimePicker,
@@ -26,6 +30,7 @@ import {
     h,
     mountFrayApp,
     provideService,
+    readDeclarativeRegions,
     routeTarget,
     serializeTableQuery,
 } from '@sylwellsoftware/fray'
@@ -46,10 +51,20 @@ const numeric = new Dropdown<number>({
 numeric.valueEmitter.get().toFixed()
 
 new DescriptionList({children: h(DescriptionItem, {term: 'Owner', value: 'Team'})})
-new SplitView({primary: 'Navigation', secondary: 'Content'})
+new SplitView({children: [
+    h(SplitPrimary, null, 'Navigation'),
+    h(SplitSecondary, null, 'Content'),
+]})
 new ProgressBar({label: 'Loading', value: null})
 new TreeView({label: 'Projects', nodes: [{id: 'one', label: 'One'}]})
-new Dialog({title: 'Confirm', children: 'Continue?'})
+new Dialog({
+    title: 'Confirm',
+    children: ['Continue?', h(DialogActions, null, 'Apply')],
+})
+class ConsumerHeader extends DeclarativeRegion {}
+readDeclarativeRegions('ConsumerLayout', h(ConsumerHeader, null, 'Header'), {
+    header: ConsumerHeader,
+})
 mountFrayApp(createFrayRuntime(), FrayApp, document.body, {
     sizing: 'viewport',
     layout: 'vertical',

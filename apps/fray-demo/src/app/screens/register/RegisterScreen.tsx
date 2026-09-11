@@ -1,4 +1,4 @@
-import {Component, SplitView} from '@sylwellsoftware/fray'
+import {Component, SplitPrimary, SplitSecondary, SplitView} from '@sylwellsoftware/fray'
 import type {ComponentProps, FrayChild} from '@sylwellsoftware/fray'
 import type {MeridianModel} from '../../model/MeridianModel.js'
 import {ChangeRegisterPanel} from './ChangeRegisterPanel.js'
@@ -20,9 +20,10 @@ export class RegisterScreen extends Component<RegisterScreenProps> {
                 key="results"
                 className="register-results-split"
                 primarySize="68%"
-                primary={<ChangeRegisterPanel key="register" model={model} />}
-                secondary={<SelectedChangePanel key="selection" model={model} />}
-            />
+            >
+                <SplitPrimary><ChangeRegisterPanel key="register" model={model} /></SplitPrimary>
+                <SplitSecondary><SelectedChangePanel key="selection" model={model} /></SplitSecondary>
+            </SplitView>
         </div>
     }
 }

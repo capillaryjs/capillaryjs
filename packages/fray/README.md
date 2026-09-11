@@ -71,6 +71,7 @@ import {
     Button,
     FrayApp,
     Panel,
+    PanelToolbar,
     Textbox,
     Toolbar,
     createFrayRuntime,
@@ -85,12 +86,10 @@ class ProfileApp extends FrayApp {
     readonly name = new Emitter('Ada')
 
     protected override renderContent() {
-        return <Panel
-            header="Profile"
-            toolbar={<Toolbar label="Profile actions">
+        return <Panel header="Profile">
+            <PanelToolbar><Toolbar label="Profile actions">
                 <Button label="Save" onClick={() => this.save()} />
-            </Toolbar>}
-        >
+            </Toolbar></PanelToolbar>
             <Textbox label="Name" valueEmitter={this.name} />
         </Panel>
     }
@@ -103,7 +102,7 @@ class ProfileApp extends FrayApp {
         console.log(this.name.get())
     }
 
-    static dependencies = [Button, Panel, Textbox, Toolbar]
+    static dependencies = [Button, Panel, PanelToolbar, Textbox, Toolbar]
 }
 
 const runtime = createFrayRuntime()
@@ -347,9 +346,11 @@ const view = new Emitter<'list' | 'grid'>('list')
 | `FrayApp` | Fixed `fray-app` application shell and theme-text boundary | `sizing`: `embedded`/viewport axes; `layout`: `horizontal`/`vertical`; `landmark`: `main`/`none`; content or overridden `renderContent()` |
 | `Header` | Styled native heading surface | `level` (1–6), `headingId`, content |
 | `GroupPanel` | Labelled bordered group with a vertical header | required `header`, content |
-| `Panel` | Optional labelled region with toolbar and content flow | `header`, `toolbar`, `orientation`, `disabled`; live: `disabled` |
-| `Sidebar` | Labelled `aside` with fixed header/toolbar and scrolling content | `header`, `toolbar`, `ariaLabel`, content |
-| `SplitView` | Two-pane layout | `primary`, `secondary`, `direction`, `primarySize`, region labels |
+| `OptionGroup` | Labelled native fieldset for related controls | `label`/`ariaLabel`, `OptionGroupHeaderEnd` and ordinary content children, validation props |
+| `OptionsPanel` | GroupPanel specialization arranging option groups | required `header`, `OptionGroup` content |
+| `Panel` | Optional labelled region with toolbar and content flow | `header`, `orientation`, `disabled`; `PanelToolbar` and ordinary content children; live: `disabled` |
+| `Sidebar` | Labelled `aside` with fixed header/toolbar and scrolling content | `header`, `ariaLabel`; `SidebarToolbar` and ordinary content children |
+| `SplitView` | Two-pane layout | `SplitPrimary` and `SplitSecondary` region children; `direction`, `primarySize`, region labels |
 | `NavigationBar` | Labelled native navigation list over router-aware anchors | required `label`, `items`; per-item route target, `exact`, disabled/link options |
 | `Tab` | Declarative tab definition consumed by `TabPanel` | `id`, `label`, `disabled`, optional literal `route`, content |
 | `TabLine` | Standalone keyboard-operable tab list | `tabs`, `valueEmitter`/`activeTabEmitter`, initial value, `label`, `onChange` |
@@ -382,8 +383,17 @@ activate its application service/query during `initialize()`.
 </TabPanel>
 ```
 
-`SplitView` is a fixed two-pane composition primitive. It does not impose
-application resizing policy or persist pane sizes.
+`SplitView` is a fixed two-pane composition primitive. Its parent-specific
+region children keep the pane roles visible:
+
+```tsx
+<SplitView primarySize="18rem" primaryLabel="Projects" secondaryLabel="Details">
+    <SplitPrimary><ProjectNavigation /></SplitPrimary>
+    <SplitSecondary><ProjectDetails /></SplitSecondary>
+</SplitView>
+```
+
+It does not impose application resizing policy or persist pane sizes.
 
 `NavigationBar` uses a native `nav`, list, and anchors. It preserves
 `RouteLink` href generation, current-route state, modified clicks, targets,
@@ -453,7 +463,7 @@ virtualization, and server-specific wire policy remain application concerns.
 
 | Component | Purpose | Key props and state |
 | --- | --- | --- |
-| `Dialog` | Controlled native modal with focus containment and restoration | `title`, `description`, `actions`, `valueEmitter`/`defaultValue`, `closeLabel`, `showCloseButton`, `initialFocusRef`, `onClose` |
+| `Dialog` | Controlled native modal with focus containment and restoration | `title`, `description`, `DialogActions` and ordinary content children, `valueEmitter`/`defaultValue`, `closeLabel`, `showCloseButton`, `initialFocusRef`, `onClose` |
 | `ProgressBar` | Labelled native progress with visual track | required `label`, `value` or `valueEmitter`, `max`, `valueText`; `null` is indeterminate |
 | `ThemePicker` | Select and replace a Fray theme link | value props, `options`, `label`/`ariaLabel`, `disabled`, `targetDocument`, `onChange` |
 | `ColorPicker` | Select and replace a Fray color link | same contract as `ThemePicker` |

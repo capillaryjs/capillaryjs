@@ -8,6 +8,12 @@ Versioning.
 
 ### Added
 
+- Added `DeclarativeRegion` and `readDeclarativeRegions()` for defining
+  parent-specific, non-visual named content regions with duplicate, foreign,
+  required-region, and ordinary-content validation.
+- Added `PanelToolbar`, `SidebarToolbar`, `SplitPrimary`, `SplitSecondary`,
+  `DialogActions`, and `OptionGroupHeaderEnd` declarative region markers.
+
 - Added a packaged application composition guide covering workflow-led screen
   design, persistent shells, state lifetime, layout and scrolling contracts,
   content composition, and component reuse, alongside the repository layout guide.
@@ -37,6 +43,11 @@ Versioning.
   sans-serif fonts and did not display in Chrome.
 
 ### Changed
+
+- `Panel`, `Sidebar`, `SplitView`, `Dialog`, and `OptionGroup` now accept their
+  secondary structural content through parent-specific region children rather
+  than `FrayChild`-valued `toolbar`, `primary`, `secondary`, `actions`, and
+  `headerEnd` props. The removed prop forms fail with migration guidance.
 
 - Documented and enforced the theme contract as it actually works. Custom
   properties remain the primary instrument and must be declared on `:root`
