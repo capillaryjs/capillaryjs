@@ -2,8 +2,8 @@ import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
 import { execFileSync } from "node:child_process";
 import { test } from "node:test";
-import { generateScenario } from "../src/generator/generate.ts";
-import { validateScenario } from "../src/generator/validate.ts";
+import { generateScenario } from "../demo-support/scenario/generate.ts";
+import { validateScenario } from "../demo-support/scenario/validate.ts";
 import { analyzeScenario, costLabour } from "../src/domain/projections.ts";
 import { scenarioAtDate } from "../src/domain/snapshot.ts";
 import { civilDate, dateOf } from "../src/domain/calendar.ts";
@@ -119,7 +119,7 @@ test("additional seeds preserve structural invariants and input errors fail earl
 });
 
 test("generation is timezone-independent across DST and ISO-year boundaries", () => {
-  const script = `import { generateScenario } from './src/generator/generate.ts'; import { createHash } from 'node:crypto';
+  const script = `import { generateScenario } from './demo-support/scenario/generate.ts'; import { createHash } from 'node:crypto';
     const d = await generateScenario({ seed: 7, anchorDate: '2026-01-02', profile: 'small', projectCount: 1 });
     console.log(createHash('sha256').update(JSON.stringify(d)).digest('hex'));`;
   const hashes = ["UTC", "Europe/Copenhagen", "America/Los_Angeles"].map(TZ => execFileSync(process.execPath,

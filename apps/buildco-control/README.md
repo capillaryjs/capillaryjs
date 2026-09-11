@@ -156,20 +156,28 @@ delivery's hidden simulated arrival date.
 
 | Location | Responsibility |
 | --- | --- |
+| `src/app/main.tsx` | Fray shell, app startup and theme/palette integration |
+| `src/app/session.ts` | Application intent, Glue queries/commands and route state |
+| `src/app/appearance.ts` | Theme and palette definitions |
+| `src/api/ScenarioApi.ts` | Application DTOs, screens, conditions and semantic-filter contract |
+| `src/api/ScenarioFetch.ts` | Generic fetch adapter contract for worker or HTTP |
 | `src/domain/model.ts` | Domain records and projection contracts |
 | `src/domain/calendar.ts`, `dependencies.ts` | Date/calendar rules and DAG scheduling |
-| `src/generator/plan.ts` | Reference data, project/scope/resource plans and assignments |
-| `src/generator/simulate.ts` | Daily causal execution |
-| `src/generator/validate.ts` | Independent structural, temporal, resource and cost checks |
 | `src/domain/snapshot.ts`, `projections.ts` | Historical views and derived management state |
-| `src/generator/coverage.ts` | Evidence that useful scenario archetypes exist |
-| `src/cli.ts` | Inspect/export a scenario without a UI |
-| `src/app/contract.ts` | Application DTOs and semantic-filter contract |
-| `src/server/scenario.ts` | Shared queries, paging/filtering, and validated commands |
-| `src/transport/` | Generic embedded-fetch and Node HTTP adapters |
-| `src/ui/session.ts`, `scenario.worker.ts` | Application intent, Glue queries/commands, worker bridge |
-| `src/ui/main.tsx`, `screens.tsx` | Fray shell and seven active-only screen compositions |
-| `src/ui/editor.tsx`, `visuals.tsx` | Mutation dialogs and operational chart compositions |
+| `src/services/BuildcoService.ts` | Backend-facing Glue endpoints for bootstrap, views, choices and commands |
+| `src/views/index.tsx` | Seven active-only screen compositions |
+| `src/views/*View/*Screen.tsx` | Individual screen views |
+| `src/views/shared/ScreenView.tsx` | Common screen base, titles and options |
+| `src/views/shared/ViewComponents.tsx` | Record cards, metrics, status and detail panels |
+| `src/views/IssuesView/RecordEditor.tsx` | Issue and delay mutation dialog |
+| `src/views/AnalyticsView/Analytics.tsx` | Operational chart compositions |
+| `src/styles/styles.css` | Application styles |
+| `demo-support/scenario/` | Deterministic scenario generator and CLI |
+| `demo-support/server/ConstructionScenario.ts` | Shared queries, paging/filtering and validated commands |
+| `demo-support/server/start.ts` | Node HTTP server entry |
+| `demo-support/transport/embedded/createScenarioFetch.ts` | Embedded worker fetch adapter |
+| `demo-support/transport/node/server.ts` | Node HTTP transport adapter |
+| `demo-support/worker/scenario.worker.ts` | Web Worker bridge |
 
 ## Verification and boundaries
 
@@ -196,7 +204,7 @@ deterministic incident recipes provide healthy, supply-constrained and
 quality-constrained histories. Coverage is reported explicitly for arbitrary
 seeds; not every archetype is guaranteed for reduced/custom configurations.
 
-The generic transport examples were copied into `src/transport/`; application
+The generic transport examples live in `demo-support/transport/`; the application
 policy lives in `ConstructionScenario`, not in those adapters. The supplied
 examples and authoritative planning documents remain untouched.
 

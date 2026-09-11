@@ -19,5 +19,5 @@
     "allowImportingTsExtensions": true,
     "skipLibCheck": true
   },
-  "include": ["src/**/*.ts", "src/**/*.tsx", "test/**/*.ts", "test/**/*.tsx", "vite.config.ts", "playwright.config.ts"]
+  "include": ["src/**/*.ts", "src/**/*.tsx", "demo-support/**/*.ts", "demo-support/**/*.tsx", "test/**/*.ts", "test/**/*.tsx", "vite.config.ts", "playwright.config.ts"]
 }

@@ -1,10 +1,10 @@
 import assert from "node:assert/strict";
 import { before, test } from "node:test";
-import { ConstructionScenario } from "../src/server/scenario.ts";
-import { DEFAULT_SCENARIO } from "../src/generator/generate.ts";
-import { createScenarioFetch } from "../src/transport/embedded/createScenarioFetch.ts";
-import { matchesConditions, SCREENS } from "../src/app/contract.ts";
-import type { Bootstrap, Mutation, Parameters, ViewResult } from "../src/app/contract.ts";
+import { ConstructionScenario } from "../demo-support/server/ConstructionScenario.ts";
+import { DEFAULT_SCENARIO } from "../demo-support/scenario/generate.ts";
+import { createScenarioFetch } from "../demo-support/transport/embedded/createScenarioFetch.ts";
+import { matchesConditions, SCREENS } from "../src/api/ScenarioApi.ts";
+import type { Bootstrap, Mutation, Parameters, ViewResult } from "../src/api/ScenarioApi.ts";
 
 let service: ConstructionScenario;
 before(async () => { service = await ConstructionScenario.create({ ...DEFAULT_SCENARIO, profile: "small" }); });

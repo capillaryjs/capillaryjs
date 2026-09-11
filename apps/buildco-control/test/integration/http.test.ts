@@ -1,10 +1,10 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { ConstructionScenario } from "../../src/server/scenario.ts";
-import { DEFAULT_SCENARIO } from "../../src/generator/generate.ts";
-import { startDummyServer } from "../../src/transport/node/server.ts";
-import { createScenarioFetch } from "../../src/transport/embedded/createScenarioFetch.ts";
-import type { ViewResult } from "../../src/app/contract.ts";
+import { ConstructionScenario } from "../../demo-support/server/ConstructionScenario.ts";
+import { DEFAULT_SCENARIO } from "../../demo-support/scenario/generate.ts";
+import { startDummyServer } from "../../demo-support/transport/node/server.ts";
+import { createScenarioFetch } from "../../demo-support/transport/embedded/createScenarioFetch.ts";
+import type { ViewResult } from "../../src/api/ScenarioApi.ts";
 
 test("HTTP and embedded adapters expose identical query and mutation contracts", async () => {
   const scenario = await ConstructionScenario.create({ ...DEFAULT_SCENARIO, profile: "small" });

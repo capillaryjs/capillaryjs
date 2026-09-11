@@ -10,14 +10,14 @@
     "dev": "vite --host 127.0.0.1",
     "build": "pnpm typecheck && vite build",
     "preview": "vite preview --host 127.0.0.1",
-    "server": "node --import tsx src/server/start.ts",
+    "server": "node --import tsx demo-support/server/start.ts",
     "test:ui": "playwright test",
     "test:http": "node --import tsx --test test/integration/*.test.ts",
     "typecheck": "tsc --noEmit",
     "test": "node --import tsx --test test/*.test.ts",
     "test:demo": "node --import tsx --test test/scenarios/*.test.ts",
     "verify": "pnpm typecheck && pnpm test",
-    "scenario": "node --import tsx src/cli.ts"
+    "scenario": "node --import tsx demo-support/scenario/cli.ts"
   },
   "dependencies": {
     "@sylwellsoftware/fray": "workspace:^",
