@@ -165,12 +165,9 @@ delivery's hidden simulated arrival date.
 | `src/domain/calendar.ts`, `dependencies.ts` | Date/calendar rules and DAG scheduling |
 | `src/domain/snapshot.ts`, `projections.ts` | Historical views and derived management state |
 | `src/services/BuildcoService.ts` | Backend-facing Glue endpoints for bootstrap, views, choices and commands |
-| `src/views/index.tsx` | Seven active-only screen compositions |
-| `src/views/*View/*Screen.tsx` | Individual screen views |
-| `src/views/shared/ScreenView.tsx` | Common screen base, titles and options |
-| `src/views/shared/ViewComponents.tsx` | Record cards, metrics, status and detail panels |
-| `src/views/IssuesView/RecordEditor.tsx` | Issue and delay mutation dialog |
-| `src/views/AnalyticsView/Analytics.tsx` | Operational chart compositions |
+| `src/views/index.tsx` | Shell view export |
+| `src/views/ShellView/ShellView.tsx` | Header, footer and scenario loading screen |
+| `src/views-legacy/` | Previous seven screen compositions (retained for reference) |
 | `src/styles/styles.css` | Application styles |
 | `demo-support/scenario/` | Deterministic scenario generator and CLI |
 | `demo-support/server/ConstructionScenario.ts` | Shared queries, paging/filtering and validated commands |
