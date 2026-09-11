@@ -46,6 +46,8 @@ const definitions = [
                 || path === 'styles/structural.css'
                 || /^colors\/(?:README\.md|[a-z]+\/colors\.css)$/.test(path)
                 || /^themes\/(?:README\.md|base\.css|[a-z]+\/theme\.css)$/.test(path)
+                || path === 'docs/application-composition-guide.md'
+                || path === 'docs/application-layout-guide.md'
         },
     },
     {
