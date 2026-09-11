@@ -310,10 +310,10 @@ class RecordsView extends Component {
                 <Toolbar allocation="natural" label="Result actions">
                     <button type="button" onClick={exportRecords}>Export</button>
                 </Toolbar>
-                <div className="fray-size-flexible fray-scroll"
-                    role="region" aria-label="Record results" tabIndex={0}>
+                <Layout vertical allocation="flexible" scroll
+                    ariaLabel="Record results" tabIndex={0}>
                     <RecordsResults />
-                </div>
+                </Layout>
             </section>
         </section>
     }
@@ -400,7 +400,8 @@ document scrolling does not remove the cost of rendering rows.
 - A data workspace separates control allocation from a flexible results region.
 - A workbench repeats the bounded chain through nested panes. Make size ratios
   and each pane's scroll owner intentional. `SplitView` supplies a two-pane
-  composition, not a pane-resizing or size-persistence policy.
+  composition and accessible resizing mechanics, but not size persistence or
+  responsive policy.
 - A fullscreen monitoring screen can allocate equal shares to similarly
   decorated sibling regions with independent scrolling. Equal flexible growth
   does not guarantee equal outer boxes with different padding or borders.
@@ -505,22 +506,26 @@ control capability. Prefer the existing composition when the structure is
 authored directly. Data-driven definitions are appropriate when the controls
 really come from metadata or when the component owns a meaningful model.
 
-When regions have different meanings, name them with parent-specific marker
-components. Current Fray components follow this convention:
+When regions have different meanings, name them with parent-specific
+components. SplitView's named regions are specialized Layout panes rather than
+non-visual markers:
 
 ```tsx
-<SplitView direction="horizontal" primarySize="18rem">
-    <SplitPrimary>
+<SplitView horizontal allocation="flexible" primarySize="18rem"
+    separatorLabel="Resize record navigation">
+    <SplitPrimary vertical scroll label="Record navigation">
         <RecordNavigator selection={selection} />
     </SplitPrimary>
-    <SplitSecondary>
+    <SplitSecondary vertical scroll label="Record details">
         <RecordSummary selection={selection} />
         <RecordHistory selection={selection} />
     </SplitSecondary>
 </SplitView>
 ```
 
-`PanelToolbar`, `SidebarToolbar`, `DialogActions`, and
+SplitView owns the separator's pointer and keyboard behavior and reports sizes;
+the application owns persistence and responsive policy. `PanelToolbar`,
+`SidebarToolbar`, `DialogActions`, and
 `OptionGroupHeaderEnd` provide the corresponding named insertion points for
 those components. Their contents remain nested in the call site instead of
 being hidden in `toolbar={...}` or `actions={...}` props. Short heading and
@@ -572,14 +577,14 @@ class ApplicationShell extends Component {
             {allowContent: false, required: ['content']},
         )
 
-        return <div className="application-shell fray-layout-vertical">
+        return <Layout vertical className="application-shell">
             {regions.header == null ? null : <header>{regions.header}</header>}
             <main className="fray-size-flexible">{regions.content}</main>
             {regions.footer == null ? null : <footer>{regions.footer}</footer>}
-        </div>
+        </Layout>
     }
 
-    static dependencies = [ShellHeader, ShellContent, ShellFooter]
+    static dependencies = [Layout, ShellHeader, ShellContent, ShellFooter]
 }
 ```
 

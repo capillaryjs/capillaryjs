@@ -3,6 +3,7 @@ import {
     Button,
     DescriptionItem,
     DescriptionList,
+    Layout,
     Panel,
     ProgressBar,
     RadioGroup,
@@ -38,6 +39,7 @@ const inputRef: {current: HTMLInputElement | null} = {current: null}
 const input = <input aria-label="Name" ref={inputRef} />
 const sidebar = <Sidebar header="Requests" ariaLabel="Fallback">Request one</Sidebar>
 const details = <DescriptionList><DescriptionItem term="Owner" value="Team" /></DescriptionList>
+const layout = <Layout horizontal allocation="flexible" scroll>Content</Layout>
 const split = <SplitView>
     <SplitPrimary>Navigation</SplitPrimary>
     <SplitSecondary>Content</SplitSecondary>
@@ -65,6 +67,12 @@ const invalidCheckedBinding = <input bind:checked={inputValue} />
 const invalidLiveRadioOptions = <RadioGroup options={live(radioOptions)} />
 // @ts-expect-error SplitView pane content uses parent-specific region children.
 const invalidSplitContentProps = <SplitView primary="Navigation" secondary="Content" />
+// @ts-expect-error Layout requires one explicit direction.
+const invalidDirectionlessLayout = <Layout>Content</Layout>
+// @ts-expect-error Direction modifiers are mutually exclusive.
+const invalidDualDirectionLayout = <Layout horizontal vertical>Content</Layout>
+// @ts-expect-error SplitView owns pane allocation.
+const invalidSplitPaneAllocation = <SplitPrimary allocation="flexible">Content</SplitPrimary>
 // @ts-expect-error Panel toolbar content uses a PanelToolbar child.
 const invalidPanelToolbarProp = <Panel toolbar={<Button label="Save" />} />
 // @ts-expect-error RadioGroup options do not accept a raw emitter either.
@@ -76,6 +84,7 @@ void automaticTree
 void input
 void sidebar
 void details
+void layout
 void split
 void progress
 void routedLink
@@ -86,5 +95,6 @@ void invalidLiveProp
 void invalidValueBinding
 void invalidCheckedBinding
 void invalidLiveRadioOptions
+void invalidSplitPaneAllocation
 void invalidRawRadioOptions
 void invalidLiveRadioLabel

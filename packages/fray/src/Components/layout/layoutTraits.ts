@@ -9,6 +9,32 @@ export interface FrayLayoutParticipantProps {
     allocation?: FrayLayoutAllocation
 }
 
+/** Concise, mutually exclusive direction modifiers for intentional layout components. */
+export type FrayLayoutDirectionProps =
+    | {horizontal: boolean, vertical?: never}
+    | {horizontal?: never, vertical: boolean}
+
+/** Compatibility form for components that retain an established default direction. */
+export type FrayOptionalLayoutDirectionProps =
+    | FrayLayoutDirectionProps
+    | {horizontal?: never, vertical?: never}
+
+/** Resolve boolean direction modifiers, with an optional compatibility fallback. */
+export function layoutDirectionFromProps(
+    props: {horizontal?: boolean, vertical?: boolean},
+    fallback?: FrayLayoutDirection,
+    componentName = 'Layout component',
+): FrayLayoutDirection {
+    const {horizontal = false, vertical = false} = props
+    if (horizontal && vertical) {
+        throw new TypeError(`${componentName} cannot be both horizontal and vertical`)
+    }
+    if (horizontal) return 'horizontal'
+    if (vertical) return 'vertical'
+    if (fallback != null) return fallback
+    throw new TypeError(`${componentName} requires either horizontal or vertical`)
+}
+
 export function layoutDirectionClassName(direction: FrayLayoutDirection): string {
     if (direction === 'horizontal') return 'fray-layout-horizontal'
     if (direction === 'vertical') return 'fray-layout-vertical'

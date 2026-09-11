@@ -14,6 +14,7 @@ import {
     GroupPanel,
     FrayApp,
     ListView,
+    Layout,
     Panel,
     ProgressBar,
     RadioGroup,
@@ -150,6 +151,7 @@ new DescriptionList({
     label: 'Details',
     children: [h(DescriptionItem, {term: 'Severity', value: 'High'})],
 })
+new Layout({vertical: true, allocation: 'flexible', scroll: true, children: 'Content'})
 new SplitView({
     direction: 'horizontal',
     children: [h(SplitPrimary, null, 'Tree'), h(SplitSecondary, null, 'Details')],

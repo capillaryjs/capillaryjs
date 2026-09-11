@@ -1,7 +1,10 @@
 import {Component, css} from '../component.js'
 import type {ComponentProps, FrayChild, LivePropContract} from '../component.js'
 import type {FrayLayoutParticipantProps} from './layoutTraits.js'
+import type {FrayOptionalLayoutDirectionProps} from './layoutTraits.js'
+import {layoutDirectionFromProps} from './layoutTraits.js'
 import {Header} from './header.js'
+import {Layout} from './layout.js'
 import {DeclarativeRegion, readDeclarativeRegions} from './declarativeRegion.js'
 import {controlId, layoutParticipantClass} from '../controlUtils.js'
 
@@ -10,14 +13,19 @@ const panelLiveProps = ['disabled'] as const
 /** Toolbar content rendered between a Panel heading and its ordinary children. */
 export class PanelToolbar extends DeclarativeRegion {}
 
-export interface PanelProps extends ComponentProps,
-    FrayLayoutParticipantProps,
-    LivePropContract<(typeof panelLiveProps)[number]> {
+export type PanelProps = ComponentProps
+& FrayLayoutParticipantProps
+& FrayOptionalLayoutDirectionProps
+& LivePropContract<(typeof panelLiveProps)[number]>
+& {
     id?: string | number | null
     header?: FrayChild
     /** @deprecated Supply `<PanelToolbar>` as a direct child. */
     toolbar?: never
+    /** @deprecated Use the `horizontal` or `vertical` boolean modifier. */
     orientation?: 'horizontal' | 'vertical'
+    /** Make the Panel body its overflow owner. Defaults to true for compatibility. */
+    scroll?: boolean
     disabled?: boolean
 }
 
@@ -39,15 +47,26 @@ export class Panel extends Component<PanelProps> {
         const {
             header = null,
             children = [],
-            orientation = 'vertical',
+            orientation,
+            scroll = true,
             disabled = false,
         } = this.props
         const {content, regions} = readDeclarativeRegions('Panel', children, {
             toolbar: PanelToolbar,
         })
-        if (!['horizontal', 'vertical'].includes(orientation)) {
+        if (orientation != null && !['horizontal', 'vertical'].includes(orientation)) {
             throw new TypeError('Panel orientation must be horizontal or vertical')
         }
+        if (orientation != null
+            && ((this.props.horizontal && orientation !== 'horizontal')
+                || (this.props.vertical && orientation !== 'vertical'))) {
+            throw new TypeError('Panel direction modifier conflicts with orientation')
+        }
+        const direction = layoutDirectionFromProps(
+            this.props,
+            orientation ?? 'vertical',
+            'Panel',
+        )
 
         const Host = this.Host
         const title = header == null
@@ -66,12 +85,16 @@ export class Panel extends Component<PanelProps> {
         >
             {title}
             {regions.toolbar ?? null}
-            <fray-content className={orientation}>{content}</fray-content>
+            <Layout
+                {...(direction === 'horizontal' ? {horizontal: true} : {vertical: true})}
+                scroll={scroll}
+                className="panel-content"
+            >{content}</Layout>
         </Host>
     }
 
     static override hostName = 'panel'
-    static override dependencies = [Header, PanelToolbar]
+    static override dependencies = [Header, Layout, PanelToolbar]
 
     static css = css`
         & {
@@ -82,24 +105,18 @@ export class Panel extends Component<PanelProps> {
             color: var(--panel-color);
             display: flex;
             flex-direction: column;
-            overflow: auto;
+            min-width: 0;
+            min-height: 0;
+            overflow: hidden;
             flex: 0 0 auto;
         }
 
-        & > fray-content {
-            display: flex;
-            flex: 1;
-            overflow: auto;
+        & > fray-layout.panel-content {
+            flex: 1 1 auto;
+            min-width: 0;
+            min-height: 0;
             padding: var(--panel-padding, 0.75rem);
             gap: var(--spacing-medium, 1rem);
-        }
-
-        & > fray-content.horizontal {
-            flex-direction: row;
-        }
-
-        & > fray-content.vertical {
-            flex-direction: column;
         }
 
         &[aria-disabled="true"] {

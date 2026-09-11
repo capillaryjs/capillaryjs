@@ -1,6 +1,7 @@
 import {Emitter} from '@sylwellsoftware/glue'
 import {
     Button,
+    Layout,
     NavigationBar,
     Panel,
     ProgressBar,
@@ -20,6 +21,7 @@ import {
 const tree = <Panel header="Automatic"><Button label="Save" /></Panel>
 const input = <input aria-label="Name" ref={{current: null} as {current: HTMLInputElement | null}} />
 const sidebar = <Sidebar header="Requests">Request one</Sidebar>
+const layout = <Layout vertical scroll>Content</Layout>
 const split = <SplitView>
     <SplitPrimary>Navigation</SplitPrimary>
     <SplitSecondary>Content</SplitSecondary>
@@ -56,6 +58,7 @@ const invalidRawRadioOptions = <RadioGroup options={radioOptions} />
 void tree
 void input
 void sidebar
+void layout
 void split
 void progress
 void tabs

@@ -215,6 +215,10 @@ interface DOMEvents<TElement extends HTMLElement> {
     onKeyUp?: ((event: KeyboardEvent & {currentTarget: TElement}) => void) | undefined
     onFocus?: ((event: FocusEvent & {currentTarget: TElement}) => void) | undefined
     onBlur?: ((event: FocusEvent & {currentTarget: TElement}) => void) | undefined
+    onPointerDown?: ((event: PointerEvent & {currentTarget: TElement}) => void) | undefined
+    onPointerMove?: ((event: PointerEvent & {currentTarget: TElement}) => void) | undefined
+    onPointerUp?: ((event: PointerEvent & {currentTarget: TElement}) => void) | undefined
+    onPointerCancel?: ((event: PointerEvent & {currentTarget: TElement}) => void) | undefined
 }
 
 type FrayDOMProps<TElement extends HTMLElement> =
@@ -257,6 +261,7 @@ export interface FrayHostElementTagNameMap {
     'fray-toolbarcontent': HTMLElement
     'fray-primary': HTMLElement
     'fray-secondary': HTMLElement
+    'fray-separator': HTMLElement
     'fray-progress': HTMLElement
     'fray-inverse': HTMLElement
     'fray-presets': HTMLElement

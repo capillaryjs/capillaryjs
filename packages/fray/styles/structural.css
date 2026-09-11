@@ -872,24 +872,18 @@ fray-panel {
             color: var(--panel-color);
             display: flex;
             flex-direction: column;
-            overflow: auto;
+            min-width: 0;
+            min-height: 0;
+            overflow: hidden;
             flex: 0 0 auto;
         }
 
-        fray-panel > fray-content {
-            display: flex;
-            flex: 1;
-            overflow: auto;
+        fray-panel > fray-layout.panel-content {
+            flex: 1 1 auto;
+            min-width: 0;
+            min-height: 0;
             padding: var(--panel-padding, 0.75rem);
             gap: var(--spacing-medium, 1rem);
-        }
-
-        fray-panel > fray-content.horizontal {
-            flex-direction: row;
-        }
-
-        fray-panel > fray-content.vertical {
-            flex-direction: column;
         }
 
         fray-panel[aria-disabled="true"] {
@@ -1071,26 +1065,73 @@ fray-splitview {
         }
 
         fray-splitview > fray-primary {
-            flex: 0 1 var(--split-primary-size, 40%);
+            flex: 0 0 var(--split-primary-size, 40%);
         }
 
         fray-splitview > fray-secondary {
-            flex: 1;
-        }
-
-        fray-splitview > fray-primary,
-        fray-splitview > fray-secondary {
-            min-width: 0;
-            min-height: 0;
-            overflow: auto;
+            flex: 1 1 0;
         }
 
         fray-splitview.horizontal > fray-primary {
-            border-inline-end: 1px solid var(--ui-border-color);
+            min-inline-size: var(--split-primary-min-size, 96px);
+        }
+
+        fray-splitview.horizontal > fray-secondary {
+            min-inline-size: var(--split-secondary-min-size, 96px);
         }
 
         fray-splitview.vertical > fray-primary {
-            border-block-end: 1px solid var(--ui-border-color);
+            min-block-size: var(--split-primary-min-size, 96px);
+        }
+
+        fray-splitview.vertical > fray-secondary {
+            min-block-size: var(--split-secondary-min-size, 96px);
+        }
+
+        fray-splitview > fray-separator {
+            position: relative;
+            flex: none;
+            box-sizing: border-box;
+            background: var(--ui-border-color);
+            touch-action: none;
+            user-select: none;
+        }
+
+        fray-splitview > fray-separator::after {
+            content: '';
+            position: absolute;
+            border-radius: 999px;
+            background: currentColor;
+            opacity: 0;
+        }
+
+        fray-splitview > fray-separator:hover::after,
+        fray-splitview > fray-separator:focus-visible::after {
+            opacity: .45;
+        }
+
+        fray-splitview.horizontal > fray-separator {
+            inline-size: .45rem;
+            cursor: col-resize;
+        }
+
+        fray-splitview.horizontal > fray-separator::after {
+            inset-block: 35%;
+            inset-inline: 1px;
+        }
+
+        fray-splitview.vertical > fray-separator {
+            block-size: .45rem;
+            cursor: row-resize;
+        }
+
+        fray-splitview.vertical > fray-separator::after {
+            inset-inline: 35%;
+            inset-block: 1px;
+        }
+
+        fray-splitview[data-resizable="false"] > fray-separator {
+            cursor: default;
         }
 
 fray-tabline {

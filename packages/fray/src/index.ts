@@ -10,6 +10,7 @@ export * from './Components/layout/header.js'
 export * from './Components/layout/groupPanel.js'
 export * from './Components/layout/optionGroup.js'
 export * from './Components/layout/optionsPanel.js'
+export * from './Components/layout/layout.js'
 export * from './Components/layout/panel.js'
 export * from './Components/layout/sidebar.js'
 export * from './Components/layout/declarativeRegion.js'
@@ -17,6 +18,7 @@ export * from './Components/layout/splitView.js'
 export type {
     FrayLayoutAllocation,
     FrayLayoutDirection,
+    FrayLayoutDirectionProps,
     FrayLayoutParticipantProps,
 } from './Components/layout/layoutTraits.js'
 

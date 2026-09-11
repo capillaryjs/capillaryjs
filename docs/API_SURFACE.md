@@ -73,14 +73,17 @@ props, children, vnodes, keys, refs, writable emitters, live bindings and prop
 contracts, emitter snapshots, template props, runtime options, and style
 registry types.
 
-The root exports `FrayLayoutDirection`, `FrayLayoutAllocation`, and
-`FrayLayoutParticipantProps`. Public structural classes provide horizontal or
+The root exports `FrayLayoutDirection`, `FrayLayoutAllocation`, direction-prop
+contracts, and `FrayLayoutParticipantProps`. Public structural classes provide horizontal or
 vertical direct-child arrangement, natural or flexible main-axis allocation,
 and explicit bounded scrolling. `FrayApp.layout` targets the bounded root;
-`Header`, `NavigationBar`, `Panel`, `Sidebar`, and `Toolbar` opt into the
-`allocation` argument. Application-owned neutral elements may use the same
-classes directly. Breakpoints, exact dimensions, ratios, and gaps remain
-application CSS.
+`Layout`, `Header`, `NavigationBar`, `Panel`, `Sidebar`, `SplitView`, and
+`Toolbar` opt into the `allocation` argument. Layout is the sole generic layout
+component; Panel composes it as a themed content body; SplitPrimary and
+SplitSecondary specialize it as the required panes around SplitView's
+accessible resizable separator. Application-owned semantic elements may use
+the same classes directly. Breakpoints, persisted split sizes, exact dimensions,
+ratios, and gaps remain application policy.
 
 TSX is the primary documented authoring syntax. TSX and `h()` lower to the
 same vnode representation. A readable emitter in child position owns a
@@ -90,8 +93,9 @@ fine-grained binding range; normal props preserve the original object.
 
 `DeclarativeRegion` and `readDeclarativeRegions()` support parent-specific,
 non-visual named content regions. `PanelToolbar`, `SidebarToolbar`,
-`SplitPrimary`, `SplitSecondary`, `DialogActions`, and
-`OptionGroupHeaderEnd` expose the built-in region contracts. Substantial
+`DialogActions`, and `OptionGroupHeaderEnd` expose the non-visual built-in
+region contracts. `SplitPrimary` and `SplitSecondary` are instead visible,
+named Layout panes required directly by SplitView. Substantial
 rendered content stays in the JSX child tree; configuration remains in props.
 
 Components with no suitable native root declare a fixed host stem. A runtime
@@ -105,7 +109,7 @@ custom elements.
 | --- | --- |
 | Actions | `Button`, `Toolbar` |
 | Text and choices | `Label`, `Textbox`, `Dropdown`, `RadioButton`, `RadioGroup`, `Toggle`, `Checkbox`, `TriCheckbox`, `QuadCheckbox` |
-| Layout and navigation | `FrayApp`, `Header`, `GroupPanel`, `NavigationBar`, `OptionGroup`, `OptionGroupHeaderEnd`, `OptionsPanel`, `Panel`, `PanelToolbar`, `Sidebar`, `SidebarToolbar`, `SplitPrimary`, `SplitSecondary`, `SplitView`, `Tab`, `TabLine`, `TabPanel` |
+| Layout and navigation | `FrayApp`, `Layout`, `Header`, `GroupPanel`, `NavigationBar`, `OptionGroup`, `OptionGroupHeaderEnd`, `OptionsPanel`, `Panel`, `PanelToolbar`, `Sidebar`, `SidebarToolbar`, `SplitPrimary`, `SplitSecondary`, `SplitView`, `Tab`, `TabLine`, `TabPanel` |
 | Records and collections | `DescriptionItem`, `DescriptionList`, `InfoField`, `InfoPanel`, `Placeholder`, `ListView`, `TreeItem`, `TreeView` |
 | Tables and filters | `DataTable`, `FilterPanel`, `TableHeader`, `TableHeaderCell` |
 | Dialog and status | `Dialog`, `DialogActions`, `ProgressBar` |
@@ -229,6 +233,11 @@ available and apply the same canvas, color, and typography values.
 only distributes an existing bound; flexible allocation does not imply
 overflow. Existing component and filled-island overflow remain compatibility
 defaults, while an explicit inner scroll owner determines actual scroll range.
+
+The `Layout` component maps required `horizontal` or `vertical` modifiers to
+the direction traits. Panel uses Layout for its body. SplitView requires its
+named SplitPrimary and SplitSecondary Layout panes and inserts a focusable
+separator supporting pointer drag, arrow keys, Home, and End.
 
 `island` marks one explicit, non-nestable surface boundary. `colored` consumes
 application-supplied `--c1`, `--c2`, and `--c3` values for a shared gradient

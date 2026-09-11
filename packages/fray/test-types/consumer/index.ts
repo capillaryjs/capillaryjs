@@ -12,6 +12,7 @@ import {
     Dropdown,
     NavigationBar,
     FrayApp,
+    Layout,
     Panel,
     ProgressBar,
     RouteLink,
@@ -51,6 +52,7 @@ const numeric = new Dropdown<number>({
 numeric.valueEmitter.get().toFixed()
 
 new DescriptionList({children: h(DescriptionItem, {term: 'Owner', value: 'Team'})})
+new Layout({horizontal: true, children: 'Content'})
 new SplitView({children: [
     h(SplitPrimary, null, 'Navigation'),
     h(SplitSecondary, null, 'Content'),

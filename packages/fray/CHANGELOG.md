@@ -8,6 +8,13 @@ Versioning.
 
 ### Added
 
+- Added the presentation-only `Layout` component with mutually exclusive
+  `horizontal`/`vertical` modifiers, named parent allocation, and explicit
+  scrolling. `Panel` now composes Layout as its body.
+- Made `SplitView` a resizable two-pane control with required SplitPrimary and
+  SplitSecondary Layout panes, a focusable separator, pointer dragging,
+  orientation-appropriate keyboard resizing, minimum sizes, and `onResize`.
+
 - Added `DeclarativeRegion` and `readDeclarativeRegions()` for defining
   parent-specific, non-visual named content regions with duplicate, foreign,
   required-region, and ordinary-content validation.
@@ -43,6 +50,11 @@ Versioning.
   sans-serif fonts and did not display in Chrome.
 
 ### Changed
+
+- Panel content now emits a `fray-layout` host instead of `fray-content`.
+  SplitView panes are visible Layout components rather than non-visual region
+  markers; the previous `orientation`, `direction`, and parent-level pane-label
+  props remain migration aliases.
 
 - `Panel`, `Sidebar`, `SplitView`, `Dialog`, and `OptionGroup` now accept their
   secondary structural content through parent-specific region children rather

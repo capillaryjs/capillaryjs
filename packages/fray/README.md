@@ -348,9 +348,10 @@ const view = new Emitter<'list' | 'grid'>('list')
 | `GroupPanel` | Labelled bordered group with a vertical header | required `header`, content |
 | `OptionGroup` | Labelled native fieldset for related controls | `label`/`ariaLabel`, `OptionGroupHeaderEnd` and ordinary content children, validation props |
 | `OptionsPanel` | GroupPanel specialization arranging option groups | required `header`, `OptionGroup` content |
-| `Panel` | Optional labelled region with toolbar and content flow | `header`, `orientation`, `disabled`; `PanelToolbar` and ordinary content children; live: `disabled` |
+| `Layout` | Presentation-only arrangement of arbitrary children | exactly one of `horizontal`/`vertical`; `allocation`, `scroll`, optional accessible-region configuration |
+| `Panel` | Optional labelled, themed region composed over a Layout body | `header`, `horizontal`/`vertical`, `allocation`, `scroll`, `disabled`; `PanelToolbar` and ordinary content children; live: `disabled` |
 | `Sidebar` | Labelled `aside` with fixed header/toolbar and scrolling content | `header`, `ariaLabel`; `SidebarToolbar` and ordinary content children |
-| `SplitView` | Two-pane layout | `SplitPrimary` and `SplitSecondary` region children; `direction`, `primarySize`, region labels |
+| `SplitView` | Resizable two-pane layout | required `SplitPrimary` and `SplitSecondary` Layout panes; `horizontal`/`vertical`, `allocation`, initial/minimum sizes, separator label, `onResize` |
 | `NavigationBar` | Labelled native navigation list over router-aware anchors | required `label`, `items`; per-item route target, `exact`, disabled/link options |
 | `Tab` | Declarative tab definition consumed by `TabPanel` | `id`, `label`, `disabled`, optional literal `route`, content |
 | `TabLine` | Standalone keyboard-operable tab list | `tabs`, `valueEmitter`/`activeTabEmitter`, initial value, `label`, `onChange` |
@@ -383,17 +384,26 @@ activate its application service/query during `initialize()`.
 </TabPanel>
 ```
 
-`SplitView` is a fixed two-pane composition primitive. Its parent-specific
-region children keep the pane roles visible:
+`SplitView` is a resizable two-pane composition primitive. Its required named
+Layout panes keep their roles and independent arrangement visible:
 
 ```tsx
-<SplitView primarySize="18rem" primaryLabel="Projects" secondaryLabel="Details">
-    <SplitPrimary><ProjectNavigation /></SplitPrimary>
-    <SplitSecondary><ProjectDetails /></SplitSecondary>
+<SplitView horizontal allocation="flexible" primarySize="18rem"
+    separatorLabel="Resize project navigation">
+    <SplitPrimary vertical scroll label="Projects">
+        <ProjectNavigation />
+    </SplitPrimary>
+    <SplitSecondary vertical scroll label="Details">
+        <ProjectDetails />
+    </SplitSecondary>
 </SplitView>
 ```
 
-It does not impose application resizing policy or persist pane sizes.
+Pointer dragging and orientation-appropriate arrow keys resize the primary
+pane. Home and End move to the configured minimum and maximum; Shift multiplies
+the keyboard step. SplitView reports pixel sizes through `onResize`, while the
+application owns persistence and responsive policy. Set `resizable={false}`
+only when a fixed divider is deliberate.
 
 `NavigationBar` uses a native `nav`, list, and anchors. It preserves
 `RouteLink` href generation, current-route state, modified clicks, targets,
@@ -672,9 +682,10 @@ element-agnostic and may style application-owned native markup as well as
 Fray-owned hosts.
 
 A Fray component host is therefore not required merely to obtain Fray layout or
-surface treatment. Introduce a component when it owns a meaningful structural or
-behavioral contract, not simply as a styling wrapper around an equivalent native
-element.
+surface treatment. Use `Layout` when no native semantic element is appropriate
+and the container exists only to arrange children. Introduce any other component
+when it owns a meaningful structural, behavioral, accessible, or presentation
+contract.
 
 In short: native element names provide semantics, Fray traits provide opt-in
 presentation and layout, and Fray component hosts provide component-owned
@@ -691,12 +702,18 @@ The allocation traits are structural and independently composable:
   logical minimums so nested content can shrink;
 - `fray-scroll` makes a bounded node the explicit overflow owner.
 
-`Header`, `NavigationBar`, `Panel`, `Sidebar`, and `Toolbar` accept
+`Header`, `Layout`, `NavigationBar`, `Panel`, `Sidebar`, `SplitView`, and
+`Toolbar` accept
 `allocation="natural" | "flexible"` and map it to their outer host. `Panel`
-continues to use `orientation` for its application-owned content node;
-components do not accept a generic arrangement prop when it would rearrange
-their generated chrome. Application-owned elements may use the classes
-directly.
+uses `horizontal` or `vertical` for its inner Layout body rather than its
+generated header and toolbar. SplitView applies direction to the relationship
+between its two panes; each pane independently arranges its own children.
+Application-owned elements may use the classes directly.
+
+`Layout`, `Panel`, and `SplitView` reject simultaneous `horizontal` and
+`vertical` modifiers. Layout requires one explicitly. Panel and SplitView retain
+their former vertical and horizontal defaults, respectively, while the legacy
+`orientation` and `direction` spellings remain compatibility aliases.
 
 Flexible siblings have equal growth shares only when their box decoration is
 equivalent. Application CSS may override ratios, sizes, and gaps. Flexible

@@ -18,6 +18,7 @@ import {
     GroupPanel,
     Header,
     Label,
+    Layout,
     OptionGroup,
     OptionGroupHeaderEnd,
     Panel,
@@ -750,15 +751,39 @@ describe('layout controls', () => {
         assert.equal(list.querySelector('dd')?.textContent, 'Accounting')
     })
 
-    test('SplitView owns two panes, labels optional regions, and validates layout props', () => {
+    test('Layout owns generic direction, allocation, and explicit scrolling', () => {
+        Layout.new({
+            horizontal: true,
+            allocation: 'flexible',
+            scroll: true,
+            ariaLabel: 'Comparison layout',
+            children: h('p', null, 'Content'),
+        }).attachTo(document.body)
+
+        const layout = requiredQuery<HTMLElement>('fray-layout')
+        assert.equal(
+            layout.className,
+            'fray-layout-horizontal fray-size-flexible fray-scroll',
+        )
+        assert.equal(layout.getAttribute('role'), 'region')
+        assert.equal(layout.getAttribute('aria-label'), 'Comparison layout')
+        assert.equal(layout.textContent, 'Content')
+        assert.throws(
+            () => Layout.new({horizontal: true, vertical: true} as never).mount(),
+            /cannot be both horizontal and vertical/,
+        )
+        assert.throws(() => Layout.new().mount(), /requires either horizontal or vertical/)
+    })
+
+    test('SplitView owns two Layout panes, an accessible separator, and validation', () => {
+        let resizedTo = ''
         SplitView.new({
-            direction: 'horizontal',
+            horizontal: true,
             primarySize: '18rem',
-            primaryLabel: 'Project navigation',
-            secondaryLabel: 'Project details',
+            onResize: (size) => resizedTo = size,
             children: [
-                h(SplitPrimary, null, h('p', null, 'Tree')),
-                h(SplitSecondary, null, h('p', null, 'Details')),
+                h(SplitPrimary, {label: 'Project navigation'}, h('p', null, 'Tree')),
+                h(SplitSecondary, {label: 'Project details'}, h('p', null, 'Details')),
             ],
         }).attachTo(document.body)
 
@@ -774,6 +799,23 @@ describe('layout controls', () => {
         assert.equal(requiredQuery<HTMLElement>('fray-primary', split).tabIndex, 0)
         assert.equal(requiredQuery<HTMLElement>('fray-secondary', split).tabIndex, 0)
         assert.equal(split.querySelector('div'), null)
+        assert.match(requiredQuery('fray-primary', split).className, /fray-layout-vertical/)
+        const separator = requiredQuery<HTMLElement>('fray-separator', split)
+        assert.equal(separator.getAttribute('role'), 'separator')
+        assert.equal(separator.getAttribute('aria-orientation'), 'vertical')
+        assert.equal(separator.tabIndex, 0)
+
+        Object.defineProperty(split, 'clientWidth', {configurable: true, value: 600})
+        Object.defineProperty(separator, 'offsetWidth', {configurable: true, value: 8})
+        const primary = requiredQuery<HTMLElement>('fray-primary', split)
+        primary.getBoundingClientRect = () => ({
+            x: 0, y: 0, width: 240, height: 400,
+            top: 0, right: 240, bottom: 400, left: 0,
+            toJSON: () => ({}),
+        })
+        separator.dispatchEvent(new KeyboardEvent('keydown', {key: 'ArrowRight'}))
+        assert.equal(split.style.getPropertyValue('--split-primary-size'), '256px')
+        assert.equal(resizedTo, '256px')
 
         SplitView.new({
             direction: 'vertical',
@@ -790,17 +832,21 @@ describe('layout controls', () => {
         assert.equal(requiredQuery('fray-primary', vertical).hasAttribute('role'), false)
         assert.equal(requiredQuery('fray-secondary', vertical).hasAttribute('aria-label'), false)
 
-        SplitView.new().attachTo(document.body)
-        const empty = requiredAt([...document.querySelectorAll<HTMLElement>('fray-splitview')], 2)
-        assert.equal(requiredQuery('fray-primary', empty).textContent, '')
-        assert.equal(requiredQuery('fray-secondary', empty).textContent, '')
+        assert.throws(() => SplitView.new().mount(), /requires SplitPrimary/)
         assert.throws(() => SplitView.new({primarySize: ''}).mount(), /primarySize/)
         assert.throws(() => SplitView.new({direction: 'diagonal' as 'horizontal'}).mount(),
             /direction/)
-        assert.throws(() => SplitView.new({children: 'Unnamed'}).mount(), /documented region/)
+        assert.throws(
+            () => SplitView.new({children: 'Unnamed'}).mount(),
+            /only direct SplitPrimary and SplitSecondary/,
+        )
         assert.throws(
             () => SplitView.new({primary: 'Legacy'} as never).mount(),
             /SplitPrimary and SplitSecondary/,
+        )
+        assert.throws(
+            () => SplitPrimary.new({allocation: 'flexible'} as never).mount(),
+            /SplitView owns.*allocation/,
         )
     })
 
@@ -890,12 +936,15 @@ describe('layout controls', () => {
         const section = requiredQuery<HTMLElement>('fray-panel')
         const header = requiredQuery<HTMLElement>('fray-header', section)
         const title = requiredQuery<HTMLElement>('h2', header)
-        const content = requiredQuery<HTMLElement>('fray-content', section)
+        const content = requiredQuery<HTMLElement>('fray-layout', section)
         assert.equal(section.getAttribute('role'), 'region')
         assert.equal(section.className, '')
         assert.equal(section.getAttribute('aria-labelledby'), title.id)
         assert.equal(section.hasAttribute('data-orientation'), false)
-        assert.equal(content.className, 'horizontal')
+        assert.equal(
+            content.className,
+            'panel-content fray-layout-horizontal fray-scroll',
+        )
         assert.equal(content.textContent, 'Details')
         assert.equal(requiredQuery(':scope > fray-button', section).textContent, 'Save')
         assert.equal(section.querySelector('div'), null)
@@ -958,7 +1007,10 @@ describe('layout controls', () => {
         const panel = Panel.new({allocation: 'flexible', children: 'Flexible'})
         panel.attachTo(document.body)
         assert.equal(requiredQuery<HTMLElement>('fray-panel').className, 'fray-size-flexible')
-        assert.equal(requiredQuery<HTMLElement>('fray-panel > fray-content').className, 'vertical')
+        assert.equal(
+            requiredQuery<HTMLElement>('fray-panel > fray-layout').className,
+            'panel-content fray-layout-vertical fray-scroll',
+        )
         panel.destroy()
 
         const sidebar = Sidebar.new({allocation: 'natural', children: 'Natural'})
