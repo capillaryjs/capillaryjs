@@ -54,6 +54,7 @@
     "styles",
     "themes",
     "colors",
+    "docs/application-layout-guide.md",
     "CHANGELOG.md",
     "LICENSE",
     "NOTICE"
