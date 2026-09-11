@@ -12,10 +12,10 @@ import {
     stringRouteQueryCodec
 } from "@sylwellsoftware/fray";
 import type {ComponentProps, FrayChild, TreeNode} from "@sylwellsoftware/fray";
-import {DerivedEmitter, Emitter, LiveQuery, RestQueryHandler} from "@sylwellsoftware/glue";
+import {DerivedEmitter, Emitter} from "@sylwellsoftware/glue";
 import {CONDITIONS, human} from "../../app/contract.ts";
 import type {Choice, Screen, SemanticMode, ViewResult, Parameters} from "../../app/contract.ts";
-import {apiFetch, bootstrap, demo, flags, forceResult, revision, screens} from "../session.ts";
+import {bootstrap, buildco, demo, flags, forceResult, revision, screens} from "../session.ts";
 import {columns, DetailView} from "../shared.tsx";
 
 export const titles: Record<Screen, [string, string]> = {
@@ -31,15 +31,7 @@ export const options = (values: string[]): Choice[] => values.map(value => ({val
 
 export abstract class ScreenView extends Component<ComponentProps & { screen: Screen }> {
     protected state = screens[this.props.screen];
-    protected query = new LiveQuery<ViewResult, { params: Emitter<Parameters>; revision: Emitter<number> }>({
-        handler: new RestQueryHandler<{ params: Parameters; revision: number }, ViewResult>({
-            url: `/api/view/${this.props.screen}`, baseUrl: location.origin, fetch: apiFetch,
-            serialize: (url, args) => {
-                url.searchParams.set("params", JSON.stringify(args.params));
-            }
-        }),
-        args: {params: this.state.params, revision}, execution: "deferred", keepPreviousValue: true,
-    });
+    protected query = buildco.view(this.props.screen, { params: this.state.params, revision }, { owner: this });
     protected result = forceResult(this.query);
     protected rows = this.result.map(value => value?.rows ?? []);
     protected tableRows = this.result.map(value => value?.rows);

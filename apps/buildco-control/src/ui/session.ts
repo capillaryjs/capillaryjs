@@ -1,9 +1,11 @@
-import { AsyncCommand, DerivedEmitter, Emitter, FetchState, LiveQuery, RestQueryHandler } from "@sylwellsoftware/glue";
+import { AsyncCommand, DerivedEmitter, Emitter, FetchState } from "@sylwellsoftware/glue";
+import type { LiveQuery, ReadableEmitter } from "@sylwellsoftware/glue";
 import { createBrowserRouter, createHashNavigation, defineRoute, routeTarget, withRouteQuery } from "@sylwellsoftware/fray";
 import type { Key, TableFilters, TableSort } from "@sylwellsoftware/fray";
 import type { Bootstrap, Mutation, Parameters, Screen, Row } from "../app/contract.ts";
 import { SCREENS } from "../app/contract.ts";
-import type { ScenarioFetch, ScenarioFetchInit } from "../transport/contract.js";
+import type { ScenarioFetch } from "../transport/contract.js";
+import { BuildcoService } from "../services/buildcoService.ts";
 
 const initial = new URLSearchParams(location.search);
 export const transport = initial.get("transport") === "http" ? "http" : "embedded";
@@ -40,11 +42,6 @@ export const apiFetch: ScenarioFetch = async (url, init = {}) => {
   });
   return { ok: response.status < 400, status: response.status, headers: {}, json: async () => response.body };
 };
-export async function request<T>(url: string, init?: ScenarioFetchInit): Promise<T> {
-  const response = await apiFetch(url, init), body = await response.json();
-  if (!response.ok) throw new Error((body as { error?: { message?: string } }).error?.message ?? `Request failed (${response.status})`);
-  return body as T;
-}
 // Keep the adapter's comparison point current after programmatic push/replace.
 // Otherwise returning to the original hash can be mistaken for an unchanged URL.
 const hash = createHashNavigation();
@@ -61,7 +58,9 @@ export const router = createBrowserRouter({ adapter: {
 } });
 export const routes = Object.fromEntries(SCREENS.map(s => [s, defineRoute(s, s)])) as Record<Screen, ReturnType<typeof defineRoute>>;
 export const revision = new Emitter(0);
-export const bootstrap = new LiveQuery<Bootstrap>({ handler: new RestQueryHandler<Record<string, never>, Bootstrap>({ url: "/api/bootstrap", baseUrl: location.origin, fetch: apiFetch }), execution: "deferred", keepPreviousValue: true });
+const buildco = new BuildcoService(apiFetch);
+export { buildco };
+export const bootstrap = buildco.bootstrap();
 export const demo = {
   mode: new Emitter("live"), previous: new Emitter("keep"), disabled: new Emitter("off"), required: new Emitter("off"), error: new Emitter("off"),
   theme: new Emitter(localStorage.getItem("buildco-theme") || "minimal"), palette: new Emitter(localStorage.getItem("buildco-palette") || "ocean"),
@@ -73,7 +72,7 @@ export const flags = {
 };
 export const reset = new AsyncCommand<{ seed: number; profile: string }, Bootstrap>({ concurrency: "reject", execute: async args => {
   demo.progress.set(0);
-  const result = await request<Bootstrap>("/api/scenario/reset", { method: "POST", body: JSON.stringify(args) });
+  const result = await buildco.reset(args);
   for (const state of Object.values(screens)) {
     state.selection.set(null); state.scope.set(null); state.expanded.set([]);
     for (const key of ["project", "scope", "phase", "selected", "material", "person", "supplier", "trade"]) state.field(key).set(key === "project" && state.screen === "projects" ? result.projects.find(p => p.status === "active")?.id ?? "" : "");
@@ -81,7 +80,7 @@ export const reset = new AsyncCommand<{ seed: number; profile: string }, Bootstr
   await bootstrap.refresh(); revision.set(revision.get() + 1); demo.notice.set("Scenario regenerated. In-memory edits were reset."); demo.progress.set(null); return result;
 } });
 export const mutate = new AsyncCommand<Mutation, { id: string; message: string }>({ concurrency: "reject", execute: async args => {
-  const result = await request<{ id: string; message: string }>("/api/mutate", { method: "POST", body: JSON.stringify(args) });
+  const result = await buildco.mutate(args);
   revision.set(revision.get() + 1); void bootstrap.refresh(); demo.notice.set(result.message); return result;
 } });
 
@@ -128,7 +127,7 @@ export function navigate(screen: Screen, params: Parameters = {}): void {
   void router.navigate(withRouteQuery(routeTarget(routes[screen]), { ...screens[screen].params.get(), ...params }));
 }
 export function openProject(row: Row): void { navigate("projects", { project: row.projectId ?? row.id, scope: row.scopeId ?? "", phase: row.phaseId ?? "", tab: row.phaseId ? "phases" : "summary" }); }
-export function forceResult<T>(source: LiveQuery<T, { params: Emitter<Parameters>; revision: Emitter<number> }>) {
+export function forceResult<T>(source: LiveQuery<T, { params: ReadableEmitter<Parameters>; revision: ReadableEmitter<number> }>) {
   return new DerivedEmitter([source, demo.mode, demo.previous] as const, ([value, mode, previous]) => mode !== "live" && mode !== "ready" && previous === "clear" ? undefined : value,
     { computeFetchState: states => demo.mode.get() === "live" ? states[0]! : demo.mode.get() as typeof FetchState[keyof typeof FetchState] });
 }

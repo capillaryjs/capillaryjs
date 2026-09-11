@@ -3,7 +3,7 @@ import type { FrayChild } from "@sylwellsoftware/fray";
 import { Emitter } from "@sylwellsoftware/glue";
 import type { Choice, Mutation, Row } from "../app/contract.ts";
 import { human } from "../app/contract.ts";
-import { bootstrap, mutate, request } from "./session.ts";
+import { bootstrap, buildco, mutate } from "./session.ts";
 
 type EditRequest = { kind: Mutation["kind"]; action: Mutation["action"]; row?: Row; projectId?: string };
 export const editor = new Emitter<EditRequest | null>(null);
@@ -27,7 +27,7 @@ export class RecordEditor extends Component {
   }
   private async loadChoices(): Promise<void> {
     const id = ++this.requestId;
-    try { const result = await request<Record<string, Choice[]>>(`/api/choices?project=${encodeURIComponent(this.fields.project!.get())}`); if (id === this.requestId) this.choices.set(result.phases ?? []); }
+    try { const result = await buildco.choices(this.fields.project!.get()); if (id === this.requestId) this.choices.set(result.phases ?? []); }
     catch (error) { if (id === this.requestId) this.error.set(String(error)); }
   }
   private async save(): Promise<void> {
