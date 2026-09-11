@@ -61,6 +61,10 @@ should describe real shared characteristics rather than depend on opaque
 generated identifiers whose main purpose is to connect implementation details
 to CSS.
 
+Application-owned native elements can opt into Fray's public layout and
+presentation traits directly; Fray does not require framework-specific wrappers
+simply to theme semantically appropriate HTML.
+
 In other words, the separation between HTML and CSS should remain meaningful.
 HTML expresses structure and semantics. CSS expresses presentation, reusable
 traits, and cross-cutting concerns. Structural layout, visual themes, and color

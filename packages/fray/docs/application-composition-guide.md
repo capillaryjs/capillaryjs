@@ -667,12 +667,23 @@ its caller. The `island` prop or class supplies surface treatment, not space
 allocation or the intended scroll owner. A `GroupPanel` inside an island can
 retain its ordinary group chrome without itself being another island.
 
-Use native elements for native semantics and Fray components for their
-established behavior. Share application CSS through meaningful traits rather
-than extracting components solely to attach a class. Components own their
-structural presentation; themes and palette assets supply the chosen visual
-treatment. Follow the [styling contract](../README.md#styling-contract) rather
-than duplicating internal component styles in every screen.
+Use native elements for native semantics. Apply Fray's public traits directly
+to those elements when they participate in Fray layout or presentation. For
+example, an application shell can naturally use
+`<header className="island fray-size-natural">` and
+`<footer className="island fray-size-natural">`; a Fray-specific header or
+footer component is not required merely to obtain the standard surface
+treatment.
+
+Conversely, Fray does not infer that treatment from the native element type
+alone. A plain `header`, `footer`, `section`, or `aside` remains ordinary
+application markup until the application explicitly opts it into a Fray trait or
+places it inside a Fray-owned component contract. Share application CSS through
+meaningful traits rather than extracting components solely to attach a class.
+Components own their structural presentation; themes and palette assets supply
+the chosen visual treatment. Follow the
+[styling contract](../README.md#styling-contract) rather than duplicating
+internal component styles in every screen.
 
 Development controls are another application-owned boundary. If an app provides
 forced loading, disabled, or validation states for testing, apply them to the

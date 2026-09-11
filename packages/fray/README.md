@@ -657,6 +657,29 @@ root. They now apply the same canvas, text color, and typography values. A
 plain root without either trait remains content-sized and inherits host-page
 text treatment.
 
+### Native elements, traits, and component hosts
+
+Fray does not assign component or surface presentation to application-owned
+native elements merely because of their element type. Native elements such as
+`header`, `footer`, `main`, `section`, and `aside` retain their ordinary HTML
+semantics.
+
+Applications may explicitly opt native elements into Fray presentation and
+layout contracts by applying public Fray traits such as `island`,
+`fray-layout-horizontal`, `fray-layout-vertical`, `fray-size-natural`,
+`fray-size-flexible`, and `fray-scroll`. These traits are intentionally
+element-agnostic and may style application-owned native markup as well as
+Fray-owned hosts.
+
+A Fray component host is therefore not required merely to obtain Fray layout or
+surface treatment. Introduce a component when it owns a meaningful structural or
+behavioral contract, not simply as a styling wrapper around an equivalent native
+element.
+
+In short: native element names provide semantics, Fray traits provide opt-in
+presentation and layout, and Fray component hosts provide component-owned
+contracts.
+
 ### Reusable traits
 
 The allocation traits are structural and independently composable:
