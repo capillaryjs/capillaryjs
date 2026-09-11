@@ -3,7 +3,7 @@ import {Button, Component, Dialog, Dropdown, live, Textbox} from "@sylwellsoftwa
 import {Emitter} from "@sylwellsoftware/glue";
 import type {Choice, Mutation, Row} from "../../api/ScenarioApi.ts";
 import {human} from "../../api/ScenarioApi.ts";
-import {bootstrap, buildco, mutate} from "../../app/session.ts";
+import {bootstrap, buildco, mutate} from "../../app/services.ts";
 
 type EditRequest = { kind: Mutation["kind"]; action: Mutation["action"]; row?: Row; projectId?: string };
 export const editor = new Emitter<EditRequest | null>(null);

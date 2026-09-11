@@ -15,7 +15,7 @@ import {
 } from "@sylwellsoftware/fray-visualization";
 import type {Row, ViewResult} from "../../api/ScenarioApi.ts";
 import {RecordCard} from "../shared/ViewComponents.tsx";
-import {openProject} from "../../app/session.ts";
+import {openProject} from "../../app/routing.ts";
 
 const costScale = (value?: ViewResult): number => value?.chartUnit === "DKK" && (value.series ?? []).some(s => Object.values(s.values).some(v => Math.abs(v) >= 1_000_000)) ? 1_000_000 : 1;
 

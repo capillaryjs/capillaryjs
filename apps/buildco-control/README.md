@@ -156,8 +156,9 @@ delivery's hidden simulated arrival date.
 
 | Location | Responsibility |
 | --- | --- |
-| `src/app/main.tsx` | Fray shell, app startup and theme/palette integration |
-| `src/app/session.ts` | Application intent, Glue queries/commands and route state |
+| `src/app/main.tsx` | Application shell (header, content slot, footer), startup and theme/palette integration |
+| `src/app/routing.ts` | Route definitions, screen state and navigation helpers |
+| `src/app/services.ts` | Transport, worker, Glue queries/commands and demo emitters |
 | `src/app/appearance.ts` | Theme and palette definitions |
 | `src/api/ScenarioApi.ts` | Application DTOs, screens, conditions and semantic-filter contract |
 | `src/api/ScenarioFetch.ts` | Generic fetch adapter contract for worker or HTTP |
@@ -166,7 +167,8 @@ delivery's hidden simulated arrival date.
 | `src/domain/snapshot.ts`, `projections.ts` | Historical views and derived management state |
 | `src/services/BuildcoService.ts` | Backend-facing Glue endpoints for bootstrap, views, choices and commands |
 | `src/views/index.tsx` | Shell view export |
-| `src/views/ShellView/ShellView.tsx` | Header, footer and scenario loading screen |
+| `src/views/ShellView/ShellView.tsx` | Scenario loading screen and workspace placeholder |
+| `src/views/ShellView/components/ScenarioLoadingScreen.tsx` | Startup loading, error and retry panel |
 | `src/views-legacy/` | Previous seven screen compositions (retained for reference) |
 | `src/styles/styles.css` | Application styles |
 | `demo-support/scenario/` | Deterministic scenario generator and CLI |

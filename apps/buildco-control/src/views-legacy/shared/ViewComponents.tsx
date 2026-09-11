@@ -2,7 +2,7 @@ import type {FrayChild, TableColumn} from "@sylwellsoftware/fray";
 import {Button, DescriptionItem, DescriptionList, ProgressBar} from "@sylwellsoftware/fray";
 import type {Detail, Metric, Row} from "../../api/ScenarioApi.ts";
 import {human} from "../../api/ScenarioApi.ts";
-import {openProject} from "../../app/session.ts";
+import {openProject} from "../../app/routing.ts";
 
 export const format = (value: unknown, kind?: Metric["format"]): string => {
     if (typeof value === "string" && /^\d{4}-\d{2}-\d{2}/.test(value)) return value;

@@ -1,7 +1,7 @@
 import type {FrayChild} from "@sylwellsoftware/fray";
 import {Button, ListView, Panel, Toggle} from "@sylwellsoftware/fray";
 import type {ViewResult} from "../../api/ScenarioApi.ts";
-import {openProject} from "../../app/session.ts";
+import {openProject} from "../../app/routing.ts";
 import {Metrics, RecordCard, Status} from "../shared/ViewComponents.tsx";
 import {ScreenView} from "../shared/ScreenView.tsx";
 

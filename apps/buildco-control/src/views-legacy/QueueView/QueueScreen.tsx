@@ -13,7 +13,8 @@ import {
 } from "@sylwellsoftware/fray";
 import type {SemanticMode, ViewResult} from "../../api/ScenarioApi.ts";
 import {CONDITIONS} from "../../api/ScenarioApi.ts";
-import {bootstrap, flags, openProject} from "../../app/session.ts";
+import {bootstrap, flags} from "../../app/services.ts";
+import {openProject} from "../../app/routing.ts";
 import {RecordCard} from "../shared/ViewComponents.tsx";
 import {options, ScreenView} from "../shared/ScreenView.tsx";
 

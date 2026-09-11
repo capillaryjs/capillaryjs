@@ -15,7 +15,8 @@ import {
 import {DerivedEmitter, Emitter} from "@sylwellsoftware/glue";
 import type {Choice, Screen, SemanticMode, ViewResult} from "../../api/ScenarioApi.ts";
 import {CONDITIONS, human} from "../../api/ScenarioApi.ts";
-import {bootstrap, buildco, demo, flags, forceResult, revision, screens} from "../../app/session.ts";
+import {bootstrap, buildco, demo, flags, forceResult, revision} from "../../app/services.ts";
+import {screens} from "../../app/routing.ts";
 import {columns, DetailView} from "./ViewComponents.tsx";
 
 export const titles: Record<Screen, [string, string]> = {
