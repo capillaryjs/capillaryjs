@@ -276,6 +276,7 @@ export class DatePicker extends LabeledInputControl<DatePickerProps> {
                     aria-controls={this.isOpen ? this.popupId : null}
                     onInput={(event: Event) => this.handleInput(event)}
                     onChange={(event: Event) => this.handleInput(event)}
+                    onClick={() => !readOnly && !disabled && this.open(true)}
                     onKeyDown={(event: KeyboardEvent) => this.handleKeyDown(event)}
                     ref={inputCallback}
                 />
