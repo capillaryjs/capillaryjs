@@ -1,13 +1,9 @@
 import {readFile} from 'node:fs/promises'
-import {createServer} from 'node:http'
 import type {IncomingMessage, Server, ServerResponse} from 'node:http'
+import {createServer} from 'node:http'
 import {pathToFileURL} from 'node:url'
 
-import type {
-    DemoScenario,
-    ScenarioRequest,
-    ScenarioResponse,
-} from '../contract.js'
+import type {DemoScenario, ScenarioRequest, ScenarioResponse,} from '../contract.js'
 
 const DEFAULT_HOST = '127.0.0.1'
 const DEFAULT_PORT = 4176
@@ -25,6 +21,7 @@ export interface RunningDummyServer {
     readonly host: string
     readonly port: number
     readonly origin: string
+
     close(): Promise<void>
 }
 
@@ -116,7 +113,7 @@ function serveHtml(request: IncomingMessage, response: ServerResponse, html: str
 
 async function readJsonBody(
     request: IncomingMessage,
-): Promise<{body?: unknown}> {
+): Promise<{ body?: unknown }> {
     if (request.method === 'GET' || request.method === 'HEAD') return {}
     const chunks: Buffer[] = []
     let length = 0

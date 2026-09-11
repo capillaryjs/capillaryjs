@@ -13,18 +13,23 @@ export interface ScenarioResponse<TBody = unknown> {
 /** Application-owned behavior injected into either transport adapter. */
 export interface DemoScenario {
     readonly id: string
+
     reset(): void | Promise<void>
+
     delayFor?(request: ScenarioRequest): number
+
     handle(request: ScenarioRequest, onProgress?: (progress: number) => void): ScenarioResponse | Promise<ScenarioResponse>
 }
 
 export interface ScenarioAbortSignal {
     readonly aborted: boolean
+
     addEventListener?(
         type: 'abort',
         listener: () => void,
-        options?: {once?: boolean},
+        options?: { once?: boolean },
     ): void
+
     removeEventListener?(type: 'abort', listener: () => void): void
 }
 
@@ -39,6 +44,7 @@ export interface ScenarioFetchResponse {
     readonly ok: boolean
     readonly status: number
     readonly headers: Readonly<Record<string, string>>
+
     json(): Promise<unknown>
 }
 

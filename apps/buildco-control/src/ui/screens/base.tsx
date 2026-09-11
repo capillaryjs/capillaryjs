@@ -1,20 +1,20 @@
+import type {ComponentProps, FrayChild, TreeNode} from "@sylwellsoftware/fray";
 import {
     Button,
     Checkbox,
     Component,
+    createQueryTableDataSource,
     DataTable,
     Dropdown,
-    RouteQuery,
-    TabPanel,
-    Textbox,
-    createQueryTableDataSource,
     live,
-    stringRouteQueryCodec
+    RouteQuery,
+    stringRouteQueryCodec,
+    TabPanel,
+    Textbox
 } from "@sylwellsoftware/fray";
-import type {ComponentProps, FrayChild, TreeNode} from "@sylwellsoftware/fray";
 import {DerivedEmitter, Emitter} from "@sylwellsoftware/glue";
+import type {Choice, Screen, SemanticMode, ViewResult} from "../../app/contract.ts";
 import {CONDITIONS, human} from "../../app/contract.ts";
-import type {Choice, Screen, SemanticMode, ViewResult, Parameters} from "../../app/contract.ts";
 import {bootstrap, buildco, demo, flags, forceResult, revision, screens} from "../session.ts";
 import {columns, DetailView} from "../shared.tsx";
 
@@ -31,7 +31,7 @@ export const options = (values: string[]): Choice[] => values.map(value => ({val
 
 export abstract class ScreenView extends Component<ComponentProps & { screen: Screen }> {
     protected state = screens[this.props.screen];
-    protected query = buildco.view(this.props.screen, { params: this.state.params, revision }, { owner: this });
+    protected query = buildco.view(this.props.screen, {params: this.state.params, revision}, {owner: this});
     protected result = forceResult(this.query);
     protected rows = this.result.map(value => value?.rows ?? []);
     protected tableRows = this.result.map(value => value?.rows);
@@ -72,6 +72,39 @@ export abstract class ScreenView extends Component<ComponentProps & { screen: Sc
             this.state.selection.set(null);
         }, {emitCurrent: false}));
         void this.query.activate();
+    }
+
+    render(): FrayChild {
+        const screen = this.props.screen, result = this.read(this.result), snapshot = this.snapshot(this.result),
+            b = this.read(bootstrap);
+        this.read(this.state.params);
+        this.read(this.state.tab);
+        const queryKeys = ["project", "scope", "phase", "tab", "selected", "search", "page", "subject", "focus", "horizon", "view", "type", "phaseType", "conditions", "lifecycle", "metric", "days", "trade", "availability", "reason", "from", "to", "overtime", "material", "group", "status", "severity", "cause", "person", "supplier", "due", "minCost", "maxCost", "costView", "critical"];
+        return <div className={`screen screen-${screen} fray-layout-vertical fray-size-flexible`}>
+            {queryKeys.map(name => <RouteQuery key={name} name={name} valueEmitter={this.field(name)}
+                                               codec={stringRouteQueryCodec} defaultValue={this.field(name).get()}/>)}
+            <div className="page-heading fray-size-natural">
+                <div><span className="eyebrow">BuildCo / {screen === "queue" ? "Operations" : human(screen)}</span>
+                    <h1>{titles[screen][0]}</h1><p>{titles[screen][1]}</p></div>
+                <div className="heading-tools"><span
+                    className="as-of">As of <b>{b?.metadata.anchorDate ?? "…"}</b></span><Button label="↻ Refresh"
+                                                                                                 onClick={() => void this.query.refresh()}
+                                                                                                 disabled={live(flags.disabled)}/>
+                </div>
+            </div>
+            <div className="query-feedback fray-size-natural">{snapshot.fetchState !== "ready" &&
+                <div role={snapshot.fetchState === "error" ? "alert" : "status"}
+                     className={`fetch-notice ${snapshot.fetchState}`}>
+                    {snapshot.fetchState === "error" ? <><strong>Unable to load this
+                        view.</strong> {demo.mode.get() === "error" ? "Simulated error from the demo controls." : "Please retry the request."}<Button
+                        label="Retry" onClick={() => {
+                        demo.mode.set("live");
+                        void this.query.retry();
+                    }}/></> : snapshot.fetchState === "initial" ? "Initial state — waiting for a request." : "Updating view… Previous results may remain visible."}
+                </div>}</div>
+            <div className="screen-content fray-size-flexible fray-layout-vertical fray-scroll"
+                 key="screen-content">{this.renderContent(result)}</div>
+        </div>;
     }
 
     protected onInit(): void {
@@ -146,37 +179,4 @@ export abstract class ScreenView extends Component<ComponentProps & { screen: Sc
     }
 
     protected abstract renderContent(result?: ViewResult): FrayChild;
-
-    render(): FrayChild {
-        const screen = this.props.screen, result = this.read(this.result), snapshot = this.snapshot(this.result),
-            b = this.read(bootstrap);
-        this.read(this.state.params);
-        this.read(this.state.tab);
-        const queryKeys = ["project", "scope", "phase", "tab", "selected", "search", "page", "subject", "focus", "horizon", "view", "type", "phaseType", "conditions", "lifecycle", "metric", "days", "trade", "availability", "reason", "from", "to", "overtime", "material", "group", "status", "severity", "cause", "person", "supplier", "due", "minCost", "maxCost", "costView", "critical"];
-        return <div className={`screen screen-${screen} fray-layout-vertical fray-size-flexible`}>
-            {queryKeys.map(name => <RouteQuery key={name} name={name} valueEmitter={this.field(name)}
-                                               codec={stringRouteQueryCodec} defaultValue={this.field(name).get()}/>)}
-            <div className="page-heading fray-size-natural">
-                <div><span className="eyebrow">BuildCo / {screen === "queue" ? "Operations" : human(screen)}</span>
-                    <h1>{titles[screen][0]}</h1><p>{titles[screen][1]}</p></div>
-                <div className="heading-tools"><span
-                    className="as-of">As of <b>{b?.metadata.anchorDate ?? "…"}</b></span><Button label="↻ Refresh"
-                                                                                                 onClick={() => void this.query.refresh()}
-                                                                                                 disabled={live(flags.disabled)}/>
-                </div>
-            </div>
-            <div className="query-feedback fray-size-natural">{snapshot.fetchState !== "ready" &&
-                <div role={snapshot.fetchState === "error" ? "alert" : "status"}
-                     className={`fetch-notice ${snapshot.fetchState}`}>
-                    {snapshot.fetchState === "error" ? <><strong>Unable to load this
-                        view.</strong> {demo.mode.get() === "error" ? "Simulated error from the demo controls." : "Please retry the request."}<Button
-                        label="Retry" onClick={() => {
-                        demo.mode.set("live");
-                        void this.query.retry();
-                    }}/></> : snapshot.fetchState === "initial" ? "Initial state — waiting for a request." : "Updating view… Previous results may remain visible."}
-                </div>}</div>
-            <div className="screen-content fray-size-flexible fray-layout-vertical fray-scroll"
-                 key="screen-content">{this.renderContent(result)}</div>
-        </div>;
-    }
 }

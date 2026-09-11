@@ -1,6 +1,6 @@
 import type {
-    ScenarioAbortSignal,
     DemoScenario,
+    ScenarioAbortSignal,
     ScenarioFetch,
     ScenarioFetchInit,
     ScenarioFetchResponse,

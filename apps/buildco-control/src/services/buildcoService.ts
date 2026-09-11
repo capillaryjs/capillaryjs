@@ -1,8 +1,8 @@
-import { RestEndpoint } from "@sylwellsoftware/glue";
-import type { EndpointQueryOptions, ReadableEmitter } from "@sylwellsoftware/glue";
-import { SCREENS } from "../app/contract.ts";
-import type { Bootstrap, Choice, Mutation, Parameters, Screen, ViewResult } from "../app/contract.ts";
-import type { ScenarioFetch, ScenarioFetchInit } from "../transport/contract.js";
+import type {EndpointQueryOptions, ReadableEmitter} from "@sylwellsoftware/glue";
+import {RestEndpoint} from "@sylwellsoftware/glue";
+import type {Bootstrap, Choice, Mutation, Parameters, Screen, ViewResult} from "../app/contract.ts";
+import {SCREENS} from "../app/contract.ts";
+import type {ScenarioFetch, ScenarioFetchInit} from "../transport/contract.js";
 
 export type ViewQueryEmitters = {
     params: ReadableEmitter<Parameters>;
@@ -10,11 +10,11 @@ export type ViewQueryEmitters = {
 };
 
 export class BuildcoService {
-    private readonly fetch: ScenarioFetch;
-    private readonly baseUrl: string;
     readonly bootstrapEndpoint: RestEndpoint<Record<string, never>, Bootstrap>;
     readonly viewEndpoints: Record<Screen, RestEndpoint<{ params: Parameters; revision: number }, ViewResult>>;
     readonly choicesEndpoint: RestEndpoint<{ projectId: string }, Record<string, Choice[]>>;
+    private readonly fetch: ScenarioFetch;
+    private readonly baseUrl: string;
 
     constructor(fetch: ScenarioFetch, baseUrl: string = location.origin) {
         this.fetch = fetch;
@@ -23,21 +23,28 @@ export class BuildcoService {
             url: "/api/bootstrap",
             baseUrl: this.baseUrl,
             fetch: this.fetch,
-            query: { keepPreviousValue: true, execution: "deferred", purpose: "buildco bootstrap" }
+            query: {keepPreviousValue: true, execution: "deferred", purpose: "buildco bootstrap"}
         });
-        this.viewEndpoints = Object.fromEntries(SCREENS.map(screen => [screen, new RestEndpoint<{ params: Parameters; revision: number }, ViewResult>({
+        this.viewEndpoints = Object.fromEntries(SCREENS.map(screen => [screen, new RestEndpoint<{
+            params: Parameters;
+            revision: number
+        }, ViewResult>({
             url: `/api/view/${screen}`,
             baseUrl: this.baseUrl,
             fetch: this.fetch,
-            serialize: (url, args) => { url.searchParams.set("params", JSON.stringify(args.params)); },
-            query: { keepPreviousValue: true, execution: "deferred", purpose: `buildco ${screen} view` }
+            serialize: (url, args) => {
+                url.searchParams.set("params", JSON.stringify(args.params));
+            },
+            query: {keepPreviousValue: true, execution: "deferred", purpose: `buildco ${screen} view`}
         })])) as Record<Screen, RestEndpoint<{ params: Parameters; revision: number }, ViewResult>>;
         this.choicesEndpoint = new RestEndpoint<{ projectId: string }, Record<string, Choice[]>>({
             url: "/api/choices",
             baseUrl: this.baseUrl,
             fetch: this.fetch,
-            serialize: (url, args) => { url.searchParams.set("project", args.projectId); },
-            query: { purpose: "buildco choices" }
+            serialize: (url, args) => {
+                url.searchParams.set("project", args.projectId);
+            },
+            query: {purpose: "buildco choices"}
         });
     }
 
@@ -50,7 +57,7 @@ export class BuildcoService {
     }
 
     async choices(projectId: string): Promise<Record<string, Choice[]>> {
-        return this.choicesEndpoint.handler.fetch({ projectId });
+        return this.choicesEndpoint.handler.fetch({projectId});
     }
 
     async reset(args: { seed: number; profile: string }): Promise<Bootstrap> {
@@ -62,9 +69,16 @@ export class BuildcoService {
     }
 
     private async post<T>(url: string, body: unknown, init?: ScenarioFetchInit): Promise<T> {
-        const response = await this.fetch(url, { ...init, method: "POST", body: JSON.stringify(body), headers: { ...init?.headers, "content-type": "application/json" } });
+        const response = await this.fetch(url, {
+            ...init,
+            method: "POST",
+            body: JSON.stringify(body),
+            headers: {...init?.headers, "content-type": "application/json"}
+        });
         const result = await response.json();
-        if (!response.ok) throw new Error((result as { error?: { message?: string } }).error?.message ?? `Request failed (${response.status})`);
+        if (!response.ok) throw new Error((result as {
+            error?: { message?: string }
+        }).error?.message ?? `Request failed (${response.status})`);
         return result as T;
     }
 }

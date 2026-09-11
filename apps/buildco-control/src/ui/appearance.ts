@@ -9,5 +9,19 @@ import orange from "@sylwellsoftware/fray/colors/orange/colors.css?url";
 import purple from "@sylwellsoftware/fray/colors/purple/colors.css?url";
 import red from "@sylwellsoftware/fray/colors/red/colors.css?url";
 import yellow from "@sylwellsoftware/fray/colors/yellow/colors.css?url";
-export const themes = Object.entries({ minimal, java, shiny }).map(([value, href]) => ({ value, href, label: value[0]!.toUpperCase() + value.slice(1) }));
-export const palettes = Object.entries({ gray, green, iceblue, ocean, orange, purple, red, yellow }).map(([value, href]) => ({ value, href, label: value[0]!.toUpperCase() + value.slice(1) }));
+
+export const themes = Object.entries({minimal, java, shiny}).map(([value, href]) => ({
+    value,
+    href,
+    label: value[0]!.toUpperCase() + value.slice(1)
+}));
+export const palettes = Object.entries({
+    gray,
+    green,
+    iceblue,
+    ocean,
+    orange,
+    purple,
+    red,
+    yellow
+}).map(([value, href]) => ({value, href, label: value[0]!.toUpperCase() + value.slice(1)}));
