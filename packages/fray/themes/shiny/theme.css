@@ -22,7 +22,7 @@
     --panel-color: var(--text-color);
     --panel-border: none;
     --panel-radius: 0px;
-    --island-margin: var(--space-sm);
+    --island-margin: 1rem;
     --island-border: 1px solid rgb(255 255 255 / 0.45);
     --island-shadow: 0px 1px 2.5px 0px #666;
     --section-header-background: var(--shiny-background);

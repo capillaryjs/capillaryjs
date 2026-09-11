@@ -664,7 +664,7 @@ describe('four-file styling contract', () => {
         assert.match(css, /--toolbar-background:\s*var\(--ui-gradient\)/)
         assert.match(css, /--text-color:\s*var\(--palette-primary-900\)/)
         assert.match(css, /--ui-color:\s*var\(--text-color\)/)
-        assert.match(css, /--island-margin:\s*var\(--space-sm\)/)
+        assert.match(css, /--island-margin:\s*1rem/)
         assert.match(css, /--island-border:\s*1px solid rgb\(255 255 255 \/ 0\.45\)/)
         assert.match(css, /--island-shadow:\s*0px 1px 2\.5px 0px #666/)
         assert.match(css, /--shiny-background:[\s\S]*radial-gradient\(140% 75% at 30% 10%, #fff2, #fff3 47%, #fff0 55%, #fff0\)[\s\S]*linear-gradient\(to bottom, var\(--palette-primary-900\) 0%, var\(--palette-primary\) 65%, var\(--palette-primary\) 66%, var\(--palette-primary-400\) 100%\)/)
