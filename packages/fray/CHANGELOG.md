@@ -14,6 +14,9 @@ Versioning.
 - Made `SplitView` a resizable two-pane control with required SplitPrimary and
   SplitSecondary Layout panes, a focusable separator, pointer dragging,
   orientation-appropriate keyboard resizing, minimum sizes, and `onResize`.
+- Expanded the application composition guide with a decision rule for Layout,
+  Panel, and SplitView; guidance to prefer intentional layout boundaries over
+  anonymous layout wrappers; and updated allocation examples.
 
 - Added `DeclarativeRegion` and `readDeclarativeRegions()` for defining
   parent-specific, non-visual named content regions with duplicate, foreign,

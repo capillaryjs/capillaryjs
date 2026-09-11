@@ -54,6 +54,38 @@ A results island can contain several components that share a view's state and
 use one inner scroll container. None of those boundaries requires the others
 to occupy the same place in the tree.
 
+### Choose an intentional layout boundary
+
+Use the smallest component whose contract explains why the container exists:
+
+| Component | Use it when | Do not use it merely for |
+| --- | --- | --- |
+| `Layout` | Children need a horizontal or vertical arrangement, allocation, or an explicit scroll owner, but the container has no further user-facing meaning | Surface chrome, a labelled region, or resizing |
+| `Panel` | The region is a deliberate themed surface, optionally with a heading and toolbar; its body is a Layout | A neutral wrapper whose only job is child arrangement |
+| `SplitView` | Exactly two named panes need user-controlled resizing | An ordinary two-column or two-row arrangement |
+
+`SplitView` supplies the accessible separator and its interaction. `Layout`
+and `Panel` do not; use a horizontal or vertical `Layout` for a fixed
+arrangement. `Panel` is itself composed over an inner Layout, so its ordinary
+children receive the same allocation and arrangement contract while the Panel
+owns the surrounding chrome.
+
+Do not add an authored `<div>` or other anonymous element merely to carry
+layout classes. It has neither a Fray component contract nor component-owned
+structural and theme CSS, and it obscures whether the wrapper is neutral,
+surface-like, or interactive. Use `Layout` for that neutral case. This is a
+preference for intentional boundaries, not a ban on native HTML: use `main`,
+`section`, `aside`, `nav`, `header`, `footer`, `article`, lists, tables, and
+form elements when they express real document or control semantics. Such
+application-owned native elements may still use Fray's public traits when the
+native semantic boundary is the right layout boundary.
+
+For the three layout components, use direct `horizontal` / `vertical` and
+`scroll` modifiers. Keep `allocation` named because its meaning is relative to
+the parent's main axis. The public traits remain available for semantic native
+elements and deliberate integration seams; they are not the default way to
+invent generic wrappers.
+
 ## 2. Separate persistent structure from changing content
 
 Put application-wide branding, navigation, and status in the application root.
@@ -138,14 +170,12 @@ application-owned writable record-key emitter shared by the three application
 components; its owner outlives both tab contents.
 
 ```tsx
-<section className="fray-size-flexible fray-layout-horizontal"
-    aria-label="Record workspace">
+<Layout horizontal allocation="flexible" ariaLabel="Record workspace">
     <Sidebar allocation="natural" className="record-navigation"
         island header="Records">
         <RecordNavigator selection={selection} />
     </Sidebar>
-    <section className="island fray-size-flexible fray-layout-vertical"
-        aria-label="Selected record">
+    <Panel allocation="flexible" island header="Selected record">
         <TabPanel label="Record sections" className="fray-size-flexible"
             mountPolicy="lazy">
             <Tab id="summary" label="Summary">
@@ -155,8 +185,8 @@ components; its owner outlives both tab contents.
                 <RecordHistory selection={selection} />
             </Tab>
         </TabPanel>
-    </section>
-</section>
+    </Panel>
+</Layout>
 ```
 
 Application CSS sets the navigator's width. `Sidebar` owns scrolling for its
@@ -277,7 +307,8 @@ viewport root, vertical arrangement
 └── footer: natural
 ```
 
-Fray's public traits express the common mechanics:
+Fray's public traits express the common mechanics when a semantic native
+element is the appropriate layout boundary:
 
 - `fray-layout-horizontal` / `fray-layout-vertical`: arrange direct children.
 - `fray-size-natural`: retain the content/application allocation on the parent's
@@ -299,26 +330,27 @@ content. The frame remains present through those states.
 ```tsx
 class RecordsView extends Component {
     render() {
-        return <section className="records-workspace fray-size-flexible fray-layout-horizontal"
-            aria-label="Find records">
+        return <Layout horizontal allocation="flexible"
+            className="records-workspace" ariaLabel="Find records">
             <aside className="record-filters island fray-size-natural fray-scroll"
                 aria-label="Record filters" tabIndex={0}>
                 <RecordFilters />
             </aside>
-            <section className="island fray-size-flexible fray-layout-vertical"
-                aria-label="Matching records">
-                <Toolbar allocation="natural" label="Result actions">
-                    <button type="button" onClick={exportRecords}>Export</button>
-                </Toolbar>
+            <Panel allocation="flexible" header="Matching records" scroll={false}>
+                <PanelToolbar>
+                    <Toolbar allocation="natural" label="Result actions">
+                        <button type="button" onClick={exportRecords}>Export</button>
+                    </Toolbar>
+                </PanelToolbar>
                 <Layout vertical allocation="flexible" scroll
                     ariaLabel="Record results" tabIndex={0}>
                     <RecordsResults />
                 </Layout>
-            </section>
-        </section>
+            </Panel>
+        </Layout>
     }
 
-    static dependencies = [RecordFilters, RecordsResults, Toolbar]
+    static dependencies = [Layout, Panel, PanelToolbar, RecordFilters, RecordsResults, Toolbar]
 }
 ```
 
@@ -337,11 +369,13 @@ arrangement when the available space cannot accommodate both regions. Generic
 scroll regions need appropriate accessible names and keyboard access; consider
 the focusability already provided by their contents when choosing tab stops.
 
-Use component arguments where they target the intended element. `Panel` uses
-`orientation` for its content, while supported components use `allocation`
-for their outer host. A generic layout class on a component host might arrange
-its generated header or toolbar instead of the content you supplied. Support
-is explicit; do not assume every component accepts the same layout arguments.
+Use component arguments where they target the intended element. `Layout` and
+`Panel` use `horizontal` or `vertical` for their arranged content, while
+supported components use `allocation` for their outer host. `Panel` applies
+its direction to its inner Layout body rather than its generated header or
+toolbar. A generic layout trait on another component host might instead
+arrange generated chrome. Support is explicit; do not assume every component
+accepts the same layout arguments.
 
 Components such as `Sidebar`, `Panel`, `TabPanel`, and `RouteOutlet` already
 have layout/overflow behavior. Inspect that contract before adding another
