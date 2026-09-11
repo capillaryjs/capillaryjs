@@ -199,13 +199,13 @@ describe('DatePicker', () => {
         assert.equal(document.querySelector('dialog[open]'), null)
     })
 
-    test('input click does not open the popup', () => {
+    test('input click opens the popup', () => {
         DatePicker.new({label: 'Start'}).attachTo(document.body)
 
         const input = requiredQuery<HTMLInputElement>('input')
         input.dispatchEvent(new MouseEvent('click', {bubbles: true}))
 
-        assert.equal(document.querySelector('dialog[open]'), null)
+        assert.notEqual(document.querySelector('dialog[open]'), null)
     })
 
     test('clamps focused day when paging to a shorter month', () => {
