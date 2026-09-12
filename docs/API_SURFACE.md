@@ -20,10 +20,11 @@ package root.
 | --- | --- | --- |
 | Reactive values | `BaseEmitter`, `Emitter`, `DerivedEmitter` | readable emitter, notification, snapshot update, source/value inference, mapping and option types |
 | Fetch state | `FetchState`, `FetchStateValues`, `combineFetchStates` | `FetchStateValue` |
-| Live queries | `QueryArg`, `LiveQuery` | argument, `LiveQueryExecution`, polling, scheduler, `LiveResult`, and `RefreshableLiveResult` contracts |
+| Live queries | `QueryArg`, `LiveQuery` | argument, `LiveQueryExecution`, polling, scheduler, retry, `LiveResult`, and `RefreshableLiveResult` contracts |
 | Retrieval | `QueryHandler`, `RestQueryHandler` | handler, request, Fetch/URL/response, serializer, parser, and REST option contracts |
 | Endpoints | `QueryEndpoint`, `RestEndpoint`, `DerivedEndpoint`, `DerivedLiveResult`, `queryEndpoint`, `restEndpoint`, `derivedEndpoint` | declaration and open-result option types |
-| Commands | `AsyncCommand`, `AsyncCommandConcurrencyError` | executor, context, concurrency, and option types |
+| Commands | `AsyncCommand`, `AsyncCommandConcurrencyError` | executor, context, concurrency, retry, and option types |
+| Retry | `resolveRetryPolicy`, `computeRetryDelay`, `isAbortError` | `RetryPolicy`, `RetryBackoff`, `ResolvedRetryPolicy`, and `RetryScheduler` contracts |
 | Diagnostics | `EventBubble`, `EventBus` | event options/listener and `BubbleGraph` |
 | Utility | — | `NonEmptyArray` |
 
@@ -44,6 +45,10 @@ Important compatibility boundaries:
 - `AsyncCommand` owns one mutation lifecycle and an explicit `ignore`,
   `replace`, or `reject` concurrency policy. Follow-up query state remains
   independent.
+- `retry` is an opt-in `RetryPolicy` on live queries, commands, and endpoint
+  `query` defaults. Per-instance options override endpoint defaults; `null`
+  disables an inherited default; absent everywhere means a single attempt.
+  Abort, dispose, and superseding requests cancel pending retry timers.
 - Diagnostics observe causality but do not retain event history or owners.
 
 See the [Glue guide](../packages/glue/README.md) for full behavior and ownership

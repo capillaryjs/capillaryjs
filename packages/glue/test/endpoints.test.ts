@@ -281,6 +281,51 @@ describe('LiveQuery polling', () => {
         assert.equal(query.get(), 'settled')
         assert.equal(query.getFetchState(), FetchState.Ready)
     })
+
+    test('applies an endpoint retry default and honors per-open overrides', async () => {
+        const endpointScheduler = new ManualScheduler()
+        const overrideScheduler = new ManualScheduler()
+        let calls = 0
+        const endpoint = new QueryEndpoint<Record<string, never>, string>({
+            handler: {
+                fetch() {
+                    calls += 1
+                    return Promise.reject(new Error('down'))
+                },
+            },
+            query: {
+                retry: {
+                    maxAttempts: 2,
+                    delayMs: 25,
+                    backoff: 'fixed',
+                    jitter: false,
+                    scheduler: endpointScheduler,
+                },
+            },
+        })
+
+        const inherited = endpoint.open({})
+        await nextMicrotask()
+        assert.equal(calls, 1)
+        assert.equal(endpointScheduler.pending, 1)
+        assert.equal(endpointScheduler.lastDelay, 25)
+        inherited.dispose()
+        assert.equal(endpointScheduler.pending, 0)
+
+        const overridden = endpoint.open({}, {
+            retry: {delayMs: 5, backoff: 'fixed', jitter: false, scheduler: overrideScheduler},
+        })
+        await nextMicrotask()
+        assert.equal(overrideScheduler.pending, 1)
+        assert.equal(overrideScheduler.lastDelay, 5)
+        overridden.dispose()
+        assert.equal(overrideScheduler.pending, 0)
+
+        const disabled = endpoint.open({}, {retry: null})
+        await nextMicrotask()
+        assert.equal(disabled.getFetchState(), FetchState.Error)
+        disabled.dispose()
+    })
 })
 
 class ManualScheduler implements PollingScheduler {

@@ -253,11 +253,47 @@ const users = new LiveQuery({
 
 `enabled` and `intervalMs` may be constants or readable emitters. A changed
 control restarts the timer from that change. A tick is skipped while a request
-is active; the next normal tick remains scheduled. Errors do not cause an
-immediate retry or backoff, but polling continues while enabled. Disposal
-releases the timer and control subscriptions. Applications can feed page
-visibility or any other policy into `enabled`; Glue never reads the DOM. Tests
-and nonstandard runtimes may inject `PollingScheduler`.
+is active — including one waiting in retry backoff — and the next normal tick
+remains scheduled. Without a retry policy, errors do not cause an immediate
+retry or backoff, but polling continues while enabled. Disposal releases the
+timer and control subscriptions. Applications can feed page visibility or any
+other policy into `enabled`; Glue never reads the DOM. Tests and nonstandard
+runtimes may inject `PollingScheduler`.
+
+### Retry policies
+
+`LiveQuery` and `AsyncCommand` accept an opt-in `retry` policy. The policy's
+presence is the opt-in: absent means a single attempt, and `null` explicitly
+disables a policy inherited from an endpoint declaration.
+
+```ts
+const users = new LiveQuery({
+    handler,
+    args: {search},
+    retry: {
+        maxAttempts: 3,
+        delayMs: 500,
+        backoff: 'exponential',
+        maxDelayMs: 30_000,
+        shouldRetry: (error) => error instanceof TypeError,
+    },
+})
+```
+
+`maxAttempts` counts the first attempt (default 3). `backoff` is `'fixed'`,
+`'exponential'` (doubling, the default), or a custom
+`(attempt, error) => milliseconds` function whose result is used as-is — for
+example to honor a `Retry-After` value carried on the error. Built-in backoff
+is capped by `maxDelayMs` (default 30s) and `jitter` applies full jitter to the
+computed delay (default on). `shouldRetry(error, attempt)` decides whether a
+failed attempt is retried; the default retries any non-abort error.
+
+A request stays in `FetchState.Loading` across attempts and settles `Error`
+only when attempts are exhausted or `shouldRetry` declines; each scheduled
+retry emits a trace event. Abort, disposal, and superseding requests cancel
+the pending retry timer. Retrying a non-idempotent `AsyncCommand` executor can
+apply a mutation more than once — pair it with `shouldRetry`. Tests may inject
+a `scheduler` with the same `schedule`/`cancel` shape as `PollingScheduler`.
 
 The REST adapter accepts injected `fetch`, `baseUrl`, and `serialize` behavior.
 Its generic serializer omits `undefined` and empty arrays, encodes `null` as an
@@ -277,7 +313,8 @@ expose those services through Fray's typed runtime `ServiceScope`; non-Fray
 applications use their own explicit composition. Every `open()` call creates a
 caller-owned result with independent arguments, request state, polling, and
 disposal. Endpoint `query` defaults and per-`open()` options accept the same
-`execution` policy as `LiveQuery`.
+`execution` policy as `LiveQuery`, and `query.retry` declares a shared retry
+default that per-`open()` options override or disable with `null`.
 
 ```ts
 import {DerivedEndpoint, RestEndpoint} from '@sylwellsoftware/glue'
@@ -355,8 +392,10 @@ whether to retain, render, or export observed events.
 `AsyncCommand` is exported from Glue's package root. It is an abortable
 mutation lifecycle with explicit `ignore`, `replace`, and `reject` concurrency
 policies. It exposes the last result/error through the standard emitter
-snapshot and a read-only `isRunning` view. It deliberately does not own batch
-progress, retries, notifications, or UI behavior. Executor completion alone
+snapshot and a read-only `isRunning` view, which stays true across retry
+attempts. It deliberately does not own batch progress, notifications, or UI
+behavior; retries are opt-in through the shared `RetryPolicy` contract.
+Executor completion alone
 determines command success. The application may then refresh affected queries;
 their failures remain in their own query snapshots:
 

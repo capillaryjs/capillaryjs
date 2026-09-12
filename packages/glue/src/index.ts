@@ -39,6 +39,14 @@ export type {LiveResult, RefreshableLiveResult} from './emitters/liveResult.js'
 export {combineFetchStates, FetchState, FetchStateValues} from './enums/fetchState.js'
 export type {FetchStateValue} from './enums/fetchState.js'
 
+export {computeRetryDelay, isAbortError, resolveRetryPolicy} from './retryPolicy.js'
+export type {
+    ResolvedRetryPolicy,
+    RetryBackoff,
+    RetryPolicy,
+    RetryScheduler,
+} from './retryPolicy.js'
+
 export {QueryArg} from './queryhandling/queryArg.js'
 export {QueryHandler} from './queryhandling/queryHandler.js'
 export type {

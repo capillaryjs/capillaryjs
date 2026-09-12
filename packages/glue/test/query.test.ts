@@ -326,6 +326,203 @@ describe('LiveQuery', () => {
             args: [],
         }), /named record/)
     })
+
+    test('retries failed attempts and stays loading during backoff', async () => {
+        const fake = fakeScheduler()
+        let calls = 0
+        const query = new LiveQuery<string>({
+            handler: {
+                fetch() {
+                    calls += 1
+                    return calls < 3
+                        ? Promise.reject(new Error(`flaky ${calls}`))
+                        : Promise.resolve('ok')
+                },
+            },
+            retry: {
+                maxAttempts: 3,
+                delayMs: 100,
+                backoff: 'fixed',
+                jitter: false,
+                scheduler: fake.scheduler,
+            },
+        })
+        assert.equal(query.getFetchState(), FetchState.Loading)
+        await nextMicrotask()
+        assert.equal(calls, 1)
+        assert.equal(query.getFetchState(), FetchState.Loading)
+        assert.equal(fake.scheduled.length, 1)
+        assert.equal(fake.scheduled[0]?.delayMs, 100)
+
+        fake.run(0)
+        await nextMicrotask()
+        assert.equal(calls, 2)
+        assert.equal(fake.scheduled.length, 2)
+
+        fake.run(1)
+        await query._activeRequest
+        assert.equal(calls, 3)
+        assert.equal(query.get(), 'ok')
+        assert.equal(query.getFetchState(), FetchState.Ready)
+        query.dispose()
+    })
+
+    test('settles to error after exhausting attempts', async () => {
+        const fake = fakeScheduler()
+        let calls = 0
+        const query = new LiveQuery<string>({
+            handler: {
+                fetch() {
+                    calls += 1
+                    return Promise.reject(new Error('down'))
+                },
+            },
+            retry: {
+                maxAttempts: 2,
+                delayMs: 50,
+                backoff: 'exponential',
+                jitter: false,
+                scheduler: fake.scheduler,
+            },
+        })
+        await nextMicrotask()
+        assert.equal(calls, 1)
+        assert.equal(fake.scheduled[0]?.delayMs, 50)
+        fake.run(0)
+        await query._activeRequest
+        assert.equal(calls, 2)
+        assert.equal(query.getFetchState(), FetchState.Error)
+        assert.ok(query.getError() instanceof Error)
+        assert.equal(fake.scheduled.length, 1)
+        query.dispose()
+    })
+
+    test('does not retry errors rejected by shouldRetry', async () => {
+        const fake = fakeScheduler()
+        let calls = 0
+        const query = new LiveQuery<string>({
+            handler: {
+                fetch() {
+                    calls += 1
+                    return Promise.reject(new Error('permanent'))
+                },
+            },
+            retry: {shouldRetry: () => false, scheduler: fake.scheduler},
+        })
+        await nextMicrotask()
+        assert.equal(calls, 1)
+        assert.equal(query.getFetchState(), FetchState.Error)
+        assert.equal(fake.scheduled.length, 0)
+        query.dispose()
+    })
+
+    test('abort cancels a pending retry and settles the request', async () => {
+        const fake = fakeScheduler()
+        let calls = 0
+        const query = new LiveQuery<string>({
+            handler: {
+                fetch() {
+                    calls += 1
+                    return Promise.reject(new Error('flaky'))
+                },
+            },
+            retry: {
+                maxAttempts: 5,
+                delayMs: 1000,
+                backoff: 'fixed',
+                jitter: false,
+                scheduler: fake.scheduler,
+            },
+        })
+        await nextMicrotask()
+        assert.equal(fake.scheduled.length, 1)
+        const pending = query._activeRequest
+        query.abort()
+        assert.equal(fake.scheduled[0]?.cancelled, true)
+        assert.equal(await pending, undefined)
+        assert.equal(query.getFetchState(), FetchState.Initial)
+        fake.run(0)
+        await nextMicrotask()
+        assert.equal(calls, 1)
+        query.dispose()
+    })
+
+    test('a newer request supersedes a pending retry', async () => {
+        const fake = fakeScheduler()
+        const term = new Emitter('first')
+        let calls = 0
+        const query = new LiveQuery<string, {term: Emitter<string>}>({
+            handler: {
+                fetch(args: {term: string}) {
+                    calls += 1
+                    return args.term === 'first'
+                        ? Promise.reject(new Error('flaky'))
+                        : Promise.resolve(`ok ${args.term}`)
+                },
+            },
+            args: {term},
+            retry: {
+                maxAttempts: 3,
+                delayMs: 100,
+                backoff: 'fixed',
+                jitter: false,
+                scheduler: fake.scheduler,
+            },
+        })
+        await nextMicrotask()
+        assert.equal(fake.scheduled.length, 1)
+        term.set('second')
+        assert.equal(fake.scheduled[0]?.cancelled, true)
+        await query._activeRequest
+        assert.equal(query.get(), 'ok second')
+        assert.equal(calls, 2)
+        query.dispose()
+    })
+
+    test('poll ticks are skipped while a request waits in retry backoff', async () => {
+        const pollFake = fakeScheduler()
+        const retryFake = fakeScheduler()
+        let calls = 0
+        const query = new LiveQuery<string>({
+            handler: {
+                fetch() {
+                    calls += 1
+                    return Promise.reject(new Error('down'))
+                },
+            },
+            polling: {intervalMs: 1000, scheduler: pollFake.scheduler},
+            retry: {
+                maxAttempts: 3,
+                delayMs: 500,
+                backoff: 'fixed',
+                jitter: false,
+                scheduler: retryFake.scheduler,
+            },
+        })
+        await nextMicrotask()
+        assert.equal(calls, 1)
+        assert.equal(retryFake.scheduled.length, 1)
+        pollFake.run(0)
+        await nextMicrotask()
+        assert.equal(calls, 1)
+        query.dispose()
+    })
+
+    test('validates the retry policy shape', () => {
+        const handler = {fetch: () => 1}
+        assert.throws(() => new LiveQuery({handler, retry: {maxAttempts: 0}}), /positive integer/)
+        assert.throws(() => new LiveQuery({handler, retry: {delayMs: -1}}), /non-negative/)
+        assert.throws(() => new LiveQuery({
+            handler,
+            // @ts-expect-error Runtime validation remains for JavaScript consumers.
+            retry: 'always',
+        }), /must be an object/)
+        assert.throws(() => new LiveQuery({
+            handler,
+            // @ts-expect-error Runtime validation remains for JavaScript consumers.
+            retry: {backoff: 'linear'},
+        }), /fixed, exponential, or a function/)
+    })
 })
 
 describe('RestQueryHandler', () => {
@@ -434,6 +631,34 @@ function deferred<TValue>(): Deferred<TValue> {
 
 function nextMicrotask(): Promise<void> {
     return new Promise((resolve) => setImmediate(resolve))
+}
+
+interface FakeSchedule {
+    callback: () => void
+    delayMs: number
+    cancelled: boolean
+}
+
+function fakeScheduler() {
+    const scheduled: FakeSchedule[] = []
+    return {
+        scheduled,
+        scheduler: {
+            schedule(callback: () => void, delayMs: number) {
+                const entry: FakeSchedule = {callback, delayMs, cancelled: false}
+                scheduled.push(entry)
+                return entry
+            },
+            cancel(handle: unknown) {
+                (handle as FakeSchedule).cancelled = true
+            },
+        },
+        run(index: number) {
+            const entry = scheduled[index]
+            assert.ok(entry, 'expected a scheduled callback')
+            entry.callback()
+        },
+    }
 }
 
 function response<TResult>(

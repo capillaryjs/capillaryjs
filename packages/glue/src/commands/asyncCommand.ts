@@ -4,6 +4,8 @@ import type {ReadableEmitter} from '../emitters/baseEmitter.js'
 import {Emitter} from '../emitters/emitter.js'
 import {FetchState} from '../enums/fetchState.js'
 import type {AbortSignalLike} from '../queryhandling/queryHandler.js'
+import {computeRetryDelay, isAbortError, resolveRetryPolicy} from '../retryPolicy.js'
+import type {ResolvedRetryPolicy, RetryPolicy} from '../retryPolicy.js'
 
 export type AsyncCommandConcurrency = 'ignore' | 'replace' | 'reject'
 
@@ -20,6 +22,11 @@ export type AsyncCommandExecutor<TArguments, TResult> = (
 export interface AsyncCommandOptions<TArguments, TResult, TError = unknown> {
     execute: AsyncCommandExecutor<TArguments, TResult>
     concurrency?: AsyncCommandConcurrency
+    /**
+     * Opt-in retry policy for failed attempts. Retrying a non-idempotent
+     * executor can apply a mutation more than once; pair with shouldRetry.
+     */
+    retry?: RetryPolicy | null
     mapError?: (error: unknown) => TError
     owner?: unknown
     purpose?: string
@@ -50,6 +57,8 @@ export class AsyncCommand<TArguments, TResult, TError = unknown>
     readonly isRunning: ReadableEmitter<boolean, never>
     private readonly mapError: (error: unknown) => TError
     private readonly runningEmitter: Emitter<boolean, never>
+    private readonly retryPolicy: ResolvedRetryPolicy | null
+    private retryWait: {handle: unknown, cancel: () => void} | null = null
     private requestId = 0
     private abortController: AbortControllerLike | null = null
     private lastSuccessfulValue: TResult | undefined
@@ -62,6 +71,7 @@ export class AsyncCommand<TArguments, TResult, TError = unknown>
         const {
             execute,
             concurrency = 'ignore',
+            retry,
             mapError = (error: unknown) => error as TError,
             owner,
             purpose = 'async command',
@@ -80,6 +90,7 @@ export class AsyncCommand<TArguments, TResult, TError = unknown>
         })
         this.execute = execute
         this.concurrency = concurrency
+        this.retryPolicy = resolveRetryPolicy(retry)
         this.mapError = mapError
         this.runningEmitter = new Emitter<boolean, never>(false, {
             owner: owner ?? this,
@@ -101,6 +112,7 @@ export class AsyncCommand<TArguments, TResult, TError = unknown>
             }
             this.abortController?.abort()
         }
+        this.cancelRetryWait()
 
         const requestId = ++this.requestId
         const controller = createAbortController()
@@ -118,34 +130,7 @@ export class AsyncCommand<TArguments, TResult, TError = unknown>
         this.runningEmitter.set(true, commandEvent ?? cause)
 
         const request = Promise.resolve()
-            .then(() => this.execute(arguments_, {
-                signal: controller.signal,
-                event: commandEvent,
-            }))
-            .then((result) => {
-                if (!this.isCurrentRequest(requestId, controller)) return undefined
-                this.lastSuccessfulValue = result
-                this.hasSuccessfulValue = true
-                this.setSnapshot({
-                    value: result,
-                    fetchState: FetchState.Ready,
-                    error: null,
-                    cause: 'command succeeded',
-                    parentEvent: commandEvent,
-                })
-                return result
-            })
-            .catch((error: unknown) => {
-                if (!this.isCurrentRequest(requestId, controller)) return undefined
-                this.setSnapshot({
-                    value: this.lastSuccessfulValue,
-                    fetchState: FetchState.Error,
-                    error: this.mapCommandError(error),
-                    cause: 'command failed',
-                    parentEvent: commandEvent,
-                })
-                return undefined
-            })
+            .then(() => this.runAttempts(arguments_, requestId, controller, commandEvent))
             .finally(() => {
                 if (!this.isCurrentRequest(requestId, controller)) return
                 this.abortController = null
@@ -157,6 +142,85 @@ export class AsyncCommand<TArguments, TResult, TError = unknown>
         return request
     }
 
+    private async runAttempts(
+        arguments_: TArguments,
+        requestId: number,
+        controller: AbortControllerLike,
+        commandEvent: EventBubble<unknown> | null,
+    ): Promise<TResult | undefined> {
+        for (let attempt = 1; ; attempt += 1) {
+            try {
+                const result = await this.execute(arguments_, {
+                    signal: controller.signal,
+                    event: commandEvent,
+                })
+                if (!this.isCurrentRequest(requestId, controller)) return undefined
+                this.lastSuccessfulValue = result
+                this.hasSuccessfulValue = true
+                this.setSnapshot({
+                    value: result,
+                    fetchState: FetchState.Ready,
+                    error: null,
+                    cause: 'command succeeded',
+                    parentEvent: commandEvent,
+                })
+                return result
+            } catch (error: unknown) {
+                if (!this.isCurrentRequest(requestId, controller) || isAbortError(error)) {
+                    return undefined
+                }
+                const retry = this.retryPolicy
+                if (retry == null
+                    || attempt >= retry.maxAttempts
+                    || !retry.shouldRetry(error, attempt)) {
+                    this.setSnapshot({
+                        value: this.lastSuccessfulValue,
+                        fetchState: FetchState.Error,
+                        error: this.mapCommandError(error),
+                        cause: 'command failed',
+                        parentEvent: commandEvent,
+                    })
+                    return undefined
+                }
+                const delayMs = computeRetryDelay(retry, attempt, error)
+                this.createEvent('command retry', commandEvent, {attempt, delayMs, error})
+                if (!await this.waitRetryDelay(retry, delayMs, requestId, controller)) {
+                    return undefined
+                }
+            }
+        }
+    }
+
+    private waitRetryDelay(
+        retry: ResolvedRetryPolicy,
+        delayMs: number,
+        requestId: number,
+        controller: AbortControllerLike,
+    ): Promise<boolean> {
+        if (delayMs <= 0) {
+            return Promise.resolve(this.isCurrentRequest(requestId, controller))
+        }
+        return new Promise<boolean>((resolve) => {
+            const handle = retry.scheduler.schedule(() => {
+                this.retryWait = null
+                resolve(this.isCurrentRequest(requestId, controller))
+            }, delayMs)
+            this.retryWait = {
+                handle,
+                cancel: () => {
+                    retry.scheduler.cancel(handle)
+                    resolve(false)
+                },
+            }
+        })
+    }
+
+    private cancelRetryWait(): void {
+        const wait = this.retryWait
+        this.retryWait = null
+        wait?.cancel()
+    }
+
     abort(eventOrCause: EventBubble<unknown> | unknown = 'command aborted'): boolean {
         if (this.isDisposed || this.abortController == null) return false
         const parentEvent = eventOrCause instanceof EventBubble ? eventOrCause : null
@@ -165,6 +229,7 @@ export class AsyncCommand<TArguments, TResult, TError = unknown>
         this.abortController.abort()
         this.abortController = null
         this._activeRequest = null
+        this.cancelRetryWait()
         this.runningEmitter.set(false, parentEvent ?? cause)
         this.setSnapshot({
             value: this.lastSuccessfulValue,
@@ -197,6 +262,7 @@ export class AsyncCommand<TArguments, TResult, TError = unknown>
         this.abortController?.abort()
         this.abortController = null
         this._activeRequest = null
+        this.cancelRetryWait()
         this.runningEmitter.set(false, 'command disposed')
         this.runningEmitter.dispose()
         super.dispose()

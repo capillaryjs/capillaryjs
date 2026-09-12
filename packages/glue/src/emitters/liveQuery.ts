@@ -1,6 +1,8 @@
 import {EventBubble} from '../debugging/eventBubble.js'
 import {FetchState} from '../enums/fetchState.js'
 import type {QueryHandlerLike, QueryRequestOptions, QueryValues} from '../queryhandling/queryHandler.js'
+import {computeRetryDelay, isAbortError, resolveRetryPolicy} from '../retryPolicy.js'
+import type {ResolvedRetryPolicy, RetryPolicy} from '../retryPolicy.js'
 import {BaseEmitter} from './baseEmitter.js'
 import type {EmitterValue, ReadableEmitter} from './baseEmitter.js'
 import type {RefreshableLiveResult} from './liveResult.js'
@@ -42,6 +44,11 @@ export interface LiveQueryOptions<
     autoFetch?: boolean
     keepPreviousValue?: boolean
     polling?: LiveQueryPollingOptions
+    /**
+     * Opt-in retry policy for failed attempts. `null` explicitly disables a
+     * policy inherited from an endpoint declaration.
+     */
+    retry?: RetryPolicy | null
     owner?: unknown
     purpose?: string
     trace?: boolean
@@ -75,6 +82,8 @@ implements RefreshableLiveResult<TResult | undefined, unknown> {
     private readonly polling: LiveQueryPollingOptions | undefined
     private readonly pollingScheduler: PollingScheduler
     private pollingHandle: unknown = null
+    private readonly retryPolicy: ResolvedRetryPolicy | null
+    private retryWait: {handle: unknown, cancel: () => void} | null = null
     private requestId = 0
     private abortController: AbortControllerLike | null = null
     /** Exposed for deterministic tests; consumers should use refresh()/retry(). */
@@ -91,6 +100,7 @@ implements RefreshableLiveResult<TResult | undefined, unknown> {
             autoFetch = true,
             keepPreviousValue = true,
             polling,
+            retry,
             owner,
             purpose = 'live query',
             trace,
@@ -116,6 +126,7 @@ implements RefreshableLiveResult<TResult | undefined, unknown> {
         this.activated = execution !== 'deferred'
         this.polling = polling
         this.pollingScheduler = polling?.scheduler ?? defaultPollingScheduler
+        this.retryPolicy = resolveRetryPolicy(retry)
         this.lastSuccessfulValue = undefined
 
         if (execution !== 'deferred' && execution !== 'explicit') {
@@ -166,6 +177,7 @@ implements RefreshableLiveResult<TResult | undefined, unknown> {
 
         const requestId = ++this.requestId
         this.abortController?.abort()
+        this.cancelRetryWait()
         const controller = createAbortController()
         this.abortController = controller
         const parentEvent = eventOrCause instanceof EventBubble ? eventOrCause : null
@@ -183,11 +195,29 @@ implements RefreshableLiveResult<TResult | undefined, unknown> {
         const queryEvent = this.createEvent('query fetch', parentEvent, this.argumentValues)
 
         const request = Promise.resolve()
-            .then(() => this.handler.fetch(this.argumentValues, {
-                signal: controller.signal,
-                event: queryEvent,
-            }))
-            .then((result) => {
+            .then(() => this.runAttempts(requestId, controller, queryEvent))
+            .finally(() => {
+                if (this.isCurrentRequest(requestId, controller)) {
+                    this.abortController = null
+                    this._activeRequest = null
+                }
+            })
+
+        this._activeRequest = request
+        return request
+    }
+
+    private async runAttempts(
+        requestId: number,
+        controller: AbortControllerLike,
+        queryEvent: EventBubble<unknown> | null,
+    ): Promise<TResult | undefined> {
+        for (let attempt = 1; ; attempt += 1) {
+            try {
+                const result = await this.handler.fetch(this.argumentValues, {
+                    signal: controller.signal,
+                    event: queryEvent,
+                })
                 if (!this.isCurrentRequest(requestId, controller)) return undefined
                 this.lastSuccessfulValue = result
                 this.hasSuccessfulValue = true
@@ -199,29 +229,60 @@ implements RefreshableLiveResult<TResult | undefined, unknown> {
                     parentEvent: queryEvent,
                 })
                 return result
-            })
-            .catch((error: unknown) => {
+            } catch (error: unknown) {
                 if (!this.isCurrentRequest(requestId, controller) || isAbortError(error)) {
                     return undefined
                 }
-                this.setSnapshot({
-                    value: this.keepPreviousValue ? this.lastSuccessfulValue : undefined,
-                    fetchState: FetchState.Error,
-                    error,
-                    cause: 'query failed',
-                    parentEvent: queryEvent,
-                })
-                return undefined
-            })
-            .finally(() => {
-                if (this.isCurrentRequest(requestId, controller)) {
-                    this.abortController = null
-                    this._activeRequest = null
+                const retry = this.retryPolicy
+                if (retry == null
+                    || attempt >= retry.maxAttempts
+                    || !retry.shouldRetry(error, attempt)) {
+                    this.setSnapshot({
+                        value: this.keepPreviousValue ? this.lastSuccessfulValue : undefined,
+                        fetchState: FetchState.Error,
+                        error,
+                        cause: 'query failed',
+                        parentEvent: queryEvent,
+                    })
+                    return undefined
                 }
-            })
+                const delayMs = computeRetryDelay(retry, attempt, error)
+                this.createEvent('query retry', queryEvent, {attempt, delayMs, error})
+                if (!await this.waitRetryDelay(retry, delayMs, requestId, controller)) {
+                    return undefined
+                }
+            }
+        }
+    }
 
-        this._activeRequest = request
-        return request
+    private waitRetryDelay(
+        retry: ResolvedRetryPolicy,
+        delayMs: number,
+        requestId: number,
+        controller: AbortControllerLike,
+    ): Promise<boolean> {
+        if (delayMs <= 0) {
+            return Promise.resolve(this.isCurrentRequest(requestId, controller))
+        }
+        return new Promise<boolean>((resolve) => {
+            const handle = retry.scheduler.schedule(() => {
+                this.retryWait = null
+                resolve(this.isCurrentRequest(requestId, controller))
+            }, delayMs)
+            this.retryWait = {
+                handle,
+                cancel: () => {
+                    retry.scheduler.cancel(handle)
+                    resolve(false)
+                },
+            }
+        })
+    }
+
+    private cancelRetryWait(): void {
+        const wait = this.retryWait
+        this.retryWait = null
+        wait?.cancel()
     }
 
     retry(eventOrCause: EventBubble<unknown> | unknown = 'retry'): Promise<TResult | undefined> {
@@ -234,6 +295,7 @@ implements RefreshableLiveResult<TResult | undefined, unknown> {
         this.abortController.abort()
         this.abortController = null
         this._activeRequest = null
+        this.cancelRetryWait()
         const parentEvent = eventOrCause instanceof EventBubble ? eventOrCause : null
         this.setSnapshot({
             value: this.hasSuccessfulValue ? this.lastSuccessfulValue : undefined,
@@ -250,6 +312,7 @@ implements RefreshableLiveResult<TResult | undefined, unknown> {
         this.abortController?.abort()
         this.abortController = null
         this._activeRequest = null
+        this.cancelRetryWait()
         this.cancelScheduledPoll()
         for (const unsubscribe of this.argumentUnsubscribers) unsubscribe()
         this.argumentUnsubscribers = []
@@ -411,10 +474,6 @@ function createAbortController(): AbortControllerLike {
         throw new Error('LiveQuery requires AbortController in this runtime')
     }
     return new (constructor as AbortControllerConstructor)()
-}
-
-function isAbortError(error: unknown): boolean {
-    return error instanceof Error && error.name === 'AbortError'
 }
 
 // QueryArgumentValues always produces a record, but keeping this assertion near

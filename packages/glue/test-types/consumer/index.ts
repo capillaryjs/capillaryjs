@@ -4,7 +4,11 @@ import {
     LiveQuery,
     RestEndpoint,
 } from '@sylwellsoftware/glue'
-import type {LiveQueryExecution, QueryHandlerLike} from '@sylwellsoftware/glue'
+import type {
+    LiveQueryExecution,
+    QueryHandlerLike,
+    RetryPolicy,
+} from '@sylwellsoftware/glue'
 import {AsyncCommand} from '@sylwellsoftware/glue'
 
 const left = new Emitter(2)
@@ -21,10 +25,19 @@ const handler: QueryHandlerLike<Arguments, Result> = {
     fetch: ({term}) => ({id: term}),
 }
 const term = new Emitter('alpha')
+const retryPolicy: RetryPolicy = {
+    maxAttempts: 3,
+    delayMs: 500,
+    backoff: 'exponential',
+    maxDelayMs: 30_000,
+    jitter: true,
+    shouldRetry: (error, attempt) => error instanceof Error && attempt < 3,
+}
 const query = new LiveQuery<Result, {term: Emitter<string>}>({
     handler,
     args: {term},
     autoFetch: false,
+    retry: retryPolicy,
 })
 query.get()?.id.toUpperCase()
 const execution: LiveQueryExecution = 'deferred'
@@ -42,8 +55,9 @@ const endpoint = new RestEndpoint<Arguments, Result>({
         json: () => ({id: 'record-1'}),
     }),
     parseResult: (value) => value as Result,
+    query: {retry: {maxAttempts: 2, backoff: 'fixed', delayMs: 100}},
 })
-const endpointResult = endpoint.open({term}, {execution: 'explicit'})
+const endpointResult = endpoint.open({term}, {execution: 'explicit', retry: null})
 endpointResult.get()?.id.toUpperCase()
 
 const command = new AsyncCommand<{id: string}, Result>({
@@ -51,6 +65,7 @@ const command = new AsyncCommand<{id: string}, Result>({
         signal.aborted satisfies boolean
         return {id}
     },
+    retry: {maxAttempts: 2, backoff: (attempt) => attempt * 250},
 })
 void command.run({id: 'record-1'})
 command.get()?.id.toUpperCase()

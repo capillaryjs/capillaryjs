@@ -6,6 +6,15 @@ Versioning.
 
 ## Unreleased
 
+### Added
+
+- Added an opt-in `RetryPolicy` for `LiveQuery`, `AsyncCommand`, and endpoint
+  `query` defaults: `maxAttempts`, `delayMs`, `'fixed'`/`'exponential'`/custom
+  `backoff`, `maxDelayMs` cap, full `jitter`, a `shouldRetry` predicate, and an
+  injectable `scheduler`. Per-instance options override endpoint defaults and
+  `retry: null` disables an inherited policy; requests stay `Loading` across
+  attempts and abort/dispose cancels pending retry timers.
+
 ## 0.9.1 - 2026-09-08
 
 ### Fixed

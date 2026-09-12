@@ -196,6 +196,94 @@ describe('AsyncCommand', () => {
             concurrency: 'queue',
         }), /concurrency policy/)
     })
+
+    test('retries a failed run and keeps isRunning during backoff', async () => {
+        const fake = fakeScheduler()
+        let calls = 0
+        const command = new AsyncCommand<string, string>({
+            execute(value) {
+                calls += 1
+                return calls < 2
+                    ? Promise.reject(new Error('flaky'))
+                    : Promise.resolve(`saved ${value}`)
+            },
+            retry: {
+                maxAttempts: 3,
+                delayMs: 100,
+                backoff: 'fixed',
+                jitter: false,
+                scheduler: fake.scheduler,
+            },
+        })
+        const execution = command.run('record')
+        await nextMicrotask()
+        assert.equal(calls, 1)
+        assert.equal(command.isRunning.get(), true)
+        assert.equal(command.getFetchState(), FetchState.Loading)
+        assert.equal(fake.scheduled[0]?.delayMs, 100)
+
+        fake.run(0)
+        assert.equal(await execution, 'saved record')
+        assert.equal(command.isRunning.get(), false)
+        assert.equal(command.getFetchState(), FetchState.Ready)
+        command.dispose()
+    })
+
+    test('abort cancels a pending command retry', async () => {
+        const fake = fakeScheduler()
+        let calls = 0
+        const command = new AsyncCommand<string, string>({
+            execute() {
+                calls += 1
+                return Promise.reject(new Error('flaky'))
+            },
+            retry: {
+                maxAttempts: 5,
+                delayMs: 100,
+                backoff: 'fixed',
+                jitter: false,
+                scheduler: fake.scheduler,
+            },
+        })
+        const execution = command.run('record')
+        await nextMicrotask()
+        assert.equal(fake.scheduled.length, 1)
+        assert.equal(command.abort(), true)
+        assert.equal(fake.scheduled[0]?.cancelled, true)
+        assert.equal(await execution, undefined)
+        assert.equal(command.isRunning.get(), false)
+        fake.run(0)
+        await nextMicrotask()
+        assert.equal(calls, 1)
+        command.dispose()
+    })
+
+    test('settles to the mapped error after retry exhaustion', async () => {
+        const fake = fakeScheduler()
+        let calls = 0
+        const command = new AsyncCommand<string, string, string>({
+            execute() {
+                calls += 1
+                return Promise.reject(new Error('down'))
+            },
+            retry: {
+                maxAttempts: 2,
+                delayMs: 10,
+                backoff: 'fixed',
+                jitter: false,
+                scheduler: fake.scheduler,
+            },
+            mapError: (error) => `mapped: ${(error as Error).message}`,
+        })
+        const execution = command.run('record')
+        await nextMicrotask()
+        fake.run(0)
+        assert.equal(await execution, undefined)
+        assert.equal(calls, 2)
+        assert.equal(command.getFetchState(), FetchState.Error)
+        assert.equal(command.getError(), 'mapped: down')
+        command.dispose()
+    })
 })
 
 interface Deferred<TValue> {
@@ -216,4 +304,32 @@ function deferred<TValue>(): Deferred<TValue> {
 
 function nextMicrotask(): Promise<void> {
     return new Promise((resolve) => setImmediate(resolve))
+}
+
+interface FakeSchedule {
+    callback: () => void
+    delayMs: number
+    cancelled: boolean
+}
+
+function fakeScheduler() {
+    const scheduled: FakeSchedule[] = []
+    return {
+        scheduled,
+        scheduler: {
+            schedule(callback: () => void, delayMs: number) {
+                const entry: FakeSchedule = {callback, delayMs, cancelled: false}
+                scheduled.push(entry)
+                return entry
+            },
+            cancel(handle: unknown) {
+                (handle as FakeSchedule).cancelled = true
+            },
+        },
+        run(index: number) {
+            const entry = scheduled[index]
+            assert.ok(entry, 'expected a scheduled callback')
+            entry.callback()
+        },
+    }
 }

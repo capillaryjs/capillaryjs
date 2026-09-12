@@ -12,6 +12,7 @@ import type {LiveResult} from '../emitters/liveResult.js'
 import type {QueryHandlerLike, QueryValues} from './queryHandler.js'
 import {RestQueryHandler} from './restQueryHandler.js'
 import type {RestQueryHandlerOptions} from './restQueryHandler.js'
+import type {RetryPolicy} from '../retryPolicy.js'
 
 export type EndpointArgumentEmitters<TArguments extends QueryValues> = {
     [TName in keyof TArguments]: ReadableEmitter<TArguments[TName], unknown>
@@ -22,6 +23,11 @@ export interface EndpointQueryOptions {
     autoFetch?: boolean
     keepPreviousValue?: boolean
     polling?: LiveQueryPollingOptions
+    /**
+     * Shared retry default for queries opened from the endpoint. A per-open
+     * or per-query `retry` overrides it; `null` disables it explicitly.
+     */
+    retry?: RetryPolicy | null
     owner?: unknown
     purpose?: string
     trace?: boolean
