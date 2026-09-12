@@ -11,7 +11,8 @@ import type {
   Issue,
   PhasePlanId,
   ScenarioData,
-  ScenarioGenerationOptions
+  ScenarioGenerationOptions,
+  ScopeNode
 } from "../../src/domain/model.ts";
 import type {
   Bootstrap,
@@ -387,12 +388,9 @@ export class ConstructionScenario implements DemoScenario {
         return false;
     }
 
-    private phaseDetail(id: string): Detail | undefined {
-        const row = this.phaseRows.find(p => p.id === id);
-        if (!row) return undefined;
-        const d = this.data;
+    private phasePrerequisites(d: ScenarioData, id: string): Row[] {
         const links: Row[] = [], visited = new Set<string>();
-        const prerequisites = (phase: string, depth: number): void => {
+        const walk = (phase: string, depth: number): void => {
             for (const dep of d.phaseDependencies.filter(x => x.successorPhaseId === phase)) {
                 if (visited.has(dep.id)) continue;
                 visited.add(dep.id);
@@ -402,10 +400,34 @@ export class ConstructionScenario implements DemoScenario {
                     relationship: `${human(dep.type)} · ${depth === 1 ? "direct" : `upstream ${depth}`}`,
                     lag: dep.lagWorkingDays
                 });
-                prerequisites(dep.predecessorPhaseId, depth + 1);
+                walk(dep.predecessorPhaseId, depth + 1);
             }
         };
-        prerequisites(id, 1);
+        walk(id, 1);
+        return links;
+    }
+
+    private phaseCrew(d: ScenarioData, id: string): Row[] {
+        return d.personnelAssignments.filter(x => x.phasePlanId === id && x.startDate <= d.metadata.anchorDate && (!x.endDate || x.endDate >= d.metadata.anchorDate)).map(x => ({
+            id: x.id, name: d.people.find(p => p.id === x.personId)!.name, hours: x.plannedHoursPerWeek,
+            status: d.personnelAbsences.some(a => a.personId === x.personId && a.fromDate <= d.metadata.anchorDate && a.toDate >= d.metadata.anchorDate) ? "absent" : "assigned"
+        }));
+    }
+
+    private phaseMaterials(d: ScenarioData, id: string): Row[] {
+        return d.materialBudgetLines.filter(b => b.phasePlanId === id).map(b => ({
+            id: b.id,
+            name: d.materialTypes.find(m => m.id === b.materialTypeId)!.name,
+            planned: b.budgetedQuantity,
+            used: sum(d.materialUsageEntries.filter(u => u.phasePlanId === id && u.materialTypeId === b.materialTypeId), u => u.quantity),
+            unit: d.materialTypes.find(m => m.id === b.materialTypeId)!.unit
+        }));
+    }
+
+    private phaseDetail(id: string): Detail | undefined {
+        const row = this.phaseRows.find(p => p.id === id);
+        if (!row) return undefined;
+        const d = this.data;
         return {
             id,
             title: row.name,
@@ -443,24 +465,9 @@ export class ConstructionScenario implements DemoScenario {
                     format: "money",
                     group: "Cost"
                 }],
-            sections: [{title: "Prerequisites", rows: links},
-                {
-                    title: "Assigned crew",
-                    rows: d.personnelAssignments.filter(x => x.phasePlanId === id && x.startDate <= d.metadata.anchorDate && (!x.endDate || x.endDate >= d.metadata.anchorDate)).map(x => ({
-                        id: x.id, name: d.people.find(p => p.id === x.personId)!.name, hours: x.plannedHoursPerWeek,
-                        status: d.personnelAbsences.some(a => a.personId === x.personId && a.fromDate <= d.metadata.anchorDate && a.toDate >= d.metadata.anchorDate) ? "absent" : "assigned"
-                    }))
-                },
-                {
-                    title: "Materials · planned and consumed",
-                    rows: d.materialBudgetLines.filter(b => b.phasePlanId === id).map(b => ({
-                        id: b.id,
-                        name: d.materialTypes.find(m => m.id === b.materialTypeId)!.name,
-                        planned: b.budgetedQuantity,
-                        used: sum(d.materialUsageEntries.filter(u => u.phasePlanId === id && u.materialTypeId === b.materialTypeId), u => u.quantity),
-                        unit: d.materialTypes.find(m => m.id === b.materialTypeId)!.unit
-                    }))
-                },
+            sections: [{title: "Prerequisites", rows: this.phasePrerequisites(d, id)},
+                {title: "Assigned crew", rows: this.phaseCrew(d, id)},
+                {title: "Materials · planned and consumed", rows: this.phaseMaterials(d, id)},
                 {title: "Issues", rows: this.issueRows.filter(i => i.phaseId === id).slice(0, 12)},
                 {title: "Delays", rows: this.delayRows.filter(i => i.phaseId === id).slice(0, 12)},
                 {
@@ -468,6 +475,36 @@ export class ConstructionScenario implements DemoScenario {
                     rows: this.milestones(String(row.projectId)).filter(m => (m.phaseIds as string[]).includes(id))
                 }]
         };
+    }
+
+    /**
+     * A consistent set of detail sections for the projects explorer, so the bottom
+     * tab control is stable across node types. Phase-specific sections carry an
+     * explanatory `empty` hint when no phase is selected.
+     */
+    private explorerSections(d: ScenarioData, project: Row, scope: ScopeNode | undefined, phase: Row | undefined): Detail["sections"] {
+        const projectId = String(project.id);
+        const scopeId = scope ? String(scope.id) : "";
+        const phaseId = phase ? String(phase.id) : "";
+        const phaseHint = (noun: string) => `Select a phase to view ${noun}.`;
+        const subScopes: Row[] = phase ? [] : this.data.scopeNodes
+            .filter(s => s.projectId === projectId && s.parentId === scope?.id)
+            .map(c => ({id: String(c.id), name: c.name, status: c.type}));
+        const milestones = phase
+            ? this.milestones(projectId).filter(m => (m.phaseIds as string[]).includes(phaseId))
+            : this.milestones(projectId);
+        const issues = phase
+            ? this.issueRows.filter(i => i.phaseId === phaseId).slice(0, 12)
+            : this.issueRows.filter(i => i.projectId === projectId && this.inScope(scopeId, i.scopeId)).slice(0, 12);
+        return [
+            {title: "Sub-scopes", rows: subScopes, empty: phase ? "Phases have no sub-areas." : "No sub-areas."},
+            {title: "Milestones", rows: milestones, empty: "No milestones for this selection."},
+            {title: "Issues", rows: issues, empty: "No open issues."},
+            {title: "Prerequisites", rows: phase ? this.phasePrerequisites(d, phaseId) : [], empty: phase ? "No prerequisites." : phaseHint("its prerequisites")},
+            {title: "Assigned crew", rows: phase ? this.phaseCrew(d, phaseId) : [], empty: phase ? "No crew assigned." : phaseHint("crew assignments")},
+            {title: "Materials", rows: phase ? this.phaseMaterials(d, phaseId) : [], empty: phase ? "No materials." : phaseHint("materials")},
+            {title: "Delays", rows: phase ? this.delayRows.filter(i => i.phaseId === phaseId).slice(0, 12) : [], empty: phase ? "No delays recorded." : phaseHint("delays")}
+        ];
     }
 
     private projectDetail(project: Row, phases: readonly Row[]): Detail {
@@ -597,11 +634,14 @@ export class ConstructionScenario implements DemoScenario {
                 status: r.executionStatus,
                 forecast: r.forecastFinishDate
             }));
-            const detail = (p.phase || p.selected)
+            const scope = p.scope ? d.scopeNodes.find(s => s.id === p.scope) : undefined;
+            const phaseRow = (p.phase || p.selected) ? this.phaseRows.find(r => r.id === (p.phase || p.selected)) : undefined;
+            const base = (p.phase || p.selected)
                 ? this.phaseDetail(p.phase || p.selected!)
                 : p.scope
                     ? this.scopeDetail(p.scope, project)
                     : this.projectDetail(project, phases);
+            const detail = base ? {...base, sections: this.explorerSections(d, project, scope, phaseRow)} : base;
             return this.page(rows, p, {
                 tree: d.scopeNodes,
                 detail,

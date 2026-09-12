@@ -390,6 +390,18 @@ body {
     margin: 0;
 }
 
+/* Sections tab control: bounded flexible region (TabPanel ignores `allocation`). */
+.detail-tabs {
+    flex: 1 1 0;
+    min-height: 0;
+}
+
+.empty-hint {
+    margin: 0;
+    padding: 14px 4px;
+    font-size: 12px;
+}
+
 .row-name {
     flex: 1;
     font-size: 12px;

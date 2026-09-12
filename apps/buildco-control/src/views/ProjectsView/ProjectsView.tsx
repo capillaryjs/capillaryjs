@@ -264,14 +264,16 @@ export class ProjectsView extends Component {
                         </Panel>
                         {detail.sections.length ? <TabPanel
                             island
-                            allocation="flexible"
+                            className="detail-tabs"
                             label="Detail sections"
                             valueEmitter={this.sectionTab}
                             mountPolicy="active-only"
                             tabs={detail.sections.map(s => ({
                                 id: slug(s.title),
                                 label: s.title,
-                                content: renderRows(s.rows as readonly Row[]),
+                                content: s.rows.length
+                                    ? renderRows(s.rows as readonly Row[])
+                                    : <p className="muted empty-hint">{s.empty ?? "Nothing to show for this selection."}</p>,
                             }))}
                         /> : null}
                     </> : <Panel island><Placeholder/></Panel>}

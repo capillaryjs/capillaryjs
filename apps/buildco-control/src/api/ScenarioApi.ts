@@ -15,7 +15,7 @@ export interface Metric { label: string; value: number; format?: "money" | "perc
 export interface Detail {
   id: string; title: string; subtitle?: string;
   fields: { label: string; value: string | number; format?: Metric["format"]; group?: string }[];
-  sections: { title: string; rows: Row[] }[];
+  sections: { title: string; rows: Row[]; empty?: string }[];
   projectId?: string; scopeId?: string; phaseId?: string; record?: Row;
 }
 export interface Bootstrap {
