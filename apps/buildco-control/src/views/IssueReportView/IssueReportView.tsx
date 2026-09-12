@@ -1,7 +1,7 @@
 import type {DateTimeValue, FrayChild} from "@sylwellsoftware/fray";
 import {
     Component, Panel, PanelToolbar, DescriptionList, DescriptionItem, InfoPanel, InfoField,
-    Button, Dialog, DialogActions, Textbox, Dropdown, DateTimePicker, Label,
+    Button, Dialog, DialogActions, Textbox, Dropdown, DateTimePicker, Label, ListView,
     RouteLink, RouteValue, RouteQuery, Placeholder, Toolbar, live, routeTarget, stringRouteQueryCodec,
 } from "@sylwellsoftware/fray";
 import {Emitter, DerivedEmitter} from "@sylwellsoftware/glue";
@@ -16,7 +16,7 @@ const severities = ["low", "medium", "high", "critical"].map(value => ({value, l
 export class IssueReportView extends Component {
     static dependencies = [
         Panel, PanelToolbar, DescriptionList, DescriptionItem, InfoPanel, InfoField,
-        Button, Dialog, DialogActions, Textbox, Dropdown, DateTimePicker, Label,
+        Button, Dialog, DialogActions, Textbox, Dropdown, DateTimePicker, Label, ListView,
         RouteLink, RouteValue, RouteQuery, Placeholder, Toolbar,
     ];
 
@@ -31,6 +31,20 @@ export class IssueReportView extends Component {
     private readonly dialogOpen = new Emitter<boolean>(false, {owner: this, purpose: "issue dialog open"});
     private readonly dialogMode = new Emitter<"edit" | "resolve">("edit", {owner: this, purpose: "issue dialog mode"});
     private readonly dialogError = new Emitter<string>("", {owner: this, purpose: "issue dialog error"});
+    private readonly pickerOpen = new Emitter<boolean>(false, {owner: this, purpose: "issue picker open"});
+    private readonly pickerFilter = new Emitter<string>("", {owner: this, purpose: "issue picker filter"});
+    private readonly pickerSelection = new Emitter<Row | null>(null, {owner: this, purpose: "issue picker selection"});
+    private readonly filteredIssues = new DerivedEmitter(
+        [this.query, this.pickerFilter] as const,
+        ([v, q]) => {
+            const rows = (v?.rows ?? []) as readonly Row[];
+            const query = q.trim().toLowerCase();
+            if (!query) return rows;
+            return rows.filter(r => [r.name, r.project, r.status, r.severity, r.cause, r.person]
+                .some(field => String(field ?? "").toLowerCase().includes(query)));
+        },
+        {owner: this, purpose: "filtered issue picker rows"},
+    );
     private readonly draft = {
         title: new Emitter<string>("", {owner: this, purpose: "issue draft title"}),
         description: new Emitter<string>("", {owner: this, purpose: "issue draft description"}),
@@ -41,6 +55,13 @@ export class IssueReportView extends Component {
 
     initialize(): void {
         void this.query.activate();
+        this.onCleanup(this.pickerSelection.subscribe(({value}) => {
+            if (value == null) return;
+            this.issueId.set(String(value.id));
+            this.pickerOpen.set(false);
+            this.pickerSelection.set(null);
+            this.pickerFilter.set("");
+        }));
     }
 
     render(): FrayChild {
@@ -52,10 +73,6 @@ export class IssueReportView extends Component {
 
         const v = view.value;
         const detail = v?.detail;
-        const issueOptions = (v?.rows ?? []).map(r => ({value: String(r.id), label: String(r.name)}));
-        if (detail && !issueOptions.some(o => o.value === detail.id)) {
-            issueOptions.unshift({value: String(detail.id), label: String(detail.title)});
-        }
 
         return <>
             <RouteValue route={issueIdParam} valueEmitter={this.issueId}/>
@@ -63,12 +80,9 @@ export class IssueReportView extends Component {
             <Panel className="issue-report-view fray-size-flexible" island header={detail ? detail.title : "Issue Report"}>
                 <PanelToolbar>
                     <Toolbar label="Issue actions">
-                        <Dropdown
-                            label="Issue"
-                            placeholder="Select an issue…"
-                            required
-                            options={issueOptions}
-                            valueEmitter={this.issueId as any}
+                        <Button
+                            label={detail ? detail.title : "Select issue…"}
+                            onClick={() => this.pickerOpen.set(true)}
                         />
                         <Button
                             label="Edit"
@@ -160,6 +174,26 @@ export class IssueReportView extends Component {
                         />
                     </DialogActions>
                 </Dialog> : null}
+                <Dialog
+                    title="Select issue"
+                    valueEmitter={this.pickerOpen}
+                    onClose={() => this.pickerOpen.set(false)}
+                >
+                    <Textbox label="Search" valueEmitter={this.pickerFilter} placeholder="Filter by name, project, status…"/>
+                    <ListView
+                        label="Issues"
+                        items={this.filteredIssues}
+                        itemKey="id"
+                        selectedItemEmitter={this.pickerSelection}
+                        renderItem={r => <span className="issue-item">
+                            <span className="issue-item-name">{r.name}</span>
+                            <span className="issue-item-status">
+                                {[r.status && human(r.status), r.severity && human(r.severity), r.project]
+                                    .filter(Boolean).join(" · ")}
+                            </span>
+                        </span>}
+                    />
+                </Dialog>
             </Panel>
         </>;
     }
