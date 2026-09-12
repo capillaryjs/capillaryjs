@@ -1,7 +1,7 @@
 import type {FrayChild} from "@sylwellsoftware/fray";
 import {
     Component, Layout, Panel, PanelToolbar, Dropdown, DatePicker, RadioGroup, Toggle,
-    RouteQuery, Placeholder, stringRouteQueryCodec,
+    RouteQuery, Placeholder, Toolbar, stringRouteQueryCodec,
 } from "@sylwellsoftware/fray";
 import {LineGraph} from "@sylwellsoftware/fray-visualization";
 import type {HistoryShape} from "@sylwellsoftware/fray-visualization";
@@ -12,7 +12,7 @@ import {buildco, revision, bootstrap} from "../../app/services.ts";
 export class EconomicTrendsView extends Component {
     static dependencies = [
         Layout, Panel, PanelToolbar, Dropdown, DatePicker, RadioGroup, Toggle,
-        RouteQuery, LineGraph, Placeholder,
+        RouteQuery, LineGraph, Placeholder, Toolbar,
     ];
 
     private state = screens["economic-trends"];
@@ -47,6 +47,7 @@ export class EconomicTrendsView extends Component {
             <RouteQuery name="smooth" codec={stringRouteQueryCodec} valueEmitter={this.state.field("smooth")} defaultValue="true"/>
             <Panel island allocation="flexible" header="Economic Trends">
                 <PanelToolbar>
+                    <Toolbar label="Trend controls">
                     <Dropdown
                         label="Project"
                         options={[{value: "", label: "All projects"}, ...(b.value.choices.projects ?? [])]}
@@ -84,6 +85,7 @@ export class EconomicTrendsView extends Component {
                         ]}
                         valueEmitter={this.state.field("smooth") as any}
                     />
+                    </Toolbar>
                 </PanelToolbar>
                 <LineGraph
                     label={v.chartLabel ?? "Economic trends"}

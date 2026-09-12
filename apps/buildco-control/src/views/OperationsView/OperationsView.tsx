@@ -3,7 +3,7 @@ import {
     Component, DataTable, Panel, PanelToolbar, Sidebar, SidebarToolbar,
     SplitPrimary, SplitSecondary, SplitView,
     TabPanel, Toggle, Checkbox, OptionsPanel, OptionGroup, GroupPanel,
-    Dropdown, Textbox, Button, RouteQuery, Placeholder, stringRouteQueryCodec,
+    Dropdown, Textbox, Button, RouteQuery, Placeholder, Toolbar, stringRouteQueryCodec,
 } from "@sylwellsoftware/fray";
 import type {TableColumn, TableRow} from "@sylwellsoftware/fray";
 import {Emitter} from "@sylwellsoftware/glue";
@@ -52,7 +52,7 @@ export class OperationsView extends Component {
     static dependencies = [
         DataTable, Panel, PanelToolbar, Sidebar, SidebarToolbar, SplitView,
         TabPanel, Toggle, Checkbox, OptionsPanel, OptionGroup, GroupPanel,
-        Dropdown, Textbox, Button, RouteQuery, Placeholder,
+        Dropdown, Textbox, Button, RouteQuery, Placeholder, Toolbar,
     ];
 
     private state = screens.operations;
@@ -100,17 +100,19 @@ export class OperationsView extends Component {
             <SplitPrimary>
                 <Sidebar island allocation="flexible" header="Operations Register">
                     <SidebarToolbar>
-                        <Textbox
-                            label="Search"
-                            placeholder="Filter records…"
-                            valueEmitter={this.state.field("search") as any}
-                        />
-                        <Button
-                            label="Reset"
-                            onClick={() => {
-                                for (const key of filterFields) this.state.field(key).set(key === "overtime" || key === "standby" || key === "issueOnly" || key === "waste" || key === "blocked" || key === "slip" ? "neutral" : "");
-                            }}
-                        />
+                        <Toolbar label="Register search">
+                            <Textbox
+                                label="Search"
+                                placeholder="Filter records…"
+                                valueEmitter={this.state.field("search") as any}
+                            />
+                            <Button
+                                label="Reset"
+                                onClick={() => {
+                                    for (const key of filterFields) this.state.field(key).set(key === "overtime" || key === "standby" || key === "issueOnly" || key === "waste" || key === "blocked" || key === "slip" ? "neutral" : "");
+                                }}
+                            />
+                        </Toolbar>
                     </SidebarToolbar>
                     <OptionsPanel header="Filters">
                         <GroupPanel header="Scope">
@@ -159,16 +161,18 @@ export class OperationsView extends Component {
             <SplitSecondary>
                 <Panel island allocation="flexible" header="Operational Records">
                     <PanelToolbar>
-                        <span className="result-count">{rows.length} records</span>
-                        <Button
-                            label="Previous"
-                            onClick={() => this.state.field("page").set(String(Math.max(0, Number(this.state.field("page").get()) - 1)))}
-                        />
-                        <span className="page-info">Page {Number(this.state.field("page").get()) + 1}</span>
-                        <Button
-                            label="Next"
-                            onClick={() => this.state.field("page").set(String(Number(this.state.field("page").get()) + 1))}
-                        />
+                        <Toolbar label="Register paging">
+                            <span className="result-count">{rows.length} records</span>
+                            <Button
+                                label="Previous"
+                                onClick={() => this.state.field("page").set(String(Math.max(0, Number(this.state.field("page").get()) - 1)))}
+                            />
+                            <span className="page-info">Page {Number(this.state.field("page").get()) + 1}</span>
+                            <Button
+                                label="Next"
+                                onClick={() => this.state.field("page").set(String(Number(this.state.field("page").get()) + 1))}
+                            />
+                        </Toolbar>
                     </PanelToolbar>
                     <TabPanel
                         label="Register tabs"

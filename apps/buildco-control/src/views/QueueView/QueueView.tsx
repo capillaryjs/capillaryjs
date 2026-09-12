@@ -4,7 +4,7 @@ import {
     SplitPrimary, SplitSecondary, SplitView,
     OptionsPanel, OptionGroup, OptionGroupHeaderEnd, GroupPanel,
     QuadCheckbox, TriCheckbox, Dropdown, Textbox, Button,
-    DescriptionList, DescriptionItem, ProgressBar, RouteLink, RouteQuery, Placeholder,
+    DescriptionList, DescriptionItem, ProgressBar, RouteLink, RouteQuery, Placeholder, Toolbar,
     routeTarget, stringRouteQueryCodec, withRouteQuery,
 } from "@sylwellsoftware/fray";
 import type {Parameters, Row} from "../../api/ScenarioApi.ts";
@@ -31,7 +31,7 @@ export class QueueView extends Component {
         ListView, Panel, PanelToolbar, Sidebar, SidebarToolbar, SplitView,
         OptionsPanel, OptionGroup, OptionGroupHeaderEnd, GroupPanel,
         QuadCheckbox, TriCheckbox, Dropdown, Textbox, Button,
-        DescriptionList, DescriptionItem, ProgressBar, RouteLink, RouteQuery, Placeholder,
+        DescriptionList, DescriptionItem, ProgressBar, RouteLink, RouteQuery, Placeholder, Toolbar,
     ];
 
     private state = screens.queue;
@@ -87,15 +87,17 @@ export class QueueView extends Component {
             <SplitPrimary>
                 <Sidebar island allocation="flexible" header="Work Queue">
                     <SidebarToolbar>
-                        <Textbox
-                            label="Search"
-                            placeholder="Filter phases…"
-                            valueEmitter={this.state.field("search") as any}
-                        />
-                        <Button
-                            label="Reset"
-                            onClick={() => this.resetCriteria()}
-                        />
+                        <Toolbar label="Queue search">
+                            <Textbox
+                                label="Search"
+                                placeholder="Filter phases…"
+                                valueEmitter={this.state.field("search") as any}
+                            />
+                            <Button
+                                label="Reset"
+                                onClick={() => this.resetCriteria()}
+                            />
+                        </Toolbar>
                     </SidebarToolbar>
                     <OptionsPanel header="Conditions">
                         <GroupPanel header="Health conditions">
@@ -133,16 +135,18 @@ export class QueueView extends Component {
             <SplitSecondary>
                 <Panel island allocation="flexible" header="Matching Phases">
                     <PanelToolbar>
-                        <span className="result-count">{rows.length} phases</span>
-                        <Dropdown
-                            label="Order by"
-                            options={[
-                                {value: "", label: "Urgency"},
-                                {value: "variance:desc", label: "Schedule variance"},
-                                {value: "openIssues:desc", label: "Open issues"},
-                            ]}
-                            valueEmitter={this.state.field("sort") as any}
-                        />
+                        <Toolbar label="Queue results">
+                            <span className="result-count">{rows.length} phases</span>
+                            <Dropdown
+                                label="Order by"
+                                options={[
+                                    {value: "", label: "Urgency"},
+                                    {value: "variance:desc", label: "Schedule variance"},
+                                    {value: "openIssues:desc", label: "Open issues"},
+                                ]}
+                                valueEmitter={this.state.field("sort") as any}
+                            />
+                        </Toolbar>
                     </PanelToolbar>
                     {rows.length === 0
                         ? <>

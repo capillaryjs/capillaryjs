@@ -2,7 +2,7 @@ import type {DateTimeValue, FrayChild} from "@sylwellsoftware/fray";
 import {
     Component, Panel, PanelToolbar, DescriptionList, DescriptionItem, InfoPanel, InfoField,
     Button, Dialog, DialogActions, Textbox, Dropdown, DateTimePicker, Label,
-    RouteLink, RouteValue, RouteQuery, Placeholder, live, routeTarget, stringRouteQueryCodec,
+    RouteLink, RouteValue, RouteQuery, Placeholder, Toolbar, live, routeTarget, stringRouteQueryCodec,
 } from "@sylwellsoftware/fray";
 import {Emitter, DerivedEmitter} from "@sylwellsoftware/glue";
 import type {Row} from "../../api/ScenarioApi.ts";
@@ -17,7 +17,7 @@ export class IssueReportView extends Component {
     static dependencies = [
         Panel, PanelToolbar, DescriptionList, DescriptionItem, InfoPanel, InfoField,
         Button, Dialog, DialogActions, Textbox, Dropdown, DateTimePicker, Label,
-        RouteLink, RouteValue, RouteQuery, Placeholder,
+        RouteLink, RouteValue, RouteQuery, Placeholder, Toolbar,
     ];
 
     private state = screens["issue-report"];
@@ -62,24 +62,26 @@ export class IssueReportView extends Component {
             <RouteQuery name="from" codec={stringRouteQueryCodec} valueEmitter={this.state.field("from")} defaultValue=""/>
             <Panel className="issue-report-view fray-size-flexible" island header={detail ? detail.title : "Issue Report"}>
                 <PanelToolbar>
-                    <Dropdown
-                        label="Issue"
-                        placeholder="Select an issue…"
-                        required
-                        options={issueOptions}
-                        valueEmitter={this.issueId as any}
-                    />
-                    <Button
-                        label="Edit"
-                        disabled={!detail || busy}
-                        onClick={() => this.openDialog("edit")}
-                    />
-                    <Button
-                        label="Resolve"
-                        disabled={!detail || busy}
-                        onClick={() => this.openDialog("resolve")}
-                    />
-                    <RouteLink to={routeTarget(routes["issue-analysis"])}>Back to analysis</RouteLink>
+                    <Toolbar label="Issue actions">
+                        <Dropdown
+                            label="Issue"
+                            placeholder="Select an issue…"
+                            required
+                            options={issueOptions}
+                            valueEmitter={this.issueId as any}
+                        />
+                        <Button
+                            label="Edit"
+                            disabled={!detail || busy}
+                            onClick={() => this.openDialog("edit")}
+                        />
+                        <Button
+                            label="Resolve"
+                            disabled={!detail || busy}
+                            onClick={() => this.openDialog("resolve")}
+                        />
+                        <RouteLink to={routeTarget(routes["issue-analysis"])}>Back to analysis</RouteLink>
+                    </Toolbar>
                 </PanelToolbar>
                 {!b.value || (view.fetchState === "loading" && !v) ? <Placeholder/>
                     : view.fetchState === "error" && !v ? <>

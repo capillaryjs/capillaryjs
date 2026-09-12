@@ -312,6 +312,21 @@ body {
     gap: 12px;
 }
 
+/* Overview: fixed-width summary rail beside the flexible attention list. */
+.overview-summary {
+    flex: 0 0 18rem;
+}
+
+@media (max-width: 760px) {
+    .overview-view {
+        flex-direction: column;
+    }
+
+    .overview-summary {
+        flex: 0 0 auto;
+    }
+}
+
 .progress-row {
     display: flex;
     align-items: center;

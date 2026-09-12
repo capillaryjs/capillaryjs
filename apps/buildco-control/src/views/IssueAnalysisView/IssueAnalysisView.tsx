@@ -1,7 +1,7 @@
 import type {FrayChild} from "@sylwellsoftware/fray";
 import {
     Component, ListView, Panel, Sidebar, SidebarToolbar, SplitPrimary, SplitSecondary, SplitView,
-    Dropdown, Button, RouteLink, RouteQuery, Placeholder,
+    Dropdown, Button, RouteLink, RouteQuery, Placeholder, Toolbar,
     routeTarget, routeParameter, stringRouteQueryCodec, withRouteQuery,
 } from "@sylwellsoftware/fray";
 import {
@@ -88,7 +88,7 @@ function createCriteria(items$: ReadableEmitter<readonly Row[]>): readonly Group
 export class IssueAnalysisView extends Component {
     static dependencies = [
         ListView, Panel, Sidebar, SidebarToolbar, SplitView,
-        Dropdown, Button, RouteLink, RouteQuery, Placeholder,
+        Dropdown, Button, RouteLink, RouteQuery, Placeholder, Toolbar,
         BlockGraph, CategoryHidePanel, SplitSelectionPanel,
     ];
 
@@ -145,26 +145,28 @@ export class IssueAnalysisView extends Component {
             <SplitPrimary>
                 <Sidebar island allocation="flexible" header="Issue Analysis">
                     <SidebarToolbar>
-                        <Dropdown
-                            label="Subject"
-                            options={[
-                                {value: "issues", label: "Issues"},
-                                {value: "delays", label: "Delays"},
-                            ]}
-                            valueEmitter={this.state.tab as any}
-                        />
-                        <Dropdown
-                            label="Project"
-                            options={[{value: "", label: "All projects"}, ...(b.value.choices.projects ?? [])]}
-                            valueEmitter={this.state.field("project") as any}
-                        />
-                        <Button
-                            label="Reset"
-                            onClick={() => {
-                                this.blockSelection.clear();
-                                for (const criterion of this.criteria) criterion.setAllVisible(true);
-                            }}
-                        />
+                        <Toolbar label="Analysis controls">
+                            <Dropdown
+                                label="Subject"
+                                options={[
+                                    {value: "issues", label: "Issues"},
+                                    {value: "delays", label: "Delays"},
+                                ]}
+                                valueEmitter={this.state.tab as any}
+                            />
+                            <Dropdown
+                                label="Project"
+                                options={[{value: "", label: "All projects"}, ...(b.value.choices.projects ?? [])]}
+                                valueEmitter={this.state.field("project") as any}
+                            />
+                            <Button
+                                label="Reset"
+                                onClick={() => {
+                                    this.blockSelection.clear();
+                                    for (const criterion of this.criteria) criterion.setAllVisible(true);
+                                }}
+                            />
+                        </Toolbar>
                     </SidebarToolbar>
                     <SplitSelectionPanel
                         model={this.splitSelection}

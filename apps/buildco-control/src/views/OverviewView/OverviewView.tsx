@@ -1,8 +1,8 @@
 import type {FrayChild} from "@sylwellsoftware/fray";
 import {
     Component, Layout, InfoPanel, InfoField, ListView, Panel, PanelToolbar,
-    Dropdown, Button, RouteLink, Placeholder,
-    routeTarget, routeParameter, withRouteQuery,
+    Dropdown, Button, ProgressBar, RouteLink, RouteQuery, Placeholder, Toolbar,
+    routeTarget, routeParameter, stringRouteQueryCodec, withRouteQuery,
 } from "@sylwellsoftware/fray";
 import type {Row} from "../../api/ScenarioApi.ts";
 import {screens, routes, issueIdParam} from "../../app/routing.ts";
@@ -12,7 +12,7 @@ import {formatValue} from "../shared.tsx";
 export class OverviewView extends Component {
     static dependencies = [
         Layout, InfoPanel, InfoField, ListView, Panel, PanelToolbar,
-        Dropdown, Button, RouteLink, Placeholder,
+        Dropdown, Button, ProgressBar, RouteLink, RouteQuery, Placeholder, Toolbar,
     ];
 
     private state = screens.overview;
@@ -28,21 +28,45 @@ export class OverviewView extends Component {
 
         if (!b.value) return <Panel island header="Overview"><Placeholder/></Panel>;
         if (view.fetchState === "loading" && !view.value) return <Panel island header="Overview"><Placeholder/></Panel>;
-        if (view.fetchState === "error" || !view.value) return <Panel island header="Overview"><Placeholder/></Panel>;
+        if (view.fetchState === "error" && !view.value) return <Panel island header="Overview">
+            <Placeholder/>
+            <p className="muted">{String(view.error ?? "The overview could not be loaded.")}</p>
+            <Button label="Retry" onClick={() => void this.query.refresh()}/>
+        </Panel>;
+        if (!view.value) return <Panel island header="Overview"><Placeholder/></Panel>;
 
         const v = view.value;
-        const attention = (v.attention ?? []) as readonly Row[];
+        const sort = this.read(this.state.field("sort"));
+        const attention = [...((v.attention ?? []) as readonly Row[])].sort((a, b) => {
+            switch (sort) {
+                case "issues": return Number(b.openIssues ?? 0) - Number(a.openIssues ?? 0);
+                case "variance": return Number(b.variance ?? 0) - Number(a.variance ?? 0);
+                case "progress": return Number(a.progress ?? 0) - Number(b.progress ?? 0);
+                default: return 0;
+            }
+        });
 
-        return <Layout className="overview-view fray-size-flexible" vertical>
-            <InfoPanel title="Portfolio Summary" label="Portfolio metrics" allocation="natural">
-                {v.metrics.map(m => <InfoField
-                    key={m.label}
-                    label={m.label}
-                    value={m.note ?? formatValue(m.value, m.format)}
-                />)}
+        return <Layout className="overview-view fray-size-flexible" horizontal>
+            <RouteQuery name="scope" codec={stringRouteQueryCodec} valueEmitter={this.state.field("scope")} defaultValue="all"/>
+            <RouteQuery name="sort" codec={stringRouteQueryCodec} valueEmitter={this.state.field("sort")} defaultValue=""/>
+            <InfoPanel island className="overview-summary" title="Portfolio Summary" label="Portfolio metrics">
+                {v.metrics.map(m => m.format === "percent"
+                    ? <InfoField key={m.label} label={m.label}>
+                        <ProgressBar
+                            label={m.label}
+                            value={Number(m.value)}
+                            valueText={formatValue(m.value, m.format)}
+                        />
+                    </InfoField>
+                    : <InfoField
+                        key={m.label}
+                        label={m.label}
+                        value={m.note ?? formatValue(m.value, m.format)}
+                    />)}
             </InfoPanel>
             <Panel island allocation="flexible" header="Attention Items">
                 <PanelToolbar>
+                    <Toolbar label="Attention controls">
                     <Dropdown
                         label="Scope"
                         options={[
@@ -52,13 +76,24 @@ export class OverviewView extends Component {
                         ]}
                         valueEmitter={this.state.field("scope") as any}
                     />
+                    <Dropdown
+                        label="Order"
+                        options={[
+                            {value: "", label: "Urgency"},
+                            {value: "issues", label: "Open issues"},
+                            {value: "variance", label: "Schedule variance"},
+                            {value: "progress", label: "Least progress"},
+                        ]}
+                        valueEmitter={this.state.field("sort") as any}
+                    />
                     <Button
                         label="Refresh"
                         onClick={() => void this.query.refresh()}
                     />
+                    </Toolbar>
                 </PanelToolbar>
                 {attention.length === 0
-                    ? <Placeholder/>
+                    ? <p className="muted">No portfolio items currently require attention.</p>
                     : <ListView
                         label="Attention items"
                         items={attention}
@@ -69,7 +104,7 @@ export class OverviewView extends Component {
                                 ? <RouteLink to={routeTarget(routes["issue-report"], routeParameter(issueIdParam, String(r.id)))}>
                                     {r.name}
                                 </RouteLink>
-                                : <RouteLink to={withRouteQuery(routeTarget(routes.projects), {project: String(r.projectId ?? r.id), tab: "summary"})}>
+                                : <RouteLink to={withRouteQuery(routeTarget(routes.projects), {project: String(r.projectId ?? ""), scope: String(r.scopeId ?? ""), phase: String(r.id), tab: "summary"})}>
                                     {r.name}
                                 </RouteLink>;
                             return <span className="attention-item">
