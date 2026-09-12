@@ -253,10 +253,164 @@ body {
 /*    margin: 0;*/
 /*}*/
 
-/*.muted {*/
-/*    opacity: .65;*/
-/*    font-size: 12px;*/
-/*}*/
+.muted {
+    opacity: .65;
+    font-size: 12px;
+}
+
+.app-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    font-size: 10px;
+    opacity: .7;
+}
+
+.footer-controls {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.overview-metrics {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(165px, 1fr));
+    gap: 18px;
+    padding: 12px 0;
+}
+
+.metric {
+    border-left: 3px solid var(--palette-primary-500, #62939c);
+    padding: 7px 17px;
+    border-radius: 0 5px 5px 0;
+}
+
+.metric-label {
+    display: block;
+    font-size: 11px;
+    opacity: .7;
+}
+
+.metric-value {
+    display: block;
+    font-size: 24px;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+}
+
+.overview-body {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 18px;
+    padding-top: 12px;
+}
+
+.progress-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.progress-row {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.progress-label {
+    font-size: 12px;
+    min-width: 100px;
+    flex-shrink: 0;
+}
+
+.detail-rows {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.detail-rows li {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 6px 0;
+    border-bottom: 1px solid var(--panel-border, #e1e5e5);
+}
+
+.row-name {
+    flex: 1;
+    font-size: 12px;
+}
+
+.row-status, .row-cost, .row-date {
+    font-size: 11px;
+    opacity: .75;
+}
+
+.queue-item, .issue-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.queue-item-name, .issue-item-name {
+    flex: 1;
+}
+
+.queue-item-issues, .queue-item-variance,
+.issue-item-status, .issue-item-cost {
+    font-size: 11px;
+    opacity: .75;
+}
+
+.issue-analysis-body {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.issue-detail-fields {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 8px 20px;
+    margin: 0;
+}
+
+.issue-detail-fields dt {
+    font-size: 11px;
+    opacity: .7;
+}
+
+.issue-detail-fields dd {
+    margin: 0 0 8px;
+    font-size: 13px;
+}
+
+.trends-metrics {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(165px, 1fr));
+    gap: 18px;
+    padding: 12px 0;
+}
+
+.trends-chart {
+    min-height: 390px;
+    padding-top: 12px;
+}
+
+.chart-notice {
+    padding-top: 12px;
+}
+
+.issue-report-body {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
 
 /*.numeric {*/
 /*    font-variant-numeric: tabular-nums;*/

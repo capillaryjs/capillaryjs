@@ -1,7 +1,7 @@
 import type { HistoryShape } from "@sylwellsoftware/fray-visualization";
 import type { ScenarioMetadata, ScopeNode } from "../domain/model.ts";
 
-export const SCREENS = ["overview", "projects", "planning", "queue", "resources", "issues", "analytics"] as const;
+export const SCREENS = ["overview", "projects", "queue", "operations", "issue-analysis", "economic-trends", "issue-report"] as const;
 export type Screen = typeof SCREENS[number];
 export type Parameters = Record<string, string>;
 export type SemanticMode = "neutral" | "prefer" | "require" | "deny";

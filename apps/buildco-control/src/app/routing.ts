@@ -3,7 +3,10 @@ import {
   createBrowserRouter,
   createHashNavigation,
   defineRoute,
+  defineRouteParameter,
+  routeParameter,
   routeTarget,
+  stringRouteCodec,
   withRouteQuery
 } from "@sylwellsoftware/fray";
 import {Emitter} from "@sylwellsoftware/glue";
@@ -40,21 +43,19 @@ export const router = createBrowserRouter({
         },
     }
 });
-export const routes = Object.fromEntries(SCREENS.map(s => [s, defineRoute(s, s)])) as Record<Screen, ReturnType<typeof defineRoute>>;
+export const routes = Object.fromEntries(SCREENS.filter(s => s !== "issue-report").map(s => [s, defineRoute(s, s)])) as Record<Exclude<Screen, "issue-report">, ReturnType<typeof defineRoute>>;
 
-export const demoRoutes = {
-    projects: defineRoute("projects-demo", "projects-demo"),
-    teams: defineRoute("teams-demo", "teams-demo"),
-} as const;
+export const issuesSegment = defineRoute("issues", "issues");
+export const issueIdParam = defineRouteParameter("issue-id", stringRouteCodec);
 
 const defaults: Record<Screen, Parameters> = {
     overview: {scope: "all"},
     projects: {tab: "summary"},
-    planning: {focus: "2026-09-01", horizon: "30", view: "upcoming", critical: "off"},
     queue: {},
-    resources: {tab: "people", overtime: "neutral", group: "name"},
-    issues: {tab: "issues"},
-    analytics: {tab: "distribution", subject: "phases", metric: "progress", days: "90"},
+    operations: {tab: "labour", overtime: "neutral", group: "name"},
+    "issue-analysis": {tab: "issues"},
+    "economic-trends": {tab: "trends", subject: "phases", metric: "progress", days: "90"},
+    "issue-report": {},
 };
 
 /** Long-lived values are user intent only; result records remain query-owned. */
@@ -75,7 +76,7 @@ export class ScreenState {
             if (value !== null) this.field("tab").set(String(value));
             this.field("selected").set("");
             this.selection.set(null);
-            if (this.screen === "issues") for (const key of ["status", "cause", "severity", "type", "person", "supplier", "material", "due", "costView"]) this.field(key).set("");
+            if (this.screen === "issue-analysis") for (const key of ["status", "cause", "severity", "type", "person", "supplier", "material", "due", "costView"]) this.field(key).set("");
             this.sort.set(null);
             this.filters.set({});
         }, {emitCurrent: false});
@@ -111,8 +112,18 @@ export const screens = Object.fromEntries(SCREENS.map(s => [s, new ScreenState(s
 export function navigate(screen: Screen, params: Parameters = {}): void {
     for (const [key, value] of Object.entries(params)) screens[screen].field(key).set(value);
     if (params.tab) screens[screen].tab.set(params.tab);
-    void router.navigate(withRouteQuery(routeTarget(routes[screen]), {...screens[screen].params.get(), ...params}));
+    if (screen === "issue-report") {
+        const issueId = params.issueId || params.id || "";
+        if (!issueId) throw new Error("issue-report navigation requires an issueId");
+        void router.navigate(withRouteQuery(
+            routeTarget(routes["issue-analysis"], issuesSegment, routeParameter(issueIdParam, issueId)),
+            {...screens["issue-analysis"].params.get(), ...params},
+        ));
+    } else {
+        void router.navigate(withRouteQuery(routeTarget(routes[screen]), {...screens[screen].params.get(), ...params}));
+    }
 }
+
 
 export function openProject(row: Row): void {
     navigate("projects", {

@@ -560,37 +560,26 @@ export class ConstructionScenario implements DemoScenario {
                     {label: "Cost variance", value: sum(phases, r => Number(r.costVariance)), format: "money"}]
             });
         }
-        if (screen === "planning" || screen === "queue") {
+        if (screen === "queue") {
             let rows = this.phaseRows.filter(r => !p.project || r.projectId === p.project);
-            if (screen === "planning") {
-                const focus = civilDate(p.focus || d.metadata.anchorDate),
-                    end = addDays(focus, Math.min(180, Math.max(1, Number(p.horizon) || 30)));
-                rows = rows.filter(r => r.progress !== 100 && String(r.start) <= end && String(r.forecast) >= focus);
-                if (p.view === "delayed") rows = rows.filter(r => Number(r.variance) > 0);
-                if (p.view === "blocked") rows = rows.filter(r => r.traits?.blocked);
-                if (p.critical === "on") {
-                    const criticalPhases = new Set(d.milestonePlans.filter(m => m.critical).flatMap(m => m.phasePlanIds));
-                    rows = rows.filter(r => criticalPhases.has(r.id as PhasePlanId) || r.priority === "high" || r.priority === "critical" || Number(r.openIssues) > 0 || r.traits?.highRisk);
-                }
-            } else {
-                if (p.type) rows = rows.filter(r => r.projectType === p.type);
-                if (p.phaseType) rows = rows.filter(r => r.type === p.phaseType);
-                const modes = JSON.parse(p.conditions || "{}") as Record<string, SemanticMode>;
-                rows = rows.filter(r => matchesConditions(r.traits ?? {}, modes));
-                const lifecycle = JSON.parse(p.lifecycle || "{}") as Record<string, SemanticMode>;
-                rows = rows.filter(r => matchesConditions({
-                    active: r.lifecycle === "active",
-                    completed: r.lifecycle === "completed",
-                    planned: r.lifecycle === "planned"
-                }, lifecycle));
-                const urgency = (r: Row): number => (r.lifecycle === "active" ? 10_000 : 0) + (r.traits?.highRisk ? 1000 : 0) + Number(r.openIssues) * 30 + Number(r.variance);
-                rows = [...rows].sort((a, b) => urgency(b) - urgency(a) || compare(a.id, b.id));
-            }
+            if (p.type) rows = rows.filter(r => r.projectType === p.type);
+            if (p.phaseType) rows = rows.filter(r => r.type === p.phaseType);
+            const modes = JSON.parse(p.conditions || "{}") as Record<string, SemanticMode>;
+            rows = rows.filter(r => matchesConditions(r.traits ?? {}, modes));
+            const lifecycle = JSON.parse(p.lifecycle || "{}") as Record<string, SemanticMode>;
+            rows = rows.filter(r => matchesConditions({
+                active: r.lifecycle === "active",
+                completed: r.lifecycle === "completed",
+                planned: r.lifecycle === "planned"
+            }, lifecycle));
+            const urgency = (r: Row): number => (r.lifecycle === "active" ? 10_000 : 0) + (r.traits?.highRisk ? 1000 : 0) + Number(r.openIssues) * 30 + Number(r.variance);
+            rows = [...rows].sort((a, b) => urgency(b) - urgency(a) || compare(a.id, b.id));
             return this.page(rows, p, {detail: this.phaseDetail(p.selected ?? "")});
         }
-        if (screen === "resources") return this.resources(p);
-        if (screen === "issues") return this.exceptions(p);
-        if (screen === "analytics") return this.analytics(p);
+        if (screen === "operations") return this.resources(p);
+        if (screen === "issue-analysis") return this.exceptions(p);
+        if (screen === "economic-trends") return this.analytics(p);
+        if (screen === "issue-report") return this.issueReport(p);
         throw new Error("Unknown application screen");
     }
 
@@ -886,6 +875,68 @@ export class ConstructionScenario implements DemoScenario {
                 carryForward: true
             })),
             notice: group === "quality" || group === "labour" ? "Each point covers the preceding seven days." : "Cumulative values from operational records; no chart-specific fixtures."
+        });
+    }
+
+    private issueReport(p: Parameters): ViewResult {
+        const issueId = p.issueId || p.id;
+        if (!issueId) throw new Error("Issue ID is required");
+        const row = this.issueRows.find(r => r.id === issueId);
+        if (!row) throw new Error("Issue not found");
+        const d = this.data;
+        const labour = this.labourRows.filter(l => l.issueId === row.id).slice(0, 15);
+        const detail: Detail = {
+            id: row.id,
+            title: row.name,
+            subtitle: `${row.project} · ${row.scope}`,
+            projectId: row.projectId,
+            scopeId: row.scopeId,
+            phaseId: row.phaseId,
+            record: row,
+            fields: [
+                {label: "Description", value: String(row.description || row.name)},
+                {label: "Status", value: human(row.status)},
+                {label: "Cause", value: human(row.cause)},
+                {label: "Reported", value: String(row.date)},
+                {label: "Estimated cost", value: Number(row.estimate), format: "money"},
+                {label: "Attributed actual cost", value: Number(row.cost), format: "money"},
+                {label: "Due date", value: String(row.due || "Not set")},
+            ],
+            sections: [
+                {
+                    title: "Confirmed and suspected causes",
+                    rows: d.issueCauses.filter(c => c.issueId === row.id).map(c => ({
+                        id: c.id,
+                        name: human(c.category),
+                        status: c.status,
+                        supplier: c.supplierId ? d.suppliers.find(s => s.id === c.supplierId)!.name : "",
+                        person: c.personId ? d.people.find(p => p.id === c.personId)!.name : ""
+                    }))
+                },
+                {
+                    title: "Attributed materials",
+                    rows: d.materialUsageEntries.filter(m => m.issueId === row.id).slice(0, 15).map(m => ({
+                        id: m.id, name: d.materialTypes.find(t => t.id === m.materialTypeId)!.name,
+                        quantity: m.quantity, cost: m.quantity * m.unitCostApplied, date: dateOf(m.usedAt)
+                    }))
+                },
+                {title: "Attributed labour", rows: labour},
+                {
+                    title: "Attributed other costs",
+                    rows: d.otherCostEntries.filter(c => c.issueId === row.id).map(c => ({
+                        id: c.id, name: c.description, cost: c.amount, date: c.date
+                    }))
+                },
+            ]
+        };
+        return this.page([], p, {
+            detail,
+            options: row.projectId ? this.projectChoices(row.projectId) : {scopes: [], phases: []},
+            metrics: [
+                {label: "Status", value: 0, note: human(row.status)},
+                {label: "Attributed cost", value: Number(row.cost), format: "money"},
+                {label: "Open issues in project", value: this.issueRows.filter(r => r.projectId === row.projectId && !["resolved", "closed"].includes(String(r.status))).length},
+            ]
         });
     }
 

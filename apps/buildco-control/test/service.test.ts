@@ -17,12 +17,12 @@ const command = async (body: Mutation) => await service.handle({ method: "POST",
 test("every screen is backed by the same anchor-date scenario", async () => {
   const bootstrap = (await service.handle({ method: "GET", url: "/api/bootstrap" })).body as Bootstrap;
   assert.deepEqual(new Set(bootstrap.projects.map(p => p.status)), new Set(["completed", "active", "planned"]));
-  for (const screen of SCREENS) {
+  for (const screen of SCREENS.filter(s => s !== "issue-report")) {
     const result = await view(screen); assert.ok(result.total >= 0); assert.ok(result.rows.length <= 30);
   }
   const planned = bootstrap.projects.find(p => p.status === "planned")!;
   assert.equal(planned.progress, 0); assert.equal(planned.cost, 0);
-  assert.equal((await view("resources", { tab: "labour", project: planned.id })).total, 0);
+  assert.equal((await view("operations", { tab: "labour", project: planned.id })).total, 0);
 });
 
 test("semantic filters implement deny precedence, AND require, and OR prefer", async () => {
@@ -48,10 +48,10 @@ test("server-side sorting, paging, search, and project scope compose", async () 
 });
 
 test("material quantities retain units and chart categories are complete", async () => {
-  const materials = await view("resources", { tab: "materials" });
+  const materials = await view("operations", { tab: "materials" });
   assert.ok(materials.rows.every(r => r.unit && Number(r.planned) > 0 && Number(r.delivered) >= 0));
   for (const subject of ["phases", "labour", "materials", "issues", "delays"]) {
-    const result = await view("analytics", { subject });
+    const result = await view("economic-trends", { subject });
     assert.equal(result.chartItems!.length, result.total);
     assert.ok(result.chartItems!.every(r => typeof r.project === "string" && typeof r.category === "string" && typeof r.classification === "string"));
     assert.equal(new Set(result.chartItems!.map(r => r.id)).size, result.total);
@@ -60,7 +60,7 @@ test("material quantities retain units and chart categories are complete", async
 
 test("all history groups return finite, non-future observations", async () => {
   for (const metric of ["progress", "labour", "materials", "quality", "schedule", "cost"]) {
-    const result = await view("analytics", { tab: "trends", metric, days: "90" });
+    const result = await view("economic-trends", { tab: "trends", metric, days: "90" });
     assert.ok(result.series!.length >= 2);
     for (const series of result.series!) for (const [date, value] of Object.entries(series.values)) {
       assert.ok(date <= DEFAULT_SCENARIO.anchorDate); assert.ok(Number.isFinite(value));
@@ -75,16 +75,16 @@ test("create, edit, and resolve update shared records without inventing actual c
   assert.equal((await command({ ...input, estimatedCost: -1 })).status, 400);
   const response = await command(input); assert.equal(response.status, 200);
   const id = (response.body as { id: string }).id;
-  let issue = await view("issues", { selected: id, search: "Acceptance test defect" });
+  let issue = await view("issue-analysis", { selected: id, search: "Acceptance test defect" });
   assert.equal(issue.total, 1); assert.equal(issue.rows[0]!.cost, 0); assert.equal(issue.detail!.record!.estimate, 4000);
   assert.equal((await command({ ...input, action: "edit", id, title: "Updated acceptance defect", estimatedCost: 5000 })).status, 200);
   assert.equal((await command({ kind: "issue", action: "resolve", id })).status, 200);
-  issue = await view("issues", { search: "Updated acceptance defect" }); assert.equal(issue.rows[0]!.status, "resolved");
+  issue = await view("issue-analysis", { search: "Updated acceptance defect" }); assert.equal(issue.rows[0]!.status, "resolved");
   const delay = await command({ kind: "delay", action: "create", projectId: phase.projectId, phaseId: phase.id, title: "Acceptance site hold", lostHours: 8, impactDays: 2 });
   assert.equal(delay.status, 200); const delayId = (delay.body as { id: string }).id;
-  assert.equal((await view("issues", { tab: "delays", selected: delayId, search: "Acceptance site hold" })).detail!.record!.hours, 8);
+  assert.equal((await view("issue-analysis", { tab: "delays", selected: delayId, search: "Acceptance site hold" })).detail!.record!.hours, 8);
   assert.equal((await command({ kind: "delay", action: "resolve", id: delayId })).status, 200);
-  assert.equal((await view("issues", { tab: "delays", search: "Acceptance site hold" })).rows[0]!.status, "ended");
+  assert.equal((await view("issue-analysis", { tab: "delays", search: "Acceptance site hold" })).rows[0]!.status, "ended");
 });
 
 test("embedded transport matches direct responses and supports cancellation", async () => {
