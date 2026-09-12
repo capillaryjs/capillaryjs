@@ -465,6 +465,72 @@ export class ConstructionScenario implements DemoScenario {
         };
     }
 
+    private projectDetail(project: Row, phases: readonly Row[]): Detail {
+        return {
+            id: String(project.id),
+            title: String(project.name),
+            subtitle: human(project.status),
+            projectId: String(project.id),
+            fields: [{label: "Customer", value: String(project.customer)}, {
+                label: "Project manager",
+                value: String(project.manager)
+            },
+                {label: "Location", value: String(project.location)}, {
+                    label: "Project type",
+                    value: human(project.type)
+                },
+                {label: "Baseline start", value: String(project.start)}, {
+                    label: "Baseline completion",
+                    value: String(project.finish)
+                },
+                {label: "Forecast completion", value: String(project.forecast)}, {
+                    label: "Status",
+                    value: human(project.status)
+                }],
+            sections: [{title: "Milestones", rows: this.milestones(String(project.id))}]
+        };
+    }
+
+    private scopeDetail(scopeId: string, project: Row): Detail | undefined {
+        const s = this.data.scopeNodes.find(x => x.id === scopeId);
+        if (!s) return undefined;
+        const phases = this.phaseRows.filter(r => r.projectId === s.projectId && this.inScope(scopeId, r.scopeId));
+        const children = this.data.scopeNodes.filter(x => x.parentId === scopeId);
+        const fields: Detail["fields"] = [
+            {label: "Type", value: human(s.type)},
+            {label: "Project", value: String(project.name)}
+        ];
+        if (s.areaM2 != null) fields.push({label: "Area", value: `${s.areaM2} m²`});
+        if (s.lengthM != null) fields.push({label: "Length", value: `${s.lengthM} m`});
+        if (s.volumeM3 != null) fields.push({label: "Volume", value: `${s.volumeM3} m³`});
+        if (s.unitCount != null) fields.push({label: "Units", value: s.unitCount});
+        if (s.floorNumber != null) fields.push({label: "Floor", value: s.floorNumber});
+        if (s.zoneCode != null) fields.push({label: "Zone", value: s.zoneCode});
+        fields.push(
+            {label: "Sub-scopes", value: children.length},
+            {label: "Phases", value: phases.length},
+            {
+                label: "Progress",
+                value: sum(phases, r => Number(r.progress) * Number(r.budgetHours)) / Math.max(1, sum(phases, r => Number(r.budgetHours))),
+                format: "percent"
+            },
+            {label: "Open issues", value: sum(phases, r => Number(r.openIssues))},
+            {label: "Cost variance", value: sum(phases, r => Number(r.costVariance)), format: "money"}
+        );
+        return {
+            id: String(s.id),
+            title: s.name,
+            subtitle: `${human(s.type)} · ${String(project.name)}`,
+            projectId: String(s.projectId),
+            scopeId: String(s.id),
+            fields,
+            sections: [{
+                title: "Sub-scopes",
+                rows: children.map(c => ({id: String(c.id), name: c.name, status: c.type}))
+            }]
+        };
+    }
+
     private milestones(project: string): Row[] {
         return this.data.milestonePlans.filter(m => m.projectId === project).map(m => {
             const reports = this.data.milestoneReports.filter(r => r.milestonePlanId === m.id);
@@ -521,32 +587,13 @@ export class ConstructionScenario implements DemoScenario {
                 status: r.executionStatus,
                 forecast: r.forecastFinishDate
             }));
-            const scope = d.scopeNodes.find(s => s.id === p.scope);
-            const detail = (p.phase || p.selected) ? this.phaseDetail(p.phase || p.selected!) : {
-                id: projectId,
-                title: scope?.name ?? project.name,
-                subtitle: project.name,
-                projectId,
-                fields: [{label: "Customer", value: String(project.customer)}, {
-                    label: "Project manager",
-                    value: String(project.manager)
-                },
-                    {label: "Location", value: String(project.location)}, {
-                        label: "Project type",
-                        value: human(project.type)
-                    },
-                    {label: "Baseline start", value: String(project.start)}, {
-                        label: "Baseline completion",
-                        value: String(project.finish)
-                    },
-                    {label: "Forecast completion", value: String(project.forecast)}, {
-                        label: "Status",
-                        value: human(project.status)
-                    }],
-                sections: []
-            };
+            const detail = (p.phase || p.selected)
+                ? this.phaseDetail(p.phase || p.selected!)
+                : p.scope
+                    ? this.scopeDetail(p.scope, project)
+                    : this.projectDetail(project, phases);
             return this.page(rows, p, {
-                tree: d.scopeNodes.filter(s => s.projectId === projectId),
+                tree: d.scopeNodes,
                 detail,
                 milestones: this.milestones(projectId),
                 metrics: [{
