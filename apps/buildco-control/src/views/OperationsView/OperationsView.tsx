@@ -71,7 +71,12 @@ export class OperationsView extends Component {
 
         if (!b.value) return <Panel island header="Operations"><Placeholder/></Panel>;
         if (view.fetchState === "loading" && !view.value) return <Panel island header="Operations"><Placeholder/></Panel>;
-        if (view.fetchState === "error" || !view.value) return <Panel island header="Operations"><Placeholder/></Panel>;
+        if (view.fetchState === "error" && !view.value) return <Panel island header="Operations">
+            <Placeholder/>
+            <p className="muted">{String(view.error ?? "The operations register could not be loaded.")}</p>
+            <Button label="Retry" onClick={() => void this.query.refresh()}/>
+        </Panel>;
+        if (!view.value) return <Panel island header="Operations"><Placeholder/></Panel>;
 
         const v = view.value;
         const rows = v.rows as readonly OperationsRow[];
@@ -89,7 +94,7 @@ export class OperationsView extends Component {
                 selectedItemEmitter={this.state.selection as any}
             />;
 
-        return <SplitView className="operations-view fray-size-flexible" primarySize="16rem" primaryLabel="Operations filters" secondaryLabel="Operations register">
+        return <>
             <RouteQuery name="tab" codec={keyQueryCodec} valueEmitter={this.state.tab} defaultValue="labour"/>
             <RouteQuery name="project" codec={stringRouteQueryCodec} valueEmitter={this.state.field("project")} defaultValue=""/>
             <RouteQuery name="scope" codec={stringRouteQueryCodec} valueEmitter={this.state.field("scope")} defaultValue=""/>
@@ -97,6 +102,7 @@ export class OperationsView extends Component {
             <RouteQuery name="page" codec={stringRouteQueryCodec} valueEmitter={this.state.field("page")} defaultValue=""/>
             <RouteQuery name="from" codec={stringRouteQueryCodec} valueEmitter={this.state.field("from")} defaultValue=""/>
             <RouteQuery name="to" codec={stringRouteQueryCodec} valueEmitter={this.state.field("to")} defaultValue=""/>
+            <SplitView className="operations-view fray-size-flexible" primarySize="16rem" primaryLabel="Operations filters" secondaryLabel="Operations register">
             <SplitPrimary>
                 <Sidebar island allocation="flexible" header="Operations Register">
                     <SidebarToolbar>
@@ -186,6 +192,7 @@ export class OperationsView extends Component {
                     />
                 </Panel>
             </SplitSecondary>
-        </SplitView>;
+            </SplitView>
+        </>;
     }
 }

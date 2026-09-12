@@ -133,15 +133,21 @@ export class IssueAnalysisView extends Component {
 
         if (!b.value) return <Panel island header="Issue Analysis"><Placeholder/></Panel>;
         if (view.fetchState === "loading" && !view.value) return <Panel island header="Issue Analysis"><Placeholder/></Panel>;
-        if (view.fetchState === "error" || !view.value) return <Panel island header="Issue Analysis"><Placeholder/></Panel>;
+        if (view.fetchState === "error" && !view.value) return <Panel island header="Issue Analysis">
+            <Placeholder/>
+            <p className="muted">{String(view.error ?? "The issue analysis could not be loaded.")}</p>
+            <Button label="Retry" onClick={() => void this.query.refresh()}/>
+        </Panel>;
+        if (!view.value) return <Panel island header="Issue Analysis"><Placeholder/></Panel>;
 
         const subject = this.read(this.state.tab) ?? "issues";
         const isDelay = subject === "delays";
         const selectedItems = this.snapshot(this.blockSelection.selectedItems$).value;
 
-        return <SplitView className="issue-analysis-view fray-size-flexible" primarySize="16rem" primaryLabel="Analysis controls" secondaryLabel="Issue distribution">
+        return <>
             <RouteQuery name="subject" codec={keyQueryCodec} valueEmitter={this.state.tab} defaultValue="issues"/>
             <RouteQuery name="project" codec={stringRouteQueryCodec} valueEmitter={this.state.field("project")} defaultValue=""/>
+            <SplitView className="issue-analysis-view fray-size-flexible" primarySize="16rem" primaryLabel="Analysis controls" secondaryLabel="Issue distribution">
             <SplitPrimary>
                 <Sidebar island allocation="flexible" header="Issue Analysis">
                     <SidebarToolbar>
@@ -207,6 +213,7 @@ export class IssueAnalysisView extends Component {
                     />
                 </Panel>
             </SplitSecondary>
-        </SplitView>;
+            </SplitView>
+        </>;
     }
 }

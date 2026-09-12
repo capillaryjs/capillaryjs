@@ -1,7 +1,7 @@
 import type {FrayChild} from "@sylwellsoftware/fray";
 import {
     Component, Layout, Panel, PanelToolbar, Dropdown, DatePicker, RadioGroup, Toggle,
-    RouteQuery, Placeholder, Toolbar, stringRouteQueryCodec,
+    RouteQuery, Placeholder, Toolbar, Button, stringRouteQueryCodec,
 } from "@sylwellsoftware/fray";
 import {LineGraph} from "@sylwellsoftware/fray-visualization";
 import type {HistoryShape} from "@sylwellsoftware/fray-visualization";
@@ -12,7 +12,7 @@ import {buildco, revision, bootstrap} from "../../app/services.ts";
 export class EconomicTrendsView extends Component {
     static dependencies = [
         Layout, Panel, PanelToolbar, Dropdown, DatePicker, RadioGroup, Toggle,
-        RouteQuery, LineGraph, Placeholder, Toolbar,
+        RouteQuery, LineGraph, Placeholder, Toolbar, Button,
     ];
 
     private state = screens["economic-trends"];
@@ -33,7 +33,12 @@ export class EconomicTrendsView extends Component {
 
         if (!b.value) return <Panel island header="Economic Trends"><Placeholder/></Panel>;
         if (view.fetchState === "loading" && !view.value) return <Panel island header="Economic Trends"><Placeholder/></Panel>;
-        if (view.fetchState === "error" || !view.value) return <Panel island header="Economic Trends"><Placeholder/></Panel>;
+        if (view.fetchState === "error" && !view.value) return <Panel island header="Economic Trends">
+            <Placeholder/>
+            <p className="muted">{String(view.error ?? "The economic trends could not be loaded.")}</p>
+            <Button label="Retry" onClick={() => void this.query.refresh()}/>
+        </Panel>;
+        if (!view.value) return <Panel island header="Economic Trends"><Placeholder/></Panel>;
 
         const v = view.value;
         const series = (v.series ?? []) as readonly HistoryShape[];

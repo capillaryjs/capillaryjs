@@ -2,7 +2,7 @@ import type {FrayChild} from "@sylwellsoftware/fray";
 import {
     Component, DataTable, DescriptionList, DescriptionItem, ListView,
     Panel, Sidebar, SidebarToolbar, SplitPrimary, SplitSecondary, SplitView, TabPanel, TreeView,
-    Textbox, Dropdown, ProgressBar, RouteLink, RouteQuery, Placeholder, Toolbar,
+    Textbox, Dropdown, Button, ProgressBar, RouteLink, RouteQuery, Placeholder, Toolbar,
     routeTarget, stringRouteQueryCodec, withRouteQuery,
 } from "@sylwellsoftware/fray";
 import type {TableColumn, TableRow, TreeNode} from "@sylwellsoftware/fray";
@@ -47,7 +47,7 @@ export class ProjectsView extends Component {
     static dependencies = [
         DataTable, DescriptionList, DescriptionItem, ListView,
         Panel, Sidebar, SidebarToolbar, SplitView, TabPanel, TreeView,
-        Textbox, Dropdown, ProgressBar, RouteLink, RouteQuery, Placeholder, Toolbar,
+        Textbox, Dropdown, Button, ProgressBar, RouteLink, RouteQuery, Placeholder, Toolbar,
     ];
 
     private state = screens.projects;
@@ -63,7 +63,12 @@ export class ProjectsView extends Component {
 
         if (!b.value) return <Panel island header="Projects"><Placeholder/></Panel>;
         if (view.fetchState === "loading" && !view.value) return <Panel island header="Projects"><Placeholder/></Panel>;
-        if (view.fetchState === "error" || !view.value) return <Panel island header="Projects"><Placeholder/></Panel>;
+        if (view.fetchState === "error" && !view.value) return <Panel island header="Projects">
+            <Placeholder/>
+            <p className="muted">{String(view.error ?? "The project explorer could not be loaded.")}</p>
+            <Button label="Retry" onClick={() => void this.query.refresh()}/>
+        </Panel>;
+        if (!view.value) return <Panel island header="Projects"><Placeholder/></Panel>;
 
         const v = view.value;
         const rows = v.rows as readonly Row[];
@@ -72,12 +77,13 @@ export class ProjectsView extends Component {
 
         const treeNodes = scopeToNodes(tree);
 
-        return <SplitView className="projects-view fray-size-flexible" primarySize="18rem" primaryLabel="Project scope" secondaryLabel="Project details">
+        return <>
             <RouteQuery name="project" codec={stringRouteQueryCodec} valueEmitter={this.state.field("project")} defaultValue=""/>
             <RouteQuery name="scope" codec={keyQueryCodec} valueEmitter={this.state.scope} defaultValue={null}/>
             <RouteQuery name="phase" codec={stringRouteQueryCodec} valueEmitter={this.state.field("phase")} defaultValue=""/>
             <RouteQuery name="tab" codec={keyQueryCodec} valueEmitter={this.state.tab} defaultValue="summary"/>
             <RouteQuery name="search" codec={stringRouteQueryCodec} valueEmitter={this.state.field("search")} defaultValue=""/>
+            <SplitView className="projects-view fray-size-flexible" primarySize="18rem" primaryLabel="Project scope" secondaryLabel="Project details">
             <SplitPrimary>
                 <Sidebar island allocation="flexible" header="Project Explorer">
                     <SidebarToolbar>
@@ -173,6 +179,7 @@ export class ProjectsView extends Component {
                     />
                 </Panel>
             </SplitSecondary>
-        </SplitView>;
+            </SplitView>
+        </>;
     }
 }

@@ -87,6 +87,7 @@ export class IssueReportView extends Component {
                     : view.fetchState === "error" && !v ? <>
                         <Placeholder/>
                         <p className="muted">{String(view.error ?? "The issue report could not be loaded.")}</p>
+                        <Button label="Retry" onClick={() => void this.query.refresh()}/>
                     </>
                     : !detail ? <>
                         <Placeholder/>

@@ -19,6 +19,11 @@ function affinityKey(value: string): string {
     return `${AFFINITY_PREFIX}${value}`;
 }
 
+/** Route query names must match /^[A-Za-z][A-Za-z0-9_.-]*$/; affinity values may contain spaces. */
+function affinityQueryName(value: string): string {
+    return `aff-${value.replace(/[^A-Za-z0-9_.-]+/g, "-")}`;
+}
+
 function encodeModes(params: Parameters, keys: readonly string[]): string {
     const modes = Object.fromEntries(keys
         .map(key => [key, params[key]] as const)
@@ -55,7 +60,12 @@ export class QueueView extends Component {
 
         if (!b.value) return <Panel island header="Work Queue"><Placeholder/></Panel>;
         if (view.fetchState === "loading" && !view.value) return <Panel island header="Work Queue"><Placeholder/></Panel>;
-        if (view.fetchState === "error" || !view.value) return <Panel island header="Work Queue"><Placeholder/></Panel>;
+        if (view.fetchState === "error" && !view.value) return <Panel island header="Work Queue">
+            <Placeholder/>
+            <p className="muted">{String(view.error ?? "The work queue could not be loaded.")}</p>
+            <Button label="Retry" onClick={() => void this.query.refresh()}/>
+        </Panel>;
+        if (!view.value) return <Panel island header="Work Queue"><Placeholder/></Panel>;
 
         const v = view.value;
         const rows = v.rows as readonly Row[];
@@ -66,7 +76,7 @@ export class QueueView extends Component {
         ];
         this.affinityKeys = affinities.map(a => affinityKey(a.value));
 
-        return <SplitView className="queue-view fray-size-flexible" primarySize="16rem" primaryLabel="Work queue filters" secondaryLabel="Queue items">
+        return <>
             <RouteQuery name="project" codec={stringRouteQueryCodec} valueEmitter={this.state.field("project")} defaultValue=""/>
             <RouteQuery name="sort" codec={stringRouteQueryCodec} valueEmitter={this.state.field("sort")} defaultValue=""/>
             <RouteQuery name="search" codec={stringRouteQueryCodec} valueEmitter={this.state.field("search")} defaultValue=""/>
@@ -79,11 +89,12 @@ export class QueueView extends Component {
             />)}
             {affinities.map(a => <RouteQuery
                 key={a.value}
-                name={`aff-${a.value}`}
+                name={affinityQueryName(a.value)}
                 codec={stringRouteQueryCodec}
                 valueEmitter={this.state.field(affinityKey(a.value))}
                 defaultValue="neutral"
             />)}
+            <SplitView className="queue-view fray-size-flexible" primarySize="16rem" primaryLabel="Work queue filters" secondaryLabel="Queue items">
             <SplitPrimary>
                 <Sidebar island allocation="flexible" header="Work Queue">
                     <SidebarToolbar>
@@ -184,7 +195,8 @@ export class QueueView extends Component {
                     </DescriptionList>
                 </Panel>}
             </SplitSecondary>
-        </SplitView>;
+            </SplitView>
+        </>;
     }
 
     private resetCriteria(): void {
