@@ -58,6 +58,34 @@ importers:
         specifier: ^6.4.3
         version: 6.4.3(@types/node@26.4.1)(tsx@4.23.13)
 
+  apps/component-gallery:
+    dependencies:
+      '@sylwellsoftware/fray':
+        specifier: workspace:^
+        version: link:../../packages/fray
+      '@sylwellsoftware/fray-visualization':
+        specifier: workspace:^
+        version: link:../../packages/fray-visualization
+      '@sylwellsoftware/glue':
+        specifier: workspace:^
+        version: link:../../packages/glue
+    devDependencies:
+      '@types/node':
+        specifier: ^26.4.0
+        version: 26.4.1
+      happy-dom:
+        specifier: ^20.0.10
+        version: 20.13.0
+      tsx:
+        specifier: ^4.23.13
+        version: 4.23.13
+      typescript:
+        specifier: ^5.9.2
+        version: 5.9.3
+      vite:
+        specifier: ^6.4.3
+        version: 6.4.3(@types/node@26.4.1)(tsx@4.23.13)
+
   apps/dummy-server: {}
 
   apps/fray-demo:

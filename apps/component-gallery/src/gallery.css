@@ -1,0 +1,76 @@
+/* Component gallery application styles. */
+
+.gallery-masthead {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.75rem 1.5rem;
+}
+
+.gallery-masthead > h1 {
+    margin: 0;
+    font-size: 1.15rem;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.gallery-masthead > nav {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.gallery-masthead > fray-toggle {
+    flex: none;
+}
+
+.gallery-footer {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.75rem 1.5rem;
+}
+
+.gallery-footer > .gallery-status {
+    flex: 1 1 auto;
+    min-width: 0;
+    margin: 0;
+}
+
+.gallery-sidebar {
+    inline-size: 17rem;
+    flex: 0 0 auto;
+}
+
+.gallery-sidebar-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    padding: 0.75rem;
+}
+
+.gallery-main {
+    min-width: 0;
+    min-height: 0;
+}
+
+.gallery-form-grid {
+    display: flex;
+    flex-flow: row wrap;
+    align-items: center;
+    gap: 0.75rem 1.25rem;
+}
+
+.gallery-note {
+    margin: 0;
+}
+
+.gallery-website {
+    max-inline-size: 82rem;
+    margin-inline: auto;
+}
+
+/* The embedded root has no definite height, so the flexible page region would
+   resolve to zero; give it a floor and let the document scroll instead. */
+.gallery-website .gallery-page {
+    min-block-size: 34rem;
+}
