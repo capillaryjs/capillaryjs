@@ -20,6 +20,7 @@ import {
     Header,
     Label,
     Layout,
+    ListView,
     OptionGroup,
     OptionGroupHeaderEnd,
     Panel,
@@ -1404,5 +1405,30 @@ describe('layout controls', () => {
         assert.ok(document.querySelector('fray-textbox'))
         assert.ok(document.querySelector('fray-panel[data-fray]'))
         panel.destroy()
+    })
+})
+
+describe('data components', () => {
+    test('ListView re-renders when its plain-array items prop changes', () => {
+        const list = ListView.new({
+            items: [{id: 'a', label: 'Alpha'}],
+            itemKey: 'id',
+            label: 'Items',
+        }).attachTo(document.body)
+        assert.equal(document.querySelectorAll('[role="option"]').length, 1)
+
+        list.setProps({
+            items: [{id: 'a', label: 'Alpha'}, {id: 'b', label: 'Beta'}, {id: 'c', label: 'Gamma'}],
+            itemKey: 'id',
+            label: 'Items',
+        })
+        const options = [...document.querySelectorAll('[role="option"]')]
+        assert.equal(options.length, 3)
+        assert.equal(requiredAt(options, 2).textContent, 'Gamma')
+
+        list.setProps({items: [], itemKey: 'id', label: 'Items'})
+        assert.equal(document.querySelectorAll('[role="option"]').length, 0)
+        assert.ok(document.querySelector('fray-listview [role="status"]'))
+        list.destroy()
     })
 })

@@ -90,6 +90,18 @@ export class ListView<TItem = unknown> extends Component<ListViewProps<TItem>> {
         this.selectedItem$ = this.selectedItemEmitter
     }
 
+    override setProps(nextProps: ListViewProps<TItem>): this {
+        if (this.ownedItemsEmitter != null) {
+            if (isReadableEmitter(nextProps.items)) {
+                throw new TypeError(
+                    'ListView cannot replace static or declarative items with an emitter',
+                )
+            }
+            this.ownedItemsEmitter.set(nextProps.items ?? [], 'list items changed')
+        }
+        return super.setProps(nextProps)
+    }
+
     initialize(): void {
         this.watch(this.itemsEmitter, this.selectedItemsEmitter)
     }

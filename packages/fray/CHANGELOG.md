@@ -49,6 +49,12 @@ Versioning.
 
 ### Fixed
 
+- `ListView` now re-renders when its plain-array `items` prop changes. A static
+  `items` array was wrapped in an internal emitter only once at construction and
+  never synced on `setProps`, so a parent re-render with new items left the list
+  showing stale (or empty) content. `setProps` now syncs the owned items emitter,
+  matching `TreeView`'s `nodes` contract.
+
 - Sized input controls (`Textbox`, `SelectControl`, `DatePicker`) no longer clip
   invisibly inside narrow containers. Each now caps its field at the container
   width (`max-width: 100%`), shrinks to a usable floor via the new optional
