@@ -5,7 +5,7 @@ import {
     routeTarget, routeParameter, withRouteQuery,
 } from "@sylwellsoftware/fray";
 import type {Row} from "../../api/ScenarioApi.ts";
-import {screens, routes, issuesSegment, issueIdParam} from "../../app/routing.ts";
+import {screens, routes, issueIdParam} from "../../app/routing.ts";
 import {buildco, revision, bootstrap} from "../../app/services.ts";
 import {formatValue} from "../shared.tsx";
 
@@ -64,9 +64,9 @@ export class OverviewView extends Component {
                         items={attention}
                         itemKey="id"
                         renderItem={r => {
-                            const isIssue = r.id?.startsWith("issue-") || r.openIssues != null;
+                            const isIssue = r.id?.startsWith("issue-");
                             const link = isIssue
-                                ? <RouteLink to={routeTarget(routes["issue-analysis"], issuesSegment, routeParameter(issueIdParam, String(r.id)))}>
+                                ? <RouteLink to={routeTarget(routes["issue-report"], routeParameter(issueIdParam, String(r.id)))}>
                                     {r.name}
                                 </RouteLink>
                                 : <RouteLink to={withRouteQuery(routeTarget(routes.projects), {project: String(r.projectId ?? r.id), tab: "summary"})}>

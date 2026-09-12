@@ -1,21 +1,21 @@
-import type {FrayChild, Key} from "@sylwellsoftware/fray";
+import type {FrayChild} from "@sylwellsoftware/fray";
 import {
     Component, ListView, Panel, Sidebar, SidebarToolbar, SplitPrimary, SplitSecondary, SplitView,
-    Dropdown, Button, RouteLink, RouteOutlet, Placeholder, routeTarget, routeParameter, withRouteQuery,
+    Dropdown, Button, RouteLink, RouteQuery, Placeholder,
+    routeTarget, routeParameter, stringRouteQueryCodec, withRouteQuery,
 } from "@sylwellsoftware/fray";
 import {
     BlockGraph, CategoryHidePanel, SplitSelectionPanel,
     derivedCriterion, createBlockSelection, createSplitSelection, filterByHidden,
 } from "@sylwellsoftware/fray-visualization";
 import type {GroupingCriterion} from "@sylwellsoftware/fray-visualization";
-import {DerivedEmitter, Emitter} from "@sylwellsoftware/glue";
+import {DerivedEmitter} from "@sylwellsoftware/glue";
 import type {ReadableEmitter} from "@sylwellsoftware/glue";
 import type {Row} from "../../api/ScenarioApi.ts";
 import {human} from "../../api/ScenarioApi.ts";
-import {screens, routes, issuesSegment, issueIdParam} from "../../app/routing.ts";
+import {keyQueryCodec, screens, routes, issueIdParam} from "../../app/routing.ts";
 import {buildco, revision, bootstrap} from "../../app/services.ts";
 import {formatValue} from "../shared.tsx";
-import {IssueReportView} from "../IssueReportView/IssueReportView.tsx";
 
 const palette: readonly (readonly [string, string, string])[] = [
     ['#194d84', '#2f76bd', '#6eaae5'],
@@ -88,14 +88,12 @@ function createCriteria(items$: ReadableEmitter<readonly Row[]>): readonly Group
 export class IssueAnalysisView extends Component {
     static dependencies = [
         ListView, Panel, Sidebar, SidebarToolbar, SplitView,
-        Dropdown, Button, RouteLink, RouteOutlet, Placeholder,
+        Dropdown, Button, RouteLink, RouteQuery, Placeholder,
         BlockGraph, CategoryHidePanel, SplitSelectionPanel,
-        IssueReportView,
     ];
 
     private state = screens["issue-analysis"];
     private query = buildco.view("issue-analysis", {params: this.state.params, revision}, {owner: this});
-    private readonly issueReportActive = new Emitter<Key | null>(null, {owner: this, purpose: 'issue report route active'});
 
     private items$ = new DerivedEmitter(
         [this.query] as const,
@@ -116,6 +114,11 @@ export class IssueAnalysisView extends Component {
 
     initialize(): void {
         void this.query.activate();
+        // Changing subject clears incompatible block and category state.
+        this.onCleanup(this.state.tab.subscribe(() => {
+            this.blockSelection.clear();
+            for (const criterion of this.criteria) criterion.setAllVisible(true);
+        }, {emitCurrent: false}));
     }
 
     onDestroy(): void {
@@ -132,23 +135,13 @@ export class IssueAnalysisView extends Component {
         if (view.fetchState === "loading" && !view.value) return <Panel island header="Issue Analysis"><Placeholder/></Panel>;
         if (view.fetchState === "error" || !view.value) return <Panel island header="Issue Analysis"><Placeholder/></Panel>;
 
-        const reportActive = this.snapshot(this.issueReportActive).value === "issues";
-        if (reportActive) {
-            return <RouteOutlet
-                className="issue-analysis-view fray-size-flexible"
-                mountPolicy="active-only"
-                activeViewEmitter={this.issueReportActive}
-                views={[
-                    {id: "issues", route: issuesSegment, content: <IssueReportView/>},
-                ]}
-            />;
-        }
-
-        const subject = this.state.tab.get() ?? "issues";
+        const subject = this.read(this.state.tab) ?? "issues";
         const isDelay = subject === "delays";
         const selectedItems = this.snapshot(this.blockSelection.selectedItems$).value;
 
         return <SplitView className="issue-analysis-view fray-size-flexible" primarySize="16rem" primaryLabel="Analysis controls" secondaryLabel="Issue distribution">
+            <RouteQuery name="subject" codec={keyQueryCodec} valueEmitter={this.state.tab} defaultValue="issues"/>
+            <RouteQuery name="project" codec={stringRouteQueryCodec} valueEmitter={this.state.field("project")} defaultValue=""/>
             <SplitPrimary>
                 <Sidebar island allocation="flexible" header="Issue Analysis">
                     <SidebarToolbar>
@@ -158,7 +151,12 @@ export class IssueAnalysisView extends Component {
                                 {value: "issues", label: "Issues"},
                                 {value: "delays", label: "Delays"},
                             ]}
-                            valueEmitter={this.state.field("tab") as any}
+                            valueEmitter={this.state.tab as any}
+                        />
+                        <Dropdown
+                            label="Project"
+                            options={[{value: "", label: "All projects"}, ...(b.value.choices.projects ?? [])]}
+                            valueEmitter={this.state.field("project") as any}
                         />
                         <Button
                             label="Reset"
@@ -192,10 +190,10 @@ export class IssueAnalysisView extends Component {
                         itemKey="id"
                         renderItem={r => {
                             const link = isDelay
-                                ? <RouteLink to={withRouteQuery(routeTarget(routes.projects), {project: String(r.projectId ?? ""), phase: String(r.phaseId ?? ""), tab: r.phaseId ? "phases" : "summary"})}>
+                                ? <RouteLink to={withRouteQuery(routeTarget(routes.projects), {project: String(r.projectId ?? ""), phase: String(r.phaseId ?? ""), tab: "summary"})}>
                                     {r.name}
                                 </RouteLink>
-                                : <RouteLink to={routeTarget(routes["issue-analysis"], issuesSegment, routeParameter(issueIdParam, String(r.id)))}>
+                                : <RouteLink to={routeTarget(routes["issue-report"], routeParameter(issueIdParam, String(r.id)))}>
                                     {r.name}
                                 </RouteLink>;
                             return <span className="issue-item">

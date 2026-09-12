@@ -279,6 +279,7 @@ export class ConstructionScenario implements DemoScenario {
                 waste: 0,
                 budget: 0,
                 cost: 0,
+                issueCost: 0,
                 due: budget.requiredByDate,
                 late: 0
             };
@@ -305,6 +306,7 @@ export class ConstructionScenario implements DemoScenario {
             if (row) {
                 row.used = Number(row.used) + usage.quantity;
                 row.cost = Number(row.cost) + usage.quantity * usage.unitCostApplied;
+                if (usage.issueId) row.issueCost = Number(row.issueCost) + usage.quantity * usage.unitCostApplied;
                 if (usage.usageReason === "waste") row.waste = Number(row.waste) + usage.quantity;
             }
         }
@@ -520,7 +522,7 @@ export class ConstructionScenario implements DemoScenario {
                 forecast: r.forecastFinishDate
             }));
             const scope = d.scopeNodes.find(s => s.id === p.scope);
-            const detail = p.phase ? this.phaseDetail(p.phase) : {
+            const detail = (p.phase || p.selected) ? this.phaseDetail(p.phase || p.selected!) : {
                 id: projectId,
                 title: scope?.name ?? project.name,
                 subtitle: project.name,
@@ -572,6 +574,9 @@ export class ConstructionScenario implements DemoScenario {
                 completed: r.lifecycle === "completed",
                 planned: r.lifecycle === "planned"
             }, lifecycle));
+            const affinities = Object.fromEntries(Object.entries(JSON.parse(p.affinities || "{}") as Record<string, SemanticMode>)
+                .map(([key, mode]) => [key.replace(/^affinity:/, ""), mode]));
+            rows = rows.filter(r => matchesConditions({[String(r.type)]: true, [String(r.projectType)]: true}, affinities));
             const urgency = (r: Row): number => (r.lifecycle === "active" ? 10_000 : 0) + (r.traits?.highRisk ? 1000 : 0) + Number(r.openIssues) * 30 + Number(r.variance);
             rows = [...rows].sort((a, b) => urgency(b) - urgency(a) || compare(a.id, b.id));
             return this.page(rows, p, {detail: this.phaseDetail(p.selected ?? "")});
@@ -585,11 +590,15 @@ export class ConstructionScenario implements DemoScenario {
 
     private resources(p: Parameters): ViewResult {
         const d = this.data;
+        const options = p.project ? this.projectChoices(p.project) : {scopes: [], phases: []};
         if (p.tab === "labour") {
-            let rows = this.labourRows.filter(r => (!p.project || r.projectId === p.project) && (!p.reason || r.reason === p.reason) && (!p.from || String(r.date) >= p.from) && (!p.to || String(r.date) <= p.to));
+            let rows = this.labourRows.filter(r => (!p.project || r.projectId === p.project) && (!p.scope || r.scopeId === p.scope) && (!p.reason || r.reason === p.reason) && (!p.from || String(r.date) >= p.from) && (!p.to || String(r.date) <= p.to));
             if (p.overtime === "prefer") rows = rows.filter(r => Number(r.overtime) > 0);
             if (p.overtime === "deny") rows = rows.filter(r => Number(r.overtime) === 0);
+            if (p.standby !== "prefer") rows = rows.filter(r => r.reason !== "standby");
+            if (p.issueOnly === "prefer") rows = rows.filter(r => r.issueId != null || r.delayId != null);
             return this.page(rows, p, {
+                options,
                 metrics: [{
                     label: "Logged hours",
                     value: sum(rows, r => Number(r.hours)),
@@ -602,7 +611,9 @@ export class ConstructionScenario implements DemoScenario {
             });
         }
         if (p.tab === "materials") {
-            const rows = this.materialRows.filter(r => (!p.project || r.projectId === p.project) && (!p.material || r.materialId === p.material));
+            let rows = this.materialRows.filter(r => (!p.project || r.projectId === p.project) && (!p.material || r.materialId === p.material));
+            if (p.waste === "prefer") rows = rows.filter(r => Number(r.waste) > 0);
+            if (p.issueOnly === "prefer") rows = rows.filter(r => Number(r.issueCost) > 0);
             const row = rows.find(r => r.id === p.selected);
             const orders = row ? d.purchaseOrderLines.filter(l => l.materialTypeId === row.materialId && d.purchaseOrders.find(o => o.id === l.purchaseOrderId)!.projectId === row.projectId) : [];
             const detail: Detail | undefined = row ? {
@@ -629,10 +640,41 @@ export class ConstructionScenario implements DemoScenario {
             } : undefined;
             return this.page(rows, p, {
                 detail,
+                options,
                 metrics: [{label: "Material lines", value: rows.length}, {
                     label: "Late orders",
                     value: sum(rows, r => Number(r.late))
                 }, {label: "Consumed material cost", value: sum(rows, r => Number(r.cost)), format: "money"}]
+            });
+        }
+        if (p.tab === "progress") {
+            let rows = d.progressReports.map(r => {
+                const phase = this.phaseRows.find(x => x.id === r.phasePlanId);
+                return {
+                    id: r.id,
+                    name: phase?.name ?? String(r.phasePlanId),
+                    phaseId: r.phasePlanId,
+                    projectId: r.projectId,
+                    project: this.projectRows.find(x => x.id === r.projectId)?.name ?? "",
+                    scopeId: phase?.scopeId ?? "",
+                    date: dateOf(r.reportedAt),
+                    progress: r.percentComplete,
+                    status: r.executionStatus,
+                    forecast: r.forecastFinishDate ?? "",
+                    slip: r.forecastFinishDate && phase?.finish && r.forecastFinishDate > phase.finish
+                        ? daysBetween(phase.finish as CivilDate, r.forecastFinishDate)
+                        : 0
+                };
+            }).filter(r => (!p.project || r.projectId === p.project) && (!p.scope || r.scopeId === p.scope) &&
+                (!p.from || String(r.date) >= p.from) && (!p.to || String(r.date) <= p.to));
+            if (p.blocked === "prefer") rows = rows.filter(r => r.status === "blocked");
+            if (p.slip === "prefer") rows = rows.filter(r => Number(r.slip) > 0);
+            return this.page(rows, p, {
+                options,
+                metrics: [{label: "Progress reports", value: rows.length}, {
+                    label: "Blocked",
+                    value: rows.filter(r => r.status === "blocked").length
+                }, {label: "Forecast slip", value: rows.filter(r => Number(r.slip) > 0).length}]
             });
         }
         let rows = this.peopleRows.filter(r => (!p.project || (r.projectIds as string[]).includes(p.project)) && (!p.trade || r.typeId === p.trade) && (!p.availability || r.status === p.availability));
@@ -879,10 +921,13 @@ export class ConstructionScenario implements DemoScenario {
     }
 
     private issueReport(p: Parameters): ViewResult {
-        const issueId = p.issueId || p.id;
-        if (!issueId) throw new Error("Issue ID is required");
-        const row = this.issueRows.find(r => r.id === issueId);
-        if (!row) throw new Error("Issue not found");
+        const issueId = p.issueId || p.id || p.selected;
+        const row = issueId ? this.issueRows.find(r => r.id === issueId) : undefined;
+        // The issue list is always returned so the screen's own issue selector
+        // stays populated, including for direct entry and unknown ids.
+        const base = this.page(this.issueRows, p, {}, Math.max(1, this.issueRows.length));
+        if (issueId && !row) return {...base, notice: `Issue "${issueId}" was not found`};
+        if (!row) return base;
         const d = this.data;
         const labour = this.labourRows.filter(l => l.issueId === row.id).slice(0, 15);
         const detail: Detail = {
@@ -929,7 +974,8 @@ export class ConstructionScenario implements DemoScenario {
                 },
             ]
         };
-        return this.page([], p, {
+        return {
+            ...base,
             detail,
             options: row.projectId ? this.projectChoices(row.projectId) : {scopes: [], phases: []},
             metrics: [
@@ -937,7 +983,7 @@ export class ConstructionScenario implements DemoScenario {
                 {label: "Attributed cost", value: Number(row.cost), format: "money"},
                 {label: "Open issues in project", value: this.issueRows.filter(r => r.projectId === row.projectId && !["resolved", "closed"].includes(String(r.status))).length},
             ]
-        });
+        };
     }
 
     private mutate(input: Mutation): { id: string; message: string } {

@@ -18,6 +18,7 @@ import {
     QueueView,
     OperationsView,
     IssueAnalysisView,
+    IssueReportView,
     EconomicTrendsView,
 } from "../views/index.tsx";
 import {bootstrap, demo} from "./services.ts";
@@ -28,7 +29,7 @@ class BuildCoApp extends FrayApp {
     static dependencies = [
         NavigationBar, RouteOutlet, ThemePicker, ColorPicker,
         OverviewView, ProjectsView, QueueView, OperationsView,
-        IssueAnalysisView, EconomicTrendsView,
+        IssueAnalysisView, IssueReportView, EconomicTrendsView,
     ];
 
     initialize(): void {
@@ -56,6 +57,7 @@ class BuildCoApp extends FrayApp {
                         {id: "queue", label: "Work Queue", to: routeTarget(routes.queue)},
                         {id: "operations", label: "Operations", to: routeTarget(routes.operations)},
                         {id: "issue-analysis", label: "Issue Analysis", to: routeTarget(routes["issue-analysis"])},
+                        {id: "issue-report", label: "Issue Report", to: routeTarget(routes["issue-report"])},
                         {id: "economic-trends", label: "Economic Trends", to: routeTarget(routes["economic-trends"])},
                     ]}
                 />
@@ -70,6 +72,7 @@ class BuildCoApp extends FrayApp {
                         {id: "queue", route: routes.queue, content: <QueueView/>},
                         {id: "operations", route: routes.operations, content: <OperationsView/>},
                         {id: "issue-analysis", route: routes["issue-analysis"], content: <IssueAnalysisView/>},
+                        {id: "issue-report", route: routes["issue-report"], content: <IssueReportView/>},
                         {id: "economic-trends", route: routes["economic-trends"], content: <EconomicTrendsView/>},
                     ]}
                 />

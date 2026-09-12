@@ -2,15 +2,15 @@ import type {FrayChild} from "@sylwellsoftware/fray";
 import {
     Component, DataTable, DescriptionList, DescriptionItem, ListView,
     Panel, Sidebar, SidebarToolbar, SplitPrimary, SplitSecondary, SplitView, TabPanel, TreeView,
-    Textbox, Dropdown, ProgressBar, RouteLink, Placeholder,
+    Textbox, Dropdown, ProgressBar, RouteLink, RouteQuery, Placeholder,
+    routeTarget, stringRouteQueryCodec, withRouteQuery,
 } from "@sylwellsoftware/fray";
 import type {TableColumn, TableRow, TreeNode} from "@sylwellsoftware/fray";
 import type {Row} from "../../api/ScenarioApi.ts";
 import type {ScopeNode} from "../../domain/model.ts";
-import {screens, navigate, routes} from "../../app/routing.ts";
+import {keyQueryCodec, screens, routes} from "../../app/routing.ts";
 import {buildco, revision, bootstrap} from "../../app/services.ts";
 import {formatValue} from "../shared.tsx";
-import {routeTarget, withRouteQuery} from "@sylwellsoftware/fray";
 
 interface PhaseRow extends TableRow {
     id: string;
@@ -47,7 +47,7 @@ export class ProjectsView extends Component {
     static dependencies = [
         DataTable, DescriptionList, DescriptionItem, ListView,
         Panel, Sidebar, SidebarToolbar, SplitView, TabPanel, TreeView,
-        Textbox, Dropdown, ProgressBar, RouteLink, Placeholder,
+        Textbox, Dropdown, ProgressBar, RouteLink, RouteQuery, Placeholder,
     ];
 
     private state = screens.projects;
@@ -69,18 +69,20 @@ export class ProjectsView extends Component {
         const rows = v.rows as readonly Row[];
         const tree = (v.tree ?? []) as readonly ScopeNode[];
         const detail = v.detail;
-        const milestones = (v.milestones ?? []) as readonly Row[];
-        const tab = this.state.tab.get() ?? "summary";
 
         const treeNodes = scopeToNodes(tree);
 
         return <SplitView className="projects-view fray-size-flexible" primarySize="18rem" primaryLabel="Project scope" secondaryLabel="Project details">
+            <RouteQuery name="project" codec={stringRouteQueryCodec} valueEmitter={this.state.field("project")} defaultValue=""/>
+            <RouteQuery name="scope" codec={keyQueryCodec} valueEmitter={this.state.scope} defaultValue={null}/>
+            <RouteQuery name="tab" codec={keyQueryCodec} valueEmitter={this.state.tab} defaultValue="summary"/>
+            <RouteQuery name="search" codec={stringRouteQueryCodec} valueEmitter={this.state.field("search")} defaultValue=""/>
             <SplitPrimary>
                 <Sidebar island allocation="flexible" header="Project Explorer">
                     <SidebarToolbar>
                         <Dropdown
                             label="Project"
-                            options={rows.map(r => ({value: String(r.id), label: String(r.name)}))}
+                            options={b.value.choices.projects ?? []}
                             valueEmitter={this.state.field("project") as any}
                         />
                         <Textbox
@@ -93,7 +95,6 @@ export class ProjectsView extends Component {
                         label="Scope structure"
                         nodes={treeNodes}
                         selectedKeyEmitter={this.state.scope}
-                        onSelect={node => navigate("projects", {scope: String(node.id)})}
                     />
                 </Sidebar>
             </SplitPrimary>
@@ -104,58 +105,69 @@ export class ProjectsView extends Component {
                         valueEmitter={this.state.tab}
                         mountPolicy="active-only"
                         tabs={[
-                            {id: "summary", label: "Summary"},
-                            {id: "prerequisites", label: "Prerequisites"},
-                            {id: "resources", label: "Resources"},
-                            {id: "reports", label: "Progress reports"},
+                            {
+                                id: "summary",
+                                label: "Summary",
+                                content: detail ? <>
+                                    <DescriptionList label="Project summary">
+                                        {detail.fields.map(f => <DescriptionItem
+                                            key={f.label}
+                                            term={f.label}
+                                            value={f.format ? formatValue(f.value, f.format) : String(f.value)}
+                                        />)}
+                                    </DescriptionList>
+                                    <div className="progress-list">
+                                        <ProgressBar
+                                            label="Overall progress"
+                                            value={Number(detail.record?.progress ?? 0)}
+                                            valueText={`${Math.round(Number(detail.record?.progress ?? 0))}%`}
+                                        />
+                                    </div>
+                                </> : <Placeholder/>,
+                            },
+                            {
+                                id: "prerequisites",
+                                label: "Prerequisites",
+                                content: <ListView
+                                    label="Prerequisites"
+                                    items={rows}
+                                    itemKey="id"
+                                    renderItem={r => <RouteLink to={withRouteQuery(routeTarget(routes.projects), {project: String(r.projectId ?? ""), scope: String(r.id), tab: "summary"})}>
+                                        {r.name}
+                                    </RouteLink>}
+                                />,
+                            },
+                            {
+                                id: "resources",
+                                label: "Resources",
+                                content: <DataTable
+                                    caption="Resources"
+                                    columns={[
+                                        {field: "name", label: "Resource", sortable: true},
+                                        {field: "status", label: "Status", sortable: true},
+                                        {field: "cost", label: "Cost", sortable: true},
+                                    ]}
+                                    data={rows as readonly TableRow[]}
+                                    rowKey="id"
+                                />,
+                            },
+                            {
+                                id: "reports",
+                                label: "Progress reports",
+                                content: <DataTable
+                                    caption="Progress reports"
+                                    columns={[
+                                        {field: "name", label: "Phase", sortable: true},
+                                        {field: "date", label: "Date", sortable: true},
+                                        {field: "progress", label: "Progress", sortable: true},
+                                        {field: "status", label: "Status", sortable: true},
+                                    ]}
+                                    data={rows as readonly TableRow[]}
+                                    rowKey="id"
+                                />,
+                            },
                         ]}
-                    >
-                        {tab === "summary" && detail && <>
-                            <DescriptionList label="Project summary">
-                                {detail.fields.map(f => <DescriptionItem
-                                    key={f.label}
-                                    term={f.label}
-                                    value={f.format ? formatValue(f.value, f.format) : String(f.value)}
-                                />)}
-                            </DescriptionList>
-                            <div className="progress-list">
-                                <ProgressBar
-                                    label="Overall progress"
-                                    value={Number(detail.record?.progress ?? 0)}
-                                    valueText={`${Math.round(Number(detail.record?.progress ?? 0))}%`}
-                                />
-                            </div>
-                        </>}
-                        {tab === "prerequisites" && <ListView
-                            label="Prerequisites"
-                            items={rows}
-                            itemKey="id"
-                            renderItem={r => <RouteLink to={withRouteQuery(routeTarget(routes.projects), {project: String(r.projectId ?? ""), scope: String(r.id), tab: "summary"})}>
-                                {r.name}
-                            </RouteLink>}
-                        />}
-                        {tab === "resources" && <DataTable
-                            caption="Resources"
-                            columns={[
-                                {field: "name", label: "Resource", sortable: true},
-                                {field: "status", label: "Status", sortable: true},
-                                {field: "cost", label: "Cost", sortable: true},
-                            ]}
-                            data={rows as readonly TableRow[]}
-                            rowKey="id"
-                        />}
-                        {tab === "reports" && <DataTable
-                            caption="Progress reports"
-                            columns={[
-                                {field: "name", label: "Phase", sortable: true},
-                                {field: "date", label: "Date", sortable: true},
-                                {field: "progress", label: "Progress", sortable: true},
-                                {field: "status", label: "Status", sortable: true},
-                            ]}
-                            data={rows as readonly TableRow[]}
-                            rowKey="id"
-                        />}
-                    </TabPanel>
+                    />
                 </Panel>
             </SplitSecondary>
         </SplitView>;

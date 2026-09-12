@@ -1,4 +1,4 @@
-import type {Key, TableFilters, TableSort} from "@sylwellsoftware/fray";
+import type {Key, RouteQueryCodec, TableFilters, TableSort} from "@sylwellsoftware/fray";
 import {
   createBrowserRouter,
   createHashNavigation,
@@ -11,7 +11,7 @@ import {
 } from "@sylwellsoftware/fray";
 import {Emitter} from "@sylwellsoftware/glue";
 import type {Parameters, Row, Screen} from "../api/ScenarioApi.ts";
-import {SCREENS} from "../api/ScenarioApi.ts";
+import {CONDITIONS, SCREENS} from "../api/ScenarioApi.ts";
 
 const hash = createHashNavigation();
 let observedLocation = hash.read();
@@ -43,15 +43,20 @@ export const router = createBrowserRouter({
         },
     }
 });
-export const routes = Object.fromEntries(SCREENS.filter(s => s !== "issue-report").map(s => [s, defineRoute(s, s)])) as Record<Exclude<Screen, "issue-report">, ReturnType<typeof defineRoute>>;
+export const routes = Object.fromEntries(SCREENS.map(s => [s, defineRoute(s, s)])) as Record<Screen, ReturnType<typeof defineRoute>>;
 
-export const issuesSegment = defineRoute("issues", "issues");
 export const issueIdParam = defineRouteParameter("issue-id", stringRouteCodec);
+
+/** RouteQuery codec for Key|null emitters such as TabPanel and TreeView selection emitters. */
+export const keyQueryCodec: RouteQueryCodec<Key | null> = {
+    parse: values => values[0] ?? null,
+    format: value => value == null ? [] : [String(value)],
+};
 
 const defaults: Record<Screen, Parameters> = {
     overview: {scope: "all"},
     projects: {tab: "summary"},
-    queue: {},
+    queue: Object.fromEntries(CONDITIONS.map(c => [c.value, "neutral"])),
     operations: {tab: "labour", overtime: "neutral", group: "name"},
     "issue-analysis": {tab: "issues"},
     "economic-trends": {tab: "trends", subject: "phases", metric: "progress", days: "90"},
@@ -114,11 +119,9 @@ export function navigate(screen: Screen, params: Parameters = {}): void {
     if (params.tab) screens[screen].tab.set(params.tab);
     if (screen === "issue-report") {
         const issueId = params.issueId || params.id || "";
-        if (!issueId) throw new Error("issue-report navigation requires an issueId");
-        void router.navigate(withRouteQuery(
-            routeTarget(routes["issue-analysis"], issuesSegment, routeParameter(issueIdParam, issueId)),
-            {...screens["issue-analysis"].params.get(), ...params},
-        ));
+        void router.navigate(issueId
+            ? routeTarget(routes["issue-report"], routeParameter(issueIdParam, issueId))
+            : routeTarget(routes["issue-report"]));
     } else {
         void router.navigate(withRouteQuery(routeTarget(routes[screen]), {...screens[screen].params.get(), ...params}));
     }
@@ -130,6 +133,6 @@ export function openProject(row: Row): void {
         project: row.projectId ?? row.id,
         scope: row.scopeId ?? "",
         phase: row.phaseId ?? "",
-        tab: row.phaseId ? "phases" : "summary"
+        tab: "summary"
     });
 }

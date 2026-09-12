@@ -3,11 +3,11 @@ import {
     Component, DataTable, Panel, PanelToolbar, Sidebar, SidebarToolbar,
     SplitPrimary, SplitSecondary, SplitView,
     TabPanel, Toggle, Checkbox, OptionsPanel, OptionGroup, GroupPanel,
-    Dropdown, Textbox, Button, Placeholder,
+    Dropdown, Textbox, Button, RouteQuery, Placeholder, stringRouteQueryCodec,
 } from "@sylwellsoftware/fray";
 import type {TableColumn, TableRow} from "@sylwellsoftware/fray";
-import type {Row} from "../../api/ScenarioApi.ts";
-import {screens} from "../../app/routing.ts";
+import {Emitter} from "@sylwellsoftware/glue";
+import {keyQueryCodec, screens} from "../../app/routing.ts";
 import {buildco, revision, bootstrap} from "../../app/services.ts";
 
 interface OperationsRow extends TableRow {
@@ -19,6 +19,8 @@ interface OperationsRow extends TableRow {
     overtime?: number;
     reason?: string;
     status?: string;
+    progress?: number;
+    forecast?: string;
 }
 
 const labourColumns: TableColumn<OperationsRow>[] = [
@@ -39,19 +41,24 @@ const materialColumns: TableColumn<OperationsRow>[] = [
 const progressColumns: TableColumn<OperationsRow>[] = [
     {field: "name", label: "Phase", sortable: true},
     {field: "date", label: "Date", sortable: true},
+    {field: "progress", label: "Progress", sortable: true},
     {field: "status", label: "Status", sortable: true},
-    {field: "cost", label: "Cost", sortable: true},
+    {field: "forecast", label: "Forecast", sortable: true},
 ];
+
+const filterFields = ["search", "project", "scope", "from", "to", "overtime", "standby", "issueOnly", "waste", "blocked", "slip"];
 
 export class OperationsView extends Component {
     static dependencies = [
         DataTable, Panel, PanelToolbar, Sidebar, SidebarToolbar, SplitView,
         TabPanel, Toggle, Checkbox, OptionsPanel, OptionGroup, GroupPanel,
-        Dropdown, Textbox, Button, Placeholder,
+        Dropdown, Textbox, Button, RouteQuery, Placeholder,
     ];
 
     private state = screens.operations;
     private query = buildco.view("operations", {params: this.state.params, revision}, {owner: this});
+    // Compact rows are presentation state and stay out of the query contract.
+    private readonly compact = new Emitter<string>("false", {owner: this, purpose: "compact rows"});
 
     initialize(): void {
         void this.query.activate();
@@ -60,6 +67,7 @@ export class OperationsView extends Component {
     render(): FrayChild {
         const b = this.snapshot(bootstrap);
         const view = this.snapshot(this.query);
+        const compact = this.read(this.compact);
 
         if (!b.value) return <Panel island header="Operations"><Placeholder/></Panel>;
         if (view.fetchState === "loading" && !view.value) return <Panel island header="Operations"><Placeholder/></Panel>;
@@ -67,11 +75,28 @@ export class OperationsView extends Component {
 
         const v = view.value;
         const rows = v.rows as readonly OperationsRow[];
-        const tab = this.state.tab.get() ?? "labour";
+        const tab = this.read(this.state.tab) ?? "labour";
+        const scopes = (v.options?.scopes ?? []) as readonly {value: string, label: string}[];
 
-        const columns = tab === "materials" ? materialColumns : tab === "progress" ? progressColumns : labourColumns;
+        const table = (id: string, columns: TableColumn<OperationsRow>[]) => rows.length === 0
+            ? <Placeholder/>
+            : <DataTable
+                caption={`Operations ${id}`}
+                className={compact === "true" ? "compact-rows" : null}
+                columns={columns}
+                data={rows}
+                rowKey="id"
+                selectedItemEmitter={this.state.selection as any}
+            />;
 
         return <SplitView className="operations-view fray-size-flexible" primarySize="16rem" primaryLabel="Operations filters" secondaryLabel="Operations register">
+            <RouteQuery name="tab" codec={keyQueryCodec} valueEmitter={this.state.tab} defaultValue="labour"/>
+            <RouteQuery name="project" codec={stringRouteQueryCodec} valueEmitter={this.state.field("project")} defaultValue=""/>
+            <RouteQuery name="scope" codec={stringRouteQueryCodec} valueEmitter={this.state.field("scope")} defaultValue=""/>
+            <RouteQuery name="search" codec={stringRouteQueryCodec} valueEmitter={this.state.field("search")} defaultValue=""/>
+            <RouteQuery name="page" codec={stringRouteQueryCodec} valueEmitter={this.state.field("page")} defaultValue=""/>
+            <RouteQuery name="from" codec={stringRouteQueryCodec} valueEmitter={this.state.field("from")} defaultValue=""/>
+            <RouteQuery name="to" codec={stringRouteQueryCodec} valueEmitter={this.state.field("to")} defaultValue=""/>
             <SplitPrimary>
                 <Sidebar island allocation="flexible" header="Operations Register">
                     <SidebarToolbar>
@@ -83,10 +108,7 @@ export class OperationsView extends Component {
                         <Button
                             label="Reset"
                             onClick={() => {
-                                this.state.field("search").set("");
-                                this.state.field("overtime").set("neutral" as any);
-                                this.state.field("material").set("");
-                                this.state.field("availability").set("");
+                                for (const key of filterFields) this.state.field(key).set(key === "overtime" || key === "standby" || key === "issueOnly" || key === "waste" || key === "blocked" || key === "slip" ? "neutral" : "");
                             }}
                         />
                     </SidebarToolbar>
@@ -94,28 +116,32 @@ export class OperationsView extends Component {
                         <GroupPanel header="Scope">
                             <Dropdown
                                 label="Project"
-                                options={[{value: "", label: "All projects"}]}
+                                options={[{value: "", label: "All projects"}, ...(b.value.choices.projects ?? [])]}
                                 valueEmitter={this.state.field("project") as any}
                             />
                             <Dropdown
                                 label="Scope"
-                                options={[{value: "", label: "All scopes"}]}
+                                options={[{value: "", label: "All scopes"}, ...scopes]}
                                 valueEmitter={this.state.field("scope") as any}
                             />
+                        </GroupPanel>
+                        <GroupPanel header="Dates">
+                            <Textbox label="From" type="date" valueEmitter={this.state.field("from") as any}/>
+                            <Textbox label="To" type="date" valueEmitter={this.state.field("to") as any}/>
                         </GroupPanel>
                         <GroupPanel header="Register-specific filters">
                             {tab === "labour" && <>
                                 <Checkbox label="Overtime only" valueEmitter={this.state.field("overtime") as any}/>
-                                <Checkbox label="Include standby" valueEmitter={this.state.field("availability") as any}/>
-                                <Checkbox label="Issue-attributed only" valueEmitter={this.state.field("reason") as any}/>
+                                <Checkbox label="Include standby" valueEmitter={this.state.field("standby") as any}/>
+                                <Checkbox label="Issue-attributed only" valueEmitter={this.state.field("issueOnly") as any}/>
                             </>}
                             {tab === "materials" && <>
-                                <Checkbox label="Waste only" valueEmitter={this.state.field("material") as any}/>
-                                <Checkbox label="Issue-attributed only" valueEmitter={this.state.field("reason") as any}/>
+                                <Checkbox label="Waste only" valueEmitter={this.state.field("waste") as any}/>
+                                <Checkbox label="Issue-attributed only" valueEmitter={this.state.field("issueOnly") as any}/>
                             </>}
                             {tab === "progress" && <>
-                                <Checkbox label="Blocked reports only" valueEmitter={this.state.field("conditions") as any}/>
-                                <Checkbox label="Forecast slip" valueEmitter={this.state.field("lifecycle") as any}/>
+                                <Checkbox label="Blocked reports only" valueEmitter={this.state.field("blocked") as any}/>
+                                <Checkbox label="Forecast slip" valueEmitter={this.state.field("slip") as any}/>
                             </>}
                         </GroupPanel>
                         <Toggle
@@ -125,7 +151,7 @@ export class OperationsView extends Component {
                                 ["false", "Normal"],
                                 ["true", "Compact"],
                             ]}
-                            valueEmitter={this.state.field("view") as any}
+                            valueEmitter={this.compact}
                         />
                     </OptionsPanel>
                 </Sidebar>
@@ -149,22 +175,11 @@ export class OperationsView extends Component {
                         valueEmitter={this.state.tab}
                         mountPolicy="active-only"
                         tabs={[
-                            {id: "labour", label: "Labour"},
-                            {id: "materials", label: "Materials"},
-                            {id: "progress", label: "Progress"},
+                            {id: "labour", label: "Labour", content: table("labour", labourColumns)},
+                            {id: "materials", label: "Materials", content: table("materials", materialColumns)},
+                            {id: "progress", label: "Progress", content: table("progress", progressColumns)},
                         ]}
-                    >
-                        {rows.length === 0
-                            ? <Placeholder/>
-                            : <DataTable
-                                caption={`Operations ${tab}`}
-                                columns={columns}
-                                data={rows}
-                                rowKey="id"
-                                selectedItemEmitter={this.state.selection as any}
-                            />
-                        }
-                    </TabPanel>
+                    />
                 </Panel>
             </SplitSecondary>
         </SplitView>;

@@ -4,25 +4,46 @@ import {
     SplitPrimary, SplitSecondary, SplitView,
     OptionsPanel, OptionGroup, OptionGroupHeaderEnd, GroupPanel,
     QuadCheckbox, TriCheckbox, Dropdown, Textbox, Button,
-    DescriptionList, DescriptionItem, ProgressBar, RouteLink, Placeholder,
+    DescriptionList, DescriptionItem, ProgressBar, RouteLink, RouteQuery, Placeholder,
+    routeTarget, stringRouteQueryCodec, withRouteQuery,
 } from "@sylwellsoftware/fray";
-import type {Row} from "../../api/ScenarioApi.ts";
+import type {Parameters, Row} from "../../api/ScenarioApi.ts";
 import {CONDITIONS} from "../../api/ScenarioApi.ts";
 import {screens, routes} from "../../app/routing.ts";
 import {buildco, revision, bootstrap} from "../../app/services.ts";
 import {formatValue} from "../shared.tsx";
-import {routeTarget, withRouteQuery} from "@sylwellsoftware/fray";
+
+const AFFINITY_PREFIX = "affinity:";
+
+function affinityKey(value: string): string {
+    return `${AFFINITY_PREFIX}${value}`;
+}
+
+function encodeModes(params: Parameters, keys: readonly string[]): string {
+    const modes = Object.fromEntries(keys
+        .map(key => [key, params[key]] as const)
+        .filter(([, mode]) => mode && mode !== "neutral"));
+    return JSON.stringify(modes);
+}
 
 export class QueueView extends Component {
     static dependencies = [
         ListView, Panel, PanelToolbar, Sidebar, SidebarToolbar, SplitView,
         OptionsPanel, OptionGroup, OptionGroupHeaderEnd, GroupPanel,
         QuadCheckbox, TriCheckbox, Dropdown, Textbox, Button,
-        DescriptionList, DescriptionItem, ProgressBar, RouteLink, Placeholder,
+        DescriptionList, DescriptionItem, ProgressBar, RouteLink, RouteQuery, Placeholder,
     ];
 
     private state = screens.queue;
-    private query = buildco.view("queue", {params: this.state.params, revision}, {owner: this});
+    private affinityKeys: readonly string[] = [];
+    // The backend expects semantic modes as JSON in `conditions`/`affinities`;
+    // the individual checkbox fields are serialized here.
+    private queryParams = this.state.params.map(params => ({
+        ...params,
+        conditions: encodeModes(params, CONDITIONS.map(c => c.value)),
+        affinities: encodeModes(params, this.affinityKeys),
+    }));
+    private query = buildco.view("queue", {params: this.queryParams, revision}, {owner: this});
 
     initialize(): void {
         void this.query.activate();
@@ -39,8 +60,30 @@ export class QueueView extends Component {
         const v = view.value;
         const rows = v.rows as readonly Row[];
         const detail = v.detail;
+        const affinities = [
+            ...(b.value.choices.phaseTypes ?? []),
+            ...(b.value.choices.projectTypes ?? []),
+        ];
+        this.affinityKeys = affinities.map(a => affinityKey(a.value));
 
         return <SplitView className="queue-view fray-size-flexible" primarySize="16rem" primaryLabel="Work queue filters" secondaryLabel="Queue items">
+            <RouteQuery name="project" codec={stringRouteQueryCodec} valueEmitter={this.state.field("project")} defaultValue=""/>
+            <RouteQuery name="sort" codec={stringRouteQueryCodec} valueEmitter={this.state.field("sort")} defaultValue=""/>
+            <RouteQuery name="search" codec={stringRouteQueryCodec} valueEmitter={this.state.field("search")} defaultValue=""/>
+            {CONDITIONS.map(c => <RouteQuery
+                key={c.value}
+                name={c.value}
+                codec={stringRouteQueryCodec}
+                valueEmitter={this.state.field(c.value)}
+                defaultValue="neutral"
+            />)}
+            {affinities.map(a => <RouteQuery
+                key={a.value}
+                name={`aff-${a.value}`}
+                codec={stringRouteQueryCodec}
+                valueEmitter={this.state.field(affinityKey(a.value))}
+                defaultValue="neutral"
+            />)}
             <SplitPrimary>
                 <Sidebar island allocation="flexible" header="Work Queue">
                     <SidebarToolbar>
@@ -51,10 +94,7 @@ export class QueueView extends Component {
                         />
                         <Button
                             label="Reset"
-                            onClick={() => {
-                                for (const c of CONDITIONS) this.state.field(c.value).set("neutral" as any);
-                                this.state.field("search").set("");
-                            }}
+                            onClick={() => this.resetCriteria()}
                         />
                     </SidebarToolbar>
                     <OptionsPanel header="Conditions">
@@ -63,9 +103,7 @@ export class QueueView extends Component {
                                 <OptionGroupHeaderEnd>
                                     <Button
                                         label="Reset"
-                                        onClick={() => {
-                                            for (const c of CONDITIONS) this.state.field(c.value).set("neutral" as any);
-                                        }}
+                                        onClick={() => this.resetCriteria()}
                                     />
                                 </OptionGroupHeaderEnd>
                                 {CONDITIONS.map(c => <QuadCheckbox
@@ -76,17 +114,17 @@ export class QueueView extends Component {
                             </OptionGroup>
                         </GroupPanel>
                         <GroupPanel header="Affinities">
-                            <OptionGroup label="Trade affinities">
-                                <TriCheckbox label="Electrical" valueEmitter={this.state.field("trade") as any}/>
-                                <TriCheckbox label="Finishes" valueEmitter={this.state.field("trade") as any}/>
-                                <TriCheckbox label="Renovation" valueEmitter={this.state.field("trade") as any}/>
+                            <OptionGroup label="Type affinities">
+                                {affinities.map(a => <TriCheckbox
+                                    key={a.value}
+                                    label={a.label}
+                                    valueEmitter={this.state.field(affinityKey(a.value)) as any}
+                                />)}
                             </OptionGroup>
                         </GroupPanel>
                         <Dropdown
                             label="Project scope"
-                            options={[
-                                {value: "", label: "All projects"},
-                            ]}
+                            options={[{value: "", label: "All projects"}, ...(b.value.choices.projects ?? [])]}
                             valueEmitter={this.state.field("project") as any}
                         />
                     </OptionsPanel>
@@ -99,15 +137,19 @@ export class QueueView extends Component {
                         <Dropdown
                             label="Order by"
                             options={[
-                                {value: "priority", label: "Priority"},
-                                {value: "variance", label: "Schedule variance"},
-                                {value: "issues", label: "Open issues"},
+                                {value: "", label: "Urgency"},
+                                {value: "variance:desc", label: "Schedule variance"},
+                                {value: "openIssues:desc", label: "Open issues"},
                             ]}
-                            valueEmitter={this.state.field("ordering") as any}
+                            valueEmitter={this.state.field("sort") as any}
                         />
                     </PanelToolbar>
                     {rows.length === 0
-                        ? <Placeholder/>
+                        ? <>
+                            <Placeholder/>
+                            <p className="muted">No phases match the current criteria. Required or denied conditions may have eliminated every result.</p>
+                            <Button label="Reset criteria" onClick={() => this.resetCriteria()}/>
+                        </>
                         : <ListView
                             label="Queue items"
                             items={rows}
@@ -139,5 +181,11 @@ export class QueueView extends Component {
                 </Panel>}
             </SplitSecondary>
         </SplitView>;
+    }
+
+    private resetCriteria(): void {
+        for (const c of CONDITIONS) this.state.field(c.value).set("neutral");
+        for (const key of this.affinityKeys) this.state.field(key).set("neutral");
+        this.state.field("search").set("");
     }
 }
