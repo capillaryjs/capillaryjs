@@ -158,6 +158,7 @@ export class FilterPanel extends Component<FilterPanelProps> {
             align-items: flex-start;
             left: 100%;
             top: 0;
+            user-select: none;
         }
 
         & > p {

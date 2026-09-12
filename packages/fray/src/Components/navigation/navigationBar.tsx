@@ -65,6 +65,7 @@ export class NavigationBar extends Component<NavigationBarProps> {
             background: var(--navigation-bar-background);
             border: var(--navigation-bar-border);
             box-shadow: var(--navigation-bar-shadow);
+            user-select: none;
         }
 
         & > nav,

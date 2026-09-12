@@ -39,6 +39,7 @@ export abstract class SelectControl<
             font: inherit;
             appearance: var(--dropdown-appearance);
             pointer-events: all;
+            user-select: none;
             white-space: nowrap;
         }
 

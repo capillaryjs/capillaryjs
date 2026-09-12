@@ -153,6 +153,7 @@ export class LineGraph extends Component<LineGraphProps> {
             min-height: var(--viz-line-graph-min-height, 24rem);
             flex-direction: column;
             padding: var(--viz-space, 0.7rem);
+            user-select: none;
         }
 
         & h2,

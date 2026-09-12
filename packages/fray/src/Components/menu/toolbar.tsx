@@ -45,6 +45,7 @@ export class Toolbar extends Component<ToolbarProps> {
             box-shadow: var(--toolbar-shadow);
             gap: var(--spacing-small, 0.5rem);
             padding: var(--ui-padding);
+            user-select: none;
         }
 
         & > * {

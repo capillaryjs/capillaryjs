@@ -183,6 +183,7 @@ export class DateTimePicker extends Component<DateTimePickerProps> {
             padding: 0;
             margin: 0 0 0.25em;
             font: inherit;
+            user-select: none;
         }
 
         & > [role="alert"] {

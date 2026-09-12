@@ -422,6 +422,10 @@ export class Component<TProps extends ComponentProps = ComponentProps> {
             max-height: calc(100% - (2 * var(--island-margin)));
             overflow-y: auto;
         }
+
+        label[data-fray] {
+            user-select: none;
+        }
     `
     static hostName: string | null = null
 

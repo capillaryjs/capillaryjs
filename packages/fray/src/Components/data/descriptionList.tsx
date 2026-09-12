@@ -40,6 +40,7 @@ export class DescriptionList extends Component<DescriptionListProps> {
     static css = css`
         & {
             display: block;
+            user-select: none;
         }
 
         & > dl {

@@ -11,6 +11,10 @@ and Semantic Versioning.
 - `CollapsibleOptionGroup` now consumes `OptionGroupHeaderEnd` declarative
   region children, matching Fray's parent-specific content-region contract.
 
+- Component chrome text is now non-selectable: `user-select: none` covers
+  `BlockGraph`, `LineGraph`, `CategoryHidePanel`, and `SplitSelectionPanel`
+  hosts plus the `CollapsibleOptionGroup` collapse toggle.
+
 ## 0.11.1 - 2026-09-08
 
 ### Fixed

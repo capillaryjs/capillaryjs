@@ -84,6 +84,7 @@ extends OptionsPanel<CategoryHidePanelProps<TItem>> {
         & {
             flex: 0 0 auto;
             min-width: 0;
+            user-select: none;
         }
 
         & > fray-content > fray-categoryhidecontent {

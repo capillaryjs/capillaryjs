@@ -161,6 +161,7 @@ export class Dialog extends Component<DialogProps> {
             color: var(--dialog-header-color);
             background: var(--dialog-header-background);
             box-shadow: var(--section-header-shadow);
+            user-select: none;
         }
 
         & > dialog > header h2,

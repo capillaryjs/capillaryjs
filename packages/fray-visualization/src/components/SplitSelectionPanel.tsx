@@ -106,6 +106,7 @@ extends Component<SplitSelectionPanelProps<TItem>> {
             display: grid;
             gap: var(--viz-space, 0.6rem);
             min-width: 0;
+            user-select: none;
         }
 
         & > fray-grouppanel {

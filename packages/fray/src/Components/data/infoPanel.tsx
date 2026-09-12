@@ -72,6 +72,7 @@ export class InfoPanel extends Component<InfoPanelProps> {
             display: flex;
             flex-direction: column;
             overflow: auto;
+            user-select: none;
         }
 
         & > dl {

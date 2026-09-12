@@ -100,6 +100,7 @@ export class BlockGraph<TItem = unknown> extends Component<BlockGraphProps<TItem
             flex-direction: column;
             padding: var(--viz-space, 0.7rem);
             overflow: hidden;
+            user-select: none;
         }
 
         & > header {

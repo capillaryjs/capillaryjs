@@ -96,6 +96,54 @@
             overflow-y: auto;
         }
 
+        label[data-fray] {
+            user-select: none;
+        }
+
+fray-breadcrumb {
+            display: block;
+            min-width: 0;
+            user-select: none;
+        }
+
+        fray-breadcrumb > nav > ol {
+            display: flex;
+            flex-flow: row wrap;
+            align-items: center;
+            gap: var(--breadcrumb-gap, 0.375rem);
+            margin: 0;
+            padding: 0;
+            list-style: none;
+            min-width: 0;
+        }
+
+        fray-breadcrumb > nav > ol > li {
+            display: inline-flex;
+            align-items: center;
+            min-width: 0;
+        }
+
+        fray-breadcrumb > nav > ol > li + li::before {
+            content: "/";
+            margin-inline-end: var(--breadcrumb-gap, 0.375rem);
+            color: var(--breadcrumb-separator-color, var(--muted-color, currentColor));
+            opacity: 0.6;
+        }
+
+        fray-breadcrumb > nav > ol > li > a {
+            color: var(--breadcrumb-link-color, inherit);
+            text-decoration: none;
+            white-space: nowrap;
+        }
+
+        fray-breadcrumb > nav > ol > li > a:hover {
+            text-decoration: underline;
+        }
+
+        fray-breadcrumb > nav > ol > li > [aria-current="page"] {
+            font-weight: var(--breadcrumb-current-font-weight, 600);
+        }
+
 fray-button > button {
             min-height: var(--control-min-height, 2rem);
             padding: var(--space-xs) var(--space-sm);
@@ -140,6 +188,7 @@ fray-button > button {
 
 fray-checkbox,
 fray-quadcheckbox,
+fray-radiobutton,
 fray-tricheckbox {
             display: inline-flex;
             line-height: 1;
@@ -147,6 +196,7 @@ fray-tricheckbox {
 
         fray-checkbox > label,
         fray-quadcheckbox > label,
+        fray-radiobutton > label,
         fray-tricheckbox > label {
             display: flex;
             flex-flow: row nowrap;
@@ -168,6 +218,7 @@ fray-tricheckbox {
 
         fray-checkbox > label:has(> input:disabled),
         fray-quadcheckbox > label:has(> input:disabled),
+        fray-radiobutton > label:has(> input:disabled),
         fray-tricheckbox > label:has(> input:disabled) {
             color: var(--checkable-label-color-disabled);
             cursor: not-allowed;
@@ -175,6 +226,7 @@ fray-tricheckbox {
 
         fray-checkbox > label > input,
         fray-quadcheckbox > label > input,
+        fray-radiobutton > label > input,
         fray-tricheckbox > label > input {
             position: absolute;
             width: 1px;
@@ -191,6 +243,7 @@ fray-tricheckbox {
 
         fray-checkbox > label > input + fray-checkshell,
         fray-quadcheckbox > label > input + fray-checkshell,
+        fray-radiobutton > label > input + fray-checkshell,
         fray-tricheckbox > label > input + fray-checkshell {
             position: relative;
             display: grid;
@@ -213,6 +266,7 @@ fray-tricheckbox {
 
         fray-checkbox > label > input:checked + fray-checkshell,
         fray-quadcheckbox > label > input:checked + fray-checkshell,
+        fray-radiobutton > label > input:checked + fray-checkshell,
         fray-tricheckbox > label > input:checked + fray-checkshell {
             color: var(--checkbox-symbol-color, var(--selection-color, currentColor));
             background: var(--checkbox-box-background-checked,
@@ -222,6 +276,7 @@ fray-tricheckbox {
 
         fray-checkbox > label > input:focus-visible + fray-checkshell,
         fray-quadcheckbox > label > input:focus-visible + fray-checkshell,
+        fray-radiobutton > label > input:focus-visible + fray-checkshell,
         fray-tricheckbox > label > input:focus-visible + fray-checkshell {
             outline: 2px solid var(--focus-color, var(--ui-accent-color, Highlight));
             outline-offset: 1px;
@@ -229,6 +284,7 @@ fray-tricheckbox {
 
         fray-checkbox > label > input:disabled + fray-checkshell,
         fray-quadcheckbox > label > input:disabled + fray-checkshell,
+        fray-radiobutton > label > input:disabled + fray-checkshell,
         fray-tricheckbox > label > input:disabled + fray-checkshell {
             opacity: 0.6;
             filter: saturate(0.6);
@@ -251,6 +307,8 @@ fray-tricheckbox > label > input[value="require"] + fray-checkshell {
         }
 
 fray-colorpicker,
+fray-datepicker,
+fray-timepicker,
 fray-dropdown,
 fray-textbox,
 fray-themepicker {
@@ -268,6 +326,8 @@ fray-themepicker {
         }
 
         fray-colorpicker > label,
+        fray-datepicker > label,
+        fray-timepicker > label,
         fray-dropdown > label,
         fray-textbox > label,
         fray-themepicker > label {
@@ -276,12 +336,14 @@ fray-themepicker {
         }
 
 fray-colorpicker,
+fray-timepicker,
 fray-dropdown,
 fray-themepicker {
             min-width: 0;
         }
 
         fray-colorpicker > fray-selectshell,
+        fray-timepicker > fray-selectshell,
         fray-dropdown > fray-selectshell,
         fray-themepicker > fray-selectshell {
             display: flex;
@@ -294,6 +356,7 @@ fray-themepicker {
         }
 
         fray-colorpicker > fray-selectshell > select,
+        fray-timepicker > fray-selectshell > select,
         fray-dropdown > fray-selectshell > select,
         fray-themepicker > fray-selectshell > select {
             position: relative;
@@ -313,10 +376,12 @@ fray-themepicker {
             font: inherit;
             appearance: var(--dropdown-appearance);
             pointer-events: all;
+            user-select: none;
             white-space: nowrap;
         }
 
         fray-colorpicker > fray-selectshell::after,
+        fray-timepicker > fray-selectshell::after,
         fray-dropdown > fray-selectshell::after,
         fray-themepicker > fray-selectshell::after {
             content: var(--dropdown-underlay-content);
@@ -334,6 +399,7 @@ fray-themepicker {
         }
 
         fray-colorpicker > fray-selectshell::before,
+        fray-timepicker > fray-selectshell::before,
         fray-dropdown > fray-selectshell::before,
         fray-themepicker > fray-selectshell::before {
             content: var(--dropdown-trigger-content);
@@ -356,6 +422,7 @@ fray-themepicker {
         }
 
         fray-colorpicker > fray-selectshell:has(> select:hover:not(:disabled))::before,
+        fray-timepicker > fray-selectshell:has(> select:hover:not(:disabled))::before,
         fray-dropdown > fray-selectshell:has(> select:hover:not(:disabled))::before,
         fray-themepicker > fray-selectshell:has(> select:hover:not(:disabled))::before {
             background: var(--dropdown-trigger-background-hover);
@@ -363,6 +430,7 @@ fray-themepicker {
         }
 
         fray-colorpicker > fray-selectshell:has(> select:disabled)::before,
+        fray-timepicker > fray-selectshell:has(> select:disabled)::before,
         fray-dropdown > fray-selectshell:has(> select:disabled)::before,
         fray-themepicker > fray-selectshell:has(> select:disabled)::before {
             color: var(--input-color-disabled);
@@ -371,6 +439,7 @@ fray-themepicker {
         }
 
         fray-colorpicker > fray-selectshell:has(> select:disabled)::after,
+        fray-timepicker > fray-selectshell:has(> select:disabled)::after,
         fray-dropdown > fray-selectshell:has(> select:disabled)::after,
         fray-themepicker > fray-selectshell:has(> select:disabled)::after {
             background: var(--dropdown-underlay-background-disabled);
@@ -378,6 +447,7 @@ fray-themepicker {
         }
 
         fray-colorpicker > fray-selectshell > select:focus-visible,
+        fray-timepicker > fray-selectshell > select:focus-visible,
         fray-dropdown > fray-selectshell > select:focus-visible,
         fray-themepicker > fray-selectshell > select:focus-visible {
             outline: 2px solid transparent;
@@ -387,15 +457,18 @@ fray-themepicker {
 
         @media (forced-colors: active) {
             fray-colorpicker > fray-selectshell::before,
+            fray-timepicker > fray-selectshell::before,
             fray-dropdown > fray-selectshell::before,
             fray-themepicker > fray-selectshell::before,
             fray-colorpicker > fray-selectshell::after,
+            fray-timepicker > fray-selectshell::after,
             fray-dropdown > fray-selectshell::after,
             fray-themepicker > fray-selectshell::after {
                 display: none;
             }
 
             fray-colorpicker > fray-selectshell > select,
+            fray-timepicker > fray-selectshell > select,
             fray-dropdown > fray-selectshell > select,
             fray-themepicker > fray-selectshell > select {
                 appearance: auto;
@@ -586,14 +659,211 @@ fray-filterpanel {
             align-items: flex-start;
             left: 100%;
             top: 0;
+            user-select: none;
         }
 
         fray-filterpanel > p {
             margin: 0;
         }
 
+fray-datepicker {
+            display: flex;
+            flex-flow: row nowrap;
+            align-items: center;
+            gap: 0.5em;
+            position: relative;
+            min-height: var(--control-min-height, 2rem);
+            min-width: 0;
+        }
+
+        fray-datepicker > input {
+            min-height: var(--control-min-height, 2rem);
+            width: var(--input-width, 10rem);
+            max-width: 100%;
+            min-width: var(--input-min-width, 6rem);
+            padding: var(--space-xs) var(--space-sm);
+            color: var(--input-color);
+            background: var(--input-background);
+            border: var(--input-border);
+            border-radius: var(--radius-md);
+            box-shadow: var(--input-shadow);
+            box-sizing: border-box;
+            font: inherit;
+            user-select: text;
+            cursor: text;
+        }
+
+        fray-datepicker > input:disabled,
+        fray-datepicker > input[readonly] {
+            color: var(--input-color-disabled);
+            background: var(--input-background-disabled);
+            border-color: var(--ui-input-border-disabled);
+            cursor: not-allowed;
+        }
+
+        fray-datepicker > input:focus-visible {
+            outline: 2px solid transparent;
+            outline-offset: 1px;
+            box-shadow: var(--focus-ring);
+        }
+
+        fray-datepicker > button {
+            min-height: var(--control-min-height, 2rem);
+            min-width: 2rem;
+            padding: var(--space-xs) var(--space-sm);
+            color: var(--button-color);
+            background: var(--button-background);
+            border: var(--button-border);
+            border-radius: var(--radius-md);
+            cursor: pointer;
+            font: inherit;
+            user-select: none;
+        }
+
+        fray-datepicker > button:disabled {
+            color: var(--input-color-disabled);
+            background: var(--input-background-disabled);
+            cursor: not-allowed;
+        }
+
+        fray-datepicker > dialog {
+            position: absolute;
+            inset-block-start: 100%;
+            inset-inline-start: 0;
+            z-index: 1;
+            margin: 0.25em 0 0;
+            padding: 0.5em;
+            min-width: 16rem;
+            background: var(--island-background, var(--application-background));
+            border: var(--island-border, var(--input-border));
+            border-radius: var(--radius-md);
+            box-shadow: var(--island-shadow, var(--input-shadow));
+            color: var(--ui-color);
+        }
+
+        fray-datepicker > dialog::backdrop {
+            display: none;
+        }
+
+        fray-datepicker > [role="alert"] {
+            margin: 0;
+        }
+
+        fray-datepicker > dialog .fray-calendar {
+            display: inline-block;
+            font: inherit;
+            user-select: none;
+        }
+
+        fray-datepicker > dialog .fray-calendar .fray-calendar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 0.5em;
+            padding: 0.25em 0.5em;
+            font: inherit;
+            text-align: center;
+        }
+
+        fray-datepicker > dialog .fray-calendar .fray-calendar-header button {
+            min-inline-size: 2em;
+            min-block-size: 2em;
+            padding: 0.25em;
+            cursor: pointer;
+        }
+
+        fray-datepicker > dialog .fray-calendar table[role="grid"] {
+            border-collapse: collapse;
+            width: 100%;
+            font: inherit;
+        }
+
+        fray-datepicker > dialog .fray-calendar table[role="grid"] th,
+        fray-datepicker > dialog .fray-calendar table[role="grid"] td {
+            padding: 0.125em;
+            text-align: center;
+        }
+
+        fray-datepicker > dialog .fray-calendar table[role="grid"] th {
+            font-weight: 600;
+        }
+
+        fray-datepicker > dialog .fray-calendar table[role="grid"] td button {
+            inline-size: 2em;
+            block-size: 2em;
+            padding: 0;
+            border: 1px solid transparent;
+            border-radius: var(--radius-sm, 0.25rem);
+            background: transparent;
+            color: inherit;
+            font: inherit;
+            cursor: pointer;
+        }
+
+        fray-datepicker > dialog .fray-calendar table[role="grid"] td button:focus-visible {
+            outline: 2px solid transparent;
+            outline-offset: 1px;
+            box-shadow: var(--focus-ring);
+        }
+
+        fray-datepicker > dialog .fray-calendar table[role="grid"] td button[data-today="true"] {
+            border-color: var(--palette-primary-500);
+        }
+
+        fray-datepicker > dialog .fray-calendar table[role="grid"] td button[data-selected="true"] {
+            background: var(--palette-primary-500);
+            color: var(--palette-primary-contrast);
+        }
+
+        fray-datepicker > dialog .fray-calendar table[role="grid"] td button:disabled,
+        fray-datepicker > dialog .fray-calendar table[role="grid"] td button[aria-disabled="true"] {
+            color: var(--input-color-disabled);
+            cursor: not-allowed;
+        }
+
+        @media (forced-colors: active) {
+            fray-datepicker > dialog .fray-calendar table[role="grid"] td button[data-selected="true"] {
+                outline: 2px solid ButtonText;
+            }
+        }
+
+fray-datetimepicker {
+            display: block;
+            min-width: 0;
+        }
+
+        fray-datetimepicker > fieldset {
+            margin: 0;
+            padding: 0;
+            min-inline-size: 0;
+            border: 0;
+            display: flex;
+            flex-flow: row wrap;
+            align-items: flex-start;
+            gap: 0.5em;
+            width: 100%;
+        }
+
+        fray-datetimepicker > fieldset > legend {
+            display: block;
+            width: 100%;
+            padding: 0;
+            margin: 0 0 0.25em;
+            font: inherit;
+            user-select: none;
+        }
+
+        fray-datetimepicker > [role="alert"] {
+            margin: 0.25em 0 0;
+        }
+
+fray-timepicker > fray-selectshell > select {
+            min-width: 7rem;
+        }
+
 fray-descriptionlist {
             display: block;
+            user-select: none;
         }
 
         fray-descriptionlist > dl {
@@ -637,6 +907,7 @@ fray-dialog > dialog {
             color: var(--dialog-header-color);
             background: var(--dialog-header-background);
             box-shadow: var(--section-header-shadow);
+            user-select: none;
         }
 
         fray-dialog > dialog > header h2,
@@ -684,7 +955,8 @@ fray-app {
             line-height: var(--line-height);
         }
 
-fray-grouppanel {
+fray-grouppanel,
+fray-optionspanel {
             display: flex;
             flex-flow: row nowrap;
             align-items: stretch;
@@ -698,7 +970,8 @@ fray-grouppanel {
             border-radius: var(--ui-border-radius);
         }
 
-        fray-grouppanel > fray-header {
+        fray-grouppanel > fray-header,
+        fray-optionspanel > fray-header {
             display: grid;
             place-items: center;
             box-sizing: border-box;
@@ -713,7 +986,8 @@ fray-grouppanel {
             font-size: var(--ui-font-size);
         }
 
-        fray-grouppanel > fray-content {
+        fray-grouppanel > fray-content,
+        fray-optionspanel > fray-content {
             display: block;
             min-width: 0;
             min-height: 0;
@@ -728,6 +1002,7 @@ fray-header {
             background: var(--section-header-background);
             box-shadow: var(--section-header-shadow);
             z-index: 1;
+            user-select: none;
         }
 
         fray-header > h1,
@@ -738,6 +1013,35 @@ fray-header {
         fray-header > h6 {
             margin: 0;
             font: inherit;
+        }
+
+fray-infopanel {
+            background: var(--panel-background);
+            border: var(--panel-border);
+            border-radius: var(--panel-radius);
+            box-shadow: var(--panel-shadow);
+            color: var(--panel-color);
+            display: flex;
+            flex-direction: column;
+            overflow: auto;
+            user-select: none;
+        }
+
+        fray-infopanel > dl {
+            display: grid;
+            grid-template-columns: auto 1fr;
+            gap: var(--space-sm, 0.375rem) var(--space-md, 1rem);
+            margin: 0;
+            padding: var(--panel-padding, 0.75rem);
+        }
+
+        fray-infopanel > dl > dt {
+            font-weight: 600;
+            color: var(--info-panel-label-color, var(--ui-muted-text-color));
+        }
+
+        fray-infopanel > dl > dd {
+            margin: 0;
         }
 
 fray-listview {
@@ -801,6 +1105,7 @@ fray-navigationbar {
             background: var(--navigation-bar-background);
             border: var(--navigation-bar-border);
             box-shadow: var(--navigation-bar-shadow);
+            user-select: none;
         }
 
         fray-navigationbar > nav,
@@ -873,6 +1178,78 @@ fray-navigationbar {
             cursor: not-allowed;
         }
 
+fray-optiongroup {
+            display: block;
+            min-width: 0;
+        }
+
+        fray-optiongroup > fieldset {
+            margin: 0;
+            padding: 0;
+            min-inline-size: 0;
+            border: 0;
+            width: 100%;
+        }
+
+        fray-optiongroup > fieldset > legend {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-sizing: border-box;
+            gap: 0.5rem;
+            width: 100%;
+            padding: 0 0 0.25em;
+            margin-bottom: 0.5em;
+            border-bottom: 1px solid var(--ui-border-color);
+            font: inherit;
+            user-select: none;
+        }
+
+        fray-optiongroup > fieldset > legend > span {
+            flex: 1;
+            min-width: 0;
+        }
+
+        fray-optiongroup > p[role="alert"] {
+            margin: 0.25em 0 0;
+        }
+
+fray-optionspanel > fray-content {
+            display: flex;
+            flex-direction: column;
+            align-self: stretch;
+            flex: 1 1 0;
+            gap: .5em;
+        }
+
+        fray-optionspanel > fray-content * > fieldset > legend {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-sizing: border-box;
+            font-size: var(--ui-font-size);
+            color: var(--palette-neutral-950);
+            gap: 0.5rem;
+            width: 100%;
+            padding: 0 0 0.25em;
+            margin-bottom: 0.25em;
+            border-bottom: 1px solid var(--ui-border-color);
+            user-select: none;
+        }
+
+        fray-optionspanel > fray-content * > fieldset {
+            display: flex;
+            flex-flow: column;
+            justify-content: stretch;
+            justify-items: stretch;
+            align-items: stretch;
+            align-content: stretch;
+            box-sizing: border-box;
+            width: 100%;
+            gap: 0;
+            padding: .25em 0 .5em 0;
+        }
+
 fray-panel {
             background: var(--panel-background);
             border: var(--panel-border);
@@ -929,6 +1306,7 @@ fray-progressbar {
             text-align: center;
             line-height: var(--control-min-height);
             box-sizing: border-box;
+            user-select: none;
         }
 
         fray-progressbar > fray-content > fray-progress {
@@ -1007,6 +1385,36 @@ fray-progressbar {
             fray-progressbar > fray-content > fray-progress > fray-inverse {
                 color: HighlightText;
             }
+        }
+
+fray-radiogroup > fieldset {
+            display: flex;
+            flex-flow: column wrap;
+            gap: 0;
+            margin: 0;
+            padding: 0;
+            min-inline-size: 0;
+            border: 0;
+            user-select: none;
+        }
+
+        fray-radiogroup > fieldset > legend {
+            flex: 0 0 100%;
+            padding: 0;
+            margin-bottom: .5em;
+            border-bottom: 1px solid #aaa;
+        }
+
+fray-radiobutton > label > input[type="radio"] + fray-checkshell {
+            border-radius: 50%;
+        }
+
+        fray-radiobutton > label > input[type="radio"]:checked + fray-checkshell::after {
+            width: .4em;
+            height: .4em;
+            content: "";
+            border-radius: 50%;
+            background: var(--checkbox-symbol-color);
         }
 
 fray-routeoutlet {
@@ -1383,6 +1791,7 @@ fray-toolbar {
             box-shadow: var(--toolbar-shadow);
             gap: var(--spacing-small, 0.5rem);
             padding: var(--ui-padding);
+            user-select: none;
         }
 
         fray-toolbar > * {

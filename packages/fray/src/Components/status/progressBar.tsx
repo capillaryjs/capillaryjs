@@ -96,6 +96,7 @@ export class ProgressBar extends Component<ProgressBarProps> {
             text-align: center;
             line-height: var(--control-min-height);
             box-sizing: border-box;
+            user-select: none;
         }
 
         & > fray-content > fray-progress {

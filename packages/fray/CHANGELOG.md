@@ -93,6 +93,18 @@ Versioning.
   variables only, which contradicted both the cascade design and the shipped
   Shiny theme.
 
+- Component chrome text is now consistently non-selectable. `user-select: none`
+  covers section `Header` titles, `OptionGroup`/`OptionsPanel` legends, native
+  `select` shells (`Dropdown`, `TimePicker`, `ThemePicker`, `ColorPicker`),
+  `Toolbar`, `Breadcrumb`, `NavigationBar`, `ProgressBar`, `InfoPanel`,
+  `DescriptionList`, `FilterPanel`, `Dialog` titles, the `DatePicker` trigger
+  and calendar popup, the `DateTimePicker` legend, and every Fray-rendered
+  `label` element. The `DatePicker` text input explicitly keeps
+  `user-select: text`. The generated `styles/structural.css` now also includes
+  `Breadcrumb`, `Header`, `InfoPanel`, `OptionGroup`, `OptionsPanel`,
+  `RadioGroup`, `DatePicker`, `DateTimePicker`, and `TimePicker`, which were
+  missing from the stylesheet manifest.
+
 ## 1.3.1 - 2026-09-08
 
 ### Fixed

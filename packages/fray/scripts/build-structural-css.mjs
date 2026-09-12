@@ -4,6 +4,7 @@ import {fileURLToPath} from 'node:url'
 import {Placeholder} from '../src/Components/Placeholder.tsx'
 import {FrayApp} from '../src/Components/app/app.tsx'
 import {DescriptionItem, DescriptionList} from '../src/Components/data/descriptionList.tsx'
+import {InfoPanel} from '../src/Components/data/infoPanel.tsx'
 import {ListView} from '../src/Components/data/listview/listview.tsx'
 import {DataTable} from '../src/Components/data/table/DataTable.tsx'
 import {FilterPanel} from '../src/Components/data/table/FilterPanel.tsx'
@@ -13,17 +14,25 @@ import {TreeItem} from '../src/Components/data/treeview/treeitem.tsx'
 import {TreeView} from '../src/Components/data/treeview/treeview.tsx'
 import {Dialog} from '../src/Components/dialog/dialog.tsx'
 import {GroupPanel} from '../src/Components/layout/groupPanel.tsx'
+import {Header} from '../src/Components/layout/header.tsx'
+import {OptionGroup} from '../src/Components/layout/optionGroup.tsx'
+import {OptionsPanel} from '../src/Components/layout/optionsPanel.tsx'
 import {Panel} from '../src/Components/layout/panel.tsx'
 import {Sidebar} from '../src/Components/layout/sidebar.tsx'
 import {SplitView} from '../src/Components/layout/splitView.tsx'
 import {Tab} from '../src/Components/layout/tabpanel/tab.ts'
 import {TabLine} from '../src/Components/layout/tabpanel/tabline.tsx'
 import {TabPanel} from '../src/Components/layout/tabpanel/tabpanel.tsx'
+import {Breadcrumb} from '../src/Components/navigation/breadcrumb.tsx'
 import {NavigationBar} from '../src/Components/navigation/navigationBar.tsx'
 import {Checkbox} from '../src/Components/lineinputs/checkbox/Checkbox.tsx'
 import {QuadCheckbox} from '../src/Components/lineinputs/checkbox/QuadCheckbox.ts'
 import {TriCheckbox} from '../src/Components/lineinputs/checkbox/TriCheckbox.ts'
+import {DatePicker} from '../src/Components/lineinputs/datetime/DatePicker.tsx'
+import {DateTimePicker} from '../src/Components/lineinputs/datetime/DateTimePicker.tsx'
+import {TimePicker} from '../src/Components/lineinputs/datetime/TimePicker.tsx'
 import {Dropdown} from '../src/Components/lineinputs/dropdown.tsx'
+import {RadioGroup} from '../src/Components/lineinputs/radio.tsx'
 import {Textbox} from '../src/Components/lineinputs/textbox.tsx'
 import {Toggle} from '../src/Components/lineinputs/toggle.tsx'
 import {Button} from '../src/Components/menu/button.tsx'
@@ -34,10 +43,13 @@ import {RouteOutlet} from '../src/routing/RouteOutlet.tsx'
 import {createFrayRuntime} from '../src/runtime.ts'
 
 const components = [
+    Breadcrumb,
     Button,
     Checkbox,
     ColorPicker,
     DataTable,
+    DatePicker,
+    DateTimePicker,
     DescriptionItem,
     DescriptionList,
     Dialog,
@@ -45,12 +57,17 @@ const components = [
     FilterPanel,
     FrayApp,
     GroupPanel,
+    Header,
+    InfoPanel,
     ListView,
     NavigationBar,
+    OptionGroup,
+    OptionsPanel,
     Panel,
     Placeholder,
     ProgressBar,
     QuadCheckbox,
+    RadioGroup,
     RouteOutlet,
     Sidebar,
     SplitView,
@@ -61,6 +78,7 @@ const components = [
     TableHeaderCell,
     Textbox,
     ThemePicker,
+    TimePicker,
     Toggle,
     Toolbar,
     TreeItem,

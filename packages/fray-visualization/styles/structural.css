@@ -96,6 +96,10 @@
             overflow-y: auto;
         }
 
+        label[data-fray] {
+            user-select: none;
+        }
+
 fray-blockgraph {
             display: flex;
             min-width: 0;
@@ -103,6 +107,7 @@ fray-blockgraph {
             flex-direction: column;
             padding: var(--viz-space, 0.7rem);
             overflow: hidden;
+            user-select: none;
         }
 
         fray-blockgraph > header {
@@ -358,6 +363,7 @@ fray-categoryhidepanel > fray-content {
             padding: 0 0 0.25em;
             margin-bottom: 0.25em;
             border-bottom: 1px solid var(--ui-border-color);
+            user-select: none;
         }
 
         fray-categoryhidepanel > fray-content * > fieldset {
@@ -376,6 +382,7 @@ fray-categoryhidepanel > fray-content {
 fray-categoryhidepanel {
             flex: 0 0 auto;
             min-width: 0;
+            user-select: none;
         }
 
         fray-categoryhidepanel > fray-content > fray-categoryhidecontent {
@@ -454,6 +461,7 @@ fray-header {
             background: var(--section-header-background);
             box-shadow: var(--section-header-shadow);
             z-index: 1;
+            user-select: none;
         }
 
         fray-header > h1,
@@ -582,6 +590,7 @@ fray-collapsibleoptiongroup {
             margin-bottom: 0.5em;
             border-bottom: 1px solid var(--ui-border-color);
             font: inherit;
+            user-select: none;
         }
 
         fray-collapsibleoptiongroup > fieldset > legend > span {
@@ -607,6 +616,7 @@ fray-collapsibleoptiongroup > fieldset > legend > button.fray-collapse-toggle {
             font: inherit;
             cursor: pointer;
             flex: 0 0 auto;
+            user-select: none;
         }
 
         fray-collapsibleoptiongroup > fieldset > legend > button.fray-collapse-toggle:hover {
@@ -632,6 +642,7 @@ fray-linegraph {
             min-height: var(--viz-line-graph-min-height, 24rem);
             flex-direction: column;
             padding: var(--viz-space, 0.7rem);
+            user-select: none;
         }
 
         fray-linegraph h2,
@@ -729,6 +740,7 @@ fray-splitselectionpanel {
             display: grid;
             gap: var(--viz-space, 0.6rem);
             min-width: 0;
+            user-select: none;
         }
 
         fray-splitselectionpanel > fray-grouppanel {

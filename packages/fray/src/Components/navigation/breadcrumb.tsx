@@ -70,6 +70,7 @@ export class Breadcrumb extends Component<BreadcrumbProps> {
         & {
             display: block;
             min-width: 0;
+            user-select: none;
         }
 
         & > nav > ol {

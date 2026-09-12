@@ -52,6 +52,7 @@ export class Header extends Component<HeaderProps> {
             background: var(--section-header-background);
             box-shadow: var(--section-header-shadow);
             z-index: 1;
+            user-select: none;
         }
 
         & > h1,

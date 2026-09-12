@@ -356,6 +356,7 @@ export class DatePicker extends LabeledInputControl<DatePickerProps> {
             box-shadow: var(--input-shadow);
             box-sizing: border-box;
             font: inherit;
+            user-select: text;
             cursor: text;
         }
 
@@ -383,6 +384,7 @@ export class DatePicker extends LabeledInputControl<DatePickerProps> {
             border-radius: var(--radius-md);
             cursor: pointer;
             font: inherit;
+            user-select: none;
         }
 
         & > button:disabled {
@@ -417,6 +419,7 @@ export class DatePicker extends LabeledInputControl<DatePickerProps> {
         & > dialog .fray-calendar {
             display: inline-block;
             font: inherit;
+            user-select: none;
         }
 
         & > dialog .fray-calendar .fray-calendar-header {

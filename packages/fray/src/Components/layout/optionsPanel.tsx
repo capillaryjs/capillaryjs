@@ -33,6 +33,7 @@ export class OptionsPanel<TProps extends GroupPanelBaseProps = OptionsPanelProps
             padding: 0 0 0.25em;
             margin-bottom: 0.25em;
             border-bottom: 1px solid var(--ui-border-color);
+            user-select: none;
         }
 
         & > fray-content * > fieldset {

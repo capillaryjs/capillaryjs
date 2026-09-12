@@ -99,6 +99,7 @@ export class OptionGroup<TProps extends OptionGroupBaseProps = OptionGroupBasePr
             margin-bottom: 0.5em;
             border-bottom: 1px solid var(--ui-border-color);
             font: inherit;
+            user-select: none;
         }
 
         & > fieldset > legend > span {

@@ -98,6 +98,7 @@ export class CollapsibleOptionGroup<
             font: inherit;
             cursor: pointer;
             flex: 0 0 auto;
+            user-select: none;
         }
 
         & > fieldset > legend > button.fray-collapse-toggle:hover {
