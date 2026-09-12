@@ -275,14 +275,21 @@ fray-themepicker {
             white-space: nowrap;
         }
 
-fray-colorpicker > fray-selectshell,
-fray-dropdown > fray-selectshell,
-fray-themepicker > fray-selectshell {
+fray-colorpicker,
+fray-dropdown,
+fray-themepicker {
+            min-width: 0;
+        }
+
+        fray-colorpicker > fray-selectshell,
+        fray-dropdown > fray-selectshell,
+        fray-themepicker > fray-selectshell {
             display: flex;
             flex-flow: row nowrap;
             position: relative;
             isolation: isolate;
             min-height: var(--control-min-height, 2rem);
+            min-width: 0;
             box-sizing: border-box;
         }
 
@@ -293,6 +300,8 @@ fray-themepicker > fray-selectshell {
             z-index: 1;
             min-height: var(--control-min-height, 2rem);
             width: var(--input-width, 15rem);
+            max-width: 100%;
+            min-width: var(--input-min-width, 6rem);
             padding: var(--space-xs) var(--space-sm);
             padding-inline-end: var(--dropdown-padding-inline-end);
             color: var(--input-color);
@@ -1042,6 +1051,11 @@ fray-sidebar {
             flex: none;
         }
 
+        fray-sidebar > aside > fray-toolbarcontent {
+            min-width: 0;
+            overflow-x: auto;
+        }
+
         fray-sidebar > aside > fray-content {
             flex: 1;
             min-height: 0;
@@ -1226,9 +1240,15 @@ fray-tabpanel {
             margin-inline-start: -3px;
         }
 
-fray-textbox > input {
+fray-textbox {
+            min-width: 0;
+        }
+
+        fray-textbox > input {
             min-height: var(--control-min-height, 2rem);
             width: var(--input-width, 15rem);
+            max-width: 100%;
+            min-width: var(--input-min-width, 6rem);
             padding: var(--space-xs) var(--space-sm);
             color: var(--input-color);
             background: var(--input-background);
