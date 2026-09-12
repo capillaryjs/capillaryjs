@@ -146,7 +146,10 @@ createFrayRuntime({router})
 new RouteLink({to: routeTarget(homeRoute), children: 'Home'})
 new NavigationBar({
     label: 'Primary',
-    items: [{id: 'home', label: 'Home', to: routeTarget(homeRoute)}],
+    items: [
+        {id: 'home', label: 'Home', to: routeTarget(homeRoute)},
+        {id: 'portal', label: 'Portal', to: {kind: 'external', href: 'https://portal.example/'}},
+    ],
 })
 new RouteOutlet({
     valueEmitter: new Emitter<string | number | null>('home'),

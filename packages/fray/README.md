@@ -352,7 +352,7 @@ const view = new Emitter<'list' | 'grid'>('list')
 | `Panel` | Optional labelled, themed region composed over a Layout body | `header`, `horizontal`/`vertical`, `allocation`, `scroll`, `disabled`; `PanelToolbar` and ordinary content children; live: `disabled` |
 | `Sidebar` | Labelled `aside` with fixed header/toolbar and scrolling content | `header`, `ariaLabel`; `SidebarToolbar` and ordinary content children |
 | `SplitView` | Resizable two-pane layout | required `SplitPrimary` and `SplitSecondary` Layout panes; `horizontal`/`vertical`, `allocation`, initial/minimum sizes, separator label, `onResize` |
-| `NavigationBar` | Labelled native navigation list over router-aware anchors | required `label`, `items`; per-item route target, `exact`, disabled/link options |
+| `NavigationBar` | Labelled native navigation list over router-aware or external anchors | required `label`, `items`; per-item route target or `{kind: 'external', href}`, `exact`, disabled/link options |
 | `Tab` | Declarative tab definition consumed by `TabPanel` | `id`, `label`, `disabled`, optional literal `route`, content |
 | `TabLine` | Standalone keyboard-operable tab list | `tabs`, `valueEmitter`/`activeTabEmitter`, initial value, `label`, `onChange` |
 | `TabPanel` | Tab list plus owned tabpanel sections | declarative `Tab` children or `tabs` definitions; value props, `mountPolicy`, `label`, `onChange` |
@@ -407,7 +407,11 @@ only when a fixed divider is deliberate.
 
 `NavigationBar` uses a native `nav`, list, and anchors. It preserves
 `RouteLink` href generation, current-route state, modified clicks, targets,
-and downloads. It has ordinary link tab order and no tab or ARIA-menu keyboard
+and downloads. An item whose `to` is `{kind: 'external', href}` renders a
+plain anchor for destinations outside the current router or origin: the
+router never intercepts it, no `aria-current` applies, and no router is
+required in the runtime. It has ordinary link tab order and no tab or
+ARIA-menu keyboard
 model. A disabled item is rendered as a visible non-link with
 `aria-disabled="true"`. The bar navigates only; it never locates or owns the
 content affected by a route.
@@ -593,7 +597,8 @@ Core routing exports:
   `MemoryNavigationAdapter` decide where locations live.
 - `RouteScope` establishes lineage; `RouteValue` binds dynamic path values;
   `RouteQuery` binds one named query value; `RouteLink` renders a real anchor.
-- `NavigationBar` groups native route links but does not own destination DOM.
+- `NavigationBar` groups native route links and external-destination anchors
+  but does not own destination DOM.
 - `RouteOutlet` registers one sibling literal-route set against an
   application-owned emitter and gives selected content its resolved scope.
 - `waitForRouteValue` lets a resolver await a readable application

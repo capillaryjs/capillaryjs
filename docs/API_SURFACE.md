@@ -186,7 +186,10 @@ Descriptors are immutable relative vocabulary. Mounted scopes establish
 lineage and are discovered progressively. `RouteValue` binds one dynamic
 segment to a writable emitter; `RouteQuery` binds one explicit query name;
 `RouteLink` renders a real anchor, and `NavigationBar` groups those links in a
-labelled native navigation list without owning destination DOM. Routed
+labelled native navigation list without owning destination DOM. A
+`NavigationBar` item may instead declare an `ExternalDestination`
+(`{kind: 'external', href}`), rendered as a plain anchor the router never
+intercepts. Routed
 `TabPanel` and `RouteOutlet` content register immediate literal child routes.
 An outlet applies `ContentMountPolicy`, writes restoration to an
 application-owned selection emitter, and supplies the selected branch's nested

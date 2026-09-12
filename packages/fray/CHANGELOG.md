@@ -8,6 +8,10 @@ Versioning.
 
 ### Added
 
+- Added external destinations to `NavigationBar`: an item whose `to` is
+  `{kind: 'external', href}` renders a plain anchor the router never
+  intercepts, preserving native link behavior for cross-application and
+  cross-origin navigation without requiring a router in the runtime.
 - Added the `Breadcrumb` navigation component: an ordered path of ancestor
   router-aware links ending in an `aria-current="page"` current item, with
   optional per-item `onClick` actions and accessible `nav`/`ol` semantics.

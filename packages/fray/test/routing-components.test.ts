@@ -353,6 +353,15 @@ describe('routed Fray components', () => {
                 {id: 'duplicate', label: 'Second', to: routeTarget(route)},
             ],
         }), /Duplicate navigation item id/)
+        assert.throws(() => new NavigationBar({
+            label: 'Primary',
+            items: [{id: 'ext', label: 'External', to: {kind: 'external', href: ''}}],
+        }), /non-empty href/)
+        assert.throws(() => new NavigationBar({
+            label: 'Primary',
+            // @ts-expect-error Runtime validation remains for JavaScript consumers.
+            items: [{id: 'ext', label: 'External', to: {kind: 'external'}}],
+        }), /non-empty href/)
         assert.throws(() => new RouteOutlet({
             // @ts-expect-error Runtime validation remains for JavaScript consumers.
             views: null,
@@ -503,6 +512,79 @@ describe('routed Fray components', () => {
         panel.destroy()
         assert.equal(active.subscriberCount, 0)
         router.dispose()
+    })
+
+    test('external navigation items render native anchors without router interception', async () => {
+        const homeRoute = defineRoute('nav-home')
+        const adapter = new MemoryNavigationAdapter()
+        const router = createBrowserRouter({adapter})
+        let clicked = 0
+
+        const bar = new NavigationBar({
+            label: 'Applications',
+            items: [
+                {id: 'home', label: 'Home', to: routeTarget(homeRoute)},
+                {
+                    id: 'portal',
+                    label: 'Portal',
+                    to: {kind: 'external', href: 'https://portal.example/app?x=1'},
+                    target: '_blank',
+                    title: 'Customer portal',
+                    onClick: () => {
+                        clicked += 1
+                    },
+                },
+                {
+                    id: 'offline',
+                    label: 'Offline',
+                    to: {kind: 'external', href: 'https://offline.example/'},
+                    disabled: true,
+                },
+            ],
+        })
+        const runtime = createFrayRuntime({router})
+        runtime.mount(bar, document.body)
+        await waitUntil(() => router.transition.get().state === 'idle')
+
+        const links = [...document.querySelectorAll<HTMLAnchorElement>('a')]
+        assert.equal(links.length, 2)
+        const external = requiredAt(links, 1)
+        assert.equal(external.getAttribute('href'), 'https://portal.example/app?x=1')
+        assert.equal(external.getAttribute('target'), '_blank')
+        assert.equal(external.getAttribute('title'), 'Customer portal')
+        assert.equal(external.getAttribute('aria-current'), null)
+
+        const disabled = requiredQuery('span[aria-disabled="true"]')
+        assert.equal(disabled.textContent, 'Offline')
+
+        const native = new window.MouseEvent('click', {
+            bubbles: true,
+            cancelable: true,
+            button: 0,
+        })
+        external.dispatchEvent(native as unknown as Event)
+        assert.equal(native.defaultPrevented, false)
+        assert.equal(clicked, 1)
+        assert.equal(adapter.read(), '/')
+        assert.equal(adapter.length, 1)
+
+        bar.destroy()
+        router.dispose()
+    })
+
+    test('external navigation items work without a router', () => {
+        const bar = new NavigationBar({
+            label: 'Applications',
+            items: [
+                {id: 'portal', label: 'Portal', to: {kind: 'external', href: 'https://portal.example/'}},
+            ],
+        })
+        const runtime = createFrayRuntime()
+        runtime.mount(bar, document.body)
+
+        const link = requiredQuery('a')
+        assert.equal(link.getAttribute('href'), 'https://portal.example/')
+        bar.destroy()
     })
 })
 

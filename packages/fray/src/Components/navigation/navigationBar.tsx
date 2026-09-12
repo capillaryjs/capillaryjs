@@ -6,10 +6,26 @@ import {RouteLink} from '../../routing/RouteLink.js'
 import type {RouteDescriptor, RouteTarget} from '../../routing/route.js'
 import type {ResolvedRoute} from '../../routing/router.js'
 
+/**
+ * A navigation destination outside the current router, rendered as a native
+ * anchor. Used for cross-application or cross-origin links where the router
+ * must not intercept activation.
+ */
+export interface ExternalDestination {
+    readonly kind: 'external'
+    readonly href: string
+}
+
+export function isExternalDestination(value: unknown): value is ExternalDestination {
+    return value != null
+        && typeof value === 'object'
+        && (value as {kind?: unknown}).kind === 'external'
+}
+
 export interface NavigationBarItem {
     id: Key
     label: FrayChild
-    to: RouteDescriptor | RouteTarget | ResolvedRoute
+    to: RouteDescriptor | RouteTarget | ResolvedRoute | ExternalDestination
     exact?: boolean
     disabled?: boolean
     target?: string
@@ -40,14 +56,22 @@ export class NavigationBar extends Component<NavigationBarProps> {
                 <ul>{this.props.items.map((item) => <li key={String(item.id)}>
                     {item.disabled
                         ? <span aria-disabled="true" title={item.title}>{item.label}</span>
-                        : <RouteLink
-                            to={item.to}
-                            {...(item.exact == null ? {} : {exact: item.exact})}
-                            {...(item.target == null ? {} : {target: item.target})}
-                            {...(item.download == null ? {} : {download: item.download})}
-                            {...(item.title == null ? {} : {title: item.title})}
-                            {...(item.onClick == null ? {} : {onClick: item.onClick})}
-                        >{item.label}</RouteLink>}
+                        : isExternalDestination(item.to)
+                            ? <a
+                                href={item.to.href}
+                                {...(item.target == null ? {} : {target: item.target})}
+                                {...(item.download == null ? {} : {download: item.download})}
+                                {...(item.title == null ? {} : {title: item.title})}
+                                {...(item.onClick == null ? {} : {onClick: item.onClick})}
+                            >{item.label}</a>
+                            : <RouteLink
+                                to={item.to}
+                                {...(item.exact == null ? {} : {exact: item.exact})}
+                                {...(item.target == null ? {} : {target: item.target})}
+                                {...(item.download == null ? {} : {download: item.download})}
+                                {...(item.title == null ? {} : {title: item.title})}
+                                {...(item.onClick == null ? {} : {onClick: item.onClick})}
+                            >{item.label}</RouteLink>}
                 </li>)}</ul>
             </nav>
         </Host>
@@ -149,7 +173,11 @@ function validateNavigation(props: NavigationBarProps): void {
     for (const item of props.items) {
         if (item == null || item.id == null) throw new TypeError('Each navigation item requires an id')
         if (item.label == null) throw new TypeError('Each navigation item requires a label')
-        if (item.to == null) throw new TypeError('Each navigation item requires a route target')
+        if (item.to == null) throw new TypeError('Each navigation item requires a destination')
+        if (isExternalDestination(item.to)
+            && (typeof item.to.href !== 'string' || item.to.href === '')) {
+            throw new TypeError('External navigation item requires a non-empty href')
+        }
         if (ids.has(item.id)) throw new Error(`Duplicate navigation item id: ${String(item.id)}`)
         if (item.onClick != null && typeof item.onClick !== 'function') {
             throw new TypeError('Navigation item onClick must be a function')

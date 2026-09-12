@@ -34,6 +34,7 @@ const firstRoute = defineRoute('automatic-first')
 const activeRoute = new Emitter<string | number | null>('first')
 const navigation = <NavigationBar label="Primary" items={[
     {id: 'first', label: 'First', to: routeTarget(firstRoute)},
+    {id: 'portal', label: 'Portal', to: {kind: 'external', href: 'https://portal.example/'}},
 ]} />
 const outlet = <RouteOutlet
     valueEmitter={activeRoute}
