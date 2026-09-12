@@ -356,6 +356,40 @@ body {
     border-bottom: 1px solid var(--panel-border, #e1e5e5);
 }
 
+/* Projects detail: stable vertical stack — breadcrumb, info island, table, section tabs. */
+.project-detail {
+    gap: 12px;
+    padding: 12px;
+}
+
+/* Info island: field groups laid out as wrapping columns. */
+.detail-info .info-groups {
+    flex-wrap: wrap;
+    gap: 20px;
+    align-items: flex-start;
+}
+
+.info-group {
+    flex: 1 1 14rem;
+    min-width: 12rem;
+}
+
+.info-group-title {
+    margin: 0 0 6px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+    opacity: .7;
+}
+
+.info-group dl {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 4px 14px;
+    margin: 0;
+}
+
 .row-name {
     flex: 1;
     font-size: 12px;

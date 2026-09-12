@@ -13,7 +13,8 @@ export interface Row extends Record<string, unknown> {
 }
 export interface Metric { label: string; value: number; format?: "money" | "percent" | "hours" | "number"; note?: string }
 export interface Detail {
-  id: string; title: string; subtitle?: string; fields: { label: string; value: string | number; format?: Metric["format"] }[];
+  id: string; title: string; subtitle?: string;
+  fields: { label: string; value: string | number; format?: Metric["format"]; group?: string }[];
   sections: { title: string; rows: Row[] }[];
   projectId?: string; scopeId?: string; phaseId?: string; record?: Row;
 }

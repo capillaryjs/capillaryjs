@@ -1,15 +1,15 @@
 import type {FrayChild, Key} from "@sylwellsoftware/fray";
 import {
-    Component, DataTable, DescriptionList, DescriptionItem,
-    Panel, Sidebar, SidebarToolbar, SplitPrimary, SplitSecondary, SplitView, TreeView,
-    Textbox, Button, ProgressBar, RouteQuery, Placeholder, Toolbar,
-    stringRouteQueryCodec,
+    Breadcrumb, Component, DataTable, InfoField, Layout,
+    Panel, Sidebar, SidebarToolbar, SplitPrimary, SplitSecondary, SplitView, TabPanel, TreeView,
+    Textbox, Button, RouteQuery, Placeholder, Toolbar,
+    routeTarget, stringRouteQueryCodec, withRouteQuery,
 } from "@sylwellsoftware/fray";
-import type {TableColumn, TableRow, TreeNode} from "@sylwellsoftware/fray";
+import type {BreadcrumbItem, TableColumn, TableRow, TreeNode} from "@sylwellsoftware/fray";
 import {Emitter} from "@sylwellsoftware/glue";
-import type {Choice, Row} from "../../api/ScenarioApi.ts";
+import type {Choice, Detail, Row} from "../../api/ScenarioApi.ts";
 import type {ScopeNode} from "../../domain/model.ts";
-import {keyQueryCodec, screens} from "../../app/routing.ts";
+import {keyQueryCodec, routes, screens} from "../../app/routing.ts";
 import {buildco, revision, bootstrap} from "../../app/services.ts";
 import {formatValue, renderRows} from "../shared.tsx";
 
@@ -74,16 +74,72 @@ function filterTree(nodes: readonly TreeNode<ExplorerNode>[], query: string): Tr
     return nodes.map(visit).filter((n): n is TreeNode<ExplorerNode> => n != null);
 }
 
+/** URL-safe tab id from a section title. */
+function slug(title: string): string {
+    return title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
+}
+
+/** Cluster detail fields into titled groups, preserving first-seen order. */
+function groupFields(fields: Detail["fields"]): {title: string; fields: Detail["fields"]}[] {
+    const map = new Map<string, Detail["fields"]>();
+    for (const f of fields) {
+        const key = f.group ?? "";
+        if (!map.has(key)) map.set(key, []);
+        map.get(key)!.push(f);
+    }
+    return [...map].map(([title, fields]) => ({title, fields}));
+}
+
+/** Ancestor scope chain for a scope id, root-first, excluding the scope itself. */
+function scopePath(scopes: readonly ScopeNode[], scopeId: string | undefined): ScopeNode[] {
+    const byId = new Map(scopes.map(s => [String(s.id), s]));
+    const path: ScopeNode[] = [];
+    for (let cur = scopeId ? byId.get(scopeId) : undefined; cur; cur = cur.parentId ? byId.get(String(cur.parentId)) : undefined) {
+        path.unshift(cur);
+    }
+    return path;
+}
+
+function buildCrumbs(
+    detail: Detail,
+    scopes: readonly ScopeNode[],
+    projects: readonly Choice[],
+): BreadcrumbItem[] {
+    const projectId = String(detail.projectId ?? "");
+    const projectName = projects.find(p => p.value === projectId)?.label ?? projectId;
+    const link = (params: Record<string, string>) =>
+        withRouteQuery(routeTarget(routes.projects), params);
+    const items: BreadcrumbItem[] = [{
+        id: `project:${projectId}`,
+        label: projectName,
+        to: link({project: projectId, scope: "", phase: ""}),
+    }];
+    for (const s of scopePath(scopes, detail.scopeId)) {
+        items.push({
+            id: String(s.id),
+            label: s.name,
+            to: link({project: projectId, scope: String(s.id), phase: ""}),
+        });
+    }
+    if (detail.phaseId) {
+        items.push({id: `phase:${String(detail.phaseId)}`, label: detail.title});
+    }
+    return items;
+}
+
 export class ProjectsView extends Component {
     static dependencies = [
-        DataTable, DescriptionList, DescriptionItem,
+        Breadcrumb, DataTable, InfoField, Layout, TabPanel,
         Panel, Sidebar, SidebarToolbar, SplitView, TreeView,
-        Textbox, Button, ProgressBar, RouteQuery, Placeholder, Toolbar,
+        Textbox, Button, RouteQuery, Placeholder, Toolbar,
     ];
 
     private state = screens.projects;
     private query = buildco.view("projects", {params: this.state.params, revision}, {owner: this});
     private readonly nodeSelection = new Emitter<Key | null>(null);
+    // Separate from state.tab: that emitter clears selection/sort/filters on change,
+    // which would deselect a phase when switching detail sections.
+    private readonly sectionTab = new Emitter<Key | null>(null);
     private nodeSync = false;
     private scopeProject = new Map<string, string>();
     private allNodeKeys: Key[] = [];
@@ -153,8 +209,8 @@ export class ProjectsView extends Component {
         const fullTree = buildTree(b.value.choices.projects ?? [], scopes);
         this.allNodeKeys = collectKeys(fullTree);
         const treeNodes = filterTree(fullTree, search);
-        const progress = detail?.record?.progress
-            ?? detail?.fields.find(f => f.format === "percent" && /progress/i.test(f.label))?.value;
+        const crumbs = detail ? buildCrumbs(detail, scopes, b.value.choices.projects ?? []) : [];
+        const groups = detail ? groupFields(detail.fields) : [];
 
         return <>
             <RouteQuery name="project" codec={stringRouteQueryCodec} valueEmitter={this.state.field("project")} defaultValue=""/>
@@ -182,24 +238,22 @@ export class ProjectsView extends Component {
                 </Sidebar>
             </SplitPrimary>
             <SplitSecondary>
-                <Panel island allocation="flexible" header={detail?.title ?? "Project"}>
+                <Layout vertical allocation="flexible" className="project-detail">
                     {detail ? <>
-                        {detail.subtitle ? <p className="muted detail-subtitle">{detail.subtitle}</p> : null}
-                        <DescriptionList label="Details">
-                            {detail.fields.map(f => <DescriptionItem
-                                key={f.label}
-                                term={f.label}
-                                value={f.format ? formatValue(f.value, f.format) : String(f.value)}
-                            />)}
-                        </DescriptionList>
-                        {progress != null ? <div className="progress-list">
-                            <ProgressBar
-                                label="Progress"
-                                value={Number(progress)}
-                                valueText={`${Math.round(Number(progress))}%`}
-                            />
-                        </div> : null}
-                        <Panel allocation="natural" header="Phases">
+                        <Breadcrumb items={crumbs}/>
+                        <Panel island allocation="natural" header={detail.title} className="detail-info">
+                            <Layout horizontal className="info-groups">
+                                {groups.map(g => <div className="info-group" key={g.title || "details"}>
+                                    {g.title ? <h4 className="info-group-title">{g.title}</h4> : null}
+                                    <dl>{g.fields.map(f => <InfoField
+                                        key={f.label}
+                                        label={f.label}
+                                        value={f.format ? formatValue(f.value, f.format) : String(f.value)}
+                                    />)}</dl>
+                                </div>)}
+                            </Layout>
+                        </Panel>
+                        <Panel island allocation="flexible" header="Phases">
                             <DataTable
                                 caption="Phases"
                                 columns={phaseColumns}
@@ -208,15 +262,20 @@ export class ProjectsView extends Component {
                                 selectedItemEmitter={this.state.selection}
                             />
                         </Panel>
-                        {detail.sections.map(section => <Panel
-                            key={section.title}
-                            allocation="natural"
-                            header={section.title}
-                        >
-                            {renderRows(section.rows as readonly Row[])}
-                        </Panel>)}
-                    </> : <Placeholder/>}
-                </Panel>
+                        {detail.sections.length ? <TabPanel
+                            island
+                            allocation="flexible"
+                            label="Detail sections"
+                            valueEmitter={this.sectionTab}
+                            mountPolicy="active-only"
+                            tabs={detail.sections.map(s => ({
+                                id: slug(s.title),
+                                label: s.title,
+                                content: renderRows(s.rows as readonly Row[]),
+                            }))}
+                        /> : null}
+                    </> : <Panel island><Placeholder/></Panel>}
+                </Layout>
             </SplitSecondary>
             </SplitView>
         </>;

@@ -4,6 +4,7 @@ import {Window} from 'happy-dom'
 
 import {Emitter, FetchState} from '@sylwellsoftware/glue'
 import {
+    Breadcrumb,
     Button,
     Checkbox,
     ColorPicker,
@@ -749,6 +750,32 @@ describe('layout controls', () => {
         const list = requiredQuery<HTMLDListElement>('dl', host)
         assert.equal(list.querySelector('dt')?.textContent, 'Team')
         assert.equal(list.querySelector('dd')?.textContent, 'Accounting')
+    })
+
+    test('Breadcrumb renders an ordered path with the last item current', () => {
+        let clicked = 0
+        Breadcrumb.new({
+            items: [
+                {id: 'a', label: 'Projects', onClick: () => clicked++},
+                {id: 'b', label: 'Factory East 1', onClick: () => clicked++},
+                {id: 'c', label: 'Tower A'},
+            ],
+        }).attachTo(document.body)
+
+        const host = requiredQuery('fray-breadcrumb')
+        const nav = requiredQuery('nav', host)
+        assert.equal(nav.getAttribute('aria-label'), 'Breadcrumb')
+        const items = [...nav.querySelectorAll('ol > li')]
+        assert.equal(items.length, 3)
+        // ancestors are anchors, the last item is current text
+        assert.ok(requiredAt(items, 0).querySelector('a'))
+        assert.ok(requiredAt(items, 1).querySelector('a'))
+        const current = requiredAt(items, 2).querySelector('[aria-current="page"]')
+        assert.ok(current, 'last item is marked current')
+        assert.equal(current?.textContent, 'Tower A')
+        assert.equal(requiredAt(items, 2).querySelector('a'), null)
+        requiredAt(items, 0).querySelector('a')!.click()
+        assert.equal(clicked, 1)
     })
 
     test('Layout owns generic direction, allocation, and explicit scrolling', () => {

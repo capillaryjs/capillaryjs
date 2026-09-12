@@ -109,7 +109,7 @@ custom elements.
 | --- | --- |
 | Actions | `Button`, `Toolbar` |
 | Text and choices | `Label`, `Textbox`, `Dropdown`, `RadioButton`, `RadioGroup`, `Toggle`, `Checkbox`, `TriCheckbox`, `QuadCheckbox` |
-| Layout and navigation | `FrayApp`, `Layout`, `Header`, `GroupPanel`, `NavigationBar`, `OptionGroup`, `OptionGroupHeaderEnd`, `OptionsPanel`, `Panel`, `PanelToolbar`, `Sidebar`, `SidebarToolbar`, `SplitPrimary`, `SplitSecondary`, `SplitView`, `Tab`, `TabLine`, `TabPanel` |
+| Layout and navigation | `Breadcrumb`, `FrayApp`, `Layout`, `Header`, `GroupPanel`, `NavigationBar`, `OptionGroup`, `OptionGroupHeaderEnd`, `OptionsPanel`, `Panel`, `PanelToolbar`, `Sidebar`, `SidebarToolbar`, `SplitPrimary`, `SplitSecondary`, `SplitView`, `Tab`, `TabLine`, `TabPanel` |
 | Records and collections | `DescriptionItem`, `DescriptionList`, `InfoField`, `InfoPanel`, `Placeholder`, `ListView`, `TreeItem`, `TreeView` |
 | Tables and filters | `DataTable`, `FilterPanel`, `TableHeader`, `TableHeaderCell` |
 | Dialog and status | `Dialog`, `DialogActions`, `ProgressBar` |

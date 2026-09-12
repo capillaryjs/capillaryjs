@@ -8,6 +8,9 @@ Versioning.
 
 ### Added
 
+- Added the `Breadcrumb` navigation component: an ordered path of ancestor
+  router-aware links ending in an `aria-current="page"` current item, with
+  optional per-item `onClick` actions and accessible `nav`/`ol` semantics.
 - Added the presentation-only `Layout` component with mutually exclusive
   `horizontal`/`vertical` modifiers, named parent allocation, and explicit
   scrolling. `Panel` now composes Layout as its body.

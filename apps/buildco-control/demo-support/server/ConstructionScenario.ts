@@ -417,26 +417,31 @@ export class ConstructionScenario implements DemoScenario {
             fields: [{
                 label: "Reported progress",
                 value: Number(row.progress),
-                format: "percent"
-            }, {label: "Planned progress", value: Number(row.plannedProgress), format: "percent"},
-                {label: "Baseline finish", value: String(row.finish)}, {
+                format: "percent",
+                group: "Progress"
+            }, {label: "Planned progress", value: Number(row.plannedProgress), format: "percent", group: "Progress"},
+                {label: "Baseline finish", value: String(row.finish), group: "Progress"}, {
                     label: "Forecast finish",
-                    value: String(row.forecast)
+                    value: String(row.forecast),
+                    group: "Progress"
                 },
                 {
                     label: "Labour · actual / plan",
-                    value: `${round(Number(row.hours), 1)} / ${round(Number(row.budgetHours), 1)} h`
+                    value: `${round(Number(row.hours), 1)} / ${round(Number(row.budgetHours), 1)} h`,
+                    group: "Labour"
                 },
                 {
                     label: "Overtime",
                     value: Number(row.overtime),
-                    format: "hours"
-                }, {label: "Staffing · assigned / planned", value: `${row.headcount} / ${row.plannedHeadcount}`},
-                {label: "Available crew capacity", value: Number(row.availableHours), format: "hours"},
-                {label: "Actual direct cost", value: Number(row.cost), format: "money"}, {
+                    format: "hours",
+                    group: "Labour"
+                }, {label: "Staffing · assigned / planned", value: `${row.headcount} / ${row.plannedHeadcount}`, group: "Labour"},
+                {label: "Available crew capacity", value: Number(row.availableHours), format: "hours", group: "Labour"},
+                {label: "Actual direct cost", value: Number(row.cost), format: "money", group: "Cost"}, {
                     label: "Variance at progress",
                     value: Number(row.costVariance),
-                    format: "money"
+                    format: "money",
+                    group: "Cost"
                 }],
             sections: [{title: "Prerequisites", rows: links},
                 {
@@ -471,21 +476,25 @@ export class ConstructionScenario implements DemoScenario {
             title: String(project.name),
             subtitle: human(project.status),
             projectId: String(project.id),
-            fields: [{label: "Customer", value: String(project.customer)}, {
+            fields: [{label: "Customer", value: String(project.customer), group: "Overview"}, {
                 label: "Project manager",
-                value: String(project.manager)
+                value: String(project.manager),
+                group: "Overview"
             },
-                {label: "Location", value: String(project.location)}, {
+                {label: "Location", value: String(project.location), group: "Overview"}, {
                     label: "Project type",
-                    value: human(project.type)
+                    value: human(project.type),
+                    group: "Overview"
                 },
-                {label: "Baseline start", value: String(project.start)}, {
+                {label: "Baseline start", value: String(project.start), group: "Schedule"}, {
                     label: "Baseline completion",
-                    value: String(project.finish)
+                    value: String(project.finish),
+                    group: "Schedule"
                 },
-                {label: "Forecast completion", value: String(project.forecast)}, {
+                {label: "Forecast completion", value: String(project.forecast), group: "Schedule"}, {
                     label: "Status",
-                    value: human(project.status)
+                    value: human(project.status),
+                    group: "Schedule"
                 }],
             sections: [{title: "Milestones", rows: this.milestones(String(project.id))}]
         };
@@ -497,25 +506,26 @@ export class ConstructionScenario implements DemoScenario {
         const phases = this.phaseRows.filter(r => r.projectId === s.projectId && this.inScope(scopeId, r.scopeId));
         const children = this.data.scopeNodes.filter(x => x.parentId === scopeId);
         const fields: Detail["fields"] = [
-            {label: "Type", value: human(s.type)},
-            {label: "Project", value: String(project.name)}
+            {label: "Type", value: human(s.type), group: "Scope"},
+            {label: "Project", value: String(project.name), group: "Scope"}
         ];
-        if (s.areaM2 != null) fields.push({label: "Area", value: `${s.areaM2} m²`});
-        if (s.lengthM != null) fields.push({label: "Length", value: `${s.lengthM} m`});
-        if (s.volumeM3 != null) fields.push({label: "Volume", value: `${s.volumeM3} m³`});
-        if (s.unitCount != null) fields.push({label: "Units", value: s.unitCount});
-        if (s.floorNumber != null) fields.push({label: "Floor", value: s.floorNumber});
-        if (s.zoneCode != null) fields.push({label: "Zone", value: s.zoneCode});
+        if (s.areaM2 != null) fields.push({label: "Area", value: `${s.areaM2} m²`, group: "Scope"});
+        if (s.lengthM != null) fields.push({label: "Length", value: `${s.lengthM} m`, group: "Scope"});
+        if (s.volumeM3 != null) fields.push({label: "Volume", value: `${s.volumeM3} m³`, group: "Scope"});
+        if (s.unitCount != null) fields.push({label: "Units", value: s.unitCount, group: "Scope"});
+        if (s.floorNumber != null) fields.push({label: "Floor", value: s.floorNumber, group: "Scope"});
+        if (s.zoneCode != null) fields.push({label: "Zone", value: s.zoneCode, group: "Scope"});
         fields.push(
-            {label: "Sub-scopes", value: children.length},
-            {label: "Phases", value: phases.length},
+            {label: "Sub-scopes", value: children.length, group: "Rollup"},
+            {label: "Phases", value: phases.length, group: "Rollup"},
             {
                 label: "Progress",
                 value: sum(phases, r => Number(r.progress) * Number(r.budgetHours)) / Math.max(1, sum(phases, r => Number(r.budgetHours))),
-                format: "percent"
+                format: "percent",
+                group: "Rollup"
             },
-            {label: "Open issues", value: sum(phases, r => Number(r.openIssues))},
-            {label: "Cost variance", value: sum(phases, r => Number(r.costVariance)), format: "money"}
+            {label: "Open issues", value: sum(phases, r => Number(r.openIssues)), group: "Rollup"},
+            {label: "Cost variance", value: sum(phases, r => Number(r.costVariance)), format: "money", group: "Rollup"}
         );
         return {
             id: String(s.id),
