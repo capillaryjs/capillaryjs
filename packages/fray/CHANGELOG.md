@@ -49,6 +49,15 @@ Versioning.
 
 ### Fixed
 
+- Sized input controls (`Textbox`, `SelectControl`, `DatePicker`) no longer clip
+  invisibly inside narrow containers. Each now caps its field at the container
+  width (`max-width: 100%`), shrinks to a usable floor via the new optional
+  `--input-min-width` variable (default `6rem`), and lets its host shrink. A
+  `Sidebar` toolbar region (`fray-toolbarcontent`) now scrolls horizontally
+  (`overflow-x: auto`) when content sits below its floor, matching the existing
+  `fray-content` scroll contract — so a control in a resizable pane shrinks,
+  then scrolls, rather than being cut off.
+
 - The dropdown trigger glyph now defaults to a universally supported Unicode
   character (U+25BE) in `base.css` instead of `none`, so all themes render the
   `::before` pseudo-element glyph without a per-theme override. The previous

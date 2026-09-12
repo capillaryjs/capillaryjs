@@ -340,11 +340,14 @@ export class DatePicker extends LabeledInputControl<DatePickerProps> {
             gap: 0.5em;
             position: relative;
             min-height: var(--control-min-height, 2rem);
+            min-width: 0;
         }
 
         & > input {
             min-height: var(--control-min-height, 2rem);
             width: var(--input-width, 10rem);
+            max-width: 100%;
+            min-width: var(--input-min-width, 6rem);
             padding: var(--space-xs) var(--space-sm);
             color: var(--input-color);
             background: var(--input-background);

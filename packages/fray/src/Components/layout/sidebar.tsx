@@ -85,6 +85,11 @@ export class Sidebar extends Component<SidebarProps> {
             flex: none;
         }
 
+        & > aside > fray-toolbarcontent {
+            min-width: 0;
+            overflow-x: auto;
+        }
+
         & > aside > fray-content {
             flex: 1;
             min-height: 0;

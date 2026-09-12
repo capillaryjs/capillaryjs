@@ -7,12 +7,17 @@ export abstract class SelectControl<
     TProps extends ComponentProps = ComponentProps,
 > extends LabeledInputControl<TProps> {
     static override css = css`
+        & {
+            min-width: 0;
+        }
+
         & > fray-selectshell {
             display: flex;
             flex-flow: row nowrap;
             position: relative;
             isolation: isolate;
             min-height: var(--control-min-height, 2rem);
+            min-width: 0;
             box-sizing: border-box;
         }
 
@@ -21,6 +26,8 @@ export abstract class SelectControl<
             z-index: 1;
             min-height: var(--control-min-height, 2rem);
             width: var(--input-width, 15rem);
+            max-width: 100%;
+            min-width: var(--input-min-width, 6rem);
             padding: var(--space-xs) var(--space-sm);
             padding-inline-end: var(--dropdown-padding-inline-end);
             color: var(--input-color);
