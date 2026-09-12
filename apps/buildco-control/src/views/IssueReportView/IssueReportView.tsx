@@ -2,6 +2,7 @@ import type {DateTimeValue, FrayChild} from "@sylwellsoftware/fray";
 import {
     Component, Panel, PanelToolbar, DescriptionList, DescriptionItem, InfoPanel, InfoField,
     Button, Dialog, DialogActions, Textbox, Dropdown, DateTimePicker, Label, ListView,
+    Sidebar, SidebarToolbar, SplitPrimary, SplitSecondary, SplitView,
     RouteLink, RouteValue, RouteQuery, Placeholder, Toolbar, live, routeTarget, stringRouteQueryCodec,
 } from "@sylwellsoftware/fray";
 import {Emitter, DerivedEmitter} from "@sylwellsoftware/glue";
@@ -17,6 +18,7 @@ export class IssueReportView extends Component {
     static dependencies = [
         Panel, PanelToolbar, DescriptionList, DescriptionItem, InfoPanel, InfoField,
         Button, Dialog, DialogActions, Textbox, Dropdown, DateTimePicker, Label, ListView,
+        Sidebar, SidebarToolbar, SplitView,
         RouteLink, RouteValue, RouteQuery, Placeholder, Toolbar,
     ];
 
@@ -31,11 +33,10 @@ export class IssueReportView extends Component {
     private readonly dialogOpen = new Emitter<boolean>(false, {owner: this, purpose: "issue dialog open"});
     private readonly dialogMode = new Emitter<"edit" | "resolve">("edit", {owner: this, purpose: "issue dialog mode"});
     private readonly dialogError = new Emitter<string>("", {owner: this, purpose: "issue dialog error"});
-    private readonly pickerOpen = new Emitter<boolean>(false, {owner: this, purpose: "issue picker open"});
-    private readonly pickerFilter = new Emitter<string>("", {owner: this, purpose: "issue picker filter"});
-    private readonly pickerSelection = new Emitter<Row | null>(null, {owner: this, purpose: "issue picker selection"});
+    private readonly issueFilter = new Emitter<string>("", {owner: this, purpose: "issue list filter"});
+    private readonly issueSelection = new Emitter<Row | null>(null, {owner: this, purpose: "issue list selection"});
     private readonly filteredIssues = new DerivedEmitter(
-        [this.query, this.pickerFilter] as const,
+        [this.query, this.issueFilter] as const,
         ([v, q]) => {
             const rows = (v?.rows ?? []) as readonly Row[];
             const query = q.trim().toLowerCase();
@@ -55,13 +56,20 @@ export class IssueReportView extends Component {
 
     initialize(): void {
         void this.query.activate();
-        this.onCleanup(this.pickerSelection.subscribe(({value}) => {
-            if (value == null) return;
-            this.issueId.set(String(value.id));
-            this.pickerOpen.set(false);
-            this.pickerSelection.set(null);
-            this.pickerFilter.set("");
+        this.onCleanup(this.issueSelection.subscribe(({value}) => {
+            if (value != null && String(value.id) !== this.issueId.get()) {
+                this.issueId.set(String(value.id));
+            }
         }));
+        this.onCleanup(this.issueId.subscribe(() => this.syncSelectionHighlight()));
+        this.onCleanup(this.query.subscribe(() => this.syncSelectionHighlight()));
+    }
+
+    private syncSelectionHighlight(): void {
+        const id = this.issueId.get();
+        const rows = (this.query.get()?.rows ?? []) as readonly Row[];
+        const match = rows.find(r => String(r.id) === id) ?? null;
+        if (this.issueSelection.get() !== match) this.issueSelection.set(match);
     }
 
     render(): FrayChild {
@@ -77,13 +85,33 @@ export class IssueReportView extends Component {
         return <>
             <RouteValue route={issueIdParam} valueEmitter={this.issueId}/>
             <RouteQuery name="from" codec={stringRouteQueryCodec} valueEmitter={this.state.field("from")} defaultValue=""/>
-            <Panel className="issue-report-view fray-size-flexible" island header={detail ? detail.title : "Issue Report"}>
+            <SplitView className="issue-report-view fray-size-flexible" primarySize="18rem" primaryLabel="Issues" secondaryLabel="Issue report">
+            <SplitPrimary>
+                <Sidebar island allocation="flexible" header="Issues">
+                    <SidebarToolbar>
+                        <Toolbar label="Issue search">
+                            <Textbox label="Search" placeholder="Filter issues…" valueEmitter={this.issueFilter}/>
+                        </Toolbar>
+                    </SidebarToolbar>
+                    <ListView
+                        label="Issues"
+                        items={this.filteredIssues}
+                        itemKey="id"
+                        selectedItemEmitter={this.issueSelection}
+                        renderItem={r => <span className="issue-item">
+                            <span className="issue-item-name">{r.name}</span>
+                            <span className="issue-item-status">
+                                {[r.status && human(r.status), r.severity && human(r.severity), r.project]
+                                    .filter(Boolean).join(" · ")}
+                            </span>
+                        </span>}
+                    />
+                </Sidebar>
+            </SplitPrimary>
+            <SplitSecondary>
+                <Panel island allocation="flexible" header={detail ? detail.title : "Issue Report"}>
                 <PanelToolbar>
                     <Toolbar label="Issue actions">
-                        <Button
-                            label={detail ? detail.title : "Select issue…"}
-                            onClick={() => this.pickerOpen.set(true)}
-                        />
                         <Button
                             label="Edit"
                             disabled={!detail || busy}
@@ -105,7 +133,7 @@ export class IssueReportView extends Component {
                     </>
                     : !detail ? <>
                         <Placeholder/>
-                        <p className="muted">{v?.notice ?? "Select an issue above to view its report."}</p>
+                        <p className="muted">{v?.notice ?? "Select an issue from the list to view its report."}</p>
                     </>
                     : <>
                         <InfoPanel title="Issue Summary" label="Issue details">
@@ -174,27 +202,9 @@ export class IssueReportView extends Component {
                         />
                     </DialogActions>
                 </Dialog> : null}
-                <Dialog
-                    title="Select issue"
-                    valueEmitter={this.pickerOpen}
-                    onClose={() => this.pickerOpen.set(false)}
-                >
-                    <Textbox label="Search" valueEmitter={this.pickerFilter} placeholder="Filter by name, project, status…"/>
-                    <ListView
-                        label="Issues"
-                        items={this.filteredIssues}
-                        itemKey="id"
-                        selectedItemEmitter={this.pickerSelection}
-                        renderItem={r => <span className="issue-item">
-                            <span className="issue-item-name">{r.name}</span>
-                            <span className="issue-item-status">
-                                {[r.status && human(r.status), r.severity && human(r.severity), r.project]
-                                    .filter(Boolean).join(" · ")}
-                            </span>
-                        </span>}
-                    />
-                </Dialog>
-            </Panel>
+                </Panel>
+            </SplitSecondary>
+            </SplitView>
         </>;
     }
 
