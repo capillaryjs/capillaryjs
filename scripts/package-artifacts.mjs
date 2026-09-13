@@ -20,8 +20,8 @@ const packageOutput = join(artifactRoot, 'packages')
 
 const definitions = [
     {
-        directory: join(workspaceRoot, 'packages', 'glue'),
-        name: '@sylwellsoftware/glue',
+        directory: join(workspaceRoot, 'packages', 'capillary'),
+        name: '@capillaryjs/capillary',
         allow(path) {
             return false
                 || path === 'CHANGELOG.md'
@@ -33,8 +33,8 @@ const definitions = [
         },
     },
     {
-        directory: join(workspaceRoot, 'packages', 'fray'),
-        name: '@sylwellsoftware/fray',
+        directory: join(workspaceRoot, 'packages', 'capillary-ui'),
+        name: '@capillaryjs/capillary-ui',
         allow(path) {
             return false
                 || path === 'CHANGELOG.md'
@@ -51,8 +51,8 @@ const definitions = [
         },
     },
     {
-        directory: join(workspaceRoot, 'packages', 'fray-visualization'),
-        name: '@sylwellsoftware/fray-visualization',
+        directory: join(workspaceRoot, 'packages', 'capillary-viz'),
+        name: '@capillaryjs/capillary-viz',
         allow(path) {
             return false
                 || path === 'CHANGELOG.md'
@@ -248,7 +248,7 @@ function validateTarball(definition, tarball, tarFiles, expectedVersion) {
         `${definition.name} author metadata drifted`,
     )
     assert(
-        manifest.repository?.url === 'git+https://github.com/sylwellsoftware/gluefrayjs.git',
+        manifest.repository?.url === 'git+https://github.com/capillaryjs/capillaryjs.git',
         `${definition.name} repository metadata drifted`,
     )
     assert(manifest.publishConfig?.access === 'public', `${definition.name} access drifted`)
@@ -257,32 +257,32 @@ function validateTarball(definition, tarball, tarFiles, expectedVersion) {
     assertNoLocalDependencyRanges(manifest, definition.name)
     validateExportTargets(manifest, tarFiles, definition.name)
 
-    if (definition.name === '@sylwellsoftware/fray') {
-        const gluePeer = manifest.peerDependencies?.['@sylwellsoftware/glue']
+    if (definition.name === '@capillaryjs/capillary-ui') {
+        const capillaryPeer = manifest.peerDependencies?.['@capillaryjs/capillary']
         assert(
-            typeof gluePeer === 'string'
-                && gluePeer.length > 0
-                && !/^(?:file:|link:|workspace:)/.test(gluePeer),
-            'Fray packed Glue peer range is missing or local-only',
+            typeof capillaryPeer === 'string'
+                && capillaryPeer.length > 0
+                && !/^(?:file:|link:|workspace:)/.test(capillaryPeer),
+            'Capillary UI packed Capillary peer range is missing or local-only',
         )
         assert(
-            !Object.hasOwn(manifest.dependencies ?? {}, '@sylwellsoftware/glue'),
-            'Fray must not bundle Glue as a runtime dependency',
+            !Object.hasOwn(manifest.dependencies ?? {}, '@capillaryjs/capillary'),
+            'Capillary UI must not bundle Capillary as a runtime dependency',
         )
     }
 
-    if (definition.name === '@sylwellsoftware/fray-visualization') {
-        for (const peerName of ['@sylwellsoftware/glue', '@sylwellsoftware/fray']) {
+    if (definition.name === '@capillaryjs/capillary-viz') {
+        for (const peerName of ['@capillaryjs/capillary', '@capillaryjs/capillary-ui']) {
             const peer = manifest.peerDependencies?.[peerName]
             assert(
                 typeof peer === 'string'
                     && peer.length > 0
                     && !/^(?:file:|link:|workspace:)/.test(peer),
-                `Fray Visualization packed ${peerName} peer range is missing or local-only`,
+                `Capillary Viz packed ${peerName} peer range is missing or local-only`,
             )
             assert(
                 !Object.hasOwn(manifest.dependencies ?? {}, peerName),
-                `Fray Visualization must not bundle ${peerName} as a runtime dependency`,
+                `Capillary Viz must not bundle ${peerName} as a runtime dependency`,
             )
         }
     }

@@ -39,7 +39,7 @@ function parseArguments(args) {
 function prepare(plan) {
     const selectedByKey = new Map(plan.packages.map((entry) => [entry.key, entry]))
     const manifests = new Map(plan.packages.map((entry) => [entry.key, readManifest(entry)]))
-    const allManifests = new Map(['glue', 'fray', 'fray-visualization'].map((key) => {
+    const allManifests = new Map(['capillary', 'capillaryUi', 'capillaryViz'].map((key) => {
         const selected = selectedByKey.get(key)
         return [key, selected ? manifests.get(key) : readManifestByKey(key)]
     }))
@@ -72,21 +72,21 @@ function prepare(plan) {
 
 function desiredMetadata(plan, manifests) {
     const target = new Map(plan.packages.map((entry) => [entry.key, entry.version]))
-    const glueVersion = target.get('glue') ?? manifests.get('glue').version
-    const frayVersion = target.get('fray') ?? manifests.get('fray').version
+    const capillaryVersion = target.get('capillary') ?? manifests.get('capillary').version
+    const capillaryUiVersion = target.get('capillaryUi') ?? manifests.get('capillaryUi').version
     const expected = new Map()
     for (const entry of plan.packages) {
         const manifestPath = `packages/${entry.directory}/package.json`
         let manifest = setManifestVersion(readFile(manifestPath), entry.version)
-        if (entry.key === 'fray') {
+        if (entry.key === 'capillaryUi') {
             manifest = setManifestDependencyRange(
-                manifest, 'peerDependencies', '@sylwellsoftware/glue', `^${glueVersion}`)
+                manifest, 'peerDependencies', '@capillaryjs/capillary', `^${capillaryVersion}`)
         }
-        if (entry.key === 'fray-visualization') {
+        if (entry.key === 'capillaryViz') {
             manifest = setManifestDependencyRange(
-                manifest, 'peerDependencies', '@sylwellsoftware/glue', `^${glueVersion}`)
+                manifest, 'peerDependencies', '@capillaryjs/capillary', `^${capillaryVersion}`)
             manifest = setManifestDependencyRange(
-                manifest, 'peerDependencies', '@sylwellsoftware/fray', `^${frayVersion}`)
+                manifest, 'peerDependencies', '@capillaryjs/capillary-ui', `^${capillaryUiVersion}`)
         }
         expected.set(manifestPath, manifest)
         expected.set(entry.changelog, promoteUnreleased(readFile(entry.changelog), entry.version, plan.releaseDate))
@@ -95,7 +95,7 @@ function desiredMetadata(plan, manifests) {
 }
 
 function candidateTree(paths) {
-    const temporary = mkdtempSync(join(os.tmpdir(), 'gluefray-release-index-'))
+    const temporary = mkdtempSync(join(os.tmpdir(), 'capillaryjs-release-index-'))
     const index = join(temporary, 'index')
     const environment = {...process.env, GIT_INDEX_FILE: index}
     try {
@@ -112,7 +112,12 @@ function readManifest(entry) {
 }
 
 function readManifestByKey(key) {
-    const directory = key === 'fray-visualization' ? key : key
+    const directory = {
+        capillary: 'capillary',
+        capillaryUi: 'capillary-ui',
+        capillaryViz: 'capillary-viz',
+    }[key]
+    assert(directory, `unknown package key: ${key}`)
     return JSON.parse(readFile(`packages/${directory}/package.json`))
 }
 

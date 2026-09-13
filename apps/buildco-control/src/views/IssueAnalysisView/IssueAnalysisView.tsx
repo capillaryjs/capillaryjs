@@ -1,16 +1,16 @@
-import type {FrayChild} from "@sylwellsoftware/fray";
+import type {CapillaryUiChild} from "@capillaryjs/capillary-ui";
 import {
     Component, ListView, Panel, Sidebar, SidebarToolbar, SplitPrimary, SplitSecondary, SplitView,
     Dropdown, Button, RouteLink, RouteQuery, Placeholder, Toolbar,
     routeTarget, routeParameter, stringRouteQueryCodec, withRouteQuery,
-} from "@sylwellsoftware/fray";
+} from "@capillaryjs/capillary-ui";
 import {
     BlockGraph, CategoryHidePanel, SplitSelectionPanel,
     derivedCriterion, createBlockSelection, createSplitSelection, filterByHidden,
-} from "@sylwellsoftware/fray-visualization";
-import type {GroupingCriterion} from "@sylwellsoftware/fray-visualization";
-import {DerivedEmitter} from "@sylwellsoftware/glue";
-import type {ReadableEmitter} from "@sylwellsoftware/glue";
+} from "@capillaryjs/capillary-viz";
+import type {GroupingCriterion} from "@capillaryjs/capillary-viz";
+import {DerivedEmitter} from "@capillaryjs/capillary";
+import type {ReadableEmitter} from "@capillaryjs/capillary";
 import type {Row} from "../../api/ScenarioApi.ts";
 import {human} from "../../api/ScenarioApi.ts";
 import {keyQueryCodec, screens, routes, issueIdParam} from "../../app/routing.ts";
@@ -127,7 +127,7 @@ export class IssueAnalysisView extends Component {
         for (const criterion of this.criteria) criterion.dispose();
     }
 
-    render(): FrayChild {
+    render(): CapillaryUiChild {
         const b = this.snapshot(bootstrap);
         const view = this.snapshot(this.query);
 
@@ -147,7 +147,7 @@ export class IssueAnalysisView extends Component {
         return <>
             <RouteQuery name="subject" codec={keyQueryCodec} valueEmitter={this.state.tab} defaultValue="issues"/>
             <RouteQuery name="project" codec={stringRouteQueryCodec} valueEmitter={this.state.field("project")} defaultValue=""/>
-            <SplitView className="issue-analysis-view fray-size-flexible" primarySize="16rem" primaryLabel="Analysis controls" secondaryLabel="Issue distribution">
+            <SplitView className="issue-analysis-view cap-size-flexible" primarySize="16rem" primaryLabel="Analysis controls" secondaryLabel="Issue distribution">
             <SplitPrimary>
                 <Sidebar island allocation="flexible" header="Issue Analysis">
                     <SidebarToolbar>

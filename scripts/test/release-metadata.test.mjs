@@ -29,21 +29,21 @@ test('release plans allow independent package versions and normalize publication
         schemaVersion: 1,
         releaseDate: '2026-09-05',
         packages: [
-            {key: 'fray', version: '0.6.0', tag: 'latest'},
-            {key: 'glue', version: '0.5.1', tag: 'latest'},
+            {key: 'capillaryUi', version: '0.6.0', tag: 'latest'},
+            {key: 'capillary', version: '0.5.1', tag: 'latest'},
         ],
     })
 
     assert.deepEqual(
         plan.packages.map(({key, version, tag}) => ({key, version, tag})),
         [
-            {key: 'glue', version: '0.5.1', tag: 'latest'},
-            {key: 'fray', version: '0.6.0', tag: 'latest'},
+            {key: 'capillary', version: '0.5.1', tag: 'latest'},
+            {key: 'capillaryUi', version: '0.6.0', tag: 'latest'},
         ],
     )
     assert.equal(
         formatReleasePlan(plan),
-        '{"schemaVersion":1,"releaseDate":"2026-09-05","packages":[{"key":"glue","version":"0.5.1","tag":"latest"},{"key":"fray","version":"0.6.0","tag":"latest"}]}',
+        '{"schemaVersion":1,"releaseDate":"2026-09-05","packages":[{"key":"capillary","version":"0.5.1","tag":"latest"},{"key":"capillaryUi","version":"0.6.0","tag":"latest"}]}',
     )
 })
 
@@ -51,6 +51,6 @@ test('release plans reject an invalid package tag', () => {
     assert.throws(() => parseReleasePlan({
         schemaVersion: 1,
         releaseDate: '2026-09-05',
-        packages: [{key: 'glue', version: '0.5.1-alpha.1', tag: 'latest'}],
+        packages: [{key: 'capillary', version: '0.5.1-alpha.1', tag: 'latest'}],
     }), /requires npm tag next/)
 })

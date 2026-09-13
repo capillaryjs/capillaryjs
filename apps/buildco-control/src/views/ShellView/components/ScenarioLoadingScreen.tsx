@@ -1,9 +1,9 @@
-import type {FrayChild} from "@sylwellsoftware/fray";
-import {Button, Component, Panel, ProgressBar} from "@sylwellsoftware/fray";
+import type {CapillaryUiChild} from "@capillaryjs/capillary-ui";
+import {Button, Component, Panel, ProgressBar} from "@capillaryjs/capillary-ui";
 import {bootstrap, demo} from "../../../app/services.ts";
 
 export class ScenarioLoadingScreen extends Component {
-    render(): FrayChild {
+    render(): CapillaryUiChild {
         const b = this.snapshot(bootstrap);
         return <Panel key="startup" island allocation="natural">
             <div className="startup" role="status"><span className="eyebrow">BuildCo Control</span>

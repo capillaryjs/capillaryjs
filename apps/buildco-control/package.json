@@ -2,7 +2,7 @@
   "name": "@sylwellsoftware/buildco-control",
   "private": true,
   "version": "0.1.0",
-  "description": "Construction operations demo for Glue, Fray and Fray Visualization.",
+  "description": "Construction operations demo for Capillary, Capillary UI and Capillary Viz.",
   "type": "module",
   "packageManager": "pnpm@10.11.0",
   "engines": { "node": ">=22.6", "pnpm": ">=10" },
@@ -20,9 +20,9 @@
     "scenario": "node --import tsx demo-support/scenario/cli.ts"
   },
   "dependencies": {
-    "@sylwellsoftware/fray": "workspace:^",
-    "@sylwellsoftware/fray-visualization": "workspace:^",
-    "@sylwellsoftware/glue": "workspace:^"
+    "@capillaryjs/capillary-ui": "workspace:^",
+    "@capillaryjs/capillary-viz": "workspace:^",
+    "@capillaryjs/capillary": "workspace:^"
   },
   "devDependencies": {
     "@playwright/test": "^1.62.1",

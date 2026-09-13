@@ -1,6 +1,6 @@
-import {Component} from '@sylwellsoftware/fray'
-import type {FrayChild} from '@sylwellsoftware/fray'
-import {FrayApp, NavigationBar, RouteOutlet, Toggle} from '@sylwellsoftware/fray'
+import {Component} from '@capillaryjs/capillary-ui'
+import type {CapillaryUiChild} from '@capillaryjs/capillary-ui'
+import {CapillaryUiApp, NavigationBar, RouteOutlet, Toggle} from '@capillaryjs/capillary-ui'
 
 import {GalleryFooter} from './components/GalleryFooter.js'
 import {GalleryHeader} from './components/GalleryHeader.js'
@@ -13,15 +13,15 @@ import {galleryPages} from './routing.js'
 /**
  * Gallery root: an island header with the page navbar and the gallery control
  * toolbar, a routed page body, and an island footer. The toolbar's layout
- * toggle switches FrayApp between the viewport application shell and the
+ * toggle switches CapillaryUiApp between the viewport application shell and the
  * embedded, document-scrolling website variant.
  */
 export class GalleryApp extends Component {
     private readonly model = new GalleryModel()
 
-    render(): FrayChild {
+    render(): CapillaryUiChild {
         const variant = this.read(this.model.layoutVariant)
-        return <FrayApp
+        return <CapillaryUiApp
             sizing={variant === 'shell' ? 'viewport' : 'embedded'}
             layout="vertical"
             className={`gallery-root gallery-${variant}`}
@@ -39,10 +39,10 @@ export class GalleryApp extends Component {
                 }))}
             />
             <GalleryFooter model={this.model} />
-        </FrayApp>
+        </CapillaryUiApp>
     }
 
-    private renderPage(id: string): FrayChild {
+    private renderPage(id: string): CapillaryUiChild {
         switch (id) {
             case 'data-components':
                 return <DataComponentsPage model={this.model} />
@@ -56,7 +56,7 @@ export class GalleryApp extends Component {
     }
 
     static dependencies = [
-        FrayApp,
+        CapillaryUiApp,
         NavigationBar,
         RouteOutlet,
         Toggle,

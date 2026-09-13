@@ -1,11 +1,11 @@
-import type {DateTimeValue, FrayChild} from "@sylwellsoftware/fray";
+import type {DateTimeValue, CapillaryUiChild} from "@capillaryjs/capillary-ui";
 import {
     Component, Panel, PanelToolbar, InfoPanel, InfoField,
     Button, Dialog, DialogActions, Textbox, Dropdown, DateTimePicker, Label, ListView,
     Sidebar, SidebarToolbar, SplitPrimary, SplitSecondary, SplitView,
     RouteLink, RouteValue, Placeholder, Toolbar, live, routeTarget,
-} from "@sylwellsoftware/fray";
-import {Emitter, DerivedEmitter} from "@sylwellsoftware/glue";
+} from "@capillaryjs/capillary-ui";
+import {Emitter, DerivedEmitter} from "@capillaryjs/capillary";
 import type {Row} from "../../api/ScenarioApi.ts";
 import {human} from "../../api/ScenarioApi.ts";
 import {screens, routes, issueIdParam} from "../../app/routing.ts";
@@ -72,7 +72,7 @@ export class IssueReportView extends Component {
         if (this.issueSelection.get() !== match) this.issueSelection.set(match);
     }
 
-    render(): FrayChild {
+    render(): CapillaryUiChild {
         const b = this.snapshot(bootstrap);
         const view = this.snapshot(this.query);
         const busy = this.read(mutate.isRunning);
@@ -84,7 +84,7 @@ export class IssueReportView extends Component {
 
         return <>
             <RouteValue route={issueIdParam} valueEmitter={this.issueId}/>
-            <SplitView className="issue-report-view fray-size-flexible" primarySize="18rem" primaryLabel="Issues" secondaryLabel="Issue report">
+            <SplitView className="issue-report-view cap-size-flexible" primarySize="18rem" primaryLabel="Issues" secondaryLabel="Issue report">
             <SplitPrimary>
                 <Sidebar island allocation="flexible" header="Issues">
                     <SidebarToolbar>
@@ -162,7 +162,7 @@ export class IssueReportView extends Component {
                             <Textbox label="Title" valueEmitter={this.draft.title} disabled={busy} required/>
                             <Label text="Description"/>
                             <textarea
-                                className="fray-textbox"
+                                className="cap-textbox"
                                 key={String(detail.id)}
                                 defaultValue={String(detail.record?.description ?? "")}
                                 rows={4}

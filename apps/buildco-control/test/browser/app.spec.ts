@@ -95,13 +95,13 @@ test("issue and delay commands create, edit, resolve and refresh shared register
 test("charts, theme controls, forced states, and mobile layout remain usable", async ({ page }) => {
   const errors: string[] = []; page.on("pageerror", error => errors.push(error.message));
   await page.goto("/?profile=small#/analytics"); await settled(page);
-  await expect(page.locator("fray-blockgraph")).toBeVisible();
+  await expect(page.locator("cap-blockgraph")).toBeVisible();
   await page.getByRole("tab", { name: "Trends", exact: true }).click(); await settled(page);
-  await expect(page.locator("fray-linegraph svg")).toBeVisible();
+  await expect(page.locator("cap-linegraph svg")).toBeVisible();
   await page.getByLabel("Metric group", { exact: true }).selectOption("cost"); await settled(page);
   await expect(page.locator(".trends")).toContainText("Actual direct cost");
   await page.getByText("Demo controls", { exact: true }).click();
-  for (const theme of ["java", "shiny", "minimal"]) { await page.getByLabel("Theme", { exact: true }).selectOption(theme); await expect(page.locator('link[data-fray-stylesheet="theme"]')).toHaveAttribute("href", new RegExp(theme)); }
+  for (const theme of ["java", "shiny", "minimal"]) { await page.getByLabel("Theme", { exact: true }).selectOption(theme); await expect(page.locator('link[data-cap-stylesheet="theme"]')).toHaveAttribute("href", new RegExp(theme)); }
   await page.getByLabel("Palette", { exact: true }).selectOption("purple");
   await page.getByLabel("Fetch state", { exact: true }).selectOption("error"); await expect(page.locator(".query-feedback > [role=alert]")).toContainText("Simulated error");
   await page.getByRole("button", { name: "Retry", exact: true }).click(); await settled(page);

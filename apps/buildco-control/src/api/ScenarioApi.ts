@@ -1,4 +1,4 @@
-import type { HistoryShape } from "@sylwellsoftware/fray-visualization";
+import type { HistoryShape } from "@capillaryjs/capillary-viz";
 import type { ScenarioMetadata, ScopeNode } from "../domain/model.ts";
 
 export const SCREENS = ["overview", "projects", "queue", "operations", "issue-analysis", "economic-trends", "issue-report"] as const;
@@ -44,7 +44,7 @@ export const CONDITIONS: readonly Choice[] = [
 export function human(value: unknown): string {
   return String(value ?? "").replace(/([a-z])([A-Z])/g, "$1 $2").replace(/[-_]/g, " ").replace(/^./, c => c.toUpperCase());
 }
-/** Same semantics as Fray: denies win, require is AND, prefer is OR. */
+/** Same semantics as Capillary UI: denies win, require is AND, prefer is OR. */
 export function matchesConditions(traits: Record<string, boolean>, modes: Record<string, SemanticMode>): boolean {
   const known = Object.entries(modes).filter(([key]) => key in traits);
   return !known.some(([key, mode]) => mode === "deny" && traits[key]) &&

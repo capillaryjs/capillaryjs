@@ -1,12 +1,12 @@
-import type {FrayChild} from "@sylwellsoftware/fray";
-import {ListView, Panel, RadioGroup, Toolbar, TriCheckbox} from "@sylwellsoftware/fray";
+import type {CapillaryUiChild} from "@capillaryjs/capillary-ui";
+import {ListView, Panel, RadioGroup, Toolbar, TriCheckbox} from "@capillaryjs/capillary-ui";
 import type {ViewResult} from "../../api/ScenarioApi.ts";
 import {bootstrap} from "../../app/services.ts";
 import {Metrics, RecordCard} from "../shared/ViewComponents.tsx";
 import {options, ScreenView} from "../shared/ScreenView.tsx";
 
 export class ResourcesScreen extends ScreenView {
-    protected renderContent(result?: ViewResult): FrayChild {
+    protected renderContent(result?: ViewResult): CapillaryUiChild {
         const tab = this.field("tab").get();
         const b = this.read(bootstrap);
 

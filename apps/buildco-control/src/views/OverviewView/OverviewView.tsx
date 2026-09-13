@@ -1,9 +1,9 @@
-import type {FrayChild} from "@sylwellsoftware/fray";
+import type {CapillaryUiChild} from "@capillaryjs/capillary-ui";
 import {
     Component, Layout, InfoPanel, InfoField, ListView, Panel, PanelToolbar,
     Dropdown, Button, ProgressBar, RouteLink, RouteQuery, Placeholder, Toolbar,
     routeTarget, routeParameter, stringRouteQueryCodec, withRouteQuery,
-} from "@sylwellsoftware/fray";
+} from "@capillaryjs/capillary-ui";
 import type {Row} from "../../api/ScenarioApi.ts";
 import {screens, routes, issueIdParam} from "../../app/routing.ts";
 import {buildco, revision, bootstrap} from "../../app/services.ts";
@@ -22,7 +22,7 @@ export class OverviewView extends Component {
         void this.query.activate();
     }
 
-    render(): FrayChild {
+    render(): CapillaryUiChild {
         const b = this.snapshot(bootstrap);
         const view = this.snapshot(this.query);
 
@@ -46,7 +46,7 @@ export class OverviewView extends Component {
             }
         });
 
-        return <Layout className="overview-view fray-size-flexible" horizontal>
+        return <Layout className="overview-view cap-size-flexible" horizontal>
             <RouteQuery name="scope" codec={stringRouteQueryCodec} valueEmitter={this.state.field("scope")} defaultValue="all"/>
             <RouteQuery name="sort" codec={stringRouteQueryCodec} valueEmitter={this.state.field("sort")} defaultValue=""/>
             <InfoPanel island className="overview-summary" title="Portfolio Summary" label="Portfolio metrics">

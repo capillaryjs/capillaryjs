@@ -5,8 +5,8 @@ import {Window} from 'happy-dom'
 import {
     MemoryNavigationAdapter,
     createBrowserRouter,
-    createFrayRuntime,
-} from '@sylwellsoftware/fray'
+    createCapillaryUiRuntime,
+} from '@capillaryjs/capillary-ui'
 
 import {GalleryApp} from './GalleryApp.js'
 
@@ -33,7 +33,7 @@ after(() => window.close())
 test('gallery shell mounts the line-inputs page with islands and toolbar', async () => {
     const adapter = new MemoryNavigationAdapter('/line-inputs')
     const router = createBrowserRouter({adapter})
-    const runtime = createFrayRuntime({router})
+    const runtime = createCapillaryUiRuntime({router})
     const app = runtime.mount(runtime.create(GalleryApp), document.body)
     await waitUntil(() => router.transition.get().state === 'idle')
 
@@ -41,14 +41,14 @@ test('gallery shell mounts the line-inputs page with islands and toolbar', async
     assert.ok(document.querySelector('header.gallery-masthead'), 'masthead island')
     assert.ok(document.querySelector('footer.gallery-footer'), 'footer island')
     assert.ok(document.querySelector('nav'), 'page navbar')
-    assert.ok(document.querySelector('fray-toolbar.gallery-controls'), 'control toolbar')
-    assert.ok(document.querySelector('fray-sidebar'), 'page sidebar')
-    assert.ok(document.querySelector('fray-panel'), 'content panel')
+    assert.ok(document.querySelector('cap-toolbar.gallery-controls'), 'control toolbar')
+    assert.ok(document.querySelector('cap-sidebar'), 'page sidebar')
+    assert.ok(document.querySelector('cap-panel'), 'content panel')
 
     // Toolbar controls
-    assert.ok(document.querySelector('fray-dropdown.fray-theme-picker'), 'theme picker')
-    assert.ok(document.querySelector('fray-dropdown.fray-colors-picker'), 'color picker')
-    const headerToggles = document.querySelectorAll('.gallery-controls fray-toggle')
+    assert.ok(document.querySelector('cap-dropdown.cap-theme-picker'), 'theme picker')
+    assert.ok(document.querySelector('cap-dropdown.cap-colors-picker'), 'color picker')
+    const headerToggles = document.querySelectorAll('.gallery-controls cap-toggle')
     assert.equal(headerToggles.length, 2, 'layout and data-state toggles')
     const flagInputs = document.querySelectorAll('.gallery-flag-group input')
     assert.equal(flagInputs.length, 5, 'component-state flags')
@@ -57,14 +57,14 @@ test('gallery shell mounts the line-inputs page with islands and toolbar', async
     assert.ok(document.querySelector('#gallery-checkboxes'), 'checkbox panel')
     assert.ok(document.querySelector('#gallery-basic-inputs'), 'basic inputs panel')
     assert.ok(document.querySelector('#gallery-date-time'), 'date/time panel')
-    assert.ok(document.querySelector('fray-tricheckbox'), 'tri-state checkbox')
-    assert.ok(document.querySelector('fray-quadcheckbox'), 'quad-state checkbox')
-    assert.ok(document.querySelector('fray-datepicker'), 'date picker')
-    assert.ok(document.querySelector('fray-timepicker'), 'time picker')
-    assert.ok(document.querySelector('fray-datetimepicker'), 'datetime picker')
-    assert.ok(document.querySelector('fray-progressbar'), 'progress bar')
+    assert.ok(document.querySelector('cap-tricheckbox'), 'tri-state checkbox')
+    assert.ok(document.querySelector('cap-quadcheckbox'), 'quad-state checkbox')
+    assert.ok(document.querySelector('cap-datepicker'), 'date picker')
+    assert.ok(document.querySelector('cap-timepicker'), 'time picker')
+    assert.ok(document.querySelector('cap-datetimepicker'), 'datetime picker')
+    assert.ok(document.querySelector('cap-progressbar'), 'progress bar')
     assert.ok(
-        document.querySelectorAll('fray-panel fray-toolbar').length >= 3,
+        document.querySelectorAll('cap-panel cap-toolbar').length >= 3,
         'panel toolbars',
     )
     assert.ok(
@@ -75,18 +75,18 @@ test('gallery shell mounts the line-inputs page with islands and toolbar', async
     // Panels declare form context; the sidebar demo group declares control
     for (const id of ['#gallery-checkboxes', '#gallery-basic-inputs', '#gallery-date-time']) {
         assert.equal(
-            document.querySelector(id)?.getAttribute('data-fray-context'),
+            document.querySelector(id)?.getAttribute('data-cap-context'),
             'form',
             `${id} form context`,
         )
     }
     assert.equal(
-        document.querySelector('.gallery-control-demo')?.getAttribute('data-fray-context'),
+        document.querySelector('.gallery-control-demo')?.getAttribute('data-cap-context'),
         'control',
         'sidebar demo control context',
     )
     assert.ok(
-        document.querySelector('.gallery-control-demo fray-groupbox'),
+        document.querySelector('.gallery-control-demo cap-groupbox'),
         'sidebar demo groupbox',
     )
 
@@ -97,16 +97,16 @@ test('gallery shell mounts the line-inputs page with islands and toolbar', async
 test('toolbar toggles switch layout variant and shared data state', async () => {
     const adapter = new MemoryNavigationAdapter('/line-inputs')
     const router = createBrowserRouter({adapter})
-    const runtime = createFrayRuntime({router})
+    const runtime = createCapillaryUiRuntime({router})
     const app = runtime.mount(runtime.create(GalleryApp), document.body)
     await waitUntil(() => router.transition.get().state === 'idle')
 
-    const root = document.querySelector('fray-app')
+    const root = document.querySelector('cap-app')
     assert.ok(root?.classList.contains('gallery-shell'), 'app shell variant')
 
     // Layout toggle → website variant
     const websiteOption = [...document.querySelectorAll<HTMLElement>(
-        'fray-toggle button[role="radio"]',
+        'cap-toggle button[role="radio"]',
     )].find((button) => button.textContent === 'Website')
     assert.ok(websiteOption, 'website layout option')
     websiteOption.click()
@@ -114,19 +114,19 @@ test('toolbar toggles switch layout variant and shared data state', async () => 
 
     // The shared emitter's loading state drives control busy presentation.
     const loadingOption = [...document.querySelectorAll<HTMLElement>(
-        'fray-toggle button[role="radio"]',
+        'cap-toggle button[role="radio"]',
     )].find((button) => button.textContent === 'Loading')
     assert.ok(loadingOption, 'loading data-state option')
     loadingOption.click()
     const pageTextbox = document.querySelector<HTMLInputElement>(
-        '#gallery-basic-inputs fray-textbox input',
+        '#gallery-basic-inputs cap-textbox input',
     )
     assert.ok(pageTextbox, 'page textbox input')
     assert.equal(pageTextbox.getAttribute('aria-busy'), 'true', 'emitter loading applies busy')
 
     // The shared emitter's error state drives both the readout and control chrome.
     const errorOption = [...document.querySelectorAll<HTMLElement>(
-        'fray-toggle button[role="radio"]',
+        'cap-toggle button[role="radio"]',
     )].find((button) => button.textContent === 'Error')
     assert.ok(errorOption, 'error data-state option')
     errorOption.click()
@@ -137,7 +137,7 @@ test('toolbar toggles switch layout variant and shared data state', async () => 
     assert.equal(pageTextbox.getAttribute('aria-busy'), null, 'error supersedes loading')
     assert.equal(pageTextbox.getAttribute('aria-invalid'), 'true', 'emitter error applies chrome')
     assert.match(
-        document.querySelector('#gallery-basic-inputs fray-error')?.textContent ?? '',
+        document.querySelector('#gallery-basic-inputs cap-error')?.textContent ?? '',
         /Simulated data service failure/,
     )
 
@@ -160,21 +160,21 @@ test('data page demonstrates initial skeletons, retained loading, errors, retry,
     async () => {
         const adapter = new MemoryNavigationAdapter('/data-components')
         const router = createBrowserRouter({adapter})
-        const runtime = createFrayRuntime({router})
+        const runtime = createCapillaryUiRuntime({router})
         const app = runtime.mount(runtime.create(GalleryApp), document.body)
         await waitUntil(() => router.transition.get().state === 'idle')
 
-        assert.ok(document.querySelector('#gallery-table fray-datatable'), 'table example')
-        assert.ok(document.querySelector('#gallery-collections fray-listview'), 'list example')
-        assert.ok(document.querySelector('#gallery-collections fray-treeview'), 'tree example')
+        assert.ok(document.querySelector('#gallery-table cap-datatable'), 'table example')
+        assert.ok(document.querySelector('#gallery-collections cap-listview'), 'list example')
+        assert.ok(document.querySelector('#gallery-collections cap-treeview'), 'tree example')
         assert.match(document.querySelector('#gallery-empty')?.textContent ?? '', /No components/)
 
         toolbarOption('Initial').click()
-        assert.ok(document.querySelectorAll('#gallery-table fray-placeholder').length > 0,
+        assert.ok(document.querySelectorAll('#gallery-table cap-placeholder').length > 0,
             'table placeholders')
-        assert.ok(document.querySelectorAll('#gallery-collections fray-placeholder').length > 0,
+        assert.ok(document.querySelectorAll('#gallery-collections cap-placeholder').length > 0,
             'collection placeholders')
-        assert.ok(document.querySelector('#gallery-collections fray-treeview ul[aria-hidden="true"]'),
+        assert.ok(document.querySelector('#gallery-collections cap-treeview ul[aria-hidden="true"]'),
             'tree placeholder list')
 
         toolbarOption('Ready').click()
@@ -190,8 +190,8 @@ test('data page demonstrates initial skeletons, retained loading, errors, retry,
             ?.getAttribute('aria-busy'), 'true')
 
         toolbarOption('Error').click()
-        assert.ok(document.querySelectorAll('#gallery-table fray-error[role="alert"]').length > 0)
-        assert.ok(document.querySelectorAll('#gallery-collections fray-error[role="alert"]').length >= 2)
+        assert.ok(document.querySelectorAll('#gallery-table cap-error[role="alert"]').length > 0)
+        assert.ok(document.querySelectorAll('#gallery-collections cap-error[role="alert"]').length >= 2)
         const retry = [...document.querySelectorAll<HTMLButtonElement>('#gallery-table button')]
             .find((button) => button.textContent === 'Retry')
         assert.ok(retry, 'table retry action')
@@ -213,7 +213,7 @@ async function waitUntil(predicate: () => boolean): Promise<void> {
 
 function toolbarOption(label: string): HTMLElement {
     const option = [...document.querySelectorAll<HTMLElement>(
-        '.gallery-controls fray-toggle button[role="radio"]',
+        '.gallery-controls cap-toggle button[role="radio"]',
     )].find((button) => button.textContent === label)
     assert.ok(option, `${label} toolbar option`)
     return option

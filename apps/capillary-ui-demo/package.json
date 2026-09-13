@@ -1,0 +1,24 @@
+{
+  "name": "@capillaryjs/capillary-ui-demo",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Public iterative demo for Capillary UI styling overhaul.",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -p tsconfig.json --noEmit && vite build",
+    "preview": "vite preview",
+    "test": "node --import tsx --test src/**/*.test.ts"
+  },
+  "dependencies": {
+    "@capillaryjs/capillary": "workspace:^",
+    "@capillaryjs/capillary-ui": "workspace:^",
+    "@capillaryjs/capillary-viz": "workspace:^"
+  },
+  "devDependencies": {
+    "happy-dom": "^20.0.10",
+    "tsx": "^4.23.13",
+    "typescript": "^5.9.2",
+    "vite": "^6.4.3"
+  }
+}

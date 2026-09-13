@@ -1,4 +1,4 @@
-import type {FrayChild} from "@sylwellsoftware/fray";
+import type {CapillaryUiChild} from "@capillaryjs/capillary-ui";
 import {
     Button,
     FilterPanel,
@@ -12,7 +12,7 @@ import {
     SplitSecondary,
     SplitView,
     Toolbar
-} from "@sylwellsoftware/fray";
+} from "@capillaryjs/capillary-ui";
 import type {SemanticMode, ViewResult} from "../../api/ScenarioApi.ts";
 import {CONDITIONS} from "../../api/ScenarioApi.ts";
 import {bootstrap, flags} from "../../app/services.ts";
@@ -32,7 +32,7 @@ export class QueueScreen extends ScreenView {
         );
     }
 
-    protected renderContent(result?: ViewResult): FrayChild {
+    protected renderContent(result?: ViewResult): CapillaryUiChild {
         const b = this.read(bootstrap);
 
         return (

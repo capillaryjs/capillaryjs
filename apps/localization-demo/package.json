@@ -2,7 +2,7 @@
   "name": "@sylwellsoftware/localization-demo",
   "private": true,
   "version": "0.1.0",
-  "description": "Mini Fray localization component gallery.",
+  "description": "Mini Capillary UI localization component gallery.",
   "type": "module",
   "packageManager": "pnpm@10.11.0",
   "engines": {
@@ -18,8 +18,8 @@
     "verify": "pnpm typecheck && pnpm test"
   },
   "dependencies": {
-    "@sylwellsoftware/fray": "workspace:^",
-    "@sylwellsoftware/glue": "workspace:^"
+    "@capillaryjs/capillary-ui": "workspace:^",
+    "@capillaryjs/capillary": "workspace:^"
   },
   "devDependencies": {
     "@types/node": "^26.4.0",

@@ -1,5 +1,5 @@
 name: Bug report
-description: Report a reproducible Glue or Fray defect
+description: Report a reproducible Capillary or CapillaryUi defect
 title: "[Bug]: "
 labels: [bug]
 body:
@@ -11,8 +11,8 @@ body:
     attributes:
       label: Package
       options:
-        - "@sylwellsoftware/glue"
-        - "@sylwellsoftware/fray"
+        - "@capillaryjs/capillary"
+        - "@capillaryjs/capillary-ui"
         - Repository tooling
     validations:
       required: true

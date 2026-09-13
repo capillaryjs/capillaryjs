@@ -1,4 +1,4 @@
-import type {FrayChild} from "@sylwellsoftware/fray";
+import type {CapillaryUiChild} from "@capillaryjs/capillary-ui";
 import type {Screen} from "../api/ScenarioApi.ts";
 import {OverviewScreen} from "./OverviewView/OverviewScreen.tsx";
 import {ProjectsScreen} from "./ProjectsView/ProjectsScreen.tsx";
@@ -11,7 +11,7 @@ import {AnalyticsScreen} from "./AnalyticsView/AnalyticsScreen.tsx";
 export {ScreenView, titles, options} from "./shared/ScreenView.tsx";
 export {OverviewScreen, ProjectsScreen, PlanningScreen, QueueScreen, ResourcesScreen, IssuesScreen, AnalyticsScreen};
 
-export const screenViews: Record<Screen, FrayChild> = {
+export const screenViews: Record<Screen, CapillaryUiChild> = {
     overview: <OverviewScreen screen="overview"/>,
     projects: <ProjectsScreen screen="projects"/>,
     planning: <PlanningScreen screen="planning"/>,

@@ -1,4 +1,4 @@
-import type {FrayChild} from "@sylwellsoftware/fray";
+import type {CapillaryUiChild} from "@capillaryjs/capillary-ui";
 import type {Metric, Row} from "../api/ScenarioApi.ts";
 import {human} from "../api/ScenarioApi.ts";
 
@@ -17,7 +17,7 @@ export function formatValue(value: string | number, format?: Metric["format"]): 
     }
 }
 
-export function renderRows(rows: readonly Row[]): FrayChild {
+export function renderRows(rows: readonly Row[]): CapillaryUiChild {
     if (rows.length === 0) return <p className="muted">No records.</p>;
     return <ul className="detail-rows">
         {rows.map(r => <li key={String(r.id)}>

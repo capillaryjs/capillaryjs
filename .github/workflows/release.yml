@@ -110,5 +110,5 @@ jobs:
             echo
             echo 'CI did not publish or approve a package.'
             echo 'Use npmjs.com Staged Packages, or npm stage list/view/download, to inspect it.'
-            echo 'A maintainer must approve each stage with 2FA. Approve dependencies before dependants: Glue, then Fray, then Fray Visualization.'
+            echo 'A maintainer must approve each stage with 2FA. Approve dependencies before dependants: Capillary, then CapillaryUi, then CapillaryUi Visualization.'
           } >> "$GITHUB_STEP_SUMMARY"

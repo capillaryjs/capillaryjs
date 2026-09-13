@@ -1,8 +1,8 @@
-import type {ComponentProps, FrayChild} from "@sylwellsoftware/fray";
-import {Button, Checkbox, Component, ListView, Toolbar} from "@sylwellsoftware/fray";
-import type {ReadableEmitter} from "@sylwellsoftware/glue";
-import {DerivedEmitter, Emitter} from "@sylwellsoftware/glue";
-import type {LineGraphRange} from "@sylwellsoftware/fray-visualization";
+import type {ComponentProps, CapillaryUiChild} from "@capillaryjs/capillary-ui";
+import {Button, Checkbox, Component, ListView, Toolbar} from "@capillaryjs/capillary-ui";
+import type {ReadableEmitter} from "@capillaryjs/capillary";
+import {DerivedEmitter, Emitter} from "@capillaryjs/capillary";
+import type {LineGraphRange} from "@capillaryjs/capillary-viz";
 import {
     BlockGraph,
     CategoryHidePanel,
@@ -12,7 +12,7 @@ import {
     filterByHidden,
     LineGraph,
     SplitSelectionPanel
-} from "@sylwellsoftware/fray-visualization";
+} from "@capillaryjs/capillary-viz";
 import type {Row, ViewResult} from "../../api/ScenarioApi.ts";
 import {RecordCard} from "../shared/ViewComponents.tsx";
 import {openProject} from "../../app/routing.ts";
@@ -66,7 +66,7 @@ export class Analytics extends Component<ComponentProps & {
         this.onCleanup(this.block.selectedPath$.subscribe(() => this.page.set(0), {emitCurrent: false}));
     }
 
-    render(): FrayChild {
+    render(): CapillaryUiChild {
         const source = this.read(this.props.source);
         const unit = costScale(source) > 1 ? "million DKK" : source?.chartUnit ?? "—";
         if (this.props.trends) return <div className="trends">

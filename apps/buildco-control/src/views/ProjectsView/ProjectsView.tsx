@@ -1,12 +1,12 @@
-import type {FrayChild, Key} from "@sylwellsoftware/fray";
+import type {CapillaryUiChild, Key} from "@capillaryjs/capillary-ui";
 import {
     Breadcrumb, Component, DataTable, InfoField, Layout,
     Panel, Sidebar, SidebarToolbar, SplitPrimary, SplitSecondary, SplitView, TabPanel, TreeView,
     Textbox, Button, RouteQuery, Placeholder, Toolbar,
     routeTarget, stringRouteQueryCodec, withRouteQuery,
-} from "@sylwellsoftware/fray";
-import type {BreadcrumbItem, TableColumn, TableRow, TreeNode} from "@sylwellsoftware/fray";
-import {Emitter} from "@sylwellsoftware/glue";
+} from "@capillaryjs/capillary-ui";
+import type {BreadcrumbItem, TableColumn, TableRow, TreeNode} from "@capillaryjs/capillary-ui";
+import {Emitter} from "@capillaryjs/capillary";
 import type {Choice, Detail, Row} from "../../api/ScenarioApi.ts";
 import type {ScopeNode} from "../../domain/model.ts";
 import {keyQueryCodec, routes, screens} from "../../app/routing.ts";
@@ -186,7 +186,7 @@ export class ProjectsView extends Component {
         });
     }
 
-    render(): FrayChild {
+    render(): CapillaryUiChild {
         const b = this.snapshot(bootstrap);
         const view = this.snapshot(this.query);
 
@@ -217,7 +217,7 @@ export class ProjectsView extends Component {
             <RouteQuery name="scope" codec={keyQueryCodec} valueEmitter={this.state.scope} defaultValue={null}/>
             <RouteQuery name="phase" codec={stringRouteQueryCodec} valueEmitter={this.state.field("phase")} defaultValue=""/>
             <RouteQuery name="search" codec={stringRouteQueryCodec} valueEmitter={this.state.field("search")} defaultValue=""/>
-            <SplitView className="projects-view fray-size-flexible" primarySize="18rem" primaryLabel="Project explorer" secondaryLabel="Details">
+            <SplitView className="projects-view cap-size-flexible" primarySize="18rem" primaryLabel="Project explorer" secondaryLabel="Details">
             <SplitPrimary>
                 <Sidebar island allocation="flexible" header="Project Explorer">
                     <SidebarToolbar>

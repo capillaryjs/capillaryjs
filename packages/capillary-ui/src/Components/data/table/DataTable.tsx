@@ -1,0 +1,460 @@
+import {Emitter, FetchState} from '@capillaryjs/capillary'
+import type {ReadableEmitter} from '@capillaryjs/capillary'
+
+import {Placeholder} from '../../Placeholder.js'
+import {Component, css} from '../../component.js'
+import type {ComponentProps, CapillaryUiChild} from '../../component.js'
+import {componentClass} from '../../controlUtils.js'
+import type {ValueEmitter} from '../../controlUtils.js'
+import type {CheckboxSymbol} from '../../lineinputs/checkbox/Checkbox.js'
+import {ErrorMessage} from '../../status/statusPresentation.js'
+import type {FilterModeValue} from '../../../util/filterMode.js'
+import {
+    createSelectionHandler,
+    defaultItemKey,
+    SingleSelectionHandler,
+} from '../selectionhandler.js'
+import type {
+    BaseSelectionHandler,
+    ItemKeyGetter,
+} from '../selectionhandler.js'
+import {TableHeader} from './TableHeader.js'
+import type {TableColumn, TableRow} from './TableHeaderCell.js'
+import {
+    createLocalTableDataSource,
+    createRestTableDataSource,
+} from './tableDataSource.js'
+import type {
+    RestTableDataSourceOptions,
+    TableDataSource,
+    TableQueryInput,
+} from './tableDataSource.js'
+import type {TableFilters, TableSort} from './tableQuery.js'
+
+interface DataTableCommonProps<TRow extends TableRow> extends ComponentProps {
+    columns: readonly TableColumn<TRow>[]
+    rowKey?: Extract<keyof TRow, string> | ItemKeyGetter<TRow>
+    caption?: CapillaryUiChild
+    emptyMessage?: CapillaryUiChild
+    placeholderCount?: number
+    filterModes?: readonly CheckboxSymbol<FilterModeValue>[]
+    defaultSemanticState?: FilterModeValue
+    onFilterChange?: (filters: TableFilters, event: Event | null) => void
+}
+
+type DataTableInputProps<TRow extends TableRow> =
+    | {
+        data?: readonly TRow[] | ReadableEmitter<readonly TRow[], unknown>
+        dataSource?: never
+        rest?: never
+    }
+    | {
+        data?: never
+        dataSource: TableDataSource<TRow>
+        rest?: never
+    }
+    | {
+        data?: never
+        dataSource?: never
+        rest: Omit<RestTableDataSourceOptions<TRow>, 'owner' | 'sortEmitter' | 'filtersEmitter'>
+    }
+
+type DataTableSelectionProps<TRow extends TableRow> =
+    | {
+        multiSelect?: false
+        selectedItemEmitter?: ValueEmitter<TRow | null>
+        selectedItemsEmitter?: never
+    }
+    | {
+        multiSelect: true
+        selectedItemsEmitter?: ValueEmitter<TRow[]>
+        selectedItemEmitter?: never
+    }
+
+export type DataTableProps<TRow extends TableRow = TableRow> =
+    DataTableCommonProps<TRow> & DataTableInputProps<TRow> & DataTableSelectionProps<TRow>
+
+/** Accessible table over an explicit local, caller-query, or REST data source. */
+export class DataTable<TRow extends TableRow = TableRow>
+    extends Component<DataTableProps<TRow>> {
+    static override liveProps: readonly string[] = []
+    readonly columns: readonly TableColumn<TRow>[]
+    readonly rowKey: ItemKeyGetter<TRow>
+    readonly sortEmitter: ValueEmitter<TableSort | null>
+    readonly filtersEmitter: ValueEmitter<TableFilters>
+    readonly selectedItemsEmitter: ValueEmitter<TRow[]>
+    readonly selectedItemEmitter: ValueEmitter<TRow | null> | null
+    readonly selectionHandler: BaseSelectionHandler<TRow>
+    query: TableQueryInput<TRow> | null = null
+    private dataSource: TableDataSource<TRow> | null = null
+    private readonly suppliedDataSource: TableDataSource<TRow> | null
+    private readonly ownedSortEmitter: Emitter<TableSort | null> | null
+    private readonly ownedFiltersEmitter: Emitter<TableFilters> | null
+    private ownedDataSource: TableDataSource<TRow> | null = null
+
+    constructor(props: DataTableProps<TRow>) {
+        super(props)
+        assertDataTableInput(props)
+        this.columns = normalizeColumns(props.columns)
+        this.rowKey = normalizeRowKey(props.rowKey)
+        this.suppliedDataSource = props.dataSource ?? null
+        this.ownedSortEmitter = this.suppliedDataSource == null
+            ? new Emitter<TableSort | null>(null, {owner: this, purpose: 'table sort'})
+            : null
+        this.ownedFiltersEmitter = this.suppliedDataSource == null
+            ? new Emitter<TableFilters>({}, {owner: this, purpose: 'table filters'})
+            : null
+        this.sortEmitter = this.suppliedDataSource?.sortEmitter ?? this.ownedSortEmitter!
+        this.filtersEmitter = this.suppliedDataSource?.filtersEmitter ?? this.ownedFiltersEmitter!
+        this.selectionHandler = props.multiSelect === true
+            ? createSelectionHandler({
+                owner: this,
+                multiSelect: true,
+                ...(props.selectedItemsEmitter == null
+                    ? {}
+                    : {selectedItemsEmitter: props.selectedItemsEmitter}),
+                getItems: () => this.query?.get() ?? [],
+                getKey: this.rowKey,
+            })
+            : createSelectionHandler({
+                owner: this,
+                ...(props.selectedItemEmitter == null
+                    ? {}
+                    : {selectedItemEmitter: props.selectedItemEmitter}),
+                getItems: () => this.query?.get() ?? [],
+                getKey: this.rowKey,
+            })
+        this.selectedItemsEmitter = this.selectionHandler.selectedItemsEmitter
+        this.selectedItemEmitter = this.selectionHandler instanceof SingleSelectionHandler
+            ? this.selectionHandler.selectedItemEmitter
+            : null
+    }
+
+    initialize(): void {
+        if (this.suppliedDataSource != null) {
+            this.dataSource = this.suppliedDataSource
+        } else if (this.props.rest != null) {
+            this.ownedDataSource = createRestTableDataSource({
+                ...this.props.rest,
+                sortEmitter: this.sortEmitter,
+                filtersEmitter: this.filtersEmitter,
+                owner: this,
+            })
+            this.dataSource = this.ownedDataSource
+        } else {
+            this.ownedDataSource = createLocalTableDataSource({
+                data: this.props.data ?? [],
+                sortEmitter: this.sortEmitter,
+                filtersEmitter: this.filtersEmitter,
+                owner: this,
+            })
+            this.dataSource = this.ownedDataSource
+        }
+        this.query = this.dataSource.query
+        this.watch(this.query, this.selectedItemsEmitter)
+    }
+
+    render(): CapillaryUiChild {
+        const rows = this.query?.get() ?? []
+        if (!Array.isArray(rows)) throw new TypeError('DataTable query value must be an array')
+        const status = this.query?.getFetchState() ?? FetchState.Initial
+        const error = this.query?.getError()
+        const isLoading = status === FetchState.Initial || status === FetchState.Loading
+        const selectedKeys = new Set(
+            this.selectedItemsEmitter.get().map((item, index) => this.rowKey(item, index)),
+        )
+        const Host = this.Host
+        return <Host
+            className={componentClass(this.props) || null}
+        >
+            {isLoading ? <p role="status">{this.capillaryUiMessage('dataTableLoading')}</p> : null}
+            {status === FetchState.Error
+                ? <ErrorMessage
+                    className="cap-error-banner"
+                    error={error}
+                    fallback={this.capillaryUiMessage('dataTableLoadError')}
+                />
+                : null}
+            {status === FetchState.Error && typeof this.dataSource?.retry === 'function'
+                ? <button
+                    type="button"
+                    onClick={() => this.dataSource?.retry?.('table retry')}
+                >{this.capillaryUiMessage('dataTableRetry')}</button>
+                : null}
+            <table aria-busy={isLoading ? 'true' : null}>
+                {this.props.caption == null ? null : <caption>{this.props.caption}</caption>}
+                <TableHeader
+                    key="header"
+                    columns={this.columns}
+                    sortEmitter={this.sortEmitter}
+                    filtersEmitter={this.filtersEmitter}
+                    {...(this.props.filterModes == null
+                        ? {}
+                        : {filterModes: this.props.filterModes})}
+                    {...(this.props.defaultSemanticState == null
+                        ? {}
+                        : {defaultSemanticState: this.props.defaultSemanticState})}
+                    {...(this.props.onFilterChange == null
+                        ? {}
+                        : {onFilterChange: this.props.onFilterChange})}
+                />
+                <tbody>
+                    {rows.length > 0
+                        ? rows.map((row, index) =>
+                            this.renderRow(row, index, selectedKeys))
+                        : isLoading
+                            ? this.renderPlaceholders()
+                            : status === FetchState.Error
+                                ? null
+                                : <tr key="empty">
+                                    <td colSpan={this.columns.length}>
+                                        {this.props.emptyMessage ?? this.capillaryUiMessage('dataTableEmpty')}
+                                    </td>
+                                </tr>}
+                </tbody>
+            </table>
+        </Host>
+    }
+
+    private renderRow(
+        row: TRow,
+        index: number,
+        selectedKeys: ReadonlySet<unknown>,
+    ): CapillaryUiChild {
+        const key = this.rowKey(row, index)
+        const selected = selectedKeys.has(key)
+        return <tr
+            key={String(key)}
+            data-cap-selectable-row=""
+            aria-selected={String(selected)}
+            tabIndex={index === 0 ? 0 : -1}
+        >
+            {this.columns.map((column) => <td key={String(column.field)}>
+                {column.render
+                    ? column.render(row, index)
+                    : renderCellValue(row[column.field])}
+            </td>)}
+        </tr>
+    }
+
+    private renderPlaceholders(): CapillaryUiChild[] {
+        const count = this.props.placeholderCount ?? 5
+        return Array.from({length: count}, (_, rowIndex) =>
+            <tr key={`placeholder-${rowIndex}`} aria-hidden="true">
+                {this.columns.map((column, columnIndex) =>
+                    <td key={String(column.field)}>
+                        <Placeholder
+                            width={45 + ((rowIndex + columnIndex) % 6) * 8}
+                        />
+                    </td>)}
+            </tr>)
+    }
+
+    afterUpdate(dom: ChildNode | null): void {
+        const rows = dom instanceof Element
+            ? dom.querySelectorAll<HTMLElement>('tbody [data-cap-selectable-row]')
+            : []
+        this.selectionHandler.rowsUpdated(rows)
+    }
+
+    getSelectedRows(): TRow[] {
+        return this.selectionHandler.getSelectedItems()
+    }
+
+    getSelectedRowsEmitter(): ValueEmitter<TRow[]> {
+        return this.selectedItemsEmitter
+    }
+
+    getSelectedRow(): TRow | null {
+        return this.selectedItemEmitter?.get() ?? null
+    }
+
+    getSelectedRowEmitter(): ValueEmitter<TRow | null> | null {
+        return this.selectedItemEmitter
+    }
+
+    onDestroy(): void {
+        this.selectionHandler.destroy()
+        this.ownedDataSource?.dispose()
+        this.ownedSortEmitter?.dispose()
+        this.ownedFiltersEmitter?.dispose()
+    }
+
+    static dependencies = [Placeholder, TableHeader, ErrorMessage]
+
+    static override hostName = 'data-table'
+
+    static css = css`
+        & {
+            display: block;
+            position: relative;
+            overflow: auto;
+        }
+
+        & > p {
+            margin: 0;
+        }
+
+        & > table {
+            border-collapse: collapse;
+            width: 100%;
+        }
+
+        & thead:has([aria-expanded="true"]) {
+            position: relative;
+            z-index: 1100;
+        }
+
+        & th,
+        & td {
+            position: relative;
+            text-align: left;
+            padding: 0 var(--ui-padding);
+            font-weight: normal;
+        }
+
+        &,
+        & table,
+        & tbody tr,
+        & tbody tr td {
+            user-select: none;
+            pointer-events: all;
+        }
+
+        & tr td {
+            background: var(--ui-table-bg-color);
+            line-height: calc(var(--ui-font-size) + var(--ui-padding));
+            font-size: var(--ui-font-size);
+            height: calc(var(--ui-font-size) + var(--ui-padding-h));
+        }
+
+        & > table > tbody > tr:nth-child(even) > td {
+            background: var(--ui-table-bg-color2);
+        }
+
+        & > table > tbody > tr[aria-selected="true"] > td {
+            color: var(--ui-select-text-color);
+            background: var(--ui-select-bg);
+        }
+
+        & > table > tbody > tr:nth-child(even)[aria-selected="true"] > td {
+            background: var(--ui-select-bg-dark);
+        }
+
+        & tr td cap-placeholder {
+            font-size: var(--ui-font-size);
+            height: var(--ui-font-size);
+        }
+
+        & > table[aria-busy="true"] > tbody > tr[data-cap-selectable-row] > td::after {
+            content: "";
+            position: absolute;
+            z-index: 1;
+            inset: 0;
+            background-image: var(--working-background-image);
+            background-repeat: repeat;
+            background-size: 2rem 2rem;
+            animation: cap-working-progress .55s linear infinite;
+            pointer-events: none;
+        }
+
+        &:has(> cap-error) {
+            outline: 1px solid var(--error-color);
+            outline-offset: -1px;
+        }
+
+        &:has(> cap-error) > button {
+            border-color: var(--error-color);
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            & > table[aria-busy="true"] > tbody > tr[data-cap-selectable-row] > td::after {
+                animation: none !important;
+            }
+        }
+
+        @media (forced-colors: active) {
+            &:has(> cap-error) {
+                outline: 2px solid Mark;
+            }
+        }
+
+    `
+}
+
+function normalizeColumns<TRow extends TableRow>(
+    columns: unknown,
+): readonly TableColumn<TRow>[] {
+    if (!Array.isArray(columns) || columns.length === 0) {
+        throw new TypeError('DataTable columns must be a non-empty array')
+    }
+    const fields = new Set<string>()
+    return columns.map((column: unknown) => {
+        if (column == null || typeof column !== 'object') {
+            throw new TypeError('Every DataTable column requires a field')
+        }
+        const field = Reflect.get(column, 'field')
+        if (typeof field !== 'string' || field.length === 0) {
+            throw new TypeError('Every DataTable column requires a field')
+        }
+        if (fields.has(field)) throw new Error(`Duplicate DataTable column: ${field}`)
+        fields.add(field)
+        const render = Reflect.get(column, 'render')
+        if (render != null && typeof render !== 'function') {
+            throw new TypeError(`DataTable column ${field} render must be a function`)
+        }
+        // Runtime validation above proves the structural column boundary; the
+        // row-specific callback relationship is checked at the public API.
+        return column as TableColumn<TRow>
+    })
+}
+
+function assertDataTableInput<TRow extends TableRow>(props: DataTableProps<TRow>): void {
+    const legacyNames = ['mode', 'query', 'queryHandler', 'queryUrl', 'baseUrl', 'fetch',
+        'serializeQuery']
+    const legacy = legacyNames.find((name) => Object.hasOwn(props, name))
+    if (legacy != null) {
+        throw new TypeError(
+            `DataTable ${legacy} moved to dataSource/rest; see the 0.3 migration guide`,
+        )
+    }
+    const hasData = props.data !== undefined
+    const hasDataSource = props.dataSource !== undefined
+    const hasRest = props.rest !== undefined
+    if (Number(hasData) + Number(hasDataSource) + Number(hasRest) > 1) {
+        throw new TypeError('DataTable accepts exactly one of data, dataSource, or rest')
+    }
+    if (hasDataSource) {
+        const source = props.dataSource
+        if (source == null
+            || typeof source !== 'object'
+            || source.query == null
+            || typeof source.sortEmitter?.set !== 'function'
+            || typeof source.filtersEmitter?.set !== 'function'
+            || typeof source.dispose !== 'function') {
+            throw new TypeError('DataTable dataSource must implement the table data-source contract')
+        }
+    }
+}
+
+function normalizeRowKey<TRow extends TableRow>(
+    rowKey: DataTableProps<TRow>['rowKey'],
+): ItemKeyGetter<TRow> {
+    if (rowKey == null) return defaultItemKey
+    if (typeof rowKey === 'function') return rowKey
+    if (typeof rowKey === 'string' && rowKey.length > 0) {
+        return (row, index) => {
+            const key = row[rowKey]
+            if (key == null) {
+                throw new TypeError(`DataTable row at index ${index} lacks ${rowKey}`)
+            }
+            return key
+        }
+    }
+    throw new TypeError('DataTable rowKey must be a function or property name')
+}
+
+function renderCellValue(value: unknown): CapillaryUiChild {
+    if (value == null || typeof value === 'string' || typeof value === 'number') return value
+    return String(value)
+}

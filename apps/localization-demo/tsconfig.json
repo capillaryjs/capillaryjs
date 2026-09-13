@@ -4,7 +4,7 @@
     "lib": ["ES2023", "DOM", "DOM.Iterable"],
     "types": ["node"],
     "jsx": "react-jsx",
-    "jsxImportSource": "@sylwellsoftware/fray",
+    "jsxImportSource": "@capillaryjs/capillary-ui",
     "noEmit": true,
     "strict": true
   },

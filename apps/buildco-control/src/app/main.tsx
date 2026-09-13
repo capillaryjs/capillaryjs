@@ -1,16 +1,16 @@
-import type {FrayChild} from "@sylwellsoftware/fray";
+import type {CapillaryUiChild} from "@capillaryjs/capillary-ui";
 import {
-    createFrayRuntime,
-    FrayApp,
-    mountFrayApp,
+    createCapillaryUiRuntime,
+    CapillaryUiApp,
+    mountCapillaryUiApp,
     NavigationBar,
-    replaceFrayStylesheet,
+    replaceCapillaryUiStylesheet,
     RouteOutlet,
     routeTarget,
     ThemePicker,
     ColorPicker,
-} from "@sylwellsoftware/fray";
-import "@sylwellsoftware/fray/themes/base.css";
+} from "@capillaryjs/capillary-ui";
+import "@capillaryjs/capillary-ui/themes/base.css";
 import "../styles/styles.css";
 import {
     OverviewView,
@@ -25,7 +25,7 @@ import {bootstrap, demo} from "./services.ts";
 import {routes, router} from "./routing.ts";
 import {palettes, themes} from "./appearance.ts";
 
-class BuildCoApp extends FrayApp {
+class BuildCoApp extends CapillaryUiApp {
     static dependencies = [
         NavigationBar, RouteOutlet, ThemePicker, ColorPicker,
         OverviewView, ProjectsView, QueueView, OperationsView,
@@ -36,10 +36,10 @@ class BuildCoApp extends FrayApp {
         void bootstrap.activate();
     }
 
-    protected renderContent(): FrayChild {
+    protected renderContent(): CapillaryUiChild {
         return <>
             <a className="skip-link" href="#main-content">Skip to content</a>
-            <header className="app-header island fray-size-natural">
+            <header className="app-header island cap-size-natural">
                 <div className="brand-row">
                     <span className="brand">
                         <span className="brand-mark" aria-hidden="true">B<span>c</span></span>
@@ -62,9 +62,9 @@ class BuildCoApp extends FrayApp {
                     ]}
                 />
             </header>
-            <main id="main-content" className="fray-size-flexible fray-layout-vertical" tabIndex={-1}>
+            <main id="main-content" className="cap-size-flexible cap-layout-vertical" tabIndex={-1}>
                 <RouteOutlet
-                    className="fray-size-flexible fray-layout-vertical"
+                    className="cap-size-flexible cap-layout-vertical"
                     mountPolicy="active-only"
                     views={[
                         {id: "overview", route: routes.overview, content: <OverviewView/>},
@@ -77,7 +77,7 @@ class BuildCoApp extends FrayApp {
                     ]}
                 />
             </main>
-            <footer className="app-footer island fray-size-natural">
+            <footer className="app-footer island cap-size-natural">
                 <span>BuildCo Control <span
                     className="muted">/ Connected construction operations</span></span>
                 <span className="footer-controls">
@@ -90,9 +90,9 @@ class BuildCoApp extends FrayApp {
     }
 }
 
-replaceFrayStylesheet("theme", themes.find(t => t.value === demo.theme.get()) ?? themes.find(t => t.value === "shiny")!);
-replaceFrayStylesheet("colors", palettes.find(t => t.value === demo.palette.get()) ?? palettes.find(t => t.value === "iceblue")!);
-mountFrayApp(createFrayRuntime({router}), BuildCoApp, document.getElementById("app")!, {
+replaceCapillaryUiStylesheet("theme", themes.find(t => t.value === demo.theme.get()) ?? themes.find(t => t.value === "shiny")!);
+replaceCapillaryUiStylesheet("colors", palettes.find(t => t.value === demo.palette.get()) ?? palettes.find(t => t.value === "iceblue")!);
+mountCapillaryUiApp(createCapillaryUiRuntime({router}), BuildCoApp, document.getElementById("app")!, {
     sizing: "viewport",
     layout: "vertical",
     landmark: "none",

@@ -1,0 +1,566 @@
+/* Application-owned Meridian layout only. Capillary UI components own their presentation. */
+
+:root {
+    width: 100%;
+    height: 100%;
+    background: var(--application-background);
+}
+
+body {
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    overflow: hidden;
+    color: var(--ui-color);
+    background: var(--application-background);
+}
+
+button,
+input,
+select {
+    font: inherit;
+}
+
+.meridian-app {
+    display: grid;
+    grid-template-rows: auto minmax(0, 1fr) auto;
+    gap: var(--space-md);
+    width: 100%;
+    height: 100%;
+    min-width: 0;
+    min-height: 0;
+    padding: var(--space-sm);
+    overflow: hidden;
+    background: var(--application-background);
+    box-sizing: border-box;
+}
+
+.meridian-app h1,
+.meridian-app h2,
+.meridian-app h3,
+.meridian-app h4,
+.meridian-app p,
+.meridian-app dl {
+    margin: 0;
+}
+
+.eyebrow {
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.meridian-masthead {
+    display: grid;
+    align-content: center;
+    gap: var(--space-xs);
+    min-width: 0;
+    padding: var(--space-md) var(--space-lg);
+}
+
+.meridian-shell {
+    display: grid;
+    grid-template-columns: minmax(15rem, 18rem) minmax(0, 1fr);
+    gap: var(--space-md);
+    min-width: 0;
+    min-height: 0;
+    overflow: hidden;
+}
+
+.meridian-navigation {
+    display: grid;
+    grid-template-rows: minmax(12rem, 1fr) auto;
+    align-content: stretch;
+    gap: var(--space-md);
+    min-width: 0;
+    min-height: 0;
+    overflow: hidden;
+}
+
+.meridian-scope,
+.meridian-view,
+.meridian-workspace,
+.meridian-workspace > cap-tabpanel,
+.meridian-workspace > cap-tabpanel > [role="tabpanel"] {
+    min-width: 0;
+    min-height: 0;
+}
+
+.meridian-scope {
+    height: 100%;
+}
+
+.meridian-view > cap-content {
+    display: grid;
+    align-content: start;
+}
+
+.meridian-workspace {
+    display: flex;
+    overflow: hidden;
+}
+
+.meridian-workspace > cap-tabpanel {
+    flex: 1;
+}
+
+.scope-content {
+    display: grid;
+    align-content: start;
+    gap: var(--space-md);
+    padding: var(--space-md);
+}
+
+.scope-tree {
+    max-height: none;
+}
+
+.work-area {
+    display: grid;
+    align-content: stretch;
+    gap: var(--space-md);
+    width: 100%;
+    height: 100%;
+    min-width: 0;
+    min-height: 0;
+    padding: var(--space-sm);
+    overflow: auto;
+    box-sizing: border-box;
+}
+
+.portfolio-area {
+    grid-template-rows: auto minmax(20rem, 1fr);
+}
+
+.portfolio-summary-content,
+.change-summary-content {
+    display: grid;
+    grid-template-columns: minmax(0, 3fr) minmax(18rem, 2fr);
+    align-items: center;
+    gap: var(--space-md);
+    width: 100%;
+}
+
+.portfolio-content-grid {
+    display: grid;
+    grid-template-columns: minmax(26rem, 1.25fr) minmax(20rem, 1fr);
+    gap: var(--space-md);
+    min-width: 0;
+    min-height: 0;
+}
+
+.attention-column {
+    display: grid;
+    grid-template-rows: minmax(12rem, 1fr) auto;
+    gap: var(--space-md);
+    min-width: 0;
+    min-height: 0;
+}
+
+.attention-queue-panel,
+.current-selection-panel {
+    min-width: 0;
+    min-height: 0;
+    height: 100%;
+}
+
+.metric-row {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--space-sm);
+}
+
+.metric-row p {
+    display: grid;
+    gap: var(--space-xs);
+    padding: var(--space-sm);
+    background: var(--palette-neutral-100);
+    border-radius: var(--radius-sm);
+}
+
+.metric-row strong {
+    font-size: 1.75rem;
+}
+
+.metric-row span,
+.supporting-copy,
+.attention-list small,
+.criteria-row > span {
+    color: var(--ui-muted-text-color);
+}
+
+.attention-list {
+    min-height: 10rem;
+}
+
+.attention-item {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: center;
+    min-width: 0;
+    width: 100%;
+    gap: var(--space-sm);
+}
+
+.attention-item > span {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.selected-change-callout,
+.change-summary-heading,
+.change-progress-summary,
+.approvals-history-panel > cap-content > section {
+    display: grid;
+    align-content: start;
+    gap: var(--space-sm);
+}
+
+.selection-supporting-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-md);
+}
+
+.selection-supporting-grid > section {
+    display: grid;
+    align-content: start;
+    gap: var(--space-xs);
+}
+
+.register-area {
+    grid-template-rows: auto auto minmax(24rem, 1fr);
+}
+
+.register-controls {
+    position: relative;
+    z-index: 2;
+}
+
+.register-filter-grid {
+    display: grid;
+    grid-template-columns: minmax(15rem, 2fr) minmax(10rem, 1fr) minmax(12rem, 1fr);
+    align-items: end;
+    gap: var(--space-md);
+    width: 100%;
+}
+
+.criteria-list {
+    display: grid;
+    gap: var(--space-xs);
+    width: 100%;
+}
+
+.criteria-row {
+    display: grid;
+    grid-template-columns: minmax(13rem, 1fr) minmax(18rem, 2fr);
+    align-items: center;
+    gap: var(--space-md);
+    min-width: 0;
+}
+
+.register-results-split {
+    gap: var(--space-md);
+    min-width: 0;
+    min-height: 24rem;
+}
+
+.register-results-split > cap-primary,
+.register-results-split > cap-secondary {
+    display: flex;
+    overflow: hidden;
+}
+
+.change-register-panel,
+.register-selection-panel {
+    flex: 1;
+    min-width: 0;
+    min-height: 0;
+}
+
+.compact-facts,
+.reactive-consequences {
+    display: grid;
+    gap: var(--space-xs);
+}
+
+.compact-facts > div,
+.reactive-consequences > div {
+    display: grid;
+    grid-template-columns: minmax(5rem, auto) minmax(0, 1fr);
+    gap: var(--space-sm);
+}
+
+.compact-facts dt,
+.reactive-consequences dt,
+.change-facts dt {
+    font-weight: 700;
+}
+
+.compact-facts dd,
+.reactive-consequences dd,
+.change-facts dd {
+    min-width: 0;
+    margin: 0;
+}
+
+.change-area {
+    grid-template-rows: auto minmax(20rem, 1fr);
+}
+
+.change-workspace-grid {
+    display: grid;
+    grid-template-columns: minmax(18rem, 1.1fr) minmax(18rem, 1fr) minmax(20rem, 1.2fr);
+    gap: var(--space-md);
+    min-width: 0;
+    min-height: 0;
+}
+
+.change-workspace-grid > cap-panel {
+    min-width: 0;
+    min-height: 0;
+    height: 100%;
+}
+
+.change-facts > dl {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(5rem, auto) minmax(0, 1fr));
+    gap: var(--space-xs) var(--space-md);
+}
+
+.asset-list {
+    display: grid;
+    gap: var(--space-xs);
+    margin: 0;
+    padding-inline-start: 1.25rem;
+}
+
+.future-content {
+    color: var(--ui-muted-text-color);
+}
+
+.analysis-area {
+    grid-template-rows: minmax(30rem, 1fr);
+}
+
+.analysis-grid {
+    display: grid;
+    grid-template-columns: minmax(18rem, 22rem) minmax(36rem, 1fr);
+    gap: var(--space-md);
+    min-width: 0;
+    min-height: 0;
+}
+
+.analysis-control-column,
+.analysis-chart-column {
+    display: grid;
+    gap: var(--space-md);
+    min-width: 0;
+    min-height: 0;
+}
+
+.analysis-control-column {
+    grid-template-rows: minmax(17rem, auto) minmax(10rem, 1fr);
+}
+
+.analysis-chart-column {
+    grid-template-rows: minmax(18rem, 1.35fr) minmax(14rem, 1fr);
+}
+
+.visible-categories-panel,
+.grouping-panel,
+.distribution-panel,
+.history-panel {
+    min-width: 0;
+    min-height: 0;
+    height: 100%;
+}
+
+.history-options {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-sm) var(--space-md);
+}
+
+.history-options > label {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-xs);
+}
+
+.feature-placeholder {
+    display: grid;
+    align-content: center;
+    justify-items: center;
+    gap: var(--space-xs);
+    min-height: 8rem;
+    padding: var(--space-md);
+    color: var(--ui-muted-text-color);
+    background: var(--palette-neutral-100);
+    border: 1px dashed var(--ui-border-color);
+    border-radius: var(--radius-md);
+    box-sizing: border-box;
+    text-align: center;
+}
+
+.feature-placeholder span {
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+.feature-placeholder strong {
+    color: var(--ui-color);
+}
+
+.feature-placeholder.compact {
+    min-height: 0;
+    padding: var(--space-sm) var(--space-md);
+}
+
+.demo-harness > cap-content {
+    display: grid;
+    grid-template-columns: auto minmax(24rem, 1fr) minmax(22rem, 1fr) minmax(18rem, auto);
+    align-items: center;
+    gap: var(--space-md);
+}
+
+.harness-switches {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-xs) var(--space-md);
+}
+
+.harness-switches label {
+    display: flex;
+    align-items: center;
+    gap: var(--space-xs);
+}
+
+.appearance-controls {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-xs) var(--space-md);
+    min-width: 0;
+    margin: 0;
+    padding: 0;
+    border: 0;
+}
+
+.appearance-controls > legend {
+    grid-column: 1 / -1;
+    padding: 0;
+    font-weight: 700;
+}
+
+@media (max-width: 72rem) {
+    .demo-harness > cap-content {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .register-filter-grid,
+    .change-summary-content {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .change-workspace-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .approvals-history-panel {
+        grid-column: 1 / -1;
+    }
+}
+
+@media (max-width: 50rem) {
+    body {
+        overflow: auto;
+    }
+
+    .meridian-app {
+        height: auto;
+        min-height: 100%;
+        overflow: visible;
+    }
+
+    .meridian-shell,
+    .portfolio-summary-content,
+    .portfolio-content-grid,
+    .selection-supporting-grid,
+    .register-filter-grid,
+    .criteria-row,
+    .change-summary-content,
+    .change-workspace-grid,
+    .analysis-grid,
+    .demo-harness > cap-content {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .meridian-shell {
+        grid-template-rows: auto minmax(40rem, 1fr);
+        overflow: visible;
+    }
+
+    .meridian-navigation {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        grid-template-rows: minmax(14rem, auto);
+        overflow: visible;
+    }
+
+    .meridian-workspace,
+    .meridian-workspace > cap-tabpanel {
+        min-height: 40rem;
+    }
+
+    .work-area {
+        height: auto;
+        min-height: 40rem;
+    }
+
+    .register-results-split {
+        flex-direction: column;
+    }
+
+    .register-results-split > cap-primary,
+    .register-results-split > cap-secondary {
+        flex-basis: auto;
+        min-height: 20rem;
+    }
+
+    .change-facts > dl {
+        grid-template-columns: minmax(5rem, auto) minmax(0, 1fr);
+    }
+
+    .approvals-history-panel {
+        grid-column: auto;
+    }
+
+    .analysis-grid {
+        grid-template-rows: auto auto;
+    }
+
+    .analysis-control-column,
+    .analysis-chart-column {
+        grid-template-rows: auto;
+    }
+
+    .harness-switches,
+    .appearance-controls {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .appearance-controls > legend {
+        grid-column: auto;
+    }
+}
+
+@media (max-width: 34rem) {
+    .meridian-navigation,
+    .metric-row {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}

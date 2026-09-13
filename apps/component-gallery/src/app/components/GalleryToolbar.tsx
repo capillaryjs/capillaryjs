@@ -1,7 +1,7 @@
-import {FetchState} from '@sylwellsoftware/glue'
-import {Component} from '@sylwellsoftware/fray'
-import type {ComponentProps, FrayChild} from '@sylwellsoftware/fray'
-import {ColorPicker, ThemePicker, Toggle, Toolbar} from '@sylwellsoftware/fray'
+import {FetchState} from '@capillaryjs/capillary'
+import {Component} from '@capillaryjs/capillary-ui'
+import type {ComponentProps, CapillaryUiChild} from '@capillaryjs/capillary-ui'
+import {ColorPicker, ThemePicker, Toggle, Toolbar} from '@capillaryjs/capillary-ui'
 
 import type {GalleryModel} from '../model/GalleryModel.js'
 
@@ -15,7 +15,7 @@ export interface GalleryToolbarProps extends ComponentProps {
  * gallery pages apply to showcased controls.
  */
 export class GalleryToolbar extends Component<GalleryToolbarProps> {
-    render(): FrayChild {
+    render(): CapillaryUiChild {
         const model = this.props.model
         return <Toolbar label="Gallery controls" className="gallery-controls">
             <Toggle

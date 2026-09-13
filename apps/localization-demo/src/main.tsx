@@ -1,6 +1,6 @@
-import baseStylesheet from '../../../packages/fray/themes/base.css?url&no-inline'
-import colorsStylesheet from '../../../packages/fray/colors/iceblue/colors.css?url&no-inline'
-import themeStylesheet from '../../../packages/fray/themes/shiny/theme.css?url&no-inline'
+import baseStylesheet from '../../../packages/capillary-ui/themes/base.css?url&no-inline'
+import colorsStylesheet from '../../../packages/capillary-ui/colors/iceblue/colors.css?url&no-inline'
+import themeStylesheet from '../../../packages/capillary-ui/themes/shiny/theme.css?url&no-inline'
 
 import {mountLocalizationDemo} from './demoController.js'
 import {chooseDemoLocale} from './locales.js'
@@ -8,7 +8,7 @@ import './localization-demo.css'
 
 const root = document.querySelector('#app')
 if (!(root instanceof HTMLElement)) {
-    throw new Error('Fray localization demo requires #app')
+    throw new Error('Capillary UI localization demo requires #app')
 }
 
 void start(root)
@@ -27,10 +27,10 @@ function loadStylesheet(kind: 'base' | 'colors' | 'theme', href: string): Promis
         const link = document.createElement('link')
         link.rel = 'stylesheet'
         link.href = href
-        link.dataset.frayStylesheet = kind
+        link.dataset.capStylesheet = kind
         link.addEventListener('load', () => resolve(), {once: true})
         link.addEventListener('error', () => reject(new Error(
-            `Fray localization demo could not load ${kind} stylesheet: ${href}`,
+            `Capillary UI localization demo could not load ${kind} stylesheet: ${href}`,
         )), {once: true})
         document.head.append(link)
     })

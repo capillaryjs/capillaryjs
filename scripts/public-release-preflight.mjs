@@ -6,20 +6,20 @@ import {fileURLToPath} from 'node:url'
 import {changelogHasRelease, isExactSemanticVersion} from './release-metadata.mjs'
 
 const root = path.resolve(fileURLToPath(new URL('..', import.meta.url)))
-const expectedRepository = 'git+https://github.com/sylwellsoftware/gluefrayjs.git'
-const expectedOrigin = 'https://github.com/sylwellsoftware/gluefrayjs'
+const expectedRepository = 'git+https://github.com/capillaryjs/capillaryjs.git'
+const expectedOrigin = 'https://github.com/capillaryjs/capillaryjs'
 const packages = [
     [
-        'packages/glue/package.json', '@sylwellsoftware/glue', 'packages/glue',
-        'packages/glue/CHANGELOG.md',
+        'packages/capillary/package.json', '@capillaryjs/capillary', 'packages/capillary',
+        'packages/capillary/CHANGELOG.md',
     ],
     [
-        'packages/fray/package.json', '@sylwellsoftware/fray', 'packages/fray',
-        'packages/fray/CHANGELOG.md',
+        'packages/capillary-ui/package.json', '@capillaryjs/capillary-ui', 'packages/capillary-ui',
+        'packages/capillary-ui/CHANGELOG.md',
     ],
     [
-        'packages/fray-visualization/package.json', '@sylwellsoftware/fray-visualization',
-        'packages/fray-visualization', 'packages/fray-visualization/CHANGELOG.md',
+        'packages/capillary-viz/package.json', '@capillaryjs/capillary-viz',
+        'packages/capillary-viz', 'packages/capillary-viz/CHANGELOG.md',
     ],
 ]
 const packageVersions = []

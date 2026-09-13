@@ -5,33 +5,33 @@ export default defineConfig({
   resolve: {
     alias: [
       {
-        find: /^@sylwellsoftware\/fray\/jsx-runtime$/,
+        find: /^@capillaryjs\/capillary-ui\/jsx-runtime$/,
         replacement: fileURLToPath(
-          new URL("../../packages/fray/src/jsx-runtime.ts", import.meta.url),
+          new URL("../../packages/capillary-ui/src/jsx-runtime.ts", import.meta.url),
         ),
       },
       {
-        find: /^@sylwellsoftware\/fray\/jsx-dev-runtime$/,
+        find: /^@capillaryjs\/capillary-ui\/jsx-dev-runtime$/,
         replacement: fileURLToPath(
-          new URL("../../packages/fray/src/jsx-dev-runtime.ts", import.meta.url),
+          new URL("../../packages/capillary-ui/src/jsx-dev-runtime.ts", import.meta.url),
         ),
       },
       {
-        find: /^@sylwellsoftware\/fray$/,
+        find: /^@capillaryjs\/capillary-ui$/,
         replacement: fileURLToPath(
-          new URL("../../packages/fray/src/index.ts", import.meta.url),
+          new URL("../../packages/capillary-ui/src/index.ts", import.meta.url),
         ),
       },
       {
-        find: /^@sylwellsoftware\/glue$/,
+        find: /^@capillaryjs\/capillary$/,
         replacement: fileURLToPath(
-          new URL("../../packages/glue/src/index.ts", import.meta.url),
+          new URL("../../packages/capillary/src/index.ts", import.meta.url),
         ),
       },
       {
-        find: /^@sylwellsoftware\/fray-visualization$/,
+        find: /^@capillaryjs\/capillary-viz$/,
         replacement: fileURLToPath(
-          new URL("../../packages/fray-visualization/src/index.ts", import.meta.url),
+          new URL("../../packages/capillary-viz/src/index.ts", import.meta.url),
         ),
       },
     ],

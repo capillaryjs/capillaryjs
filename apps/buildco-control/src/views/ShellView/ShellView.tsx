@@ -1,10 +1,10 @@
-import type {FrayChild} from "@sylwellsoftware/fray";
-import {Component, Panel} from "@sylwellsoftware/fray";
+import type {CapillaryUiChild} from "@capillaryjs/capillary-ui";
+import {Component, Panel} from "@capillaryjs/capillary-ui";
 import {bootstrap} from "../../app/services.ts";
 import {ScenarioLoadingScreen} from "./components/ScenarioLoadingScreen.tsx";
 
 export class ShellView extends Component {
-    render(): FrayChild {
+    render(): CapillaryUiChild {
         const b = this.snapshot(bootstrap);
         return <>
             {!b.value && <ScenarioLoadingScreen/>}

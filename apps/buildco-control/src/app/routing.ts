@@ -1,4 +1,4 @@
-import type {Key, RouteQueryCodec, TableFilters, TableSort} from "@sylwellsoftware/fray";
+import type {Key, RouteQueryCodec, TableFilters, TableSort} from "@capillaryjs/capillary-ui";
 import {
   createBrowserRouter,
   createHashNavigation,
@@ -8,8 +8,8 @@ import {
   routeTarget,
   stringRouteCodec,
   withRouteQuery
-} from "@sylwellsoftware/fray";
-import {Emitter} from "@sylwellsoftware/glue";
+} from "@capillaryjs/capillary-ui";
+import {Emitter} from "@capillaryjs/capillary";
 import type {Parameters, Row, Screen} from "../api/ScenarioApi.ts";
 import {CONDITIONS, SCREENS} from "../api/ScenarioApi.ts";
 

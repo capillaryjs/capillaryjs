@@ -1,5 +1,5 @@
-import type {EndpointQueryOptions, ReadableEmitter} from "@sylwellsoftware/glue";
-import {RestEndpoint} from "@sylwellsoftware/glue";
+import type {EndpointQueryOptions, ReadableEmitter} from "@capillaryjs/capillary";
+import {RestEndpoint} from "@capillaryjs/capillary";
 import type {Bootstrap, Choice, Mutation, Parameters, Screen, ViewResult} from "../api/ScenarioApi.ts";
 import {SCREENS} from "../api/ScenarioApi.ts";
 import type {ScenarioFetch, ScenarioFetchInit} from "../api/ScenarioFetch.js";

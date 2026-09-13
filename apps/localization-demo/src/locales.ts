@@ -1,4 +1,4 @@
-import type {FrayMessageOverrides} from '@sylwellsoftware/fray'
+import type {CapillaryUiMessageOverrides} from '@capillaryjs/capillary-ui'
 
 export const demoLocaleIds = ['en-GB', 'da-DK', 'de-DE'] as const
 
@@ -40,14 +40,14 @@ export interface DemoLocaleDefinition {
     readonly locale: DemoLocale
     readonly autonym: string
     readonly copy: DemoCopy
-    readonly frayMessages: FrayMessageOverrides
+    readonly capillaryUiMessages: CapillaryUiMessageOverrides
 }
 
 const englishCopy: DemoCopy = {
-    documentTitle: 'Fray localization demo',
+    documentTitle: 'Capillary UI localization demo',
     eyebrow: 'Mini component gallery',
-    title: 'Fray localization',
-    introduction: 'Switch language to update application text and Fray-owned labels together.',
+    title: 'Capillary UI localization',
+    introduction: 'Switch language to update application text and Capillary UI-owned labels together.',
     languageLabel: 'Language',
     runtimeNote: 'Each choice creates a new runtime with one immutable locale snapshot.',
     controlsHeading: 'Inputs and calendar',
@@ -64,8 +64,8 @@ const englishCopy: DemoCopy = {
     dialogOpenLabel: 'Open dialog',
     dialogTitle: 'Localized dialog',
     dialogDescription: 'The title and body belong to the application catalog.',
-    dialogBody: 'The close action below is text authored and localized by Fray.',
-    resolvedHeading: 'Resolved Fray messages',
+    dialogBody: 'The close action below is text authored and localized by Capillary UI.',
+    resolvedHeading: 'Resolved Capillary UI messages',
     resolvedIntroduction: 'These values come from the same runtime snapshot used by the controls.',
     dropdownMessageLabel: 'Dropdown placeholder',
     timeMessageLabel: 'Time placeholder',
@@ -75,7 +75,7 @@ const englishCopy: DemoCopy = {
     calendarMessageLabel: 'Calendar label',
 }
 
-const danishMessages: FrayMessageOverrides = {
+const danishMessages: CapillaryUiMessageOverrides = {
     breadcrumbLabel: 'Brødkrumme',
     calendarGridLabel: 'Vælg en dato',
     calendarNextMonthLabel: 'Næste måned',
@@ -128,7 +128,7 @@ const danishMessages: FrayMessageOverrides = {
     treeViewLoading: 'Indlæser træelementer…',
 }
 
-const germanMessages: FrayMessageOverrides = {
+const germanMessages: CapillaryUiMessageOverrides = {
     breadcrumbLabel: 'Navigationspfad',
     calendarGridLabel: 'Datum auswählen',
     calendarNextMonthLabel: 'Nächster Monat',
@@ -186,16 +186,16 @@ const definitions: Readonly<Record<DemoLocale, DemoLocaleDefinition>> = {
         locale: 'en-GB',
         autonym: 'English',
         copy: englishCopy,
-        frayMessages: {},
+        capillaryUiMessages: {},
     },
     'da-DK': {
         locale: 'da-DK',
         autonym: 'Dansk',
         copy: {
-            documentTitle: 'Fray-lokaliseringsdemo',
+            documentTitle: 'Capillary UI-lokaliseringsdemo',
             eyebrow: 'Mini-komponentgalleri',
-            title: 'Fray-lokalisering',
-            introduction: 'Skift sprog for at opdatere applikationstekst og Fray-etiketter sammen.',
+            title: 'Capillary UI-lokalisering',
+            introduction: 'Skift sprog for at opdatere applikationstekst og Capillary UI-etiketter sammen.',
             languageLabel: 'Sprog',
             runtimeNote: 'Hvert valg opretter en ny runtime med ét uforanderligt sprogøjebliksbillede.',
             controlsHeading: 'Inputfelter og kalender',
@@ -212,8 +212,8 @@ const definitions: Readonly<Record<DemoLocale, DemoLocaleDefinition>> = {
             dialogOpenLabel: 'Åbn dialog',
             dialogTitle: 'Lokaliseret dialog',
             dialogDescription: 'Titlen og teksten kommer fra applikationens katalog.',
-            dialogBody: 'Luk-handlingen nedenfor er tekst, som Fray ejer og lokaliserer.',
-            resolvedHeading: 'Frays anvendte tekster',
+            dialogBody: 'Luk-handlingen nedenfor er tekst, som Capillary UI ejer og lokaliserer.',
+            resolvedHeading: 'CapillaryUis anvendte tekster',
             resolvedIntroduction: 'Værdierne kommer fra det samme runtime-øjebliksbillede som kontrollerne.',
             dropdownMessageLabel: 'Pladsholder i rulleliste',
             timeMessageLabel: 'Pladsholder for tidspunkt',
@@ -222,16 +222,16 @@ const definitions: Readonly<Record<DemoLocale, DemoLocaleDefinition>> = {
             sortMessageLabel: 'Genereret sorteringsetiket',
             calendarMessageLabel: 'Kalenderetiket',
         },
-        frayMessages: danishMessages,
+        capillaryUiMessages: danishMessages,
     },
     'de-DE': {
         locale: 'de-DE',
         autonym: 'Deutsch',
         copy: {
-            documentTitle: 'Fray-Lokalisierungsdemo',
+            documentTitle: 'Capillary UI-Lokalisierungsdemo',
             eyebrow: 'Mini-Komponentengalerie',
-            title: 'Fray-Lokalisierung',
-            introduction: 'Wechseln Sie die Sprache, um Anwendungstexte und Fray-Beschriftungen gemeinsam zu aktualisieren.',
+            title: 'Capillary UI-Lokalisierung',
+            introduction: 'Wechseln Sie die Sprache, um Anwendungstexte und Capillary UI-Beschriftungen gemeinsam zu aktualisieren.',
             languageLabel: 'Sprache',
             runtimeNote: 'Jede Auswahl erstellt eine neue Runtime mit einem unveränderlichen Sprach-Snapshot.',
             controlsHeading: 'Eingaben und Kalender',
@@ -248,8 +248,8 @@ const definitions: Readonly<Record<DemoLocale, DemoLocaleDefinition>> = {
             dialogOpenLabel: 'Dialog öffnen',
             dialogTitle: 'Lokalisierter Dialog',
             dialogDescription: 'Titel und Inhalt stammen aus dem Anwendungskatalog.',
-            dialogBody: 'Die Schließen-Aktion unten ist Text, den Fray besitzt und lokalisiert.',
-            resolvedHeading: 'Aufgelöste Fray-Texte',
+            dialogBody: 'Die Schließen-Aktion unten ist Text, den Capillary UI besitzt und lokalisiert.',
+            resolvedHeading: 'Aufgelöste Capillary UI-Texte',
             resolvedIntroduction: 'Diese Werte stammen aus demselben Runtime-Snapshot wie die Steuerelemente.',
             dropdownMessageLabel: 'Dropdown-Platzhalter',
             timeMessageLabel: 'Zeit-Platzhalter',
@@ -258,7 +258,7 @@ const definitions: Readonly<Record<DemoLocale, DemoLocaleDefinition>> = {
             sortMessageLabel: 'Generierte Sortierbeschriftung',
             calendarMessageLabel: 'Kalenderbeschriftung',
         },
-        frayMessages: germanMessages,
+        capillaryUiMessages: germanMessages,
     },
 }
 

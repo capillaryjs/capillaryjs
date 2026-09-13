@@ -1,4 +1,4 @@
-import type {ComponentProps, FrayChild, TreeNode} from "@sylwellsoftware/fray";
+import type {ComponentProps, CapillaryUiChild, TreeNode} from "@capillaryjs/capillary-ui";
 import {
     Button,
     Checkbox,
@@ -11,8 +11,8 @@ import {
     stringRouteQueryCodec,
     TabPanel,
     Textbox
-} from "@sylwellsoftware/fray";
-import {DerivedEmitter, Emitter} from "@sylwellsoftware/glue";
+} from "@capillaryjs/capillary-ui";
+import {DerivedEmitter, Emitter} from "@capillaryjs/capillary";
 import type {Choice, Screen, SemanticMode, ViewResult} from "../../api/ScenarioApi.ts";
 import {CONDITIONS, human} from "../../api/ScenarioApi.ts";
 import {bootstrap, buildco, demo, flags, forceResult, revision} from "../../app/services.ts";
@@ -75,16 +75,16 @@ export abstract class ScreenView extends Component<ComponentProps & { screen: Sc
         void this.query.activate();
     }
 
-    render(): FrayChild {
+    render(): CapillaryUiChild {
         const screen = this.props.screen, result = this.read(this.result), snapshot = this.snapshot(this.result),
             b = this.read(bootstrap);
         this.read(this.state.params);
         this.read(this.state.tab);
         const queryKeys = ["project", "scope", "phase", "tab", "selected", "search", "page", "subject", "focus", "horizon", "view", "type", "phaseType", "conditions", "lifecycle", "metric", "days", "trade", "availability", "reason", "from", "to", "overtime", "material", "group", "status", "severity", "cause", "person", "supplier", "due", "minCost", "maxCost", "costView", "critical"];
-        return <div className={`screen screen-${screen} fray-layout-vertical fray-size-flexible`}>
+        return <div className={`screen screen-${screen} cap-layout-vertical cap-size-flexible`}>
             {queryKeys.map(name => <RouteQuery key={name} name={name} valueEmitter={this.field(name)}
                                                codec={stringRouteQueryCodec} defaultValue={this.field(name).get()}/>)}
-            <div className="page-heading fray-size-natural">
+            <div className="page-heading cap-size-natural">
                 <div><span className="eyebrow">BuildCo / {screen === "queue" ? "Operations" : human(screen)}</span>
                     <h1>{titles[screen][0]}</h1><p>{titles[screen][1]}</p></div>
                 <div className="heading-tools"><span
@@ -93,7 +93,7 @@ export abstract class ScreenView extends Component<ComponentProps & { screen: Sc
                                                                                                  disabled={live(flags.disabled)}/>
                 </div>
             </div>
-            <div className="query-feedback fray-size-natural">{snapshot.fetchState !== "ready" &&
+            <div className="query-feedback cap-size-natural">{snapshot.fetchState !== "ready" &&
                 <div role={snapshot.fetchState === "error" ? "alert" : "status"}
                      className={`fetch-notice ${snapshot.fetchState}`}>
                     {snapshot.fetchState === "error" ? <><strong>Unable to load this
@@ -103,7 +103,7 @@ export abstract class ScreenView extends Component<ComponentProps & { screen: Sc
                         void this.query.retry();
                     }}/></> : snapshot.fetchState === "initial" ? "Initial state — waiting for a request." : "Updating view… Previous results may remain visible."}
                 </div>}</div>
-            <div className="screen-content fray-size-flexible fray-layout-vertical fray-scroll"
+            <div className="screen-content cap-size-flexible cap-layout-vertical cap-scroll"
                  key="screen-content">{this.renderContent(result)}</div>
         </div>;
     }
@@ -119,29 +119,29 @@ export abstract class ScreenView extends Component<ComponentProps & { screen: Sc
         return this.field(name) as Emitter<SemanticMode>;
     }
 
-    protected select(name: string, label: string, choices: readonly Choice[], all = true): FrayChild {
+    protected select(name: string, label: string, choices: readonly Choice[], all = true): CapillaryUiChild {
         return <Dropdown key={`${name}:${choices.map(c => c.value).join(",")}`} label={label}
                          placeholder={all ? `All ${label.toLowerCase()}` : "Select…"} valueEmitter={this.field(name)}
                          options={all ? [{value: "__all", label: `All ${label.toLowerCase()}`}, ...choices] : choices}
                          disabled={live(flags.disabled)} required={live(flags.required)} error={live(flags.error)}/>;
     }
 
-    protected text(name: string, label: string, type = "text"): FrayChild {
+    protected text(name: string, label: string, type = "text"): CapillaryUiChild {
         return <Textbox key={name} label={label} type={type} valueEmitter={this.field(name)}
                         placeholder={type === "text" ? `Search ${label.toLowerCase()}…` : undefined}
                         disabled={live(flags.disabled)} required={live(flags.required)} error={live(flags.error)}/>;
     }
 
-    protected project(): FrayChild {
+    protected project(): CapillaryUiChild {
         return this.select("project", "Projects", this.read(bootstrap)?.choices.projects ?? []);
     }
 
-    protected check(name: string, label: string): FrayChild {
+    protected check(name: string, label: string): CapillaryUiChild {
         return <Checkbox valueEmitter={this.field(name)} symbols={[["☐", "off"], ["✓", "on"]]} label={label}
                          disabled={live(flags.disabled)}/>;
     }
 
-    protected tabs(values: [string, string][], content: FrayChild): FrayChild {
+    protected tabs(values: [string, string][], content: CapillaryUiChild): CapillaryUiChild {
         return <TabPanel label={`${titles[this.props.screen][0]} views`} activeTabEmitter={this.state.tab}
                          mountPolicy="active-only" tabs={values.map(([id, label]) => ({
             id,
@@ -150,7 +150,7 @@ export abstract class ScreenView extends Component<ComponentProps & { screen: Sc
         }))}/>;
     }
 
-    protected pager(result?: ViewResult): FrayChild {
+    protected pager(result?: ViewResult): CapillaryUiChild {
         if (!result || !result.total) return <p className="empty-inline">No records match the current filters.</p>;
         return <div className="pager">
             <span>{(result.page * result.pageSize + 1).toLocaleString()}–{Math.min(result.total, (result.page + 1) * result.pageSize).toLocaleString()} of {result.total.toLocaleString()} records</span>
@@ -162,7 +162,7 @@ export abstract class ScreenView extends Component<ComponentProps & { screen: Sc
         </div>;
     }
 
-    protected table(fields: string[], result?: ViewResult): FrayChild {
+    protected table(fields: string[], result?: ViewResult): CapillaryUiChild {
         return <>
             <div className="table-scroll"><DataTable key={`${this.props.screen}-${this.field("tab").get()}`}
                                                      columns={columns(fields)} dataSource={this.dataSource}
@@ -173,11 +173,11 @@ export abstract class ScreenView extends Component<ComponentProps & { screen: Sc
             {this.pager(result)}</>;
     }
 
-    protected selected(result?: ViewResult): FrayChild {
+    protected selected(result?: ViewResult): CapillaryUiChild {
         return result?.detail ? <DetailView detail={result.detail}/> :
             <div className="selection-hint">Select a record to inspect its context, dependencies, and resource
                 costs.</div>;
     }
 
-    protected abstract renderContent(result?: ViewResult): FrayChild;
+    protected abstract renderContent(result?: ViewResult): CapillaryUiChild;
 }

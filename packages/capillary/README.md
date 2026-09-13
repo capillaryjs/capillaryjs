@@ -1,0 +1,473 @@
+# Capillary
+
+Capillary is a small, platform-neutral reactive value and live-query library. Its
+current 0.x releases follow documented migration guidance. Capillary UI
+uses it as its state/data-flow layer, but Capillary does not depend on Capillary UI, a DOM,
+or any UI framework. Its implementation and tests are strict TypeScript; the
+ESM build includes declarations and declaration maps.
+
+Install with pnpm:
+
+```bash
+pnpm add @capillaryjs/capillary
+```
+
+Capillary is ESM-only. Core emitters, derived state, and diagnostics support Node 22+
+and modern ESM runtimes without a DOM. `LiveQuery` needs `AbortController`, and
+`RestQueryHandler` needs Fetch and URL capabilities unless they are injected.
+
+## Why Capillary
+
+Most application values come from a service query, direct user input, or a
+calculation over those sources. Those values and their status are real state,
+but developers should not have to construct and synchronize a separate
+framework-shaped copy of them so that consumers can react.
+
+Capillary keeps each value at its natural boundary. A control can write an
+`Emitter`, a calculation can expose a `DerivedEmitter`, and a query can react
+to argument emitters while exposing its result, loading state, and error. A
+consumer reads the downstream value it needs without knowing whether it began
+as input, computation, or remote data.
+
+For example, a table header may write a sort emitter. A `LiveQuery` uses that
+emitter as an argument, retrieves fresh rows, and emits the new result to the
+table. The developer declares this meaningful relationship; Capillary handles
+propagation, current snapshots, cancellation, and stale-result protection.
+Mutation authority, domain rules, transport encoding, service construction,
+and ownership/disposal remain explicit application responsibilities.
+
+## Design model
+
+Capillary models values that stay current rather than requests that callers must
+manually rerun and redistribute. The same small read-side protocol applies to
+local state, computed state, query inputs, and asynchronous results:
+
+```ts
+interface ReadableEmitter<TValue, TError = unknown> {
+    get(): TValue
+    getFetchState(): FetchStateValue
+    getError(): TError | null
+    subscribe(listener: (notification: {
+        value: TValue
+        fetchState: FetchStateValue
+        error: TError | null
+        event: EventBubble<unknown> | null
+    }) => void): () => void
+}
+```
+
+That uniformity is the central design constraint. It lets a consumer bind to a
+current value without knowing whether the value is mutable, derived, or backed
+by asynchronous retrieval. Richer responsibilities remain separate:
+
+| Concept | Responsibility |
+| --- | --- |
+| `BaseEmitter` | Synchronously readable value/snapshot, subscriptions, mapping, equality, diagnostics, and disposal |
+| `Emitter` | An explicitly writable leaf value |
+| `DerivedEmitter` | A cached value computed from one or more readable emitters |
+| `QueryArg` | A named query-input view over another emitter when a semantic name is useful |
+| `LiveQuery` | Reactive request timing, latest-request ownership, status/error state, and cached results |
+| `LiveResult` | Common read/dispose contract for remote and locally derived endpoint results |
+| `QueryHandler` | Non-reactive retrieval strategy over a plain named argument object |
+| `RestQueryHandler` | HTTP URL construction, wire serialization, Fetch execution, and JSON result retrieval |
+| `QueryEndpoint` | Immutable declaration that opens caller-owned queries through any handler |
+| `RestEndpoint` | Immutable REST query declaration with optional response parsing |
+| `DerivedEndpoint` | Immutable local projection declaration that opens caller-owned live results |
+| `AsyncCommand` | Abortable mutation lifecycle with explicit concurrency policy |
+| `EventBubble` / `EventBus` | Optional cause-and-effect diagnostics without owning application history |
+
+The intended flow is explicit and one-directional:
+
+```text
+Emitter(s) ──► DerivedEmitter(s) ──► named query arguments
+                                           │
+                                           ▼
+                                      LiveQuery
+                                           │ current plain values
+                                           ▼
+                                      QueryHandler
+                                           │
+                                           ▼
+                           value + fetch state + error
+```
+
+This separation prevents several kinds of accidental coupling:
+
+- leaf values do not need to know that a distant consumer may use them in a
+  request;
+- derived values express semantic computation rather than transport encoding;
+- `LiveQuery` decides *when* the current inputs require retrieval, while its
+  handler decides *how* retrieval works;
+- REST-specific formats, base URLs, authentication wrappers, and response
+  validation remain at application/adapter boundaries;
+- one live query can be mapped into multiple local views without multiplying
+  network requests.
+
+Capillary deliberately favors explicit graphs over hidden tracking, proxy-created
+state, hooks, or a global store. If a value can be computed, prefer a
+`DerivedEmitter` to manually mirroring it. Use callbacks for commands and
+emitters for state that other objects need to read, combine, or observe.
+
+## Emitters
+
+```ts
+import {DerivedEmitter, Emitter, FetchState} from '@capillaryjs/capillary'
+
+const count = new Emitter(1, {purpose: 'count'})
+const doubled = new DerivedEmitter([count], ([value]) => value * 2)
+
+const unsubscribe = doubled.subscribe(({value, fetchState, error, event}) => {
+  console.log({value, fetchState, error, event})
+})
+
+count.set(2)
+unsubscribe()
+doubled.dispose()
+```
+
+A local `Emitter` defaults to `FetchState.Ready`. `setWithState()` notifies when
+the value, fetch state, or error changes. Values use `Object.is` equality unless
+the `equals` option supplies a comparator. `subscribe()` emits the current
+snapshot by default; `subscribe(listener, {emitCurrent: false})` and
+`subscribeFutureValues(listener)` observe only future snapshots. Unsubscribe
+functions and `dispose()` are idempotent.
+
+Every notification has one shape:
+
+```ts
+{ value, fetchState, error, event }
+```
+
+`DerivedEmitter` passes source values—including `null` and `undefined`—to its
+compute function in source order. With no sources it computes once with `[]` and
+is ready. A thrown compute function produces error state. Source errors are a
+stable array of `{sourceIndex, error}` entries; a compute failure uses
+`sourceIndex: null`. State precedence is `error > loading > initial > ready`.
+Replacing sources releases every old subscription, and disposal releases the
+current ones.
+
+`emitter.map(fn)` transforms the complete value. `emitter.mapEach(fn)` requires
+an array and transforms its non-nullish members.
+
+### Ownership, equality, and disposal
+
+Emitters eagerly cache their current snapshot so reads are synchronous.
+`Object.is` is the default value equality rule; pass `equals` when the domain
+has a better equivalence relation. A derived emitter subscribes eagerly to its
+sources and releases those subscriptions when sources are replaced or the
+derived value is disposed.
+
+The object that creates a long-lived emitter/query normally owns its disposal.
+Disposal is idempotent, prevents new subscriptions, and releases owned source
+subscriptions. A UI or service lifecycle should therefore dispose the graph it
+constructs rather than relying on garbage collection to sever active edges.
+
+## Query arguments
+
+`LiveQuery` accepts a named record of any readable emitters, so wrapping every
+input in `QueryArg` is neither required nor desirable. Use `QueryArg` when a
+stable query-facing name and separately owned bridge clarify the boundary:
+
+```ts
+import {DerivedEmitter, Emitter, LiveQuery, QueryArg} from '@capillaryjs/capillary'
+
+const firstName = new Emitter('Ada')
+const lastName = new Emitter('Lovelace')
+const searchText = new DerivedEmitter(
+    [firstName, lastName] as const,
+    ([first, last]) => `${first} ${last}`,
+)
+const search = new QueryArg('search', searchText)
+const users = new LiveQuery({handler, args: {search}})
+```
+
+Here the leaf emitters know nothing about querying, and the computation knows
+nothing about REST. Dispose `users`, `search`, and `searchText` at the lifetime
+boundary that created them.
+
+## Live queries
+
+```ts
+import {Emitter, LiveQuery, RestQueryHandler} from '@capillaryjs/capillary'
+
+const search = new Emitter('ada')
+const handler = new RestQueryHandler({
+  url: '/api/users',
+  baseUrl: 'https://example.test/',
+  fetch: globalThis.fetch,
+})
+
+const users = new LiveQuery({handler, args: {search}})
+```
+
+Arguments are a named record of emitters. By default construction fetches
+immediately and later argument changes refresh. The named `execution` policy
+makes other timing explicit:
+
+| Policy | Initial behavior | Later behavior |
+| --- | --- | --- |
+| `immediate` | Fetch immediately. | Arguments and configured polling refresh automatically. |
+| `deferred` | Stay `FetchState.Initial` with no argument subscriptions, request, or poll until `activate()` (or a dormant `refresh()`). | Become an ordinary reactive query after the first activation attempt. |
+| `explicit` | Stay `FetchState.Initial`. | Fetch only through `refresh()`/`retry()`; never react to arguments and reject polling. |
+
+```ts
+const deferredUsers = new LiveQuery({
+    handler,
+    args: {search},
+    execution: 'deferred',
+})
+await deferredUsers.activate('users view mounted')
+```
+
+Deferred activation is one-way, idempotent, and independent of whether the
+first request succeeds. Concurrent activators share the first request, which
+uses the current argument values. Subscribing to the query does not activate
+it. A later `activate()` does not reload; use `refresh()` for an intentional
+reload.
+
+`autoFetch: false` remains a compatibility option with its historical narrow
+meaning: it skips only the constructor request while argument and polling
+triggers are already live. It cannot be combined with `execution`; new code
+should choose a named policy.
+
+`refresh()` and `retry()` return the active request promise. A newer request
+aborts and supersedes the older request, and stale results cannot overwrite
+current state. `abort()` cancels without disposing; `dispose()` aborts the
+active request and releases argument/polling subscriptions.
+
+By default the last successful value remains visible while refreshing and after
+a refresh error. Set `keepPreviousValue: false` to clear it while loading or in
+error state.
+
+Polling is opt-in and waits one full interval before the first poll:
+
+```ts
+const pollingEnabled = new Emitter(true)
+const intervalMs = new Emitter(5_000)
+const users = new LiveQuery({
+    handler,
+    args: {search},
+    polling: {enabled: pollingEnabled, intervalMs},
+})
+```
+
+`enabled` and `intervalMs` may be constants or readable emitters. A changed
+control restarts the timer from that change. A tick is skipped while a request
+is active — including one waiting in retry backoff — and the next normal tick
+remains scheduled. Without a retry policy, errors do not cause an immediate
+retry or backoff, but polling continues while enabled. Disposal releases the
+timer and control subscriptions. Applications can feed page visibility or any
+other policy into `enabled`; Capillary never reads the DOM. Tests and nonstandard
+runtimes may inject `PollingScheduler`.
+
+### Retry policies
+
+`LiveQuery` and `AsyncCommand` accept an opt-in `retry` policy. The policy's
+presence is the opt-in: absent means a single attempt, and `null` explicitly
+disables a policy inherited from an endpoint declaration.
+
+```ts
+const users = new LiveQuery({
+    handler,
+    args: {search},
+    retry: {
+        maxAttempts: 3,
+        delayMs: 500,
+        backoff: 'exponential',
+        maxDelayMs: 30_000,
+        shouldRetry: (error) => error instanceof TypeError,
+    },
+})
+```
+
+`maxAttempts` counts the first attempt (default 3). `backoff` is `'fixed'`,
+`'exponential'` (doubling, the default), or a custom
+`(attempt, error) => milliseconds` function whose result is used as-is — for
+example to honor a `Retry-After` value carried on the error. Built-in backoff
+is capped by `maxDelayMs` (default 30s) and `jitter` applies full jitter to the
+computed delay (default on). `shouldRetry(error, attempt)` decides whether a
+failed attempt is retried; the default retries any non-abort error. Capillary never
+retries an `AbortError` from a handler.
+
+A request stays in `FetchState.Loading` across attempts and settles `Error`
+only when attempts are exhausted or `shouldRetry` declines; each scheduled
+retry emits a trace event. Abort, disposal, and superseding requests cancel
+the pending retry timer. Retrying a non-idempotent `AsyncCommand` executor can
+apply a mutation more than once — pair it with `shouldRetry`. Tests may inject
+a `scheduler` with the same `schedule`/`cancel` shape as `PollingScheduler`.
+If `shouldRetry`, custom `backoff`, or the injected scheduler throws, Capillary
+treats that as a terminal retry-infrastructure error rather than leaving the
+operation in `Loading`; `AsyncCommand` applies its normal `mapError` function.
+
+The REST adapter accepts injected `fetch`, `baseUrl`, and `serialize` behavior.
+Its generic serializer omits `undefined` and empty arrays, encodes `null` as an
+empty value, repeats keys for arrays, JSON-encodes objects, and stringifies
+scalars. Application-specific table filter/sort formats belong in an injected
+serializer, not Capillary. A result generic alone does not validate JSON. Supply
+`parseResult(json: unknown)` to decode or validate immediately after JSON
+parsing. A thrown parser error becomes the `LiveQuery` error, and Capillary does not
+include the raw response body in its diagnostics.
+
+## Service endpoint declarations
+
+Applications may group immutable endpoint declarations in ordinary service
+classes. Capillary does not register, locate, construct, or cache services; the
+application chooses and constructs its service scope. Capillary UI applications may
+expose those services through Capillary UI's typed runtime `ServiceScope`; non-Capillary UI
+applications use their own explicit composition. Every `open()` call creates a
+caller-owned result with independent arguments, request state, polling, and
+disposal. Endpoint `query` defaults and per-`open()` options accept the same
+`execution` policy as `LiveQuery`, and `query.retry` declares a shared retry
+default that per-`open()` options override or disable with `null`.
+
+```ts
+import {DerivedEndpoint, RestEndpoint} from '@capillaryjs/capillary'
+
+class MovieService {
+    readonly movies = new RestEndpoint<{genre: string}, readonly Movie[]>({
+        url: '/api/movies',
+        parseResult: parseMovies,
+    })
+
+    readonly matchingMovies = new DerivedEndpoint<
+        readonly Movie[],
+        {genre: string},
+        readonly Movie[]
+    >({
+        apply: (movies, {genre}) => movies.filter((movie) => movie.genre === genre),
+    })
+}
+
+const service = new MovieService()
+const remote = service.movies.open({genre})
+const local = service.matchingMovies.open({source: cachedMovies, args: {genre}})
+```
+
+Both results implement `LiveResult`, so a UI that only reads value, fetch
+state, error, and subscriptions can accept either. `LiveQuery` additionally
+implements `RefreshableLiveResult` with `refresh()`, `retry()`, and `abort()`.
+The `queryEndpoint`, `restEndpoint`, and `derivedEndpoint` factory functions are
+equivalent construction frontends when an application prefers function
+declarations to `new QueryEndpoint()`, `new RestEndpoint()`, and
+`new DerivedEndpoint()`.
+
+For a query-like body protocol such as GraphQL, put a custom handler in a
+`QueryEndpoint`. The handler owns method, headers, authentication, body
+serialization, response checks, validation, and safe diagnostics:
+
+```ts
+import {QueryEndpoint} from '@capillaryjs/capillary'
+
+const projectStatus = new QueryEndpoint<{id: string}, ProjectStatus>({
+    handler: {
+        async fetch({id}, {signal} = {}) {
+            const response = await fetch('/graphql', {
+                method: 'POST',
+                headers: {'content-type': 'application/json'},
+                body: JSON.stringify({query: STATUS_QUERY, variables: {id}}),
+                signal,
+            })
+            if (!response.ok) throw new Error(`HTTP ${response.status}`)
+            return parseProjectStatus(await response.json())
+        },
+    },
+})
+```
+
+Ordinary POST/PUT/PATCH/DELETE mutations belong in `AsyncCommand` executors,
+not auto-running query declarations.
+
+## Optional tracing
+
+Tracing allocates no event when an emitter has `trace: false`, no diagnostic
+observer is subscribed, and no parent event is supplied. Subscribe with
+`EventBus.subscribe(listener)` to observe top-level events. Events have stable
+process-local IDs, timestamps, weak owner references where supported, and
+explicit parent/child causality. The bus retains neither event history nor
+owners; its unsubscribe function is idempotent.
+
+Tracing follows the same design as data flow: mutation, derivation, query
+start, and query completion can retain explicit parent/child causality without
+turning diagnostics into a second execution system. Applications decide
+whether to retain, render, or export observed events.
+
+## Async commands
+
+`AsyncCommand` is exported from Capillary's package root. It is an abortable
+mutation lifecycle with explicit `ignore`, `replace`, and `reject` concurrency
+policies. It exposes the last result/error through the standard emitter
+snapshot and a read-only `isRunning` view, which stays true across retry
+attempts. It deliberately does not own batch progress, notifications, or UI
+behavior; retries are opt-in through the shared `RetryPolicy` contract.
+Executor completion alone
+determines command success. The application may then refresh affected queries;
+their failures remain in their own query snapshots:
+
+```ts
+const saved = await saveCommand.run(update)
+if (saved !== undefined) {
+    await Promise.all([users.refresh('save reconciled'), audit.refresh('save reconciled')])
+}
+```
+
+## Integration with Capillary UI and other consumers
+
+Capillary's UI seam is intentionally just the readable/writable emitter protocol.
+A typical Capillary UI path is:
+
+```text
+browser event
+    └──► Capillary UI control writes an Emitter
+              └──► DerivedEmitter computes shared/domain state
+                        ├──► Capillary UI renders a local view
+                        └──► LiveQuery refreshes through a handler
+                                      └──► Capillary UI renders query snapshot state
+```
+
+Leaf controls should normally receive ordinary writable emitters, not
+`QueryArg` objects. The component or service that understands an aggregate
+interaction owns its derived value. The data-aware consumer owns the query
+bridge and watches the result it actually renders. This keeps UI components
+reusable for local state, static data, remote data, and tests.
+
+Capillary UI's theme and color selection is not a Capillary feature. An application may
+store selected theme/color identifiers in ordinary Capillary emitters when it wants
+observable or persistent selection state, but Capillary UI and the browser remain
+responsible for CSS assets, stylesheet links, and rendering.
+
+Nothing in this contract is Capillary UI-specific: another UI framework, a CLI, a Node
+service, or a test can consume the same emitters and live queries.
+
+## Complete export groups
+
+| Area | Public exports |
+| --- | --- |
+| Values | `BaseEmitter`, `Emitter`, `DerivedEmitter`, readable/snapshot/notification option and inference types |
+| State | `FetchState`, `FetchStateValues`, `combineFetchStates` |
+| Queries | `QueryArg`, `LiveQuery`, `LiveResult`, `RefreshableLiveResult`, polling and argument types |
+| Handlers | `QueryHandler`, `RestQueryHandler`, handler/fetch/URL/serializer/parser contracts |
+| Endpoints | `QueryEndpoint`, `RestEndpoint`, `DerivedEndpoint`, `DerivedLiveResult`, lowercase factory functions and option types |
+| Commands | `AsyncCommand`, `AsyncCommandConcurrencyError`, executor/context/concurrency option types |
+| Diagnostics | `EventBubble`, `EventBus`, `EventOptions`, `EventListener`, `BubbleGraph` |
+| Utilities | `NonEmptyArray` |
+
+All runtime exports and public types are available from the package root. Capillary
+does not expose implementation subpath entry points.
+
+## Local checks
+
+```text
+pnpm --filter @capillaryjs/capillary test
+pnpm --filter @capillaryjs/capillary typecheck
+pnpm --filter @capillaryjs/capillary build
+pnpm --filter @capillaryjs/capillary test:types:consumer
+```
+
+Capillary intentionally does not own a DOM renderer, component lifecycle,
+application-specific query encoding, persistent event history, CommonJS build,
+or framework adapter. Capillary UI consumes Capillary as a peer; browser UI belongs there.
+
+See the [workspace overview](../../README.md), [API
+surface](../../docs/API_SURFACE.md), [changelog](CHANGELOG.md),
+[contribution guide](../../CONTRIBUTING.md), and [security
+policy](../../SECURITY.md).

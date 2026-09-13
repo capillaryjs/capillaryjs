@@ -1,15 +1,15 @@
 # Localization demo
 
-A small public Fray component gallery showing how an application can connect
-its existing localization catalog to Fray's static runtime localization seam.
+A small public Capillary UI component gallery showing how an application can connect
+its existing localization catalog to Capillary UI's static runtime localization seam.
 Use the language toggle to switch among English, Danish, and German.
 
 The demo deliberately shows both ownership layers:
 
 - application headings, descriptions, field labels, and dialog content come
   from the app-local catalog in `src/locales.ts`;
-- Fray placeholders, empty states, generated accessibility labels, the dialog
-  close action, and calendar display values come from `FrayMessageOverrides`
+- Capillary UI placeholders, empty states, generated accessibility labels, the dialog
+  close action, and calendar display values come from `CapillaryUiMessageOverrides`
   plus the selected locale.
 
 Change 023 makes localization immutable for the lifetime of one runtime. The

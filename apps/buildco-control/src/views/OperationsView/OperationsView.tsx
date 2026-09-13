@@ -1,12 +1,12 @@
-import type {FrayChild} from "@sylwellsoftware/fray";
+import type {CapillaryUiChild} from "@capillaryjs/capillary-ui";
 import {
     Component, DataTable, Panel, PanelToolbar, Sidebar, SidebarToolbar,
     SplitPrimary, SplitSecondary, SplitView,
     TabPanel, Toggle, Checkbox, OptionsBox, OptionGroup,
     Dropdown, Textbox, Button, RouteQuery, Placeholder, Toolbar, stringRouteQueryCodec,
-} from "@sylwellsoftware/fray";
-import type {TableColumn, TableRow} from "@sylwellsoftware/fray";
-import {Emitter} from "@sylwellsoftware/glue";
+} from "@capillaryjs/capillary-ui";
+import type {TableColumn, TableRow} from "@capillaryjs/capillary-ui";
+import {Emitter} from "@capillaryjs/capillary";
 import {keyQueryCodec, screens} from "../../app/routing.ts";
 import {buildco, revision, bootstrap} from "../../app/services.ts";
 
@@ -64,7 +64,7 @@ export class OperationsView extends Component {
         void this.query.activate();
     }
 
-    render(): FrayChild {
+    render(): CapillaryUiChild {
         const b = this.snapshot(bootstrap);
         const view = this.snapshot(this.query);
         const compact = this.read(this.compact);
@@ -106,7 +106,7 @@ export class OperationsView extends Component {
             <RouteQuery name="page" codec={stringRouteQueryCodec} valueEmitter={this.state.field("page")} defaultValue=""/>
             <RouteQuery name="from" codec={stringRouteQueryCodec} valueEmitter={this.state.field("from")} defaultValue=""/>
             <RouteQuery name="to" codec={stringRouteQueryCodec} valueEmitter={this.state.field("to")} defaultValue=""/>
-            <SplitView className="operations-view fray-size-flexible" primarySize="16rem" primaryLabel="Operations filters" secondaryLabel="Operations register">
+            <SplitView className="operations-view cap-size-flexible" primarySize="16rem" primaryLabel="Operations filters" secondaryLabel="Operations register">
             <SplitPrimary>
                 <Sidebar island allocation="flexible" header="Operations Register">
                     <SidebarToolbar>

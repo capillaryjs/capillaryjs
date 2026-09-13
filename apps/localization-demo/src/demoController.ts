@@ -1,5 +1,5 @@
-import {createFrayRuntime} from '@sylwellsoftware/fray'
-import type {Component} from '@sylwellsoftware/fray'
+import {createCapillaryUiRuntime} from '@capillaryjs/capillary-ui'
+import type {Component} from '@capillaryjs/capillary-ui'
 
 import {LocalizationDemoApp} from './app/LocalizationDemoApp.js'
 import type {DemoLocale} from './locales.js'
@@ -12,7 +12,7 @@ export interface LocalizationDemoController {
 }
 
 /**
- * Owns language policy outside Fray. Changing language remounts the demo with
+ * Owns language policy outside Capillary UI. Changing language remounts the demo with
  * a newly initialized runtime because one runtime's localization is immutable.
  */
 export function mountLocalizationDemo(
@@ -36,10 +36,10 @@ export function mountLocalizationDemo(
         structuralStyle?.remove()
         target.replaceChildren()
 
-        const runtime = createFrayRuntime({
+        const runtime = createCapillaryUiRuntime({
             localization: {
                 locale: definition.locale,
-                messages: definition.frayMessages,
+                messages: definition.capillaryUiMessages,
             },
         })
         structuralStyle = runtime.registerStyles(LocalizationDemoApp)

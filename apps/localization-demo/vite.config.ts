@@ -6,12 +6,12 @@ const repoRoot = fileURLToPath(new URL('../..', import.meta.url))
 export default defineConfig({
     resolve: {
         alias: {
-            '@sylwellsoftware/fray/jsx-runtime':
-                `${repoRoot}/packages/fray/src/jsx-runtime.ts`,
-            '@sylwellsoftware/fray/jsx-dev-runtime':
-                `${repoRoot}/packages/fray/src/jsx-dev-runtime.ts`,
-            '@sylwellsoftware/fray': `${repoRoot}/packages/fray/src/index.ts`,
-            '@sylwellsoftware/glue': `${repoRoot}/packages/glue/src/index.ts`,
+            '@capillaryjs/capillary-ui/jsx-runtime':
+                `${repoRoot}/packages/capillary-ui/src/jsx-runtime.ts`,
+            '@capillaryjs/capillary-ui/jsx-dev-runtime':
+                `${repoRoot}/packages/capillary-ui/src/jsx-dev-runtime.ts`,
+            '@capillaryjs/capillary-ui': `${repoRoot}/packages/capillary-ui/src/index.ts`,
+            '@capillaryjs/capillary': `${repoRoot}/packages/capillary/src/index.ts`,
         },
     },
     build: {

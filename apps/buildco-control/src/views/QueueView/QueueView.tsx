@@ -1,4 +1,4 @@
-import type {FrayChild} from "@sylwellsoftware/fray";
+import type {CapillaryUiChild} from "@capillaryjs/capillary-ui";
 import {
     Component, ListView, Panel, PanelToolbar, Sidebar, SidebarToolbar,
     SplitPrimary, SplitSecondary, SplitView,
@@ -6,7 +6,7 @@ import {
     QuadCheckbox, TriCheckbox, Dropdown, Textbox, Button,
     DescriptionList, DescriptionItem, ProgressBar, RouteLink, RouteQuery, Placeholder, Toolbar,
     routeTarget, stringRouteQueryCodec, withRouteQuery,
-} from "@sylwellsoftware/fray";
+} from "@capillaryjs/capillary-ui";
 import type {Parameters, Row} from "../../api/ScenarioApi.ts";
 import {CONDITIONS} from "../../api/ScenarioApi.ts";
 import {screens, routes} from "../../app/routing.ts";
@@ -54,7 +54,7 @@ export class QueueView extends Component {
         void this.query.activate();
     }
 
-    render(): FrayChild {
+    render(): CapillaryUiChild {
         const b = this.snapshot(bootstrap);
         const view = this.snapshot(this.query);
 
@@ -96,7 +96,7 @@ export class QueueView extends Component {
                 valueEmitter={this.state.field(affinityKey(a.value))}
                 defaultValue="neutral"
             />)}
-            <SplitView className="queue-view fray-size-flexible" primarySize="16rem" primaryLabel="Work queue filters" secondaryLabel="Queue items">
+            <SplitView className="queue-view cap-size-flexible" primarySize="16rem" primaryLabel="Work queue filters" secondaryLabel="Queue items">
             <SplitPrimary>
                 <Sidebar island allocation="flexible" header="Work Queue">
                     <SidebarToolbar>

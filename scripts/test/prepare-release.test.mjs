@@ -11,8 +11,8 @@ const sourceRoot = path.resolve(fileURLToPath(new URL('../..', import.meta.url))
 test('prepares independently versioned metadata and records an unstaged candidate tree', () => {
     const fixture = createFixture()
     const plan = releasePlan([
-        {key: 'glue', version: '0.5.1', tag: 'latest'},
-        {key: 'fray', version: '0.6.0', tag: 'latest'},
+        {key: 'capillary', version: '0.5.1', tag: 'latest'},
+        {key: 'capillaryUi', version: '0.6.0', tag: 'latest'},
     ])
     const result = invoke(fixture, plan)
 
@@ -21,22 +21,22 @@ test('prepares independently versioned metadata and records an unstaged candidat
     assert.equal(report.state, 'prepared')
     assert.match(report.treeFingerprint, /^[0-9a-f]{40}$/)
     assert.deepEqual(report.changedPaths, [
-        'packages/fray/CHANGELOG.md',
-        'packages/fray/package.json',
-        'packages/glue/CHANGELOG.md',
-        'packages/glue/package.json',
+        'packages/capillary-ui/CHANGELOG.md',
+        'packages/capillary-ui/package.json',
+        'packages/capillary/CHANGELOG.md',
+        'packages/capillary/package.json',
     ])
-    const glue = readJson(fixture, 'packages/glue/package.json')
-    const fray = readJson(fixture, 'packages/fray/package.json')
-    assert.equal(glue.version, '0.5.1')
-    assert.equal(fray.version, '0.6.0')
-    assert.equal(fray.peerDependencies['@sylwellsoftware/glue'], '^0.5.1')
-    assert.match(readFileSync(path.join(fixture, 'packages/fray/CHANGELOG.md'), 'utf8'), /## 0\.6\.0 - 2026-09-05/)
+    const capillary = readJson(fixture, 'packages/capillary/package.json')
+    const capillaryUi = readJson(fixture, 'packages/capillary-ui/package.json')
+    assert.equal(capillary.version, '0.5.1')
+    assert.equal(capillaryUi.version, '0.6.0')
+    assert.equal(capillaryUi.peerDependencies['@capillaryjs/capillary'], '^0.5.1')
+    assert.match(readFileSync(path.join(fixture, 'packages/capillary-ui/CHANGELOG.md'), 'utf8'), /## 0\.6\.0 - 2026-09-05/)
 })
 
 test('re-running an exact plan is safe and preserves the candidate fingerprint', () => {
     const fixture = createFixture()
-    const plan = releasePlan([{key: 'glue', version: '0.5.1', tag: 'latest'}])
+    const plan = releasePlan([{key: 'capillary', version: '0.5.1', tag: 'latest'}])
     const first = JSON.parse(invoke(fixture, plan).stdout)
     const second = JSON.parse(invoke(fixture, plan).stdout)
 
@@ -47,7 +47,7 @@ test('re-running an exact plan is safe and preserves the candidate fingerprint',
 test('refuses preparation when unrelated framework changes are present', () => {
     const fixture = createFixture()
     writeFileSync(path.join(fixture, 'unrelated.txt'), 'nope\n')
-    const result = invoke(fixture, releasePlan([{key: 'glue', version: '0.5.1', tag: 'latest'}]))
+    const result = invoke(fixture, releasePlan([{key: 'capillary', version: '0.5.1', tag: 'latest'}]))
 
     assert.equal(result.status, 1)
     assert.match(result.stderr, /unrelated changes: unrelated\.txt/)
@@ -56,17 +56,21 @@ test('refuses preparation when unrelated framework changes are present', () => {
 function createFixture() {
     const root = mkdtempSync(path.join(os.tmpdir(), 'prepare-release-'))
     mkdirSync(path.join(root, 'scripts'), {recursive: true})
-    for (const name of ['glue', 'fray', 'fray-visualization']) {
-        mkdirSync(path.join(root, 'packages', name), {recursive: true})
-        writeFileSync(path.join(root, 'packages', name, 'package.json'), JSON.stringify({
-            name: `@sylwellsoftware/${name}`,
+    for (const {directory, name} of [
+        {directory: 'capillary', name: '@capillaryjs/capillary'},
+        {directory: 'capillary-ui', name: '@capillaryjs/capillary-ui'},
+        {directory: 'capillary-viz', name: '@capillaryjs/capillary-viz'},
+    ]) {
+        mkdirSync(path.join(root, 'packages', directory), {recursive: true})
+        writeFileSync(path.join(root, 'packages', directory, 'package.json'), JSON.stringify({
+            name,
             version: '0.5.0',
-            peerDependencies: name === 'fray' ? {'@sylwellsoftware/glue': '^0.5.0'}
-                : name === 'fray-visualization' ? {
-                    '@sylwellsoftware/glue': '^0.5.0', '@sylwellsoftware/fray': '^0.5.0',
+            peerDependencies: directory === 'capillary-ui' ? {'@capillaryjs/capillary': '^0.5.0'}
+                : directory === 'capillary-viz' ? {
+                    '@capillaryjs/capillary': '^0.5.0', '@capillaryjs/capillary-ui': '^0.5.0',
                 } : undefined,
         }, null, 2) + '\n')
-        writeFileSync(path.join(root, 'packages', name, 'CHANGELOG.md'),
+        writeFileSync(path.join(root, 'packages', directory, 'CHANGELOG.md'),
             '# Changelog\n\n## Unreleased\n\n### Added\n\n- Fixture release note.\n')
     }
     cpSync(path.join(sourceRoot, 'scripts', 'prepare-release.mjs'), path.join(root, 'scripts', 'prepare-release.mjs'))

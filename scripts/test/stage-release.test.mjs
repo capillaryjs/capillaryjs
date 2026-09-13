@@ -11,60 +11,60 @@ const sourceRoot = path.resolve(fileURLToPath(new URL('../..', import.meta.url))
 
 test('validates an explicit two-package plan in dependency order', () => {
     const fixture = createFixture()
-    const result = invoke(fixture, 'validate', ['glue', 'fray'])
+    const result = invoke(fixture, 'validate', ['capillary', 'capillaryUi'])
     assert.equal(result.status, 0, result.stderr)
-    assert.match(result.stdout, /glue@0\.1\.0-alpha\.2[\s\S]*fray@0\.1\.0-alpha\.2/)
-    assert.match(result.stdout, /order: @sylwellsoftware\/glue -> @sylwellsoftware\/fray/)
+    assert.match(result.stdout, /capillary@0\.1\.0-alpha\.2[\s\S]*capillary-ui@0\.1\.0-alpha\.2/)
+    assert.match(result.stdout, /order: @capillaryjs\/capillary -> @capillaryjs\/capillary-ui/)
 })
 
 test('validates all three packages in dependency order', () => {
     const fixture = createFixture()
-    const result = invoke(fixture, 'validate', ['glue', 'fray', 'fray-visualization'])
+    const result = invoke(fixture, 'validate', ['capillary', 'capillaryUi', 'capillaryViz'])
     assert.equal(result.status, 0, result.stderr)
-    assert.match(result.stdout, /order: @sylwellsoftware\/glue -> @sylwellsoftware\/fray -> @sylwellsoftware\/fray-visualization/)
+    assert.match(result.stdout, /order: @capillaryjs\/capillary -> @capillaryjs\/capillary-ui -> @capillaryjs\/capillary-viz/)
 })
 
 test('accepts the optional package-manager argument separator', () => {
     const fixture = createFixture()
-    const result = invoke(fixture, 'validate', ['glue', 'fray'], {}, {separator: true})
+    const result = invoke(fixture, 'validate', ['capillary', 'capillaryUi'], {}, {separator: true})
     assert.equal(result.status, 0, result.stderr)
 })
 
 test('refuses an already-public version before staging', () => {
-    const fixture = createFixture({published: 'glue'})
-    const result = invoke(fixture, 'stage', ['glue', 'fray'])
+    const fixture = createFixture({published: 'capillary'})
+    const result = invoke(fixture, 'stage', ['capillary', 'capillaryUi'])
     assert.equal(result.status, 1)
-    assert.match(result.stderr, /glue@0\.1\.0-alpha\.2 is already public/)
+    assert.match(result.stderr, /capillary@0\.1\.0-alpha\.2 is already public/)
     assert.doesNotMatch(readFileSync(fixture.log, 'utf8'), /stage publish/)
 })
 
-test('stages Glue before Fray with no publish or approval command', () => {
+test('stages Capillary before Capillary UI with no publish or approval command', () => {
     const fixture = createFixture()
-    const result = invoke(fixture, 'stage', ['glue', 'fray'], {
+    const result = invoke(fixture, 'stage', ['capillary', 'capillaryUi'], {
         GITHUB_ACTIONS: 'true',
         GITHUB_REF: 'refs/heads/main',
     })
     assert.equal(result.status, 0, result.stderr)
     const log = readFileSync(fixture.log, 'utf8')
-    const glue = log.indexOf(path.basename(fixture.glueTarball), log.indexOf('stage publish'))
-    const fray = log.indexOf(path.basename(fixture.frayTarball), glue + 1)
-    assert.ok(glue >= 0 && fray > glue, log)
+    const capillary = log.indexOf(path.basename(fixture.capillaryTarball), log.indexOf('stage publish'))
+    const capillaryUi = log.indexOf(path.basename(fixture.capillaryUiTarball), capillary + 1)
+    assert.ok(capillary >= 0 && capillaryUi > capillary, log)
     assert.doesNotMatch(log, /stage approve|^publish .*\.tgz/m)
 })
 
-test('refuses a Fray artifact with a stale Glue peer range', () => {
+test('refuses a Capillary UI artifact with a stale Capillary peer range', () => {
     const fixture = createFixture({stalePeer: true})
-    const result = invoke(fixture, 'validate', ['glue', 'fray'])
+    const result = invoke(fixture, 'validate', ['capillary', 'capillaryUi'])
     assert.equal(result.status, 1)
-    assert.match(result.stderr, /peer-depend on the current Glue release line/)
+    assert.match(result.stderr, /peer-depend on the current Capillary release line/)
 })
 
 test('refuses staging outside protected GitHub main or with a long-lived token', () => {
     const fixture = createFixture()
-    let result = invoke(fixture, 'stage', ['glue'], {GITHUB_ACTIONS: 'true', GITHUB_REF: 'refs/heads/topic'})
+    let result = invoke(fixture, 'stage', ['capillary'], {GITHUB_ACTIONS: 'true', GITHUB_REF: 'refs/heads/topic'})
     assert.equal(result.status, 1)
     assert.match(result.stderr, /only from main/)
-    result = invoke(fixture, 'stage', ['glue'], {GITHUB_ACTIONS: 'true', GITHUB_REF: 'refs/heads/main', NPM_TOKEN: 'fixture'})
+    result = invoke(fixture, 'stage', ['capillary'], {GITHUB_ACTIONS: 'true', GITHUB_REF: 'refs/heads/main', NPM_TOKEN: 'fixture'})
     assert.equal(result.status, 1)
     assert.match(result.stderr, /long-lived npm tokens/)
 })
@@ -84,39 +84,43 @@ test('release workflow has the protected stage-only trust boundary', () => {
 function createFixture({published, stalePeer = false} = {}) {
     const root = mkdtempSync(path.join(os.tmpdir(), 'stage-release-'))
     mkdirSync(path.join(root, 'scripts'), {recursive: true})
-    mkdirSync(path.join(root, 'packages', 'glue'), {recursive: true})
-    mkdirSync(path.join(root, 'packages', 'fray'), {recursive: true})
-    mkdirSync(path.join(root, 'packages', 'fray-visualization'), {recursive: true})
+    mkdirSync(path.join(root, 'packages', 'capillary'), {recursive: true})
+    mkdirSync(path.join(root, 'packages', 'capillary-ui'), {recursive: true})
+    mkdirSync(path.join(root, 'packages', 'capillary-viz'), {recursive: true})
     mkdirSync(path.join(root, '.artifacts', 'release', 'packages'), {recursive: true})
     cpSync(path.join(sourceRoot, 'scripts', 'stage-release.mjs'), path.join(root, 'scripts', 'stage-release.mjs'))
     cpSync(path.join(sourceRoot, 'scripts', 'release-metadata.mjs'), path.join(root, 'scripts', 'release-metadata.mjs'))
     const entries = []
-    for (const name of ['glue', 'fray', 'fray-visualization']) {
-        writeFileSync(path.join(root, 'packages', name, 'package.json'), JSON.stringify({
-            name: `@sylwellsoftware/${name}`,
+    for (const {directory, name} of [
+        {directory: 'capillary', name: '@capillaryjs/capillary'},
+        {directory: 'capillary-ui', name: '@capillaryjs/capillary-ui'},
+        {directory: 'capillary-viz', name: '@capillaryjs/capillary-viz'},
+    ]) {
+        writeFileSync(path.join(root, 'packages', directory, 'package.json'), JSON.stringify({
+            name,
             version: '0.1.0-alpha.2',
             private: false,
             publishConfig: {access: 'public'},
-            ...(name === 'fray' ? {
+            ...(directory === 'capillary-ui' ? {
                 peerDependencies: {
-                    '@sylwellsoftware/glue': stalePeer ? '^0.1.0-alpha.1' : '^0.1.0-alpha.2',
+                    '@capillaryjs/capillary': stalePeer ? '^0.1.0-alpha.1' : '^0.1.0-alpha.2',
                 },
-            } : name === 'fray-visualization' ? {
+            } : directory === 'capillary-viz' ? {
                 peerDependencies: {
-                    '@sylwellsoftware/glue': '^0.1.0-alpha.2',
-                    '@sylwellsoftware/fray': '^0.1.0-alpha.2',
+                    '@capillaryjs/capillary': '^0.1.0-alpha.2',
+                    '@capillaryjs/capillary-ui': '^0.1.0-alpha.2',
                 },
             } : {}),
         }))
-        const filename = `sylwellsoftware-${name}-0.1.0-alpha.2.tgz`
+        const filename = `capillaryjs-${directory}-0.1.0-alpha.2.tgz`
         const tarball = path.join(root, '.artifacts', 'release', 'packages', filename)
-        writeFileSync(tarball, `${name} artifact`)
+        writeFileSync(tarball, `${directory} artifact`)
         entries.push({
-            name: `@sylwellsoftware/${name}`,
+            name,
             version: '0.1.0-alpha.2',
             filename,
-            bytes: Buffer.byteLength(`${name} artifact`),
-            sha256: createHash('sha256').update(`${name} artifact`).digest('hex'),
+            bytes: Buffer.byteLength(`${directory} artifact`),
+            sha256: createHash('sha256').update(`${directory} artifact`).digest('hex'),
         })
     }
     writeFileSync(path.join(root, '.artifacts', 'release', 'package-artifacts.json'), JSON.stringify({schemaVersion: 1, packages: entries}))
@@ -138,8 +142,8 @@ exit 0
     return {
         root,
         log,
-        glueTarball: path.join(root, '.artifacts', 'release', 'packages', entries[0].filename),
-        frayTarball: path.join(root, '.artifacts', 'release', 'packages', entries[1].filename),
+        capillaryTarball: path.join(root, '.artifacts', 'release', 'packages', entries[0].filename),
+        capillaryUiTarball: path.join(root, '.artifacts', 'release', 'packages', entries[1].filename),
         visualizationTarball: path.join(
             root,
             '.artifacts',

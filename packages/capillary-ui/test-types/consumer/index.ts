@@ -1,0 +1,187 @@
+import {Emitter} from '@capillaryjs/capillary'
+import {
+    Component,
+    DeclarativeRegion,
+    DatePicker,
+    DateTimePicker,
+    DescriptionItem,
+    DescriptionList,
+    DataTable,
+    Dialog,
+    DialogActions,
+    Dropdown,
+    NavigationBar,
+    CapillaryUiApp,
+    Layout,
+    Panel,
+    ProgressBar,
+    RouteLink,
+    RouteOutlet,
+    SplitPrimary,
+    SplitSecondary,
+    SplitView,
+    Textbox,
+    TimePicker,
+    TreeView,
+    createBrowserRouter,
+    createCapillaryUiRuntime,
+    createServiceScope,
+    defineRoute,
+    defineService,
+    h,
+    mountCapillaryUiApp,
+    provideService,
+    readDeclarativeRegions,
+    routeTarget,
+    serializeTableQuery,
+} from '@capillaryjs/capillary-ui'
+import type {
+    CapillaryUiLocalizationOptions,
+    CapillaryUiMessageOverrides,
+    CapillaryUiLayoutAllocation,
+    CapillaryUiLayoutDirection,
+    NavigationAdapter,
+} from '@capillaryjs/capillary-ui'
+import {Fragment, jsx} from '@capillaryjs/capillary-ui/jsx-runtime'
+
+const text = new Emitter('typed')
+new Textbox({valueEmitter: text}).valueEmitter.get().toUpperCase()
+
+const numeric = new Dropdown<number>({
+    options: [{value: 1, label: 'One'}],
+    valueEmitter: new Emitter(1),
+})
+numeric.valueEmitter.get().toFixed()
+
+new DescriptionList({children: h(DescriptionItem, {term: 'Owner', value: 'Team'})})
+new Layout({horizontal: true, children: 'Content'})
+new SplitView({children: [
+    h(SplitPrimary, null, 'Navigation'),
+    h(SplitSecondary, null, 'Content'),
+]})
+new ProgressBar({label: 'Loading', value: null})
+new TreeView({label: 'Projects', nodes: [{id: 'one', label: 'One'}]})
+new Dialog({
+    title: 'Confirm',
+    children: ['Continue?', h(DialogActions, null, 'Apply')],
+})
+class ConsumerHeader extends DeclarativeRegion {}
+readDeclarativeRegions('ConsumerLayout', h(ConsumerHeader, null, 'Header'), {
+    header: ConsumerHeader,
+})
+mountCapillaryUiApp(createCapillaryUiRuntime(), CapillaryUiApp, document.body, {
+    sizing: 'viewport',
+    layout: 'vertical',
+    landmark: 'main',
+    children: 'Application',
+})
+const localizedMessages: CapillaryUiMessageOverrides = {
+    dialogCloseLabel: 'Luk',
+    checkboxStateLabel: (label, state) => `${label}: ${state}`,
+}
+const localizedOptions: CapillaryUiLocalizationOptions = {
+    locale: 'da-DK',
+    messages: localizedMessages,
+}
+createCapillaryUiRuntime({localization: localizedOptions})
+const direction: CapillaryUiLayoutDirection = 'horizontal'
+const allocation: CapillaryUiLayoutAllocation = 'flexible'
+new CapillaryUiApp({layout: direction})
+new Panel({allocation, orientation: 'vertical'})
+
+type Row = {id: number; name: string}
+new DataTable<Row>({
+    columns: [{
+        field: 'name',
+        label: h('strong', null, 'Name'),
+        ariaLabel: 'Person name',
+        render: (row) => row.name.toUpperCase(),
+    }],
+    data: [{id: 1, name: 'Ada'}],
+})
+
+const date = new DatePicker({
+    label: 'Start date',
+    valueEmitter: new Emitter<string | null>('2026-09-10'),
+    onChange: (value) => {
+        value?.slice(0, 4)
+    },
+})
+date.valueEmitter.get()?.slice(0, 4)
+
+const time = new TimePicker({
+    label: 'Start time',
+    valueEmitter: new Emitter<string | null>('10:00'),
+})
+time.valueEmitter.get()?.slice(0, 2)
+
+const combined = new DateTimePicker({
+    label: 'Schedule',
+    valueEmitter: new Emitter<{date: string | null; time: string | null} | null>({
+        date: '2026-09-10',
+        time: '10:00',
+    }),
+})
+combined.valueEmitter.get()?.date?.slice(0, 4)
+
+const url = serializeTableQuery(new URL('https://example.test/rows'), {
+    sort: {field: 'name', direction: 'desc'},
+})
+url.searchParams.get('sort')
+
+h(Fragment, null, jsx('span', {children: 'typed'}))
+
+interface GreetingService {
+    greeting(name: string): string
+}
+const greetingService = defineService<GreetingService>('greeting')
+const services = createServiceScope([
+    provideService(greetingService, () => ({greeting: (name) => `Hello ${name}`})),
+])
+class Greeting extends Component {
+    static requiredServices = [greetingService]
+    initialize() {
+        this.requireService(greetingService).greeting('Ada')
+    }
+    render() {
+        return h('output')
+    }
+}
+createCapillaryUiRuntime({services}).create(Greeting)
+
+const homeRoute = defineRoute('home')
+const adapter: NavigationAdapter = {
+    read: () => '/',
+    href: (location) => location,
+    push: (_location) => {},
+    replace: (_location) => {},
+    subscribe: (_listener) => () => {},
+}
+const router = createBrowserRouter({adapter})
+createCapillaryUiRuntime({router})
+new RouteLink({to: routeTarget(homeRoute), children: 'Home'})
+new NavigationBar({
+    label: 'Primary',
+    items: [
+        {id: 'home', label: 'Home', to: routeTarget(homeRoute)},
+        {id: 'portal', label: 'Portal', to: {kind: 'external', href: 'https://portal.example/'}},
+    ],
+})
+new NavigationBar({
+    label: 'Primary',
+    // @ts-expect-error External destinations have no route-current state.
+    items: [{
+        id: 'portal',
+        label: 'Portal',
+        to: {kind: 'external', href: 'https://portal.example/'},
+        exact: true,
+    }],
+})
+new RouteOutlet({
+    valueEmitter: new Emitter<string | number | null>('home'),
+    mountPolicy: 'active-only',
+    views: [{id: 'home', route: homeRoute, content: 'Home'}],
+})
+
+// @ts-expect-error Built declarations preserve Textbox's string value contract.
+new Textbox({valueEmitter: new Emitter(42)})

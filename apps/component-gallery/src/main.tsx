@@ -1,11 +1,11 @@
 import {
     createBrowserRouter,
-    createFrayRuntime,
+    createCapillaryUiRuntime,
     createHashNavigation,
-} from '@sylwellsoftware/fray'
-import baseStylesheet from '../../../packages/fray/themes/base.css?url&no-inline'
-import colorsStylesheet from '../../../packages/fray/colors/iceblue/colors.css?url&no-inline'
-import themeStylesheet from '../../../packages/fray/themes/shiny/theme.css?url&no-inline'
+} from '@capillaryjs/capillary-ui'
+import baseStylesheet from '../../../packages/capillary-ui/themes/base.css?url&no-inline'
+import colorsStylesheet from '../../../packages/capillary-ui/colors/iceblue/colors.css?url&no-inline'
+import themeStylesheet from '../../../packages/capillary-ui/themes/shiny/theme.css?url&no-inline'
 import {GalleryApp} from './app/GalleryApp.js'
 import './gallery.css'
 
@@ -19,7 +19,7 @@ void start(root)
 async function start(target: HTMLElement): Promise<void> {
     await loadStylesheet('base', baseStylesheet)
     const router = createBrowserRouter({adapter: createHashNavigation(window)})
-    const runtime = createFrayRuntime({router})
+    const runtime = createCapillaryUiRuntime({router})
     runtime.registerStyles(GalleryApp).injectStyles(document)
     await loadStylesheet('colors', colorsStylesheet)
     await loadStylesheet('theme', themeStylesheet)
@@ -35,7 +35,7 @@ function loadStylesheet(kind: 'base' | 'colors' | 'theme', href: string): Promis
         const link = document.createElement('link')
         link.rel = 'stylesheet'
         link.href = href
-        link.dataset.frayStylesheet = kind
+        link.dataset.capStylesheet = kind
         link.addEventListener('load', () => resolve(), {once: true})
         link.addEventListener('error', () => reject(new Error(
             `Component gallery could not load ${kind} stylesheet: ${href}`,

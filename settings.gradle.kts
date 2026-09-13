@@ -1,1 +1,1 @@
-rootProject.name = "gluefrayjs"
+rootProject.name = "capillaryjs"

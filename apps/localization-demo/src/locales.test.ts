@@ -27,9 +27,9 @@ test('initial locale policy recognizes Danish and German language tags', () => {
     assert.equal(chooseDemoLocale(undefined), 'en-GB')
 })
 
-test('demo catalogs illustrate fixed and parameterized Fray messages', () => {
-    const danish = getDemoLocale('da-DK').frayMessages
-    const german = getDemoLocale('de-DE').frayMessages
+test('demo catalogs illustrate fixed and parameterized Capillary UI messages', () => {
+    const danish = getDemoLocale('da-DK').capillaryUiMessages
+    const german = getDemoLocale('de-DE').capillaryUiMessages
     assert.equal(danish.dialogCloseLabel, 'Luk')
     assert.equal(danish.tableSortColumnLabel?.('Navn'), 'Sortér Navn')
     assert.equal(danish.treeViewLoading, 'Indlæser træelementer…')

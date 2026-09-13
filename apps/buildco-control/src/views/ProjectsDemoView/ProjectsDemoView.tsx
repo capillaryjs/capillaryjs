@@ -1,6 +1,6 @@
-import type {FrayChild} from "@sylwellsoftware/fray";
-import {Component, DataTable, ListView, Panel, Sidebar, SplitPrimary, SplitSecondary, SplitView} from "@sylwellsoftware/fray";
-import type {TableColumn, TableRow} from "@sylwellsoftware/fray";
+import type {CapillaryUiChild} from "@capillaryjs/capillary-ui";
+import {Component, DataTable, ListView, Panel, Sidebar, SplitPrimary, SplitSecondary, SplitView} from "@capillaryjs/capillary-ui";
+import type {TableColumn, TableRow} from "@capillaryjs/capillary-ui";
 
 interface ProjectItem {
     id: string;
@@ -40,8 +40,8 @@ const columns: TableColumn<ProjectRow>[] = [
 ];
 
 export class ProjectsDemoView extends Component {
-    render(): FrayChild {
-        return <SplitView className="projects-workspace fray-size-flexible" primarySize="18rem" primaryLabel="Projects" secondaryLabel="Project details">
+    render(): CapillaryUiChild {
+        return <SplitView className="projects-workspace cap-size-flexible" primarySize="18rem" primaryLabel="Projects" secondaryLabel="Project details">
             <SplitPrimary>
                 <Sidebar island allocation="flexible" header="Projects">
                     <ListView

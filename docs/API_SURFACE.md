@@ -3,17 +3,17 @@
 Status: current package-root and documented CSS entry points
 Updated: 2026-09-07
 
-This inventory describes the supported public surface of Glue 0.8, Fray 1.1,
-and Fray Visualization 0.9. Fray follows 1.x semantic-versioning guarantees.
-Glue and Fray Visualization remain on 0.x lines and may make documented
+This inventory describes the supported public surface of Capillary 0.8, Capillary UI 1.1,
+and Capillary Viz 0.9. Capillary UI follows 1.x semantic-versioning guarantees.
+Capillary and Capillary Viz remain on 0.x lines and may make documented
 breaking changes in minor releases.
 
 Anything exported only from a source file, test fixture, or build directory is
 internal unless it appears below or in a package export map.
 
-## Glue
+## Capillary
 
-`@sylwellsoftware/glue` is platform-neutral and exports everything through its
+`@capillaryjs/capillary` is platform-neutral and exports everything through its
 package root.
 
 | Area | Runtime exports | Public type families |
@@ -52,12 +52,12 @@ Important compatibility boundaries:
   failing retry predicate, backoff function, or scheduler settles terminally.
 - Diagnostics observe causality but do not retain event history or owners.
 
-See the [Glue guide](../packages/glue/README.md) for full behavior and ownership
+See the [Capillary guide](../packages/capillary/README.md) for full behavior and ownership
 rules.
 
-## Fray
+## Capillary UI
 
-`@sylwellsoftware/fray` is a browser-only presentation runtime with Glue as a
+`@capillaryjs/capillary-ui` is a browser-only presentation runtime with Capillary as a
 peer dependency.
 
 ### Runtime and templates
@@ -65,14 +65,14 @@ peer dependency.
 | Export | Purpose |
 | --- | --- |
 | `Component` | Explicit class-component lifecycle, tracked emitter reads, cleanup, service access, and keyed rendering |
-| `FrayApp`, `mountFrayApp` | Fixed `fray-app` root, theme-text boundary, bounded child-layout option, and CSS-registering application mount helper |
+| `CapillaryUiApp`, `mountCapillaryUiApp` | Fixed `cap-app` root, theme-text boundary, bounded child-layout option, and CSS-registering application mount helper |
 | `Fragment`, `jsx`, `jsxs`, `jsxDEV` | Automatic JSX runtime |
 | `h` | Low-level vnode factory retained for non-JSX integrations |
-| `FrayHostElementTagNameMap`, `FrayElementTagNameMap` | Custom `fray-*` host element tag maps that extend JSX intrinsic elements |
+| `CapillaryUiHostElementTagNameMap`, `CapillaryUiElementTagNameMap` | Custom `cap-*` host element tag maps that extend JSX intrinsic elements |
 | `css` | Static CSS template helper |
 | `live` | Explicit one-way emitter binding for DOM properties and allowlisted component props |
-| `FrayRuntime`, `createFrayRuntime`, `defaultFrayRuntime` | Application-scoped component creation, mounting, styles, services, optional routing, and static localization |
-| `FrayLocalizationOptions`, `FrayLocalization`, `FrayMessageOverrides`, `FrayMessage` | Typed runtime locale and partial Fray-authored message overrides with English fallback |
+| `CapillaryUiRuntime`, `createCapillaryUiRuntime`, `defaultCapillaryUiRuntime` | Application-scoped component creation, mounting, styles, services, optional routing, and static localization |
+| `CapillaryUiLocalizationOptions`, `CapillaryUiLocalization`, `CapillaryUiMessageOverrides`, `CapillaryUiMessage` | Typed runtime locale and partial Capillary UI-authored message overrides with English fallback |
 | `StyleRegistry`, `createStyleRegistry`, `styleRegistry` | Dependency-aware structural CSS collection and injection |
 
 Public declaration contracts include component constructors/dependencies,
@@ -80,10 +80,10 @@ props, children, vnodes, keys, refs, writable emitters, live bindings and prop
 contracts, emitter snapshots, template props, runtime options, and style
 registry types.
 
-The root exports `FrayLayoutDirection`, `FrayLayoutAllocation`, direction-prop
-contracts, and `FrayLayoutParticipantProps`. Public structural classes provide horizontal or
+The root exports `CapillaryUiLayoutDirection`, `CapillaryUiLayoutAllocation`, direction-prop
+contracts, and `CapillaryUiLayoutParticipantProps`. Public structural classes provide horizontal or
 vertical direct-child arrangement, natural or flexible main-axis allocation,
-and explicit bounded scrolling. `FrayApp.layout` targets the bounded root;
+and explicit bounded scrolling. `CapillaryUiApp.layout` targets the bounded root;
 `Layout`, `Header`, `NavigationBar`, `Panel`, `Sidebar`, `SplitView`, and
 `Toolbar` opt into the `allocation` argument. Layout is the sole generic layout
 component; Panel composes it as a themed content body; SplitPrimary and
@@ -106,7 +106,7 @@ named Layout panes required directly by SplitView. Substantial
 rendered content stays in the JSX child tree; configuration remains in props.
 
 Components with no suitable native root declare a fixed host stem. A runtime
-resolves it to `fray-<stem-without-hyphens>`. Runtime-configurable element names
+resolves it to `cap-<stem-without-hyphens>`. Runtime-configurable element names
 were removed and are not supported. These light-DOM hosts are not registered
 custom elements.
 
@@ -116,7 +116,7 @@ custom elements.
 | --- | --- |
 | Actions | `Button`, `Toolbar` |
 | Text and choices | `Label`, `Textbox`, `Dropdown`, `RadioButton`, `RadioGroup`, `Toggle`, `Checkbox`, `TriCheckbox`, `QuadCheckbox` |
-| Layout and navigation | `Breadcrumb`, `FrayApp`, `Layout`, `Header`, `GroupBox`, `NavigationBar`, `OptionGroup`, `OptionGroupHeaderEnd`, `OptionsBox`, `Panel`, `PanelToolbar`, `Sidebar`, `SidebarToolbar`, `SplitPrimary`, `SplitSecondary`, `SplitView`, `Tab`, `TabLine`, `TabPanel` |
+| Layout and navigation | `Breadcrumb`, `CapillaryUiApp`, `Layout`, `Header`, `GroupBox`, `NavigationBar`, `OptionGroup`, `OptionGroupHeaderEnd`, `OptionsBox`, `Panel`, `PanelToolbar`, `Sidebar`, `SidebarToolbar`, `SplitPrimary`, `SplitSecondary`, `SplitView`, `Tab`, `TabLine`, `TabPanel` |
 | Records and collections | `DescriptionItem`, `DescriptionList`, `InfoField`, `InfoPanel`, `Placeholder`, `ListView`, `TreeItem`, `TreeView` |
 | Tables and filters | `DataTable`, `FilterPanel`, `TableHeader`, `TableHeaderCell` |
 | Dialog and status | `Dialog`, `DialogActions`, `ProgressBar` |
@@ -124,7 +124,7 @@ custom elements.
 | Date and time (experimental) | `DatePicker`, `DateTimePicker`, `TimePicker` |
 
 Every component and its key props are documented in the
-[Fray component reference](../packages/fray/README.md#component-reference).
+[Capillary UI component reference](../packages/capillary-ui/README.md#component-reference).
 Notable public behavior:
 
 - Value controls expose `valueEmitter`; `defaultValue` initializes uncontrolled
@@ -133,7 +133,7 @@ Notable public behavior:
 - `busy` is live presentation state on actions, input/choice controls, date/time
   controls, and `OptionGroup`; it does not disable inputs, while a busy
   `Button` remains unavailable. Application commands and lifecycle stay in
-  Glue/application code.
+  Capillary/application code.
 - Error-capable controls connect their native surface to a focusable
   `role="alert"` overlay. Its icon and hidden message are absolutely positioned
   in every context, and hover or focus reveals the details without changing
@@ -151,7 +151,7 @@ Notable public behavior:
 - `DataTable` accepts exactly one of direct `data`, a caller-owned
   `dataSource`, or table-owned `rest` options.
 - Rich `Checkbox` and `TableColumn` labels accept a textual `ariaLabel` for
-  Fray-generated state, sort, and filter accessibility messages.
+  Capillary UI-generated state, sort, and filter accessibility messages.
 - `Dialog` uses a native modal surface with focus containment and restoration.
 - `GroupBox` is a named group with a bordered body and vertical header.
 - `OptionGroup` renders a labelled `fieldset`/`legend` shell and accepts an
@@ -163,7 +163,7 @@ Notable public behavior:
 
 ### Data helpers
 
-Fray exports the following data-model utilities from its root:
+Capillary UI exports the following data-model utilities from its root:
 
 - `FilterMode` and semantic filter state types; `matchesFilterState`,
   `filterByState`, `deriveFilterPredicate`, `deriveFilteredItems`,
@@ -183,16 +183,16 @@ caller remain caller-owned.
 
 ### Localization
 
-`createFrayRuntime({localization: {locale, messages}})` accepts a non-empty BCP
-47 locale and optional `FrayMessageOverrides`. Fray canonicalizes the locale,
+`createCapillaryUiRuntime({localization: {locale, messages}})` accepts a non-empty BCP
+47 locale and optional `CapillaryUiMessageOverrides`. Capillary UI canonicalizes the locale,
 copies the overrides, and resolves each omitted semantic key from its English
 default. Fixed messages are strings; parameterized messages have typed function
 signatures. Explicit component label/message props take precedence over the
 runtime defaults.
 
-`runtime.localization` is an immutable runtime-local `FrayLocalization` with
+`runtime.localization` is an immutable runtime-local `CapillaryUiLocalization` with
 the canonical `locale` and typed `message(key)` resolver. If localization is
-omitted, messages remain English and Fray-owned `Intl` formatting uses the
+omitted, messages remain English and Capillary UI-owned `Intl` formatting uses the
 browser default locale. Calendar month/year and weekday labels, plus day
 numerals, use the configured locale and an explicit Gregorian calendar; they
 are not message keys.
@@ -210,7 +210,7 @@ language switching remain application concerns.
 | `provideService`, `ServiceProvider` | Composition-root factory selection |
 | `ServiceScope`, `createServiceScope`, `ServiceResolver` | Fixed lazy scope, explicit dependency resolution, reverse-order disposal |
 
-A runtime receives one scope through `createFrayRuntime({services})`. Nested
+A runtime receives one scope through `createCapillaryUiRuntime({services})`. Nested
 class components list `static requiredServices` and call `requireService()`
 during `initialize()` or later. Missing providers, undeclared lookups, duplicate
 providers, and cycles fail explicitly. There is no global registry, decorator
@@ -257,7 +257,7 @@ The package exports:
 - named `./themes/<name>/theme.css` files;
 - named `./colors/<name>/colors.css` files.
 
-The root also exports `frayThemeVariableCatalog`, theme/color option catalogs,
+The root also exports `capillaryUiThemeVariableCatalog`, theme/color option catalogs,
 stylesheet lookup and replacement helpers, and appearance get/set helpers.
 
 Presentation loads as base variables, structural CSS, color anchors, then
@@ -268,16 +268,16 @@ dependencies instead of loading the complete artifact.
 `--navigation-link-*` item variables. These defaults are text-link navigation,
 not aliases of the generic `--button-*` action family.
 
-`FrayApp` has a fixed `fray-app` host, applies the published canvas, color, and
+`CapillaryUiApp` has a fixed `cap-app` host, applies the published canvas, color, and
 typography variables even when embedded, and offers independent viewport-axis
 settings, horizontal/vertical child arrangement on the bounded root, plus a
-`main`/`none` landmark policy. `mountFrayApp()` collects and
+`main`/`none` landmark policy. `mountCapillaryUiApp()` collects and
 injects its declared structural CSS before mounting. The legacy
-`fray-fill-horizontal` and `fray-fill-vertical` application-root traits remain
+`cap-fill-horizontal` and `cap-fill-vertical` application-root traits remain
 available and apply the same canvas, color, and typography values.
 
-`fray-layout-horizontal`, `fray-layout-vertical`, `fray-size-natural`,
-`fray-size-flexible`, and `fray-scroll` are additive structural traits. Layout
+`cap-layout-horizontal`, `cap-layout-vertical`, `cap-size-natural`,
+`cap-size-flexible`, and `cap-scroll` are additive structural traits. Layout
 only distributes an existing bound; flexible allocation does not imply
 overflow. Existing component and filled-island overflow remain compatibility
 defaults, while an explicit inner scroll owner determines actual scroll range.
@@ -288,8 +288,8 @@ named SplitPrimary and SplitSecondary Layout panes and inserts a focusable
 separator supporting pointer drag, arrow keys, Home, and End.
 
 `Layout` and `Panel` accept `context="control" | "form"`, rendered as a
-`data-fray-context` marker on the host. Context-sensitive components consume
-inherited `--fray-<component>-*` custom properties whose complete set each
+`data-cap-context` marker on the host. Context-sensitive components consume
+inherited `--cap-<component>-*` custom properties whose complete set each
 marker defines, so the nearest marked ancestor wins and unmarked containers
 keep the control presentation.
 
@@ -298,10 +298,10 @@ application-supplied `--c1`, `--c2`, and `--c3` values for a shared gradient
 and `--colored-shadow`. Themes may change the values consumed by these traits
 but do not own their selectors.
 
-## Fray Visualization
+## Capillary Viz
 
-`@sylwellsoftware/fray-visualization` is an optional analytical layer. It peers
-on Glue and Fray and exports a root module plus
+`@capillaryjs/capillary-viz` is an optional analytical layer. It peers
+on Capillary and Capillary UI and exports a root module plus
 `./styles/structural.css`.
 
 | Area | Public exports |
@@ -320,7 +320,7 @@ criterion must partition each parent exactly; unmatched and multiply matched
 items are reported rather than guessed. Dates are strict civil `YYYY-MM-DD`
 values calculated with UTC-day arithmetic.
 
-See the [Visualization guide](../packages/fray-visualization/README.md) for the
+See the [Visualization guide](../packages/capillary-viz/README.md) for the
 component contracts and examples.
 
 ## Non-goals

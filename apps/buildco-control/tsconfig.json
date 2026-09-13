@@ -5,14 +5,14 @@
     "types": ["node"],
     "baseUrl": "../..",
     "paths": {
-      "@sylwellsoftware/glue": ["packages/glue/src/index.ts"],
-      "@sylwellsoftware/fray": ["packages/fray/src/index.ts"],
-      "@sylwellsoftware/fray/jsx-runtime": ["packages/fray/src/jsx-runtime.ts"],
-      "@sylwellsoftware/fray/jsx-dev-runtime": ["packages/fray/src/jsx-dev-runtime.ts"],
-      "@sylwellsoftware/fray-visualization": ["packages/fray-visualization/src/index.ts"]
+      "@capillaryjs/capillary": ["packages/capillary/src/index.ts"],
+      "@capillaryjs/capillary-ui": ["packages/capillary-ui/src/index.ts"],
+      "@capillaryjs/capillary-ui/jsx-runtime": ["packages/capillary-ui/src/jsx-runtime.ts"],
+      "@capillaryjs/capillary-ui/jsx-dev-runtime": ["packages/capillary-ui/src/jsx-dev-runtime.ts"],
+      "@capillaryjs/capillary-viz": ["packages/capillary-viz/src/index.ts"]
     },
     "jsx": "react-jsx",
-    "jsxImportSource": "@sylwellsoftware/fray",
+    "jsxImportSource": "@capillaryjs/capillary-ui",
     "noEmit": true,
     "strict": true,
     "exactOptionalPropertyTypes": false,

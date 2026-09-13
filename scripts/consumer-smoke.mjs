@@ -19,26 +19,26 @@ import {chromium} from '@playwright/test'
 const workspaceRoot = resolve(fileURLToPath(new URL('..', import.meta.url)))
 const artifactRoot = join(workspaceRoot, '.artifacts', 'release')
 const report = JSON.parse(readFileSync(join(artifactRoot, 'package-artifacts.json'), 'utf8'))
-const glue = findPackage('@sylwellsoftware/glue')
-const fray = findPackage('@sylwellsoftware/fray')
-const visualization = findPackage('@sylwellsoftware/fray-visualization')
-const glueTarball = join(artifactRoot, 'packages', glue.filename)
-const frayTarball = join(artifactRoot, 'packages', fray.filename)
+const capillary = findPackage('@capillaryjs/capillary')
+const capillaryUi = findPackage('@capillaryjs/capillary-ui')
+const visualization = findPackage('@capillaryjs/capillary-viz')
+const capillaryTarball = join(artifactRoot, 'packages', capillary.filename)
+const capillaryUiTarball = join(artifactRoot, 'packages', capillaryUi.filename)
 const visualizationTarball = join(artifactRoot, 'packages', visualization.filename)
-const fixtureRoot = mkdtempSync(join(tmpdir(), 'gluefray-consumer-'))
+const fixtureRoot = mkdtempSync(join(tmpdir(), 'capillaryjs-consumer-'))
 
 let completed = false
 try {
     writeConsumerManifest(false)
     installFixture()
-    assertInstalledPackage('@sylwellsoftware/glue', glue.version)
+    assertInstalledPackage('@capillaryjs/capillary', capillary.version)
 
     writeConsumerManifest(true)
     installFixture()
-    assertInstalledPackage('@sylwellsoftware/glue', glue.version)
-    assertInstalledPackage('@sylwellsoftware/fray', fray.version)
-    assertInstalledPackage('@sylwellsoftware/fray-visualization', visualization.version)
-    assertSingleGlueInstall()
+    assertInstalledPackage('@capillaryjs/capillary', capillary.version)
+    assertInstalledPackage('@capillaryjs/capillary-ui', capillaryUi.version)
+    assertInstalledPackage('@capillaryjs/capillary-viz', visualization.version)
+    assertSingleCapillaryInstall()
 
     writeFixtureSources()
     run('pnpm', ['typecheck'], fixtureRoot)
@@ -52,19 +52,19 @@ try {
     if (!completed) console.error('[consumer] failed fixture removed')
 }
 
-function writeConsumerManifest(includeFray) {
+function writeConsumerManifest(includeCapillaryUi) {
     const typescript = installedToolVersion('typescript')
     const vite = installedToolVersion('vite')
     const dependencies = {
-        '@sylwellsoftware/glue': `file:${glueTarball}`,
+        '@capillaryjs/capillary': `file:${capillaryTarball}`,
     }
-    if (includeFray) dependencies['@sylwellsoftware/fray'] = `file:${frayTarball}`
-    if (includeFray) {
-        dependencies['@sylwellsoftware/fray-visualization'] = `file:${visualizationTarball}`
+    if (includeCapillaryUi) dependencies['@capillaryjs/capillary-ui'] = `file:${capillaryUiTarball}`
+    if (includeCapillaryUi) {
+        dependencies['@capillaryjs/capillary-viz'] = `file:${visualizationTarball}`
     }
 
     writeJson('package.json', {
-        name: 'gluefray-tarball-consumer',
+        name: 'capillaryjs-tarball-consumer',
         version: '0.0.0',
         private: true,
         type: 'module',
@@ -102,42 +102,42 @@ function writeFixtureSources() {
             verbatimModuleSyntax: true,
             lib: ['ES2023', 'DOM', 'DOM.Iterable'],
             jsx: 'react-jsx',
-            jsxImportSource: '@sylwellsoftware/fray',
+            jsxImportSource: '@capillaryjs/capillary-ui',
             noEmit: true,
         },
         include: ['src/**/*.ts', 'src/**/*.tsx'],
     })
     writeFileSync(join(fixtureRoot, 'index.html'), `<!doctype html>
 <html lang="en">
-<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Glue Fray smoke</title></head>
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Capillary Capillary UI smoke</title></head>
 <body><div id="app"></div><script type="module" src="/src/main.tsx"></script></body>
 </html>
 `)
     mkdirSync(join(fixtureRoot, 'src'), {recursive: true})
-    writeFileSync(join(fixtureRoot, 'src', 'main.tsx'), `import {DerivedEndpoint, Emitter, RestEndpoint} from '@sylwellsoftware/glue'
-import type {LiveResult} from '@sylwellsoftware/glue'
+    writeFileSync(join(fixtureRoot, 'src', 'main.tsx'), `import {DerivedEndpoint, Emitter, RestEndpoint} from '@capillaryjs/capillary'
+import type {LiveResult} from '@capillaryjs/capillary'
 import {
     Button,
     Component,
     Panel,
     Textbox,
-    createFrayRuntime,
+    createCapillaryUiRuntime,
     createServiceScope,
     defineService,
     h,
     provideService,
-} from '@sylwellsoftware/fray'
+} from '@capillaryjs/capillary-ui'
 import {
     BlockGraph,
     createBlockSelection,
     createSplitSelection,
     staticCriterion,
-} from '@sylwellsoftware/fray-visualization'
-import '@sylwellsoftware/fray/styles/structural.css'
-import '@sylwellsoftware/fray-visualization/styles/structural.css'
-import '@sylwellsoftware/fray/themes/base.css'
-import '@sylwellsoftware/fray/colors/iceblue/colors.css'
-import '@sylwellsoftware/fray/themes/minimal/theme.css'
+} from '@capillaryjs/capillary-viz'
+import '@capillaryjs/capillary-ui/styles/structural.css'
+import '@capillaryjs/capillary-viz/styles/structural.css'
+import '@capillaryjs/capillary-ui/themes/base.css'
+import '@capillaryjs/capillary-ui/colors/iceblue/colors.css'
+import '@capillaryjs/capillary-ui/themes/minimal/theme.css'
 
 const greetingService = defineService<{prefix: string}>('greeting')
 type RecordRow = {id: string; state: 'open' | 'closed'}
@@ -214,7 +214,7 @@ class App extends Component {
 const services = createServiceScope([
     provideService(greetingService, () => ({prefix: 'scope-ready'})),
 ])
-const runtime = createFrayRuntime({services})
+const runtime = createCapillaryUiRuntime({services})
 runtime.registerStyles(App).injectStyles(document)
 runtime.mount(runtime.create(App), document.querySelector('#app')!)
 `)
@@ -248,9 +248,9 @@ async function verifyBrowserRuntime() {
             await expectText(page, '#h-output', 'Hello, Ada.')
             await expectText(page, '#endpoint-output', 'Derived total: 2')
             const peerIdentity = await page.locator('main').getAttribute('data-peer-identity')
-            assert(peerIdentity === 'true', 'Fray did not resolve the consumer Glue instance')
+            assert(peerIdentity === 'true', 'Capillary UI did not resolve the consumer Capillary instance')
             const service = await page.locator('main').getAttribute('data-service')
-            assert(service === 'scope-ready', 'Fray did not resolve the consumer service scope')
+            assert(service === 'scope-ready', 'Capillary UI did not resolve the consumer service scope')
             const visualizationCount = await page.getByRole('treeitem', {name: /1 item/}).count()
             assert(visualizationCount === 2, 'Visualization package did not render both partitions')
             assert(pageErrors.length === 0, `Browser emitted page errors: ${pageErrors.join(', ')}`)
@@ -317,33 +317,33 @@ function assertInstalledPackage(name, version) {
     assertNoLocalRanges(manifest, name)
 }
 
-function assertSingleGlueInstall() {
+function assertSingleCapillaryInstall() {
     const packagePath = realpathSync(join(
         fixtureRoot,
         'node_modules',
-        '@sylwellsoftware',
-        'glue',
+        '@capillaryjs',
+        'capillary',
         'package.json',
     ))
     const listedPaths = run(
         'pnpm',
-        ['list', '@sylwellsoftware/glue', '--depth', 'Infinity', '--parseable', '--ignore-workspace'],
+        ['list', '@capillaryjs/capillary', '--depth', 'Infinity', '--parseable', '--ignore-workspace'],
         fixtureRoot,
     ).split('\n').filter(Boolean)
-    const gluePaths = listedPaths.filter((path) => {
+    const capillaryPaths = listedPaths.filter((path) => {
         try {
             return JSON.parse(readFileSync(join(path, 'package.json'))).name
-                === '@sylwellsoftware/glue'
+                === '@capillaryjs/capillary'
         } catch {
             return false
         }
     })
-    const resolvedPaths = new Set(gluePaths.map((path) => realpathSync(path)))
+    const resolvedPaths = new Set(capillaryPaths.map((path) => realpathSync(path)))
     assert(
         resolvedPaths.size === 1,
-        `Consumer resolved ${resolvedPaths.size} Glue instances: ${[...resolvedPaths].join(', ')}`,
+        `Consumer resolved ${resolvedPaths.size} Capillary instances: ${[...resolvedPaths].join(', ')}`,
     )
-    assert(!packagePath.includes(workspaceRoot), 'Consumer resolved Glue from the workspace')
+    assert(!packagePath.includes(workspaceRoot), 'Consumer resolved Capillary from the workspace')
 }
 
 function assertSafeBundle() {
@@ -383,7 +383,7 @@ function assertNoLocalRanges(manifest, name) {
 function installedToolVersion(name) {
     const locations = {
         typescript: join(workspaceRoot, 'node_modules', 'typescript', 'package.json'),
-        vite: join(workspaceRoot, 'packages', 'fray', 'node_modules', 'vite', 'package.json'),
+        vite: join(workspaceRoot, 'packages', 'capillary-ui', 'node_modules', 'vite', 'package.json'),
     }
     const path = locations[name]
     assert(path != null, `Unknown consumer tool ${name}`)

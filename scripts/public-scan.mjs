@@ -9,7 +9,7 @@ const privateConcept = [
     ['Sast', 'Reporting'].join(''),
     ['security', 'reporting'].join('-'),
 ].join('|')
-const legacyScopes = ['gluefray', 'local'].join('-')
+const legacyScopes = ['capillaryjs', 'local'].join('-')
 const rules = [
     {id: 'private-path', pattern: new RegExp(privatePath, 'i')},
     {id: 'private-application', pattern: new RegExp(`\\b(?:${privateConcept})\\b`, 'i')},
@@ -25,9 +25,9 @@ const tracked = run('git', ['ls-files', '--cached', '--others', '--exclude-stand
     .split('\0')
     .filter(Boolean)
 const generated = [
-    path.join(root, 'packages/glue/dist'),
-    path.join(root, 'packages/fray/dist'),
-    path.join(root, 'packages/fray-visualization/dist'),
+    path.join(root, 'packages/capillary/dist'),
+    path.join(root, 'packages/capillary-ui/dist'),
+    path.join(root, 'packages/capillary-viz/dist'),
     path.join(root, '.artifacts/release/packages'),
     path.join(root, '.artifacts/release/package-artifacts.json'),
 ].flatMap(listFiles)

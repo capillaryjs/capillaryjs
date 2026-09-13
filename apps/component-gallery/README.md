@@ -1,6 +1,6 @@
 # Component gallery
 
-A public demo application that tours the Fray, Glue, and Fray Visualization
+A public demo application that tours the Capillary UI, Capillary, and Capillary Viz
 component surfaces inside one routed shell. It is the framework-side companion
 to the private `layout-demo` app: where layout-demo exercises allocation
 scenarios, this app exercises real component compositions.
@@ -12,12 +12,12 @@ controls every gallery page consumes; pages are added one at a time.
 
 The header island carries the page navbar and a control toolbar below it:
 
-- **Layout** — a `Toggle` switching `FrayApp` between **App shell**
+- **Layout** — a `Toggle` switching `CapillaryUiApp` between **App shell**
   (`sizing="viewport"`, the application owns the viewport and each region owns
   its scrolling) and **Website** (`sizing="embedded"`, the application grows
   with its content inside a centered, max-width column and the document
   scrolls).
-- **Theme / Colors** — `ThemePicker` and `ColorPicker` swap the loaded Fray
+- **Theme / Colors** — `ThemePicker` and `ColorPicker` swap the loaded Capillary UI
   theme and color stylesheets.
 - **Emitter state** — a `Toggle` selecting the shared fetch state (`initial`, `ready`,
   `loading`, `error`) applied to `GalleryModel.dataItems`, the shared

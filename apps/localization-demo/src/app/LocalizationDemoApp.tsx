@@ -1,4 +1,4 @@
-import {Emitter} from '@sylwellsoftware/glue'
+import {Emitter} from '@capillaryjs/capillary'
 import {
     Button,
     Checkbox,
@@ -7,17 +7,17 @@ import {
     DatePicker,
     Dialog,
     Dropdown,
-    FrayApp,
+    CapillaryUiApp,
     ListView,
     Panel,
     TimePicker,
     Toggle,
-} from '@sylwellsoftware/fray'
+} from '@capillaryjs/capillary-ui'
 import type {
     ComponentProps,
-    FrayChild,
+    CapillaryUiChild,
     TableColumn,
-} from '@sylwellsoftware/fray'
+} from '@capillaryjs/capillary-ui'
 
 import type {DemoLocaleDefinition} from '../locales.js'
 import {languageOptions} from '../locales.js'
@@ -32,7 +32,7 @@ interface DemoTask extends Record<string, unknown> {
 }
 
 /**
- * Small gallery that deliberately mixes application-owned copy with Fray-owned
+ * Small gallery that deliberately mixes application-owned copy with Capillary UI-owned
  * defaults so the boundary is visible while changing languages.
  */
 export class LocalizationDemoApp extends Component<LocalizationDemoAppProps> {
@@ -41,7 +41,7 @@ export class LocalizationDemoApp extends Component<LocalizationDemoAppProps> {
         purpose: 'localization demo dialog',
     })
 
-    render(): FrayChild {
+    render(): CapillaryUiChild {
         const {copy, locale} = this.props.definition
         const columns: readonly TableColumn<DemoTask>[] = [{
             field: 'name',
@@ -50,18 +50,18 @@ export class LocalizationDemoApp extends Component<LocalizationDemoAppProps> {
             sortable: true,
         }]
         const messages = [
-            [copy.dropdownMessageLabel, this.frayMessage('dropdownPlaceholder')],
-            [copy.timeMessageLabel, this.frayMessage('timePickerPlaceholder')],
-            [copy.emptyMessageLabel, this.frayMessage('dataTableEmpty')],
-            [copy.closeMessageLabel, this.frayMessage('dialogCloseLabel')],
+            [copy.dropdownMessageLabel, this.capillaryUiMessage('dropdownPlaceholder')],
+            [copy.timeMessageLabel, this.capillaryUiMessage('timePickerPlaceholder')],
+            [copy.emptyMessageLabel, this.capillaryUiMessage('dataTableEmpty')],
+            [copy.closeMessageLabel, this.capillaryUiMessage('dialogCloseLabel')],
             [
                 copy.sortMessageLabel,
-                this.frayMessage('tableSortColumnLabel')(copy.tableNameColumn),
+                this.capillaryUiMessage('tableSortColumnLabel')(copy.tableNameColumn),
             ],
-            [copy.calendarMessageLabel, this.frayMessage('calendarGridLabel')],
+            [copy.calendarMessageLabel, this.capillaryUiMessage('calendarGridLabel')],
         ] as const
 
-        return <FrayApp sizing="viewport-width" className="localization-demo-app">
+        return <CapillaryUiApp sizing="viewport-width" className="localization-demo-app">
             <header className="localization-demo-hero">
                 <div>
                     <p className="localization-demo-eyebrow">{copy.eyebrow}</p>
@@ -147,11 +147,11 @@ export class LocalizationDemoApp extends Component<LocalizationDemoAppProps> {
                     </dl>
                 </Panel>
             </main>
-        </FrayApp>
+        </CapillaryUiApp>
     }
 
     static dependencies = [
-        FrayApp,
+        CapillaryUiApp,
         Panel,
         Toggle,
         Dropdown,

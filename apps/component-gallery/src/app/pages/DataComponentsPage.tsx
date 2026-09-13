@@ -1,5 +1,5 @@
-import {Component} from '@sylwellsoftware/fray'
-import type {ComponentProps, FrayChild, TableColumn} from '@sylwellsoftware/fray'
+import {Component} from '@capillaryjs/capillary-ui'
+import type {ComponentProps, CapillaryUiChild, TableColumn} from '@capillaryjs/capillary-ui'
 import {
     Button,
     DataTable,
@@ -8,7 +8,7 @@ import {
     Panel,
     Sidebar,
     TreeView,
-} from '@sylwellsoftware/fray'
+} from '@capillaryjs/capillary-ui'
 
 import type {GalleryDataItem, GalleryModel} from '../model/GalleryModel.js'
 
@@ -18,13 +18,13 @@ export interface DataComponentsPageProps extends ComponentProps {
 
 const columns: readonly TableColumn<GalleryDataItem>[] = [
     {field: 'name', label: 'Component', sortable: true},
-    {field: 'team', label: 'Owner', filterOptions: ['Platform', 'Fray']},
+    {field: 'team', label: 'Owner', filterOptions: ['Platform', 'Capillary UI']},
     {field: 'status', label: 'Status'},
 ]
 
 /** Data-state gallery for skeleton, retained refresh, empty, error, and retry presentation. */
 export class DataComponentsPage extends Component<DataComponentsPageProps> {
-    render(): FrayChild {
+    render(): CapillaryUiChild {
         const model = this.props.model
         const snapshot = this.snapshot(model.dataItems)
         return <Layout horizontal allocation="flexible" className="gallery-page">

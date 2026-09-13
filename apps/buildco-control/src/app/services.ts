@@ -1,5 +1,5 @@
-import type {LiveQuery, ReadableEmitter} from "@sylwellsoftware/glue";
-import {AsyncCommand, DerivedEmitter, Emitter, FetchState} from "@sylwellsoftware/glue";
+import type {LiveQuery, ReadableEmitter} from "@capillaryjs/capillary";
+import {AsyncCommand, DerivedEmitter, Emitter, FetchState} from "@capillaryjs/capillary";
 import type {Bootstrap, Mutation, Parameters} from "../api/ScenarioApi.ts";
 import type {ScenarioFetch} from "../api/ScenarioFetch.js";
 import {BuildcoService} from "../services/BuildcoService.ts";

@@ -1,6 +1,6 @@
-import type {FrayChild} from "@sylwellsoftware/fray";
-import {Component, DataTable, ListView, Panel, Sidebar, SplitPrimary, SplitSecondary, SplitView} from "@sylwellsoftware/fray";
-import type {TableColumn, TableRow} from "@sylwellsoftware/fray";
+import type {CapillaryUiChild} from "@capillaryjs/capillary-ui";
+import {Component, DataTable, ListView, Panel, Sidebar, SplitPrimary, SplitSecondary, SplitView} from "@capillaryjs/capillary-ui";
+import type {TableColumn, TableRow} from "@capillaryjs/capillary-ui";
 
 interface TeamItem {
     id: string;
@@ -42,8 +42,8 @@ const columns: TableColumn<TeamRow>[] = [
 ];
 
 export class TeamsDemoView extends Component {
-    render(): FrayChild {
-        return <SplitView className="teams-workspace fray-size-flexible" primarySize="18rem" primaryLabel="Teams" secondaryLabel="Team details">
+    render(): CapillaryUiChild {
+        return <SplitView className="teams-workspace cap-size-flexible" primarySize="18rem" primaryLabel="Teams" secondaryLabel="Team details">
             <SplitPrimary>
                 <Sidebar island allocation="flexible" header="Teams">
                     <ListView

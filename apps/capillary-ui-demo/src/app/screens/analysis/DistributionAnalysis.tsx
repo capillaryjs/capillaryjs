@@ -1,0 +1,48 @@
+import {Button, Component, Panel, PanelToolbar, Toolbar} from '@capillaryjs/capillary-ui'
+import type {ComponentProps, CapillaryUiChild} from '@capillaryjs/capillary-ui'
+import {BlockGraph} from '@capillaryjs/capillary-viz'
+import type {MeridianModel} from '../../model/MeridianModel.js'
+
+interface DistributionAnalysisProps extends ComponentProps {
+    readonly model: MeridianModel
+}
+
+export class DistributionAnalysis extends Component<DistributionAnalysisProps> {
+    render(): CapillaryUiChild {
+        const {model} = this.props
+        return <Panel
+            island
+            className="distribution-panel"
+            header="Portfolio distribution"
+        >
+            <PanelToolbar>
+                <BlockSelectionToolbar key="block-selection-toolbar" model={model} />
+            </PanelToolbar>
+            <BlockGraph
+                model={model.blockSelection}
+                label="Visible change distribution"
+                description="Area represents records after shared and category filters."
+            />
+        </Panel>
+    }
+}
+
+class BlockSelectionToolbar extends Component<DistributionAnalysisProps> {
+    render(): CapillaryUiChild {
+        const {model} = this.props
+        const selectedCount = this.read(model.blockSelection.selectedItems$).length
+        const selectedPath = this.read(model.blockSelection.selectedPath$)
+        return <Toolbar label="Distribution selection">
+            <p class="supporting-copy" role="status">
+                {selectedCount === 0
+                    ? `Selected: all ${model.visualizationChanges.get().length} analytical changes`
+                    : `Selected: ${selectedCount} changes`}
+            </p>
+            <Button
+                label="Clear selection"
+                disabled={selectedPath == null}
+                onClick={() => model.blockSelection.clear('distribution selection cleared')}
+            />
+        </Toolbar>
+    }
+}

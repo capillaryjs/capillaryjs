@@ -1,5 +1,5 @@
-import {defineRoute} from '@sylwellsoftware/fray'
-import type {LiteralRouteDescriptor} from '@sylwellsoftware/fray'
+import {defineRoute} from '@capillaryjs/capillary-ui'
+import type {LiteralRouteDescriptor} from '@capillaryjs/capillary-ui'
 
 export interface GalleryPageDefinition {
     readonly id: string

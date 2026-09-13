@@ -168,7 +168,7 @@ body {
 
 
 
-/*.app-header fray-navigationbar {*/
+/*.app-header cap-navigationbar {*/
 /*    padding-bottom: 12px;*/
 /*}*/
 
@@ -203,7 +203,7 @@ body {
 /*    gap: 18px;*/
 /*}*/
 
-/*.screen-queue fray-toolbar > * {*/
+/*.screen-queue cap-toolbar > * {*/
 /*    width: 100%;*/
 /*}*/
 
@@ -518,11 +518,11 @@ body {
 /*    align-items: start;*/
 /*}*/
 
-/*.screen fray-panel[island], .screen fray-sidebar[island] {*/
+/*.screen cap-panel[island], .screen cap-sidebar[island] {*/
 /*    min-width: 0;*/
 /*}*/
 
-/*.screen fray-panel {*/
+/*.screen cap-panel {*/
 /*    gap: 18px;*/
 /*}*/
 
@@ -552,7 +552,7 @@ body {
 /*    width: 100%;*/
 /*}*/
 
-/*.portfolio-card > fray-button {*/
+/*.portfolio-card > cap-button {*/
 /*    display: block;*/
 /*    margin-top: 9px;*/
 /*}*/
@@ -564,7 +564,7 @@ body {
 /*    margin-top: 16px;*/
 /*}*/
 
-/*.progress-row fray-progressbar {*/
+/*.progress-row cap-progressbar {*/
 /*    flex: 1;*/
 /*}*/
 
@@ -628,7 +628,7 @@ body {
 /*    opacity: .65;*/
 /*}*/
 
-/*.attention-card fray-button {*/
+/*.attention-card cap-button {*/
 /*    display: block;*/
 /*    margin-top: 14px;*/
 /*}*/
@@ -670,7 +670,7 @@ body {
 /*    font-size: 11px;*/
 /*}*/
 
-/*.table-progress fray-progressbar {*/
+/*.table-progress cap-progressbar {*/
 /*    min-width: 55px;*/
 /*    flex: 1;*/
 /*}*/
@@ -683,19 +683,19 @@ body {
 /*    padding-top: 20px;*/
 /*}*/
 
-/*.screen fray-toolbar {*/
+/*.screen cap-toolbar {*/
 /*    flex-wrap: wrap;*/
 /*    align-items: end;*/
 /*    gap: 16px;*/
 /*}*/
 
-/*.screen fray-toolbar > fray-dropdown, .screen fray-toolbar > fray-textbox {*/
+/*.screen cap-toolbar > cap-dropdown, .screen cap-toolbar > cap-textbox {*/
 /*    min-width: 165px;*/
 /*    max-width: 260px;*/
 /*    flex: 1;*/
 /*}*/
 
-/*.screen-projects fray-treeview {*/
+/*.screen-projects cap-treeview {*/
 /*    font-size: 12px;*/
 /*}*/
 
@@ -704,11 +704,11 @@ body {
 /*    padding-top: 25px;*/
 /*}*/
 
-/*.detail fray-descriptionlist {*/
+/*.detail cap-descriptionlist {*/
 /*    margin: 16px 0 22px;*/
 /*}*/
 
-/*.detail > fray-button {*/
+/*.detail > cap-button {*/
 /*    display: block;*/
 /*    margin-bottom: 18px;*/
 /*}*/
@@ -855,12 +855,12 @@ body {
 /*    margin: 5px 0 20px;*/
 /*}*/
 
-/*.graph-area fray-blockgraph {*/
+/*.graph-area cap-blockgraph {*/
 /*    min-height: 370px;*/
 /*    margin-bottom: 28px;*/
 /*}*/
 
-/*.trends fray-linegraph {*/
+/*.trends cap-linegraph {*/
 /*    min-height: 390px;*/
 /*}*/
 
@@ -948,7 +948,7 @@ body {
 /*    grid-column: 1/-1;*/
 /*}*/
 
-/*fray-dialog dialog {*/
+/*cap-dialog dialog {*/
 /*    max-width: 850px;*/
 /*    width: auto;*/
 /*}*/

@@ -1,5 +1,5 @@
-import type {FrayChild} from "@sylwellsoftware/fray";
-import {Button, Panel, Toolbar} from "@sylwellsoftware/fray";
+import type {CapillaryUiChild} from "@capillaryjs/capillary-ui";
+import {Button, Panel, Toolbar} from "@capillaryjs/capillary-ui";
 import type {ViewResult} from "../../api/ScenarioApi.ts";
 import {bootstrap} from "../../app/services.ts";
 import {DetailActions, DetailView, Metrics} from "../shared/ViewComponents.tsx";
@@ -7,7 +7,7 @@ import {editor, RecordEditor} from "./RecordEditor.tsx";
 import {options, ScreenView} from "../shared/ScreenView.tsx";
 
 export class IssuesScreen extends ScreenView {
-    protected renderContent(result?: ViewResult): FrayChild {
+    protected renderContent(result?: ViewResult): CapillaryUiChild {
         const delay = this.field("tab").get() === "delays";
         const b = this.read(bootstrap);
 
@@ -50,7 +50,7 @@ export class IssuesScreen extends ScreenView {
             : ["name", "project", "status", "severity", "cause", "person", "due", "estimate", "cost"];
 
         return (
-            <div className="fray-layout-vertical fray-size-flexible">
+            <div className="cap-layout-vertical cap-size-flexible">
                 <Panel island allocation="flexible">
                     <Metrics items={result?.metrics ?? []}/>
                     {this.tabs(

@@ -1,6 +1,6 @@
-import type {FrayChild} from "@sylwellsoftware/fray";
-import {Button, Component, Dialog, DialogActions, Dropdown, live, Textbox} from "@sylwellsoftware/fray";
-import {Emitter} from "@sylwellsoftware/glue";
+import type {CapillaryUiChild} from "@capillaryjs/capillary-ui";
+import {Button, Component, Dialog, DialogActions, Dropdown, live, Textbox} from "@capillaryjs/capillary-ui";
+import {Emitter} from "@capillaryjs/capillary";
 import type {Choice, Mutation, Row} from "../../api/ScenarioApi.ts";
 import {human} from "../../api/ScenarioApi.ts";
 import {bootstrap, buildco, mutate} from "../../app/services.ts";
@@ -36,7 +36,7 @@ export class RecordEditor extends Component {
         }, {emitCurrent: false}));
     }
 
-    render(): FrayChild {
+    render(): CapillaryUiChild {
         const current = this.read(editor), error = this.read(this.error), busy = this.read(mutate.isRunning);
         const resolving = current?.action === "resolve", delay = current?.kind === "delay";
         const title = resolving ? delay ? "End delay" : "Resolve issue" : `${current?.action === "edit" ? "Edit" : "Report"} ${delay ? "delay" : "issue"}`;

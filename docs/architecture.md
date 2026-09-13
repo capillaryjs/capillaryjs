@@ -1,18 +1,18 @@
 # Architecture
 
-Glue and Fray form a one-way dependency stack:
+Capillary and Capillary UI form a one-way dependency stack:
 
 ```text
 consumer application
         ↓
-@sylwellsoftware/fray-visualization — optional analytical models and views
+@capillaryjs/capillary-viz — optional analytical models and views
         ↓ peer dependencies
-@sylwellsoftware/fray — TSX, DOM, lifecycle, accessibility, routing, styles
+@capillaryjs/capillary-ui — TSX, DOM, lifecycle, accessibility, routing, styles
         ↓ peer dependency
-@sylwellsoftware/glue — values, derivation, queries, commands, diagnostics
+@capillaryjs/capillary — values, derivation, queries, commands, diagnostics
 ```
 
-Applications own policy. Fray owns presentation. Glue owns reactive
+Applications own policy. Capillary UI owns presentation. Capillary owns reactive
 propagation.
 
 ## Reactive model
@@ -20,16 +20,16 @@ propagation.
 The stack starts from application data rather than a framework-specific state
 shape. A user-entered value naturally uses an `Emitter`; a calculation uses a
 `DerivedEmitter`; a remote result uses a `LiveQuery`. All expose the same small
-synchronous read/subscription contract, so Fray can consume the downstream
+synchronous read/subscription contract, so Capillary UI can consume the downstream
 value without mirroring it into a component store.
 
 ```text
 browser event
-    └─ Fray control writes an Emitter
+    └─ Capillary UI control writes an Emitter
          └─ DerivedEmitter computes shared/domain state
-              ├─ Fray renders a local view
+              ├─ Capillary UI renders a local view
               └─ LiveQuery executes through an application handler
-                   └─ Fray renders value + fetch state + error
+                   └─ Capillary UI renders value + fetch state + error
 ```
 
 Leaf controls do not know that a distant query may observe their values.
@@ -44,14 +44,14 @@ boundary.
 
 ## Presentation model
 
-Fray class components author TSX and return virtual nodes. The synchronous
+Capillary UI class components author TSX and return virtual nodes. The synchronous
 keyed patcher preserves compatible DOM/component identity, focus, stateful DOM
 properties, and event-listener cardinality. Components have explicit setup,
 render, post-commit, and destruction hooks; renderer-created subscriptions and
 registered cleanups are lifecycle-owned.
 
 Native elements carry semantics whenever possible. A component with no
-suitable native root renders a fixed, readable `fray-*` light-DOM host. These
+suitable native root renders a fixed, readable `cap-*` light-DOM host. These
 hosts are not registered Web Components and do not use Shadow DOM. Application
 classes remain available for application meaning and reusable traits instead
 of framework identity.
@@ -66,13 +66,13 @@ factory. Reactivity is explicit:
 - `bind:value` and `bind:checked` bind native controls two ways;
 - ordinary component props preserve the objects supplied by the caller.
 
-Fray introduces no hook system, global store, proxy tracking, or concurrent
+Capillary UI introduces no hook system, global store, proxy tracking, or concurrent
 scheduler.
 
 ## Services and composition
 
 An application composition root may pass a fixed `ServiceScope` to
-`FrayRuntime`. Typed providers are immutable, lazy, and shared within that
+`CapillaryUiRuntime`. Typed providers are immutable, lazy, and shared within that
 scope. Nested class components inherit the runtime and can resolve only keys
 listed in `static requiredServices`.
 
@@ -133,7 +133,7 @@ commands rather than hidden two-way mutation.
 
 ## Visualization layer
 
-Fray Visualization owns reusable analytical coordination and rendering:
+Capillary Viz owns reusable analytical coordination and rendering:
 category visibility, split ordering, strict recursive partitions, block
 selection, civil-date series, and chart calculations. Applications still own
 item data, predicates, stable keys, colors, presets, and dates.
@@ -144,7 +144,7 @@ diagnosed rather than silently coerced. The package never fetches data.
 
 ## Styling layers
 
-Fray presentation has four ordered inputs:
+Capillary UI presentation has four ordered inputs:
 
 ```text
 themes/base.css              variables and palette derivation
@@ -172,7 +172,7 @@ is injected unlayered and prepended to `<head>`, so only an unlayered theme
 rule can outrank it.
 
 Application CSS owns page composition and decides whether the root fills a
-viewport. Theme and color selection is application policy even when Fray's
+viewport. Theme and color selection is application policy even when Capillary UI's
 pickers are used.
 
 ## Transport test seam
@@ -180,7 +180,7 @@ pickers are used.
 The repository's `dummy-server` workspace package provides browser-safe Fetch
 and Node HTTP adapters around an injected scenario contract. It contains no
 application endpoint vocabulary or fixture. This keeps transport verification
-reusable without moving application policy into Glue or Fray.
+reusable without moving application policy into Capillary or Capillary UI.
 
 See [API_SURFACE.md](API_SURFACE.md) for the public export inventory and the
 package guides for detailed contracts and examples.

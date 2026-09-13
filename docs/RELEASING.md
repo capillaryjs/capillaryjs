@@ -1,4 +1,4 @@
-# Releasing Glue, Fray, and Fray Visualization
+# Releasing Capillary, Capillary UI, and Capillary Viz
 
 Ordinary pushes never publish packages. npm releases begin from a reviewed,
 clean commit on protected public `main`, pass the full public verification
@@ -8,7 +8,7 @@ maintainer inspects and promotes every stage with 2FA.
 ## 1. Prepare metadata
 
 Choose an exact release plan containing only the packages being released.
-Dependencies must remain compatible: Glue precedes Fray, which precedes Fray
+Dependencies must remain compatible: Capillary precedes Capillary UI, which precedes Capillary UI
 Visualization.
 
 For each selected package:
@@ -59,7 +59,7 @@ OIDC and runs `npm stage publish` for the exact verified tarballs. No npm token
 is stored in GitHub. CI stages only; it cannot approve or make a stage public.
 
 The trusted-publisher identity is restricted to repository
-`sylwellsoftware/gluefrayjs`, workflow `release.yml`, environment
+`capillaryjs/capillaryjs`, workflow `release.yml`, environment
 `npm-release`, and staged-publishing permission.
 
 ## 4. Inspect and promote stages
@@ -68,7 +68,7 @@ Use npmjs.com **Staged Packages** or the pinned staged-publishing CLI. The
 `stage list` command accepts a package name, not a package/version specifier:
 
 ```bash
-npx --yes --package=npm@11.19.1 npm stage list @sylwellsoftware/fray --json
+npx --yes --package=npm@11.19.1 npm stage list @capillaryjs/capillary-ui --json
 npx --yes --package=npm@11.19.1 npm stage view <stage-id>
 npx --yes --package=npm@11.19.1 npm stage download <stage-id>
 ```
@@ -83,7 +83,7 @@ npx --yes --package=npm@11.19.1 npm stage approve <stage-id>
 
 Approval requires an authenticated maintainer session and npm 2FA. If a
 combined release is staged, approve and verify each dependency before its
-dependant: Glue, then Fray, then Fray Visualization.
+dependant: Capillary, then Capillary UI, then Capillary Viz.
 
 After each promotion, verify the exact public version, distribution tag,
 provenance link, and a clean exact-version install.

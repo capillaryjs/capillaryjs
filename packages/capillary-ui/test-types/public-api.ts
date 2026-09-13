@@ -1,0 +1,299 @@
+import {Emitter} from '@capillaryjs/capillary'
+
+import {
+    Button,
+    Component,
+    DatePicker,
+    DateTimePicker,
+    DescriptionItem,
+    DescriptionList,
+    DataTable,
+    Dialog,
+    DialogActions,
+    Dropdown,
+    GroupBox,
+    CapillaryUiApp,
+    ListView,
+    Layout,
+    Panel,
+    ProgressBar,
+    RadioGroup,
+    RouteLink,
+    RouteQuery,
+    RouteValue,
+    Sidebar,
+    SidebarToolbar,
+    SplitPrimary,
+    SplitSecondary,
+    SplitView,
+    Tab,
+    TabPanel,
+    Textbox,
+    TimePicker,
+    TreeView,
+    createBrowserRouter,
+    createCapillaryUiRuntime,
+    createServiceScope,
+    defineRoute,
+    defineRouteParameter,
+    defineService,
+    h,
+    live,
+    mountCapillaryUiApp,
+    provideService,
+    routeParameter,
+    routeTarget,
+    serializeTableQuery,
+    stringRouteCodec,
+    stringRouteQueryCodec,
+    withRouteQuery,
+} from '../src/index.js'
+import type {
+    ComponentProps,
+    CapillaryUiLocalizationOptions,
+    CapillaryUiMessage,
+    CapillaryUiMessageOverrides,
+    Key,
+    NavigationAdapter,
+    Ref,
+} from '../src/index.js'
+const textboxValue = new Emitter('Ada')
+const textbox = new Textbox({label: 'Name', valueEmitter: textboxValue})
+textbox.valueEmitter.get().toUpperCase()
+
+const dateValue = new Emitter<string | null>('2026-09-10')
+const date = new DatePicker({label: 'Start', valueEmitter: dateValue})
+date.valueEmitter.get()?.slice(0, 4)
+
+const timeValue = new Emitter<string | null>('10:00')
+const time = new TimePicker({label: 'Start time', valueEmitter: timeValue})
+time.valueEmitter.get()?.slice(0, 2)
+
+const combinedValue = new Emitter<{date: string | null; time: string | null} | null>({
+    date: '2026-09-10',
+    time: '10:00',
+})
+const combined = new DateTimePicker({label: 'Schedule', valueEmitter: combinedValue})
+combined.valueEmitter.get()?.date?.slice(0, 4)
+
+new GroupBox({header: 'Grouping', children: 'Controls'})
+new CapillaryUiApp({sizing: 'viewport', landmark: 'main', children: 'Application'})
+const appRuntime = createCapillaryUiRuntime()
+mountCapillaryUiApp(appRuntime, CapillaryUiApp, document.body, {landmark: 'none'})
+const messageOverrides: CapillaryUiMessageOverrides = {
+    dialogCloseLabel: 'Luk',
+    tableSortColumnLabel: (label) => `Sorter ${label}`,
+}
+const localizationOptions: CapillaryUiLocalizationOptions = {
+    locale: 'da-DK',
+    messages: messageOverrides,
+}
+const localizedRuntime = createCapillaryUiRuntime({localization: localizationOptions})
+const closeMessage: CapillaryUiMessage<'dialogCloseLabel'> =
+    localizedRuntime.localization.message('dialogCloseLabel')
+closeMessage.toUpperCase()
+localizedRuntime.localization.message('tableSortColumnLabel')('Name').toUpperCase()
+// @ts-expect-error Capillary UI localization requires the Intl formatting locale.
+createCapillaryUiRuntime({localization: {messages: {dialogCloseLabel: 'Luk'}}})
+// @ts-expect-error Parameterized Capillary UI messages preserve their function signature.
+createCapillaryUiRuntime({localization: {locale: 'da', messages: {tableSortColumnLabel: 'Sorter'}}})
+// @ts-expect-error CapillaryUiApp sizing is a bounded application-root policy.
+new CapillaryUiApp({sizing: 'container'})
+
+const numericValue = new Emitter(1)
+const radioOptions = new Emitter([['one', 'One']] as const)
+const radioDisabled = new Emitter(false)
+const radioError = new Emitter<unknown>(null)
+const radio = h(RadioGroup, {
+    options: radioOptions.get(),
+    disabled: live(radioDisabled),
+    required: live(radioDisabled),
+    error: live(radioError),
+})
+// @ts-expect-error h() rejects live RadioGroup options.
+const invalidLiveRadioOptions = h(RadioGroup, {options: live(radioOptions)})
+const numericDropdown = new Dropdown<number>({
+    options: [{value: 1, label: 'One'}],
+    valueEmitter: numericValue,
+    onChange(value) {
+        value.toFixed()
+    },
+})
+numericDropdown.valueEmitter.get().toFixed()
+
+const activeTab = new Emitter<Key | null>('profile')
+new TabPanel({
+    valueEmitter: activeTab,
+    children: [h(Tab, {id: 'profile', label: 'Profile'}, 'Profile content')],
+})
+
+const applicationsRoute = defineRoute('applications')
+const projectRoute = defineRouteParameter('project', stringRouteCodec, 'project-id')
+const projectTarget = withRouteQuery(
+    routeTarget(applicationsRoute, routeParameter(projectRoute, 'acme')),
+    {view: 'history'},
+)
+const routeAdapter: NavigationAdapter = {
+    read: () => '/',
+    href: (location) => location,
+    push: (_location) => {},
+    replace: (_location) => {},
+    subscribe: (_listener) => () => {},
+}
+const router = createBrowserRouter({adapter: routeAdapter})
+new RouteLink({to: projectTarget, children: 'Project'})
+new RouteValue({route: projectRoute, valueEmitter: new Emitter<string | null>(null)})
+new RouteQuery({
+    name: 'view',
+    valueEmitter: new Emitter('summary'),
+    codec: stringRouteQueryCodec,
+    defaultValue: 'summary',
+})
+new TabPanel({
+    children: [h(Tab, {id: 'applications', route: applicationsRoute}, 'Applications')],
+})
+createCapillaryUiRuntime({router})
+// @ts-expect-error Dynamic routes require a typed routeParameter value in targets.
+routeTarget(projectRoute)
+// @ts-expect-error Dynamic route values retain the descriptor's value type.
+routeParameter(projectRoute, 42)
+
+new Sidebar({
+    header: 'Requests',
+    ariaLabel: 'Fallback name',
+    children: [
+        h(SidebarToolbar, null, h(Button, {label: 'Refresh'})),
+        'Request one',
+    ],
+})
+
+new DescriptionList({
+    label: 'Details',
+    children: [h(DescriptionItem, {term: 'Severity', value: 'High'})],
+})
+new Layout({vertical: true, allocation: 'flexible', scroll: true, children: 'Content'})
+new SplitView({
+    direction: 'horizontal',
+    children: [h(SplitPrimary, null, 'Tree'), h(SplitSecondary, null, 'Details')],
+})
+new ProgressBar({label: 'Refresh', valueEmitter: new Emitter<number | null>(1), max: 4})
+new Button({label: 'Refresh', busy: true, busyLabel: 'Refreshing'})
+
+interface CardProps extends ComponentProps {
+    title: string
+}
+class Card extends Component<CardProps> {
+    render() {
+        return h(Panel, {header: this.props.title}, this.props.children)
+    }
+}
+h(Card, {title: 'Typed'}, h(Button, {label: 'Save'}))
+
+interface GreetingService {
+    greeting(name: string): string
+}
+const greetingService = defineService<GreetingService>('greeting')
+const services = createServiceScope([
+    provideService(greetingService, () => ({
+        greeting: (name) => `Hello ${name}`,
+    })),
+])
+class Greeting extends Component {
+    static requiredServices = [greetingService]
+    private message = ''
+    initialize() {
+        this.message = this.requireService(greetingService).greeting('Ada')
+    }
+    render() {
+        return h('output', null, this.message)
+    }
+}
+createCapillaryUiRuntime({services}).create(Greeting)
+// @ts-expect-error A provider must implement its service contract.
+provideService(greetingService, () => ({greeting: 42}))
+
+type Row = {id: number; name: string}
+const selectedRow = new Emitter<Row | null>(null)
+new ListView<Row>({
+    items: [{id: 1, name: 'Ada'}],
+    selectedItemEmitter: selectedRow,
+    renderItem(row) {
+        row.name.toUpperCase()
+        // @ts-expect-error Stable row models retain their declared shape.
+        return row.missing
+    },
+})
+new ListView<Row>({
+    items: [],
+    multiSelect: true,
+    selectedItemsEmitter: new Emitter<Row[]>([]),
+})
+new TreeView<Row>({
+    label: 'Rows',
+    nodes: [{id: 1, label: 'Ada', value: {id: 1, name: 'Ada'}}],
+    itemLabelClassName(node, depth) {
+        return `${node.value?.name ?? 'unknown'} depth-${depth}`
+    },
+    itemLabelStyle(node) {
+        return {'--c1': node.value?.name === 'Ada' ? '#123' : '#456'}
+    },
+    onSelect(node) {
+        node.value?.name.toUpperCase()
+    },
+})
+new Dialog({
+    title: 'Confirm',
+    valueEmitter: new Emitter(false),
+    children: ['Continue?', h(DialogActions, null, h(Button, {label: 'Apply'}))],
+})
+new DataTable<Row>({
+    data: [{id: 1, name: 'Ada'}],
+    selectedItemEmitter: selectedRow,
+    columns: [{
+        field: 'name',
+        label: h('strong', null, 'Name'),
+        ariaLabel: 'Person name',
+        render: (row) => row.name.toUpperCase(),
+    }],
+})
+new DataTable<Row>({
+    rest: {url: '/rows', baseUrl: 'https://example.test/'},
+    columns: [{field: 'name'}],
+})
+new DataTable<Row>({
+    data: [],
+    // @ts-expect-error Stable table fields must exist on the row model.
+    columns: [{field: 'missing'}],
+})
+
+// @ts-expect-error Single selection accepts one item or null, not an array.
+new ListView<Row>({items: [], selectedItemsEmitter: new Emitter<Row[]>([])})
+// @ts-expect-error Multi-selection requires the collection emitter.
+new DataTable<Row>({
+    data: [],
+    columns: [{field: 'name'}],
+    multiSelect: true,
+    selectedItemEmitter: selectedRow,
+})
+const serialized = serializeTableQuery(new URL('https://example.test/rows'), {
+    sort: {field: 'name', direction: 'asc'},
+})
+serialized.searchParams.get('sort')
+
+const inputRef: Ref<HTMLInputElement> = {current: null}
+inputRef.current?.focus()
+
+// @ts-expect-error Textbox emitters must contain strings.
+new Textbox({valueEmitter: numericValue})
+// @ts-expect-error Button disabled is boolean, not a string.
+new Button({disabled: 'yes'})
+// @ts-expect-error Keys are strings or numbers.
+const invalidKey: Key = {id: 'not-a-key'}
+// @ts-expect-error Ref current values must match the referenced node.
+const invalidRef: Ref<HTMLInputElement> = {current: 'not-an-input'}
+
+void textbox
+void radio
+void invalidLiveRadioOptions
+void invalidKey
+void invalidRef

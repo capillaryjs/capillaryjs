@@ -44,23 +44,23 @@ function validateArtifacts(selected, options) {
     assert(report.schemaVersion === 1 && Array.isArray(report.packages), 'artifact report has an unsupported format')
     const entries = new Map(report.packages.map((entry) => [entry.name, entry]))
 
-    const glueManifest = JSON.parse(readFileSync(join(root, 'packages/glue/package.json'), 'utf8'))
-    const frayManifest = JSON.parse(readFileSync(join(root, 'packages/fray/package.json'), 'utf8'))
+    const capillaryManifest = JSON.parse(readFileSync(join(root, 'packages/capillary/package.json'), 'utf8'))
+    const capillaryUiManifest = JSON.parse(readFileSync(join(root, 'packages/capillary-ui/package.json'), 'utf8'))
     return selected.map((definition) => {
         const manifest = JSON.parse(readFileSync(join(root, 'packages', definition.directory, 'package.json'), 'utf8'))
         assert(manifest.name === definition.name, `manifest identity drifted for ${definition.name}`)
         assert(manifest.version === definition.version, `${definition.name} manifest version is ${manifest.version}, expected ${definition.version}`)
         assert(manifest.private === false, `${definition.name} is private`)
         assert(manifest.publishConfig?.access === 'public', `${definition.name} is not configured for public access`)
-        if (definition.key === 'fray') {
-            assert(manifest.peerDependencies?.['@sylwellsoftware/glue'] === `^${glueManifest.version}`,
-                `${definition.name} must peer-depend on the current Glue release line`)
+        if (definition.key === 'capillaryUi') {
+            assert(manifest.peerDependencies?.['@capillaryjs/capillary'] === `^${capillaryManifest.version}`,
+                `${definition.name} must peer-depend on the current Capillary release line`)
         }
-        if (definition.key === 'fray-visualization') {
-            assert(manifest.peerDependencies?.['@sylwellsoftware/glue'] === `^${glueManifest.version}`,
-                `${definition.name} must peer-depend on the current Glue release line`)
-            assert(manifest.peerDependencies?.['@sylwellsoftware/fray'] === `^${frayManifest.version}`,
-                `${definition.name} must peer-depend on the current Fray release line`)
+        if (definition.key === 'capillaryViz') {
+            assert(manifest.peerDependencies?.['@capillaryjs/capillary'] === `^${capillaryManifest.version}`,
+                `${definition.name} must peer-depend on the current Capillary release line`)
+            assert(manifest.peerDependencies?.['@capillaryjs/capillary-ui'] === `^${capillaryUiManifest.version}`,
+                `${definition.name} must peer-depend on the current Capillary UI release line`)
         }
         const entry = entries.get(definition.name)
         assert(entry?.version === definition.version, `artifact report version drifted for ${definition.name}`)

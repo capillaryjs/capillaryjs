@@ -1,4 +1,4 @@
-import type {ComponentProps, FrayChild, TableColumn} from "@sylwellsoftware/fray";
+import type {ComponentProps, CapillaryUiChild, TableColumn} from "@capillaryjs/capillary-ui";
 import {
     Button,
     DeclarativeRegion,
@@ -6,7 +6,7 @@ import {
     DescriptionList,
     ProgressBar,
     readDeclarativeRegions
-} from "@sylwellsoftware/fray";
+} from "@capillaryjs/capillary-ui";
 import type {Detail, Metric, Row} from "../../api/ScenarioApi.ts";
 import {human} from "../../api/ScenarioApi.ts";
 import {openProject} from "../../app/routing.ts";

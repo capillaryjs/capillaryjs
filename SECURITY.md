@@ -2,8 +2,8 @@
 
 Security fixes are provided on a best-effort basis for the latest published
 stable release of each package. Older minor lines and prereleases may be
-unsupported. The currently documented lines are Glue 0.8.x, Fray 1.1.x, and
-Fray Visualization 0.9.x.
+unsupported. The currently documented lines are Capillary 0.8.x, Capillary UI 1.1.x, and
+Capillary Viz 0.9.x.
 
 Do not disclose a suspected vulnerability in a public issue. Use the
 repository's **Security** tab to submit a private vulnerability report and

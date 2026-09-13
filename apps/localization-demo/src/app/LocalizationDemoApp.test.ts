@@ -25,15 +25,15 @@ before(() => {
 
 after(() => window.close())
 
-test('language toggle remounts app and Fray text in one selected language', async () => {
+test('language toggle remounts app and Capillary UI text in one selected language', async () => {
     const target = document.createElement('div')
     document.body.append(target)
     const demo = mountLocalizationDemo(target, 'en-GB')
     await waitUntil(() => target.textContent?.includes('No rows') === true)
 
     assert.equal(document.documentElement.lang, 'en-GB')
-    assert.match(target.textContent ?? '', /Fray localization/)
-    assert.equal(target.querySelector('fray-dropdown option')?.textContent, 'Select…')
+    assert.match(target.textContent ?? '', /Capillary UI localization/)
+    assert.equal(target.querySelector('cap-dropdown option')?.textContent, 'Select…')
     assert.match(target.textContent ?? '', /No items/)
 
     const danish = [...target.querySelectorAll<HTMLButtonElement>('[role="radio"]')]
@@ -45,23 +45,23 @@ test('language toggle remounts app and Fray text in one selected language', asyn
         && target.textContent?.includes('Ingen rækker') === true)
     assert.equal(demo.locale, 'da-DK')
     assert.equal(document.documentElement.lang, 'da-DK')
-    assert.match(target.textContent ?? '', /Fray-lokalisering/)
-    assert.equal(target.querySelector('fray-dropdown option')?.textContent, 'Vælg…')
+    assert.match(target.textContent ?? '', /Capillary UI-lokalisering/)
+    assert.equal(target.querySelector('cap-dropdown option')?.textContent, 'Vælg…')
     assert.match(target.textContent ?? '', /Ingen elementer/)
     assert.match(target.textContent ?? '', /Sortér Opgavenavn/)
 
     const openCalendar = target.querySelector<HTMLButtonElement>(
-        'fray-datepicker button[aria-label="Åbn kalender"]',
+        'cap-datepicker button[aria-label="Åbn kalender"]',
     )
     assert.ok(openCalendar)
     openCalendar.click()
-    await waitUntil(() => target.querySelector('.fray-calendar') != null)
+    await waitUntil(() => target.querySelector('.cap-calendar') != null)
     assert.match(
-        target.querySelector('.fray-calendar [role="heading"]')?.textContent ?? '',
+        target.querySelector('.cap-calendar [role="heading"]')?.textContent ?? '',
         /september 2026/i,
     )
     assert.equal(
-        target.querySelector('.fray-calendar table')?.getAttribute('aria-label'),
+        target.querySelector('.cap-calendar table')?.getAttribute('aria-label'),
         'Vælg en dato',
     )
 

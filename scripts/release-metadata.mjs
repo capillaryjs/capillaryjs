@@ -3,16 +3,16 @@ const datePattern = /^\d{4}-\d{2}-\d{2}$/
 
 export const releasePackageDefinitions = [
     {
-        key: 'glue', name: '@sylwellsoftware/glue', directory: 'glue',
-        changelog: 'packages/glue/CHANGELOG.md',
+        key: 'capillary', name: '@capillaryjs/capillary', directory: 'capillary',
+        changelog: 'packages/capillary/CHANGELOG.md',
     },
     {
-        key: 'fray', name: '@sylwellsoftware/fray', directory: 'fray',
-        changelog: 'packages/fray/CHANGELOG.md',
+        key: 'capillaryUi', name: '@capillaryjs/capillary-ui', directory: 'capillary-ui',
+        changelog: 'packages/capillary-ui/CHANGELOG.md',
     },
     {
-        key: 'fray-visualization', name: '@sylwellsoftware/fray-visualization',
-        directory: 'fray-visualization', changelog: 'packages/fray-visualization/CHANGELOG.md',
+        key: 'capillaryViz', name: '@capillaryjs/capillary-viz',
+        directory: 'capillary-viz', changelog: 'packages/capillary-viz/CHANGELOG.md',
     },
 ]
 

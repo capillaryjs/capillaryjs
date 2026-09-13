@@ -1,7 +1,7 @@
-import {DerivedEmitter, Emitter, FetchState} from '@sylwellsoftware/glue'
-import type {FetchStateValue} from '@sylwellsoftware/glue'
-import {createQueryTableDataSource} from '@sylwellsoftware/fray'
-import type {Key, TableDataSource} from '@sylwellsoftware/fray'
+import {DerivedEmitter, Emitter, FetchState} from '@capillaryjs/capillary'
+import type {FetchStateValue} from '@capillaryjs/capillary'
+import {createQueryTableDataSource} from '@capillaryjs/capillary-ui'
+import type {Key, TableDataSource} from '@capillaryjs/capillary-ui'
 
 export type LayoutVariant = 'shell' | 'website'
 
@@ -31,14 +31,14 @@ const galleryData = Object.freeze<readonly GalleryDataItem[]>([
         id: 'controls',
         name: 'Controls',
         label: 'Controls',
-        team: 'Fray',
+        team: 'Capillary UI',
         status: 'Active',
         children: [
-            {id: 'inputs', name: 'Line inputs', label: 'Line inputs', team: 'Fray', status: 'Active'},
-            {id: 'data', name: 'Data views', label: 'Data views', team: 'Fray', status: 'Active'},
+            {id: 'inputs', name: 'Line inputs', label: 'Line inputs', team: 'Capillary UI', status: 'Active'},
+            {id: 'data', name: 'Data views', label: 'Data views', team: 'Capillary UI', status: 'Active'},
         ],
     },
-    {id: 'visuals', name: 'Visualization', label: 'Visualization', team: 'Fray', status: 'Stable'},
+    {id: 'visuals', name: 'Visualization', label: 'Visualization', team: 'Capillary UI', status: 'Stable'},
 ])
 
 /**

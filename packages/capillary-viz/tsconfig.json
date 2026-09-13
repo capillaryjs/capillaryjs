@@ -1,0 +1,17 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "lib": ["ES2023", "DOM", "DOM.Iterable"],
+    "types": ["node"],
+    "baseUrl": "../..",
+    "paths": {
+      "@capillaryjs/capillary": ["packages/capillary/src/index.ts"],
+      "@capillaryjs/capillary-viz": ["packages/capillary-viz/src/index.ts"]
+    },
+    "jsx": "react-jsx",
+    "jsxImportSource": "@capillaryjs/capillary-ui",
+    "noEmit": true,
+    "strict": true
+  },
+  "include": ["src/**/*.ts", "src/**/*.tsx", "test/**/*.ts", "test-types/*.ts", "test-types/*.tsx"]
+}

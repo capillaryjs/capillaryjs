@@ -1,5 +1,5 @@
-import {Component, FilterMode, live} from '@sylwellsoftware/fray'
-import type {ComponentProps, FrayChild, LiveBinding} from '@sylwellsoftware/fray'
+import {Component, FilterMode, live} from '@capillaryjs/capillary-ui'
+import type {ComponentProps, CapillaryUiChild, LiveBinding} from '@capillaryjs/capillary-ui'
 import {
     Button,
     Checkbox,
@@ -19,7 +19,7 @@ import {
     Toggle,
     Toolbar,
     TriCheckbox,
-} from '@sylwellsoftware/fray'
+} from '@capillaryjs/capillary-ui'
 
 import type {GalleryModel} from '../model/GalleryModel.js'
 
@@ -52,7 +52,7 @@ const radioOptions = [
  * vertically; groups flow side by side and wrap within the panel.
  */
 export class LineInputsPage extends Component<GalleryPageProps> {
-    render(): FrayChild {
+    render(): CapillaryUiChild {
         const model = this.props.model
         const data = this.snapshot(model.dataItems)
         return <Layout horizontal allocation="flexible" className="gallery-page">
@@ -105,7 +105,7 @@ export class LineInputsPage extends Component<GalleryPageProps> {
         }
     }
 
-    private renderCheckboxPanel(): FrayChild {
+    private renderCheckboxPanel(): CapillaryUiChild {
         return <Panel island header="Checkboxes" id="gallery-checkboxes"
             context="form">
             <PanelToolbar>
@@ -149,7 +149,7 @@ export class LineInputsPage extends Component<GalleryPageProps> {
         </Panel>
     }
 
-    private renderBasicPanel(): FrayChild {
+    private renderBasicPanel(): CapillaryUiChild {
         const model = this.props.model
         return <Panel island header="Basic inputs" id="gallery-basic-inputs"
             context="form">
@@ -219,7 +219,7 @@ export class LineInputsPage extends Component<GalleryPageProps> {
         </Panel>
     }
 
-    private renderDateTimePanel(): FrayChild {
+    private renderDateTimePanel(): CapillaryUiChild {
         const model = this.props.model
         return <Panel island header="Date and time" id="gallery-date-time"
             context="form">

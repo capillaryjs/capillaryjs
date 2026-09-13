@@ -1,5 +1,5 @@
-import type {FrayChild} from "@sylwellsoftware/fray";
-import {Button, ListView, Panel, Toggle} from "@sylwellsoftware/fray";
+import type {CapillaryUiChild} from "@capillaryjs/capillary-ui";
+import {Button, ListView, Panel, Toggle} from "@capillaryjs/capillary-ui";
 import type {ViewResult} from "../../api/ScenarioApi.ts";
 import {openProject} from "../../app/routing.ts";
 import {Metrics, RecordCard, Status} from "../shared/ViewComponents.tsx";
@@ -17,11 +17,11 @@ export class OverviewScreen extends ScreenView {
         );
     }
 
-    protected renderContent(result?: ViewResult): FrayChild {
+    protected renderContent(result?: ViewResult): CapillaryUiChild {
         return (
-            <div className="fray-layout-vertical fray-size-flexible">
-                <div className="fray-size-natural"><Metrics items={result?.metrics ?? []}/></div>
-                <div className="overview-grid fray-size-flexible">
+            <div className="cap-layout-vertical cap-size-flexible">
+                <div className="cap-size-natural"><Metrics items={result?.metrics ?? []}/></div>
+                <div className="overview-grid cap-size-flexible">
                     <Panel
                         island
                         header={

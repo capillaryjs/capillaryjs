@@ -1,12 +1,12 @@
 # BuildCo Control
 
-Construction operations application for Glue, Fray and Fray Visualization, backed
+Construction operations application for Capillary, Capillary UI and Capillary Viz, backed
 by a deterministic construction scenario and a shared query/command service.
 Seven connected screens cover portfolio delivery, projects, planning, work queues,
 resources, exceptions, and operational analytics.
 
-This is a public framework workspace application. It consumes Glue, Fray and
-Fray Visualization from their package source and uses the same toolchain as the
+This is a public framework workspace application. It consumes Capillary, Capillary UI and
+Capillary Viz from their package source and uses the same toolchain as the
 rest of the framework.
 
 ## Run
@@ -68,7 +68,7 @@ library API for large corpora instead of serializing an entire stress dataset.
 - Project/scope tree, summary, phase details, prerequisites, milestones, resource
   budgets, actual consumption, staffing, and progress reports.
 - Planning date/horizon, delayed/blocked filters, sortable/paged phase register.
-- Work queue with Fray's neutral/prefer/require/deny operational predicates.
+- Work queue with Capillary UI's neutral/prefer/require/deny operational predicates.
 - People, labour and material registers, assignments, utilization, order/delivery
   detail, activity/date filters, and cross-project overtime.
 - Issue/delay registers with causal and cost filters and create/edit/resolve
@@ -158,14 +158,14 @@ delivery's hidden simulated arrival date.
 | --- | --- |
 | `src/app/main.tsx` | Application shell (header, content slot, footer), startup and theme/palette integration |
 | `src/app/routing.ts` | Route definitions, screen state and navigation helpers |
-| `src/app/services.ts` | Transport, worker, Glue queries/commands and demo emitters |
+| `src/app/services.ts` | Transport, worker, Capillary queries/commands and demo emitters |
 | `src/app/appearance.ts` | Theme and palette definitions |
 | `src/api/ScenarioApi.ts` | Application DTOs, screens, conditions and semantic-filter contract |
 | `src/api/ScenarioFetch.ts` | Generic fetch adapter contract for worker or HTTP |
 | `src/domain/model.ts` | Domain records and projection contracts |
 | `src/domain/calendar.ts`, `dependencies.ts` | Date/calendar rules and DAG scheduling |
 | `src/domain/snapshot.ts`, `projections.ts` | Historical views and derived management state |
-| `src/services/BuildcoService.ts` | Backend-facing Glue endpoints for bootstrap, views, choices and commands |
+| `src/services/BuildcoService.ts` | Backend-facing Capillary endpoints for bootstrap, views, choices and commands |
 | `src/views/index.tsx` | Shell view export |
 | `src/views/ShellView/ShellView.tsx` | Scenario loading screen and workspace placeholder |
 | `src/views/ShellView/components/ScenarioLoadingScreen.tsx` | Startup loading, error and retry panel |
@@ -208,7 +208,7 @@ policy lives in `ConstructionScenario`, not in those adapters. The supplied
 examples and authoritative planning documents remain untouched.
 
 Dates, range controls and expandable detail use native HTML where the plan names
-future Fray controls. Phase detail uses row selection plus expandable sections.
+future Capillary UI controls. Phase detail uses row selection plus expandable sections.
 New issues start open with an unknown/suspected cause; new delays start active
 with an unclassified cause. Existing causal locations cannot be moved, and actual
 costs remain derived from resource records. Regenerating resets all in-memory edits.

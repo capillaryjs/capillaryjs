@@ -1,5 +1,5 @@
-import type {FrayChild} from "@sylwellsoftware/fray";
-import {Button, Panel, Sidebar, SplitPrimary, SplitSecondary, SplitView, Textbox, TreeView} from "@sylwellsoftware/fray";
+import type {CapillaryUiChild} from "@capillaryjs/capillary-ui";
+import {Button, Panel, Sidebar, SplitPrimary, SplitSecondary, SplitView, Textbox, TreeView} from "@capillaryjs/capillary-ui";
 import type {ViewResult} from "../../api/ScenarioApi.ts";
 import {bootstrap} from "../../app/services.ts";
 import {Metrics, Status} from "../shared/ViewComponents.tsx";
@@ -31,7 +31,7 @@ export class ProjectsScreen extends ScreenView {
         );
     }
 
-    protected renderContent(result?: ViewResult): FrayChild {
+    protected renderContent(result?: ViewResult): CapillaryUiChild {
         const tab = this.field("tab").get();
 
         const tableFields =

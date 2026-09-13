@@ -1,11 +1,11 @@
-import type {FrayChild} from "@sylwellsoftware/fray";
+import type {CapillaryUiChild} from "@capillaryjs/capillary-ui";
 import {
     Component, Layout, Panel, PanelToolbar, Dropdown, RadioGroup, Toggle,
     RouteQuery, Placeholder, Toolbar, Button, stringRouteQueryCodec,
-} from "@sylwellsoftware/fray";
-import {LineGraph} from "@sylwellsoftware/fray-visualization";
-import type {HistoryShape} from "@sylwellsoftware/fray-visualization";
-import {Emitter} from "@sylwellsoftware/glue";
+} from "@capillaryjs/capillary-ui";
+import {LineGraph} from "@capillaryjs/capillary-viz";
+import type {HistoryShape} from "@capillaryjs/capillary-viz";
+import {Emitter} from "@capillaryjs/capillary";
 import {screens} from "../../app/routing.ts";
 import {buildco, revision, bootstrap} from "../../app/services.ts";
 
@@ -27,7 +27,7 @@ export class EconomicTrendsView extends Component {
         void this.query.activate();
     }
 
-    render(): FrayChild {
+    render(): CapillaryUiChild {
         const b = this.snapshot(bootstrap);
         const view = this.snapshot(this.query);
 
@@ -44,7 +44,7 @@ export class EconomicTrendsView extends Component {
         const series = (v.series ?? []) as readonly HistoryShape[];
         if (this.shapes.get() !== series) this.shapes.set(series);
 
-        return <Layout className="economic-trends-view fray-size-flexible" vertical>
+        return <Layout className="economic-trends-view cap-size-flexible" vertical>
             <RouteQuery name="project" codec={stringRouteQueryCodec} valueEmitter={this.state.field("project")} defaultValue=""/>
             <RouteQuery name="metric" codec={stringRouteQueryCodec} valueEmitter={this.state.field("metric")} defaultValue="progress"/>
             <RouteQuery name="stacked" codec={stringRouteQueryCodec} valueEmitter={this.state.field("stacked")} defaultValue="false"/>

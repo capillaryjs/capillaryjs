@@ -1,0 +1,76 @@
+{
+  "type": "module",
+  "name": "@capillaryjs/capillary-viz",
+  "private": false,
+  "version": "0.12.0",
+  "description": "Reactive analytical controls, block mosaics, and history charts for Capillary UI applications.",
+  "license": "Apache-2.0",
+  "author": {
+    "name": "Sylwell Software",
+    "email": "npm@sylwellsoftware.com",
+    "url": "https://sylwellsoftware.com"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/capillaryjs/capillaryjs.git",
+    "directory": "packages/capillary-viz"
+  },
+  "homepage": "https://github.com/capillaryjs/capillaryjs#readme",
+  "bugs": {
+    "url": "https://github.com/capillaryjs/capillaryjs/issues"
+  },
+  "keywords": [
+    "charts",
+    "capillary-ui",
+    "reactive",
+    "treemap",
+    "typescript",
+    "visualization"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "main": "dist/index.js",
+  "module": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./styles/structural.css": "./styles/structural.css"
+  },
+  "files": [
+    "dist",
+    "styles",
+    "CHANGELOG.md",
+    "LICENSE",
+    "NOTICE"
+  ],
+  "sideEffects": [
+    "./styles/*.css"
+  ],
+  "scripts": {
+    "build": "pnpm build:styles && vite build && tsc -p tsconfig.build.json",
+    "build:styles": "node --import tsx scripts/build-structural-css.mjs",
+    "prepack": "pnpm typecheck && pnpm test && pnpm build && pnpm test:types:consumer",
+    "test": "node --import tsx --test test/*.test.ts",
+    "test:types:consumer": "tsc -p test-types/consumer/tsconfig.json --noEmit",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "watch": "vite build --watch"
+  },
+  "peerDependencies": {
+    "@capillaryjs/capillary-ui": "^1.4.0",
+    "@capillaryjs/capillary": "^0.10.0"
+  },
+  "devDependencies": {
+    "@capillaryjs/capillary-ui": "workspace:^",
+    "@capillaryjs/capillary": "workspace:^",
+    "vite": "^6.3.5"
+  },
+  "engines": {
+    "node": ">=22",
+    "pnpm": ">=10"
+  },
+  "packageManager": "pnpm@10.11.0"
+}

@@ -1,6 +1,6 @@
 # Contributing
 
-Thanks for helping improve Glue and Fray. Changes that clarify contracts,
+Thanks for helping improve Capillary and Capillary UI. Changes that clarify contracts,
 accessibility, lifecycle ownership, and package boundaries are especially
 valuable.
 
@@ -8,10 +8,10 @@ valuable.
 
 1. Search existing issues and describe the observable problem or proposed API
    behavior.
-2. Preserve the dependency direction: applications own policy, Fray owns
-   presentation, and Glue owns reactive propagation.
-3. Keep Glue independent of the DOM. Fray may depend only on Glue as its
-   framework peer. Fray Visualization may peer on both.
+2. Preserve the dependency direction: applications own policy, Capillary UI owns
+   presentation, and Capillary owns reactive propagation.
+3. Keep Capillary independent of the DOM. Capillary UI may depend only on Capillary as its
+   framework peer. Capillary Viz may peer on both.
 4. Prefer native browser semantics and explicit ownership over hidden state or
    dependency discovery.
 
@@ -24,7 +24,7 @@ pnpm install --frozen-lockfile
 ## Change requirements
 
 - Add focused unit, type, or browser tests for observable behavior.
-- Author new Fray templates and documentation examples in automatic TSX.
+- Author new Capillary UI templates and documentation examples in automatic TSX.
 - Declare component styling dependencies explicitly and regenerate structural
   CSS when component-owned CSS changes.
 - Update the affected package guide and `CHANGELOG.md` when public behavior,

@@ -1,12 +1,12 @@
-import type {FrayChild} from "@sylwellsoftware/fray";
-import {Panel, Toolbar} from "@sylwellsoftware/fray";
+import type {CapillaryUiChild} from "@capillaryjs/capillary-ui";
+import {Panel, Toolbar} from "@capillaryjs/capillary-ui";
 import type {ViewResult} from "../../api/ScenarioApi.ts";
 import {Metrics} from "../shared/ViewComponents.tsx";
 import {Analytics} from "./Analytics.tsx";
 import {options, ScreenView} from "../shared/ScreenView.tsx";
 
 export class AnalyticsScreen extends ScreenView {
-    protected renderContent(result?: ViewResult): FrayChild {
+    protected renderContent(result?: ViewResult): CapillaryUiChild {
         const trends = this.field("tab").get() === "trends";
 
         return (

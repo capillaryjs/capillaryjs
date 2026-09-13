@@ -1,12 +1,12 @@
-import type {FrayChild} from "@sylwellsoftware/fray";
-import {Panel, Toolbar} from "@sylwellsoftware/fray";
+import type {CapillaryUiChild} from "@capillaryjs/capillary-ui";
+import {Panel, Toolbar} from "@capillaryjs/capillary-ui";
 import type {ViewResult} from "../../api/ScenarioApi.ts";
 import {options, ScreenView} from "../shared/ScreenView.tsx";
 
 export class PlanningScreen extends ScreenView {
-    protected renderContent(result?: ViewResult): FrayChild {
+    protected renderContent(result?: ViewResult): CapillaryUiChild {
         return (
-            <div className="fray-layout-vertical fray-size-flexible">
+            <div className="cap-layout-vertical cap-size-flexible">
                 <Panel island allocation="natural">
                     <Toolbar label="Planning filters">
                         {this.text("focus", "Focus date", "date")}
