@@ -815,6 +815,7 @@ fray-checkbox > label > input[value="require"] + fray-checkshell {
 
 fray-collapsibleoptiongroup {
             display: block;
+            position: relative;
             min-width: 0;
         }
 
