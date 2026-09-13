@@ -1,7 +1,7 @@
 import {Component, css} from '../component.js'
 import type {ComponentProps, FrayChild, LivePropContract} from '../component.js'
 import type {FrayLayoutParticipantProps} from './layoutTraits.js'
-import type {FrayOptionalLayoutDirectionProps} from './layoutTraits.js'
+import type {FrayOptionalLayoutDirectionProps, FrayPresentationContextProps} from './layoutTraits.js'
 import {layoutDirectionFromProps} from './layoutTraits.js'
 import {Header} from './header.js'
 import {Layout} from './layout.js'
@@ -16,6 +16,7 @@ export class PanelToolbar extends DeclarativeRegion {}
 export type PanelProps = ComponentProps
 & FrayLayoutParticipantProps
 & FrayOptionalLayoutDirectionProps
+& FrayPresentationContextProps
 & LivePropContract<(typeof panelLiveProps)[number]>
 & {
     id?: string | number | null
@@ -50,6 +51,7 @@ export class Panel extends Component<PanelProps> {
             orientation,
             scroll = true,
             disabled = false,
+            context = null,
         } = this.props
         const {content, regions} = readDeclarativeRegions('Panel', children, {
             toolbar: PanelToolbar,
@@ -78,6 +80,7 @@ export class Panel extends Component<PanelProps> {
 
         return <Host
             id={this.panelId}
+            data-fray-context={context}
             role={header == null ? null : 'region'}
             className={layoutParticipantClass(this.props)}
             aria-disabled={disabled ? 'true' : null}

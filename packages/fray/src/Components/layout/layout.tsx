@@ -11,11 +11,13 @@ import type {
     FrayLayoutDirectionProps,
     FrayOptionalLayoutDirectionProps,
     FrayLayoutParticipantProps,
+    FrayPresentationContextProps,
 } from './layoutTraits.js'
 
 export type LayoutContainerProps = ComponentProps
 & FrayOptionalLayoutDirectionProps
 & FrayLayoutParticipantProps
+& FrayPresentationContextProps
 & {
     id?: string
     role?: string
@@ -64,6 +66,7 @@ export class Layout<TProps extends LayoutContainerProps = LayoutProps> extends C
         const Host = this.Host
         return <Host
             id={this.props.id}
+            data-fray-context={this.props.context ?? null}
             {...this.hostAccessibilityProps()}
             className={classNames(
                 componentClass(this.props),

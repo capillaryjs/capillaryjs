@@ -65,6 +65,17 @@ export class LineInputsPage extends Component<GalleryPageProps> {
                     <Button label="Date and time"
                         onClick={() => scrollToSection('gallery-date-time')} />
                 </nav>
+                <Layout vertical context="control" className="gallery-control-demo">
+                    <GroupBox header="Filters">
+                        <Layout vertical className="gallery-state-column">
+                            <Textbox label="Search" placeholder="Filter"
+                                {...this.flags()} />
+                            <Dropdown label="Category" options={dropdownOptions}
+                                {...this.flags()} />
+                            <Checkbox label="Enabled" {...this.flags()} />
+                        </Layout>
+                    </GroupBox>
+                </Layout>
                 <p class="gallery-data-state" role="status">
                     Data state: {data.fetchState}
                     {data.error == null ? '' : ` — ${String(data.error)}`}
@@ -93,7 +104,8 @@ export class LineInputsPage extends Component<GalleryPageProps> {
     }
 
     private renderCheckboxPanel(): FrayChild {
-        return <Panel island header="Checkboxes" id="gallery-checkboxes">
+        return <Panel island header="Checkboxes" id="gallery-checkboxes"
+            context="form">
             <PanelToolbar>
                 <Toolbar label="Checkbox toolbar">
                     <Checkbox label="Checkbox" {...this.flags()} />
@@ -137,7 +149,8 @@ export class LineInputsPage extends Component<GalleryPageProps> {
 
     private renderBasicPanel(): FrayChild {
         const model = this.props.model
-        return <Panel island header="Basic inputs" id="gallery-basic-inputs">
+        return <Panel island header="Basic inputs" id="gallery-basic-inputs"
+            context="form">
             <PanelToolbar>
                 <Toolbar label="Basic input toolbar">
                     <Textbox label="Name" placeholder="Text"
@@ -197,7 +210,8 @@ export class LineInputsPage extends Component<GalleryPageProps> {
 
     private renderDateTimePanel(): FrayChild {
         const model = this.props.model
-        return <Panel island header="Date and time" id="gallery-date-time">
+        return <Panel island header="Date and time" id="gallery-date-time"
+            context="form">
             <PanelToolbar>
                 <Toolbar label="Date and time toolbar">
                     <DatePicker label="Date"

@@ -123,8 +123,8 @@ describe('visualization controls', () => {
 
     test('CategoryHidePanel uses Fray checkboxes and unfiltered live counts', () => {
         assert.match(CategoryHidePanel.css, /flex: 0 0 auto/)
-        assert.match(GroupBox.css, /display:\s*flex[^}]*flex-flow:\s*row nowrap/)
-        assert.match(GroupBox.css, /> fray-header\s*\{[^}]*writing-mode:\s*vertical-rl[^}]*transform:\s*rotate\(180deg\)/)
+        assert.match(GroupBox.css, /display:\s*flex[^}]*flex-flow:\s*var\(--fray-groupbox-flow, row nowrap\)/)
+        assert.match(GroupBox.css, /> fray-header\s*\{[^}]*writing-mode:\s*var\(--fray-groupbox-header-writing, vertical-rl\)[^}]*transform:\s*var\(--fray-groupbox-header-transform, rotate\(180deg\)\)/)
         assert.match(CategoryHidePanel.css, /fray-collapsible-option-group > fieldset > legend small/)
         assert.match(CategoryHidePanel.css, /fray-categoryoption > fray-checkbox > label/)
         assert.doesNotMatch(CategoryHidePanel.css, /fray-check-box/)

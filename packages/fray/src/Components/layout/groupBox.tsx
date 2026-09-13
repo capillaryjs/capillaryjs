@@ -52,29 +52,30 @@ export class GroupBox<
     static css = css`
         & {
             display: flex;
-            flex-flow: row nowrap;
+            flex-flow: var(--fray-groupbox-flow, row nowrap);
             align-items: stretch;
             box-sizing: border-box;
             min-width: 0;
             min-height: 0;
-            column-gap: 0.35rem;
-            padding-block: 0.125rem;
-            padding-inline: 0.125rem 0.35rem;
-            border: 1px solid var(--ui-border-color);
+            gap: var(--fray-groupbox-gap, 0 0.35rem);
+            padding: var(--fray-groupbox-padding, 0.125rem 0.35rem 0.125rem 0.125rem);
+            border: var(--fray-groupbox-border, 1px solid var(--ui-border-color));
             border-radius: var(--ui-border-radius);
         }
 
         & > fray-header {
             display: grid;
-            place-items: center;
+            place-items: var(--fray-groupbox-header-align, center);
             box-sizing: border-box;
-            width: 1.7em;
+            width: var(--fray-groupbox-header-width, 1.7em);
             min-width: 0;
             min-height: 0;
-            padding: 0.125em;
+            padding: var(--fray-groupbox-header-padding, 0.125em);
             border-radius: var(--ui-border-radius);
-            writing-mode: vertical-rl;
-            transform: rotate(180deg);
+            background: var(--fray-groupbox-header-background, var(--section-header-background));
+            box-shadow: var(--fray-groupbox-header-shadow, var(--section-header-shadow));
+            writing-mode: var(--fray-groupbox-header-writing, vertical-rl);
+            transform: var(--fray-groupbox-header-transform, rotate(180deg));
             font-weight: normal;
             font-size: var(--ui-font-size);
         }
@@ -83,7 +84,41 @@ export class GroupBox<
             display: block;
             min-width: 0;
             min-height: 0;
-            margin-left: .25em;
+            margin-left: var(--fray-groupbox-content-margin, .25em);
+        }
+
+        /* Presentation contexts: each marker sets the complete context-sensitive
+           property set, so the nearest marked ancestor wins through ordinary
+           custom-property inheritance. Unmarked containers keep the control
+           defaults declared as var() fallbacks above. */
+        [data-fray-context='control'] {
+            --fray-groupbox-flow: row nowrap;
+            --fray-groupbox-gap: 0 0.35rem;
+            --fray-groupbox-padding: 0.125rem 0.35rem 0.125rem 0.125rem;
+            --fray-groupbox-border: 1px solid var(--ui-border-color);
+            --fray-groupbox-header-align: center;
+            --fray-groupbox-header-width: 1.7em;
+            --fray-groupbox-header-padding: 0.125em;
+            --fray-groupbox-header-background: var(--section-header-background);
+            --fray-groupbox-header-shadow: var(--section-header-shadow);
+            --fray-groupbox-header-writing: vertical-rl;
+            --fray-groupbox-header-transform: rotate(180deg);
+            --fray-groupbox-content-margin: .25em;
+        }
+
+        [data-fray-context='form'] {
+            --fray-groupbox-flow: column nowrap;
+            --fray-groupbox-gap: 0.25rem 0;
+            --fray-groupbox-padding: 0;
+            --fray-groupbox-border: none;
+            --fray-groupbox-header-align: center start;
+            --fray-groupbox-header-width: auto;
+            --fray-groupbox-header-padding: 0;
+            --fray-groupbox-header-background: none;
+            --fray-groupbox-header-shadow: none;
+            --fray-groupbox-header-writing: horizontal-tb;
+            --fray-groupbox-header-transform: none;
+            --fray-groupbox-content-margin: 0;
         }
     `
 }

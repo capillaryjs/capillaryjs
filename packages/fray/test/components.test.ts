@@ -803,6 +803,25 @@ describe('layout controls', () => {
         assert.throws(() => Layout.new().mount(), /requires either horizontal or vertical/)
     })
 
+    test('Layout and Panel render presentation-context markers', () => {
+        Layout.new({horizontal: true, context: 'form', children: 'Form'})
+            .attachTo(document.body)
+        assert.equal(
+            requiredQuery<HTMLElement>('fray-layout').getAttribute('data-fray-context'),
+            'form',
+        )
+
+        Panel.new({header: 'Details', context: 'control', children: 'Body'})
+            .attachTo(document.body)
+        const panel = requiredQuery<HTMLElement>('fray-panel')
+        assert.equal(panel.getAttribute('data-fray-context'), 'control')
+        assert.equal(
+            requiredQuery<HTMLElement>('fray-layout', panel)
+                .getAttribute('data-fray-context'),
+            null,
+        )
+    })
+
     test('SplitView owns two Layout panes, an accessible separator, and validation', () => {
         let resizedTo = ''
         SplitView.new({

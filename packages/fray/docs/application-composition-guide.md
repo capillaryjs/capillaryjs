@@ -260,7 +260,7 @@ When a form has several groups, place them side by side in a horizontal
 each group still owns its vertical field order.
 
 ```tsx
-<Panel header="Connection">
+<Panel header="Connection" context="form">
     <Layout horizontal className="form-groups">
         <GroupBox header="Server">
             <Layout vertical>
@@ -290,10 +290,12 @@ each group still owns its vertical field order.
 .form-groups { flex-wrap: wrap; align-items: flex-start; gap: 1rem 2rem; }
 ```
 
-`GroupBox`'s current presentation carries sidebar-weighted chrome — a
-vertical section header and border — and a quieter form presentation is
-planned via presentation contexts; the contract distinction above already
-holds. `OptionsBox` is the `GroupBox` specialization for sidebar panels of
+`Panel` and `Layout` accept `context="control" | "form"` to declare a
+presentation context for their descendants; the nearest marked ancestor
+wins. In a `form` context `GroupBox` drops its sidebar-weighted chrome —
+the border goes away and the section header lays out horizontally above its
+content — while the unmarked default keeps the control presentation.
+`OptionsBox` is the `GroupBox` specialization for sidebar panels of
 `OptionGroup`s. Prefer these components over anonymous wrappers: the
 fieldset, legend, and vertical rhythm are the contract a theme styles.
 

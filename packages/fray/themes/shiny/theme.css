@@ -23,7 +23,7 @@
     --panel-border: none;
     --panel-radius: 0px;
     --island-margin: 1rem;
-    --island-border: 1px solid rgb(255 255 255 / 0.45);
+    --island-border: 0px solid rgb(255 255 255 / 0.45);
     --island-shadow: 0px 1px 2.5px 0px #666;
     --section-header-background: var(--shiny-background);
     --section-header-color: var(--palette-contrast-light);
@@ -33,6 +33,11 @@
       inset -1px 1px 1px 0px #0006,
       inset 1px -1px 1px 0px #fff5,
       0px 1px 2px 0px #000a;
+    --section-header-with-toolbar-shadow:
+      inset -1px 1px 2px 0px #0003,
+      inset 1px -1px 2px 0px #fff5,
+      inset -1px 1px 1px 0px #0006,
+      inset 1px -1px 1px 0px #fff5;
     --mini-shadow: 0px 1px 1px 0px #000a;
 
     --sidebar-background:
@@ -41,7 +46,8 @@
     --sidebar-radius: 0;
     --sidebar-toolbar-background: color-mix(in oklch, var(--palette-primary-100) 72%, var(--palette-light));
     --sidebar-toolbar-border: 1px solid color-mix(in oklch, var(--palette-primary) 24%, var(--palette-neutral-300));
-    --toolbar-background: var(--ui-gradient);
+    --toolbar-background: var(--ui-gradient-2);
+    --toolbar-shadow: var(--mini-shadow);
 
     /* Input components */
     --input-shadow: inset -1px 1px 3px -2px rgba(0,0,0,0.45);
@@ -144,4 +150,8 @@ nav > ul > li {
 
 fray-navigationbar nav > ul > li > a {
   line-height: 1.7em;
+}
+
+fray-header:has(+ fray-toolbar) {
+  box-shadow: var(--section-header-with-toolbar-shadow);
 }

@@ -458,8 +458,8 @@ describe('style registry', () => {
         runtime.registerStyles(OptionsBox)
         const stylesheet = runtime.styleRegistry.generateCSS()
 
-        assert.match(stylesheet, /fray-optionsbox\s*\{[^}]*display:\s*flex[^}]*flex-flow:\s*row nowrap[^}]*border:\s*1px solid var\(--ui-border-color\)/)
-        assert.match(stylesheet, /fray-optionsbox > fray-header\s*\{[^}]*place-items:\s*center[^}]*writing-mode:\s*vertical-rl[^}]*transform:\s*rotate\(180deg\)/)
+        assert.match(stylesheet, /fray-optionsbox\s*\{[^}]*display:\s*flex[^}]*flex-flow:\s*var\(--fray-groupbox-flow, row nowrap\)[^}]*border:\s*var\(--fray-groupbox-border, 1px solid var\(--ui-border-color\)\)/)
+        assert.match(stylesheet, /fray-optionsbox > fray-header\s*\{[^}]*place-items:\s*var\(--fray-groupbox-header-align, center\)[^}]*writing-mode:\s*var\(--fray-groupbox-header-writing, vertical-rl\)[^}]*transform:\s*var\(--fray-groupbox-header-transform, rotate\(180deg\)\)/)
         assert.match(stylesheet, /fray-optionsbox > fray-content\s*\{[^}]*display:\s*flex[^}]*flex-direction:\s*column[^}]*gap:\s*\.5em/)
         assert.match(stylesheet, /fray-header\s*\{[^}]*background:\s*var\(--section-header-background\)/)
         assert.doesNotMatch(stylesheet, /fray-panel|fray-sidebar|fray-checkbox/)
@@ -470,11 +470,20 @@ describe('style registry', () => {
         runtime.registerStyles(GroupBox)
         const stylesheet = runtime.styleRegistry.generateCSS()
 
-        assert.match(stylesheet, /fray-groupbox\s*\{[^}]*display:\s*flex[^}]*flex-flow:\s*row nowrap[^}]*column-gap:\s*0\.35rem[^}]*padding-inline:\s*0\.125rem 0\.35rem[^}]*border:\s*1px solid var\(--ui-border-color\)/)
-        assert.match(stylesheet, /fray-groupbox > fray-header\s*\{[^}]*place-items:\s*center[^}]*box-sizing:\s*border-box[^}]*width:\s*1\.7em[^}]*min-width:\s*0[^}]*border-radius:\s*var\(--ui-border-radius\)/)
-        assert.match(stylesheet, /fray-groupbox > fray-header\s*\{[^}]*writing-mode:\s*vertical-rl[^}]*transform:\s*rotate\(180deg\)/)
+        assert.match(stylesheet, /fray-groupbox\s*\{[^}]*display:\s*flex[^}]*flex-flow:\s*var\(--fray-groupbox-flow, row nowrap\)[^}]*gap:\s*var\(--fray-groupbox-gap, 0 0\.35rem\)[^}]*border:\s*var\(--fray-groupbox-border, 1px solid var\(--ui-border-color\)\)/)
+        assert.match(stylesheet, /fray-groupbox > fray-header\s*\{[^}]*place-items:\s*var\(--fray-groupbox-header-align, center\)[^}]*width:\s*var\(--fray-groupbox-header-width, 1\.7em\)[^}]*border-radius:\s*var\(--ui-border-radius\)/)
+        assert.match(stylesheet, /fray-groupbox > fray-header\s*\{[^}]*writing-mode:\s*var\(--fray-groupbox-header-writing, vertical-rl\)[^}]*transform:\s*var\(--fray-groupbox-header-transform, rotate\(180deg\)\)/)
         assert.match(stylesheet, /fray-header\s*\{[^}]*background:\s*var\(--section-header-background\)[^}]*box-shadow:\s*var\(--section-header-shadow\)/)
         assert.doesNotMatch(stylesheet, /fray-panel|fray-sidebar|fray-checkbox/)
+    })
+
+    test('GroupBox declares complete control and form context property sets', () => {
+        const runtime = createFrayRuntime()
+        runtime.registerStyles(GroupBox)
+        const stylesheet = runtime.styleRegistry.generateCSS()
+
+        assert.match(stylesheet, /\[data-fray-context='control'\]\s*\{[^}]*--fray-groupbox-flow:\s*row nowrap[^}]*--fray-groupbox-border:\s*1px solid var\(--ui-border-color\)[^}]*--fray-groupbox-header-writing:\s*vertical-rl/)
+        assert.match(stylesheet, /\[data-fray-context='form'\]\s*\{[^}]*--fray-groupbox-flow:\s*column nowrap[^}]*--fray-groupbox-border:\s*none[^}]*--fray-groupbox-header-background:\s*none[^}]*--fray-groupbox-header-writing:\s*horizontal-tb/)
     })
 
     test('collects Header CSS without unrelated component rules', () => {
@@ -659,11 +668,11 @@ describe('four-file styling contract', () => {
             fileURLToPath(new URL('../themes/shiny/theme.css', import.meta.url)),
             'utf8',
         )
-        assert.match(css, /--toolbar-background:\s*var\(--ui-gradient\)/)
+        assert.match(css, /--toolbar-background:\s*var\(--ui-gradient-2\)/)
         assert.match(css, /--text-color:\s*var\(--palette-primary-900\)/)
         assert.match(css, /--ui-color:\s*var\(--text-color\)/)
         assert.match(css, /--island-margin:\s*1rem/)
-        assert.match(css, /--island-border:\s*1px solid rgb\(255 255 255 \/ 0\.45\)/)
+        assert.match(css, /--island-border:\s*0px solid rgb\(255 255 255 \/ 0\.45\)/)
         assert.match(css, /--island-shadow:\s*0px 1px 2\.5px 0px #666/)
         assert.match(css, /--shiny-background:[\s\S]*radial-gradient\(140% 75% at 30% 10%, #fff2, #fff3 47%, #fff0 55%, #fff0\)[\s\S]*linear-gradient\(to bottom, var\(--palette-primary-900\) 0%, var\(--palette-primary\) 65%, var\(--palette-primary\) 66%, var\(--palette-primary-400\) 100%\)/)
         assert.match(css, /--section-header-background:\s*var\(--shiny-background\)/)

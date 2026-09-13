@@ -72,6 +72,24 @@ test('gallery shell mounts the line-inputs page with islands and toolbar', async
         'data-state readout',
     )
 
+    // Panels declare form context; the sidebar demo group declares control
+    for (const id of ['#gallery-checkboxes', '#gallery-basic-inputs', '#gallery-date-time']) {
+        assert.equal(
+            document.querySelector(id)?.getAttribute('data-fray-context'),
+            'form',
+            `${id} form context`,
+        )
+    }
+    assert.equal(
+        document.querySelector('.gallery-control-demo')?.getAttribute('data-fray-context'),
+        'control',
+        'sidebar demo control context',
+    )
+    assert.ok(
+        document.querySelector('.gallery-control-demo fray-groupbox'),
+        'sidebar demo groupbox',
+    )
+
     app.destroy()
     router.dispose()
 })

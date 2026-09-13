@@ -14,6 +14,18 @@ export type FrayLayoutDirectionProps =
     | {horizontal: boolean, vertical?: never}
     | {horizontal?: never, vertical: boolean}
 
+/** Presentation context a container declares for its descendants. */
+export type FrayPresentationContext = 'control' | 'form'
+
+/**
+ * Opt-in contract for containers that declare a presentation context.
+ * The nearest marked ancestor wins: descendants read context through
+ * inherited CSS custom properties, so a nested marker overrides an outer one.
+ */
+export interface FrayPresentationContextProps {
+    context?: FrayPresentationContext
+}
+
 /** Compatibility form for components that retain an established default direction. */
 export type FrayOptionalLayoutDirectionProps =
     | FrayLayoutDirectionProps

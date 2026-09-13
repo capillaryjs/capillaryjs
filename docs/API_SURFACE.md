@@ -274,6 +274,12 @@ the direction traits. Panel uses Layout for its body. SplitView requires its
 named SplitPrimary and SplitSecondary Layout panes and inserts a focusable
 separator supporting pointer drag, arrow keys, Home, and End.
 
+`Layout` and `Panel` accept `context="control" | "form"`, rendered as a
+`data-fray-context` marker on the host. Context-sensitive components consume
+inherited `--fray-<component>-*` custom properties whose complete set each
+marker defines, so the nearest marked ancestor wins and unmarked containers
+keep the control presentation.
+
 `island` marks one explicit, non-nestable surface boundary. `colored` consumes
 application-supplied `--c1`, `--c2`, and `--c3` values for a shared gradient
 and `--colored-shadow`. Themes may change the values consumed by these traits

@@ -21,6 +21,8 @@ export type {
     FrayLayoutDirection,
     FrayLayoutDirectionProps,
     FrayLayoutParticipantProps,
+    FrayPresentationContext,
+    FrayPresentationContextProps,
 } from './Components/layout/layoutTraits.js'
 
 export * from './Components/data/descriptionList.js'
