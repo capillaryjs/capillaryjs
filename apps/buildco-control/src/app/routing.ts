@@ -106,6 +106,10 @@ export class ScreenState {
                     ...this.params.get(),
                     [key]: value, ...(key === "page" || key === "selected" || key === "phase" ? {} : {page: "0"})
                 });
+                // Keep the page field (and any bound RouteQuery) consistent with
+                // the params reset above; only emits when a stale page exists.
+                const page = this.fields.get("page");
+                if (key !== "page" && key !== "selected" && key !== "phase" && page && Number(page.get()) > 0) page.set("0");
             }, {emitCurrent: false});
         }
         return emitter;

@@ -1,6 +1,6 @@
 import type {FrayChild} from "@sylwellsoftware/fray";
 import {
-    Component, Layout, Panel, PanelToolbar, Dropdown, DatePicker, RadioGroup, Toggle,
+    Component, Layout, Panel, PanelToolbar, Dropdown, RadioGroup, Toggle,
     RouteQuery, Placeholder, Toolbar, Button, stringRouteQueryCodec,
 } from "@sylwellsoftware/fray";
 import {LineGraph} from "@sylwellsoftware/fray-visualization";
@@ -11,7 +11,7 @@ import {buildco, revision, bootstrap} from "../../app/services.ts";
 
 export class EconomicTrendsView extends Component {
     static dependencies = [
-        Layout, Panel, PanelToolbar, Dropdown, DatePicker, RadioGroup, Toggle,
+        Layout, Panel, PanelToolbar, Dropdown, RadioGroup, Toggle,
         RouteQuery, LineGraph, Placeholder, Toolbar, Button,
     ];
 
@@ -47,7 +47,6 @@ export class EconomicTrendsView extends Component {
         return <Layout className="economic-trends-view fray-size-flexible" vertical>
             <RouteQuery name="project" codec={stringRouteQueryCodec} valueEmitter={this.state.field("project")} defaultValue=""/>
             <RouteQuery name="metric" codec={stringRouteQueryCodec} valueEmitter={this.state.field("metric")} defaultValue="progress"/>
-            <RouteQuery name="from" codec={stringRouteQueryCodec} valueEmitter={this.state.field("from")} defaultValue=""/>
             <RouteQuery name="stacked" codec={stringRouteQueryCodec} valueEmitter={this.state.field("stacked")} defaultValue="false"/>
             <RouteQuery name="smooth" codec={stringRouteQueryCodec} valueEmitter={this.state.field("smooth")} defaultValue="true"/>
             <Panel island allocation="flexible" header="Economic Trends">
@@ -69,10 +68,6 @@ export class EconomicTrendsView extends Component {
                             {value: "quality", label: "Quality"},
                         ]}
                         valueEmitter={this.state.field("metric") as any}
-                    />
-                    <DatePicker
-                        label="From"
-                        valueEmitter={this.state.field("from") as any}
                     />
                     <RadioGroup
                         label="Chart mode"

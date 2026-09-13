@@ -1,5 +1,4 @@
 import type {FrayChild} from "@sylwellsoftware/fray";
-import {Placeholder} from "@sylwellsoftware/fray";
 import type {Metric, Row} from "../api/ScenarioApi.ts";
 import {human} from "../api/ScenarioApi.ts";
 
@@ -18,21 +17,6 @@ export function formatValue(value: string | number, format?: Metric["format"]): 
     }
 }
 
-export function renderMetric(metric: Metric): FrayChild {
-    const text = metric.note ?? formatValue(metric.value, metric.format);
-    return <span className="metric">
-        <span className="metric-label">{metric.label}</span>
-        <span className="metric-value">{text}</span>
-    </span>;
-}
-
-export function renderField(label: string, value: string | number, format?: Metric["format"]): FrayChild {
-    return <>
-        <dt>{label}</dt>
-        <dd>{format ? formatValue(value, format) : String(value)}</dd>
-    </>;
-}
-
 export function renderRows(rows: readonly Row[]): FrayChild {
     if (rows.length === 0) return <p className="muted">No records.</p>;
     return <ul className="detail-rows">
@@ -43,8 +27,4 @@ export function renderRows(rows: readonly Row[]): FrayChild {
             {r.date ? <span className="row-date">{r.date}</span> : null}
         </li>)}
     </ul>;
-}
-
-export function LoadingRow(): FrayChild {
-    return <p><Placeholder/></p>;
 }

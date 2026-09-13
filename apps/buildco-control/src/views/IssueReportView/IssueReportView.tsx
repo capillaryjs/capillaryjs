@@ -1,9 +1,9 @@
 import type {DateTimeValue, FrayChild} from "@sylwellsoftware/fray";
 import {
-    Component, Panel, PanelToolbar, DescriptionList, DescriptionItem, InfoPanel, InfoField,
+    Component, Panel, PanelToolbar, InfoPanel, InfoField,
     Button, Dialog, DialogActions, Textbox, Dropdown, DateTimePicker, Label, ListView,
     Sidebar, SidebarToolbar, SplitPrimary, SplitSecondary, SplitView,
-    RouteLink, RouteValue, RouteQuery, Placeholder, Toolbar, live, routeTarget, stringRouteQueryCodec,
+    RouteLink, RouteValue, Placeholder, Toolbar, live, routeTarget,
 } from "@sylwellsoftware/fray";
 import {Emitter, DerivedEmitter} from "@sylwellsoftware/glue";
 import type {Row} from "../../api/ScenarioApi.ts";
@@ -16,10 +16,10 @@ const severities = ["low", "medium", "high", "critical"].map(value => ({value, l
 
 export class IssueReportView extends Component {
     static dependencies = [
-        Panel, PanelToolbar, DescriptionList, DescriptionItem, InfoPanel, InfoField,
+        Panel, PanelToolbar, InfoPanel, InfoField,
         Button, Dialog, DialogActions, Textbox, Dropdown, DateTimePicker, Label, ListView,
         Sidebar, SidebarToolbar, SplitView,
-        RouteLink, RouteValue, RouteQuery, Placeholder, Toolbar,
+        RouteLink, RouteValue, Placeholder, Toolbar,
     ];
 
     private state = screens["issue-report"];
@@ -84,7 +84,6 @@ export class IssueReportView extends Component {
 
         return <>
             <RouteValue route={issueIdParam} valueEmitter={this.issueId}/>
-            <RouteQuery name="from" codec={stringRouteQueryCodec} valueEmitter={this.state.field("from")} defaultValue=""/>
             <SplitView className="issue-report-view fray-size-flexible" primarySize="18rem" primaryLabel="Issues" secondaryLabel="Issue report">
             <SplitPrimary>
                 <Sidebar island allocation="flexible" header="Issues">
@@ -143,14 +142,6 @@ export class IssueReportView extends Component {
                                 value={f.format ? formatValue(f.value, f.format) : String(f.value)}
                             />)}
                         </InfoPanel>
-                        <DescriptionList>
-                            {detail.fields.map(f => <DescriptionItem
-                                key={f.label}
-                                term={f.label}
-                            >
-                                {f.format ? formatValue(f.value, f.format) : String(f.value)}
-                            </DescriptionItem>)}
-                        </DescriptionList>
                         {detail.sections.map(section => <Panel
                             key={section.title}
                             allocation="natural"

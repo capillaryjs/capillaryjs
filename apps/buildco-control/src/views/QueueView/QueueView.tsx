@@ -2,7 +2,7 @@ import type {FrayChild} from "@sylwellsoftware/fray";
 import {
     Component, ListView, Panel, PanelToolbar, Sidebar, SidebarToolbar,
     SplitPrimary, SplitSecondary, SplitView,
-    OptionsPanel, OptionGroup, OptionGroupHeaderEnd, GroupPanel,
+    OptionsPanel, OptionGroup, OptionGroupHeaderEnd,
     QuadCheckbox, TriCheckbox, Dropdown, Textbox, Button,
     DescriptionList, DescriptionItem, ProgressBar, RouteLink, RouteQuery, Placeholder, Toolbar,
     routeTarget, stringRouteQueryCodec, withRouteQuery,
@@ -34,7 +34,7 @@ function encodeModes(params: Parameters, keys: readonly string[]): string {
 export class QueueView extends Component {
     static dependencies = [
         ListView, Panel, PanelToolbar, Sidebar, SidebarToolbar, SplitView,
-        OptionsPanel, OptionGroup, OptionGroupHeaderEnd, GroupPanel,
+        OptionsPanel, OptionGroup, OptionGroupHeaderEnd,
         QuadCheckbox, TriCheckbox, Dropdown, Textbox, Button,
         DescriptionList, DescriptionItem, ProgressBar, RouteLink, RouteQuery, Placeholder, Toolbar,
     ];
@@ -70,10 +70,12 @@ export class QueueView extends Component {
         const v = view.value;
         const rows = v.rows as readonly Row[];
         const detail = v.detail;
-        const affinities = [
+        // Phase and project types share one checkbox namespace; dedupe by value
+        // so a shared value cannot produce duplicate keys on one emitter.
+        const affinities = [...new Map([
             ...(b.value.choices.phaseTypes ?? []),
             ...(b.value.choices.projectTypes ?? []),
-        ];
+        ].map(a => [a.value, a] as const)).values()];
         this.affinityKeys = affinities.map(a => affinityKey(a.value));
 
         return <>
@@ -111,30 +113,26 @@ export class QueueView extends Component {
                         </Toolbar>
                     </SidebarToolbar>
                     <OptionsPanel header="Conditions">
-                        <GroupPanel header="Health conditions">
-                            <OptionGroup label="Phase conditions">
-                                <OptionGroupHeaderEnd>
-                                    <Button
-                                        label="Reset"
-                                        onClick={() => this.resetCriteria()}
-                                    />
-                                </OptionGroupHeaderEnd>
-                                {CONDITIONS.map(c => <QuadCheckbox
-                                    key={c.value}
-                                    label={c.label}
-                                    valueEmitter={this.state.field(c.value) as any}
-                                />)}
-                            </OptionGroup>
-                        </GroupPanel>
-                        <GroupPanel header="Affinities">
-                            <OptionGroup label="Type affinities">
-                                {affinities.map(a => <TriCheckbox
-                                    key={a.value}
-                                    label={a.label}
-                                    valueEmitter={this.state.field(affinityKey(a.value)) as any}
-                                />)}
-                            </OptionGroup>
-                        </GroupPanel>
+                        <OptionGroup label="Phase conditions">
+                            <OptionGroupHeaderEnd>
+                                <Button
+                                    label="Reset"
+                                    onClick={() => this.resetCriteria()}
+                                />
+                            </OptionGroupHeaderEnd>
+                            {CONDITIONS.map(c => <QuadCheckbox
+                                key={c.value}
+                                label={c.label}
+                                valueEmitter={this.state.field(c.value) as any}
+                            />)}
+                        </OptionGroup>
+                        <OptionGroup label="Type affinities">
+                            {affinities.map(a => <TriCheckbox
+                                key={a.value}
+                                label={a.label}
+                                valueEmitter={this.state.field(affinityKey(a.value)) as any}
+                            />)}
+                        </OptionGroup>
                         <Dropdown
                             label="Project scope"
                             options={[{value: "", label: "All projects"}, ...(b.value.choices.projects ?? [])]}
@@ -147,7 +145,7 @@ export class QueueView extends Component {
                 <Panel island allocation="flexible" header="Matching Phases">
                     <PanelToolbar>
                         <Toolbar label="Queue results">
-                            <span className="result-count">{rows.length} phases</span>
+                            <span className="result-count">{v.total} phases</span>
                             <Dropdown
                                 label="Order by"
                                 options={[
@@ -203,5 +201,6 @@ export class QueueView extends Component {
         for (const c of CONDITIONS) this.state.field(c.value).set("neutral");
         for (const key of this.affinityKeys) this.state.field(key).set("neutral");
         this.state.field("search").set("");
+        this.state.field("project").set("");
     }
 }

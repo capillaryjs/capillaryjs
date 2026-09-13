@@ -170,6 +170,7 @@ export class IssueAnalysisView extends Component {
                                 onClick={() => {
                                     this.blockSelection.clear();
                                     for (const criterion of this.criteria) criterion.setAllVisible(true);
+                                    this.state.field("project").set("");
                                 }}
                             />
                         </Toolbar>

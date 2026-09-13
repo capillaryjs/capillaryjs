@@ -2,7 +2,7 @@ import type {FrayChild} from "@sylwellsoftware/fray";
 import {
     Component, DataTable, Panel, PanelToolbar, Sidebar, SidebarToolbar,
     SplitPrimary, SplitSecondary, SplitView,
-    TabPanel, Toggle, Checkbox, OptionsPanel, OptionGroup, GroupPanel,
+    TabPanel, Toggle, Checkbox, OptionsPanel, OptionGroup,
     Dropdown, Textbox, Button, RouteQuery, Placeholder, Toolbar, stringRouteQueryCodec,
 } from "@sylwellsoftware/fray";
 import type {TableColumn, TableRow} from "@sylwellsoftware/fray";
@@ -51,7 +51,7 @@ const filterFields = ["search", "project", "scope", "from", "to", "overtime", "s
 export class OperationsView extends Component {
     static dependencies = [
         DataTable, Panel, PanelToolbar, Sidebar, SidebarToolbar, SplitView,
-        TabPanel, Toggle, Checkbox, OptionsPanel, OptionGroup, GroupPanel,
+        TabPanel, Toggle, Checkbox, OptionsPanel, OptionGroup,
         Dropdown, Textbox, Button, RouteQuery, Placeholder, Toolbar,
     ];
 
@@ -82,6 +82,10 @@ export class OperationsView extends Component {
         const rows = v.rows as readonly OperationsRow[];
         const tab = this.read(this.state.tab) ?? "labour";
         const scopes = (v.options?.scopes ?? []) as readonly {value: string, label: string}[];
+        // The backend clamps the requested page; display and increment the
+        // effective page so the UI cannot drift past the result bounds.
+        const page = v.page;
+        const lastPage = Math.max(0, Math.ceil(v.total / v.pageSize) - 1);
 
         const table = (id: string, columns: TableColumn<OperationsRow>[]) => rows.length === 0
             ? <Placeholder/>
@@ -121,23 +125,24 @@ export class OperationsView extends Component {
                         </Toolbar>
                     </SidebarToolbar>
                     <OptionsPanel header="Filters">
-                        <GroupPanel header="Scope">
+                        <OptionGroup label="Scope">
                             <Dropdown
                                 label="Project"
                                 options={[{value: "", label: "All projects"}, ...(b.value.choices.projects ?? [])]}
                                 valueEmitter={this.state.field("project") as any}
+                                onChange={() => this.state.field("scope").set("")}
                             />
                             <Dropdown
                                 label="Scope"
                                 options={[{value: "", label: "All scopes"}, ...scopes]}
                                 valueEmitter={this.state.field("scope") as any}
                             />
-                        </GroupPanel>
-                        <GroupPanel header="Dates">
+                        </OptionGroup>
+                        <OptionGroup label="Dates">
                             <Textbox label="From" type="date" valueEmitter={this.state.field("from") as any}/>
                             <Textbox label="To" type="date" valueEmitter={this.state.field("to") as any}/>
-                        </GroupPanel>
-                        <GroupPanel header="Register-specific filters">
+                        </OptionGroup>
+                        <OptionGroup label="Register-specific filters">
                             {tab === "labour" && <>
                                 <Checkbox label="Overtime only" valueEmitter={this.state.field("overtime") as any}/>
                                 <Checkbox label="Include standby" valueEmitter={this.state.field("standby") as any}/>
@@ -151,16 +156,18 @@ export class OperationsView extends Component {
                                 <Checkbox label="Blocked reports only" valueEmitter={this.state.field("blocked") as any}/>
                                 <Checkbox label="Forecast slip" valueEmitter={this.state.field("slip") as any}/>
                             </>}
-                        </GroupPanel>
-                        <Toggle
-                            label="Compact rows"
-                            ariaLabel="Compact presentation"
-                            options={[
-                                ["false", "Normal"],
-                                ["true", "Compact"],
-                            ]}
-                            valueEmitter={this.compact}
-                        />
+                        </OptionGroup>
+                        <OptionGroup label="Display">
+                            <Toggle
+                                label="Compact rows"
+                                ariaLabel="Compact presentation"
+                                options={[
+                                    ["false", "Normal"],
+                                    ["true", "Compact"],
+                                ]}
+                                valueEmitter={this.compact}
+                            />
+                        </OptionGroup>
                     </OptionsPanel>
                 </Sidebar>
             </SplitPrimary>
@@ -168,15 +175,17 @@ export class OperationsView extends Component {
                 <Panel island allocation="flexible" header="Operational Records">
                     <PanelToolbar>
                         <Toolbar label="Register paging">
-                            <span className="result-count">{rows.length} records</span>
+                            <span className="result-count">{v.total} records</span>
                             <Button
                                 label="Previous"
-                                onClick={() => this.state.field("page").set(String(Math.max(0, Number(this.state.field("page").get()) - 1)))}
+                                disabled={page <= 0}
+                                onClick={() => this.state.field("page").set(String(page - 1))}
                             />
-                            <span className="page-info">Page {Number(this.state.field("page").get()) + 1}</span>
+                            <span className="page-info">Page {page + 1}</span>
                             <Button
                                 label="Next"
-                                onClick={() => this.state.field("page").set(String(Number(this.state.field("page").get()) + 1))}
+                                disabled={page >= lastPage}
+                                onClick={() => this.state.field("page").set(String(page + 1))}
                             />
                         </Toolbar>
                     </PanelToolbar>
