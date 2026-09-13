@@ -729,6 +729,14 @@ is important for viewport shells: Flexbox only distributes an already bounded
 size, so an auto-height intermediate wrapper does not inherit the root's
 height constraint automatically.
 
+The document itself remains application policy. A viewport-sized root claims
+`100vh`, so the browser's default `body` margin would overflow it into
+document scrollbars; dedicated app documents should remove it:
+
+```css
+html, body { margin: 0; }
+```
+
 The traits remain available for applications that use a plain `Component`
 root. They now apply the same canvas, text color, and typography values. A
 plain root without either trait remains content-sized and inherits host-page

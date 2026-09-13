@@ -98,6 +98,12 @@ Versioning.
 
 ### Changed
 
+- Documented that the document remains application policy: a viewport-sized
+  `FrayApp` claims `100vh`, so dedicated app documents must remove the
+  browser's default `body` margin to avoid document scrollbars. The guidance
+  now appears in the README's root-sizing section and in the application
+  composition guide's bounded-chain discussion.
+
 - Panel content now emits a `fray-layout` host instead of `fray-content`.
   SplitView panes are visible Layout components rather than non-visual region
   markers; the previous `orientation`, `direction`, and parent-level pane-label

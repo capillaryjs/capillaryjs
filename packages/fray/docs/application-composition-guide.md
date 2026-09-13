@@ -323,7 +323,10 @@ model applies. A dashboard can use either model.
 ### Keep the bounded chain intact
 
 For a viewport application, `FrayApp.sizing="viewport"` supplies the external
-bound. `layout="vertical"` arranges its direct children. Each intermediate DOM
+bound. The bound only holds when the document cooperates: remove the browser's
+default `body` margin (`html, body { margin: 0 }`), which would otherwise push
+the `100vh` root into document scrollbars. `layout="vertical"` arranges its
+direct children. Each intermediate DOM
 container must carry the allocation to the region that needs it:
 
 ```text
