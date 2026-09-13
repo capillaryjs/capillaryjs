@@ -100,7 +100,7 @@ body {
     padding: 0.75rem;
 }
 
-/* OptionGroup columns flow side by side and wrap within the panel body. */
+/* GroupBox columns flow side by side and wrap within the panel body. */
 .gallery-group-row {
     flex-wrap: wrap;
     align-items: flex-start;

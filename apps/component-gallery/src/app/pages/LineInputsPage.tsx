@@ -6,8 +6,8 @@ import {
     DatePicker,
     DateTimePicker,
     Dropdown,
+    GroupBox,
     Layout,
-    OptionGroup,
     Panel,
     PanelToolbar,
     ProgressBar,
@@ -48,7 +48,7 @@ const radioOptions = [
  * Line-input gallery: one instance per control and intrinsic state, every
  * flag-capable prop bound to the shared toolbar emitters. Toggling a header
  * flag makes that state the uniform expectation across the page, so themed
- * outliers are visible at a glance. Each OptionGroup stacks its variants
+ * outliers are visible at a glance. Each GroupBox stacks its variants
  * vertically; groups flow side by side and wrap within the panel.
  */
 export class LineInputsPage extends Component<GalleryPageProps> {
@@ -102,14 +102,14 @@ export class LineInputsPage extends Component<GalleryPageProps> {
                 </Toolbar>
             </PanelToolbar>
             <Layout horizontal className="gallery-group-row">
-                <OptionGroup label="Checkbox">
+                <GroupBox header="Checkbox">
                     <Layout vertical className="gallery-state-column">
                         <Checkbox label="Unchecked" {...this.flags()} />
                         <Checkbox label="Checked"
                             initialSemanticState={FilterMode.Prefer} {...this.flags()} />
                     </Layout>
-                </OptionGroup>
-                <OptionGroup label="TriCheckbox">
+                </GroupBox>
+                <GroupBox header="TriCheckbox">
                     <Layout vertical className="gallery-state-column">
                         <TriCheckbox label="Deny"
                             initialSemanticState={FilterMode.Deny} {...this.flags()} />
@@ -118,8 +118,8 @@ export class LineInputsPage extends Component<GalleryPageProps> {
                         <TriCheckbox label="Prefer"
                             initialSemanticState={FilterMode.Prefer} {...this.flags()} />
                     </Layout>
-                </OptionGroup>
-                <OptionGroup label="QuadCheckbox">
+                </GroupBox>
+                <GroupBox header="QuadCheckbox">
                     <Layout vertical className="gallery-state-column">
                         <QuadCheckbox label="Deny"
                             initialSemanticState={FilterMode.Deny} {...this.flags()} />
@@ -130,7 +130,7 @@ export class LineInputsPage extends Component<GalleryPageProps> {
                         <QuadCheckbox label="Require"
                             initialSemanticState={FilterMode.Require} {...this.flags()} />
                     </Layout>
-                </OptionGroup>
+                </GroupBox>
             </Layout>
         </Panel>
     }
@@ -147,7 +147,7 @@ export class LineInputsPage extends Component<GalleryPageProps> {
                 </Toolbar>
             </PanelToolbar>
             <Layout horizontal className="gallery-group-row">
-                <OptionGroup label="Textbox">
+                <GroupBox header="Textbox">
                     <Layout vertical className="gallery-state-column">
                         <Textbox label="Empty" placeholder="Placeholder"
                             {...this.flags()} readOnly={live(model.componentReadOnly)} />
@@ -157,14 +157,24 @@ export class LineInputsPage extends Component<GalleryPageProps> {
                             defaultValue="A value long enough to overflow the available inline space"
                             {...this.flags()} readOnly={live(model.componentReadOnly)} />
                     </Layout>
-                </OptionGroup>
-                <Layout vertical className="gallery-state-column">
-                    <Dropdown label="Choice" options={dropdownOptions}
-                        {...this.flags()} />
-                    <Toggle label="View" options={toggleOptions} {...this.flags()} />
-                    <RadioGroup label="Size" options={radioOptions} {...this.flags()} />
-                </Layout>
-                <OptionGroup label="Button">
+                </GroupBox>
+                <GroupBox header="Dropdown">
+                    <Layout vertical className="gallery-state-column">
+                        <Dropdown label="Choice" options={dropdownOptions}
+                            {...this.flags()} />
+                    </Layout>
+                </GroupBox>
+                <GroupBox header="Toggle">
+                    <Layout vertical className="gallery-state-column">
+                        <Toggle label="View" options={toggleOptions} {...this.flags()} />
+                    </Layout>
+                </GroupBox>
+                <GroupBox header="RadioGroup">
+                    <Layout vertical className="gallery-state-column">
+                        <RadioGroup label="Size" options={radioOptions} {...this.flags()} />
+                    </Layout>
+                </GroupBox>
+                <GroupBox header="Button">
                     <Layout vertical className="gallery-state-column">
                         <Button label="Normal" disabled={live(model.componentDisabled)} />
                         <Button label="Pressed" pressed
@@ -172,15 +182,15 @@ export class LineInputsPage extends Component<GalleryPageProps> {
                         <Button label="Busy" busy busyLabel="Working…"
                             disabled={live(model.componentDisabled)} />
                     </Layout>
-                </OptionGroup>
-                <OptionGroup label="Progress">
+                </GroupBox>
+                <GroupBox header="Progress">
                     <Layout vertical className="gallery-state-column">
                         <ProgressBar label="Empty" value={0} />
                         <ProgressBar label="Partial" value={40} />
                         <ProgressBar label="Complete" value={100} />
                         <ProgressBar label="Indeterminate" value={null} />
                     </Layout>
-                </OptionGroup>
+                </GroupBox>
             </Layout>
         </Panel>
     }
@@ -196,7 +206,7 @@ export class LineInputsPage extends Component<GalleryPageProps> {
                 </Toolbar>
             </PanelToolbar>
             <Layout horizontal className="gallery-group-row">
-                <OptionGroup label="DatePicker">
+                <GroupBox header="DatePicker">
                     <Layout vertical className="gallery-state-column">
                         <DatePicker label="Empty"
                             {...this.flags()}
@@ -205,22 +215,22 @@ export class LineInputsPage extends Component<GalleryPageProps> {
                             {...this.flags()}
                             readOnly={live(model.componentReadOnly)} />
                     </Layout>
-                </OptionGroup>
-                <OptionGroup label="TimePicker">
+                </GroupBox>
+                <GroupBox header="TimePicker">
                     <Layout vertical className="gallery-state-column">
                         <TimePicker label="Empty" {...this.flags()} />
                         <TimePicker label="Filled" defaultValue="14:30"
                             {...this.flags()} />
                     </Layout>
-                </OptionGroup>
-                <OptionGroup label="DateTimePicker">
+                </GroupBox>
+                <GroupBox header="DateTimePicker">
                     <Layout vertical className="gallery-state-column">
                         <DateTimePicker label="Empty" {...this.flags()} />
                         <DateTimePicker label="Filled"
                             defaultValue={{date: '2026-09-13', time: '14:30'}}
                             {...this.flags()} />
                     </Layout>
-                </OptionGroup>
+                </GroupBox>
             </Layout>
         </Panel>
     }
@@ -231,7 +241,7 @@ export class LineInputsPage extends Component<GalleryPageProps> {
         Panel,
         PanelToolbar,
         Toolbar,
-        OptionGroup,
+        GroupBox,
         Button,
         Checkbox,
         TriCheckbox,
