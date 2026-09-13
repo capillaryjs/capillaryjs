@@ -32,6 +32,7 @@ test('demo catalogs illustrate fixed and parameterized Fray messages', () => {
     const german = getDemoLocale('de-DE').frayMessages
     assert.equal(danish.dialogCloseLabel, 'Luk')
     assert.equal(danish.tableSortColumnLabel?.('Navn'), 'Sortér Navn')
+    assert.equal(danish.treeViewLoading, 'Indlæser træelementer…')
     assert.equal(german.dropdownPlaceholder, 'Auswählen…')
     assert.equal(german.tableFilterColumnLabel?.('Status'), 'Status filtern')
 })

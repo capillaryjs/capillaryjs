@@ -9,8 +9,8 @@ The demo deliberately shows both ownership layers:
 - application headings, descriptions, field labels, and dialog content come
   from the app-local catalog in `src/locales.ts`;
 - Fray placeholders, empty states, generated accessibility labels, the dialog
-  close action, and calendar names come from `FrayMessageOverrides` plus the
-  selected locale.
+  close action, and calendar display values come from `FrayMessageOverrides`
+  plus the selected locale.
 
 Change 023 makes localization immutable for the lifetime of one runtime. The
 demo therefore destroys and remounts its component tree with a new runtime

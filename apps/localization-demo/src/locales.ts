@@ -125,6 +125,7 @@ const danishMessages: FrayMessageOverrides = {
     toolbarLabel: 'Handlinger',
     treeViewEmpty: 'Ingen træelementer',
     treeViewLoadError: 'Træelementerne kunne ikke indlæses',
+    treeViewLoading: 'Indlæser træelementer…',
 }
 
 const germanMessages: FrayMessageOverrides = {
@@ -177,6 +178,7 @@ const germanMessages: FrayMessageOverrides = {
     toolbarLabel: 'Aktionen',
     treeViewEmpty: 'Keine Baumeinträge',
     treeViewLoadError: 'Baumeinträge konnten nicht geladen werden',
+    treeViewLoading: 'Baumeinträge werden geladen…',
 }
 
 const definitions: Readonly<Record<DemoLocale, DemoLocaleDefinition>> = {

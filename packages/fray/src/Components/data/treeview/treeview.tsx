@@ -97,6 +97,7 @@ export class TreeView<TValue = unknown> extends Component<TreeViewProps<TValue>>
         assertTreeNodes(nodes)
         const fetchState = this.nodesEmitter.getFetchState()
         const sourceError = this.nodesEmitter.getError()
+        const isLoading = fetchState === FetchState.Initial || fetchState === FetchState.Loading
         const expanded = new Set(this.expandedKeysEmitter.get())
         const visible = flattenVisible(nodes, expanded)
         const selected = this.selectedKeyEmitter.get()
@@ -111,9 +112,18 @@ export class TreeView<TValue = unknown> extends Component<TreeViewProps<TValue>>
             {fetchState === FetchState.Error
                 ? <p role="alert">{errorMessage(sourceError, this.frayMessage('treeViewLoadError'))}</p>
                 : null}
-            {fetchState !== FetchState.Error && visible.length === 0
+            {isLoading && visible.length === 0
+                ? <p role="status">{this.frayMessage('treeViewLoading')}</p>
+                : null}
+            {fetchState === FetchState.Ready && visible.length === 0
                 ? <p role="status">{this.frayMessage('treeViewEmpty')}</p>
-                : <ul role="tree" aria-label={this.props.label}>
+                : null}
+            {visible.length > 0
+                ? <ul
+                    role="tree"
+                    aria-label={this.props.label}
+                    aria-busy={isLoading ? 'true' : null}
+                >
                     {visible.map((item, index) => {
                         const {node, depth, position, setSize} = item
                         const hasChildren = (node.children?.length ?? 0) > 0
@@ -155,7 +165,8 @@ export class TreeView<TValue = unknown> extends Component<TreeViewProps<TValue>>
                             >{label}</fray-label>
                         </li>
                     })}
-                </ul>}
+                </ul>
+                : null}
         </Host>
     }
 

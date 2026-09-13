@@ -533,9 +533,9 @@ const runtime = createFrayRuntime({
 ```
 
 `locale` is a non-empty BCP 47 tag. Fray canonicalizes it and uses it for the
-calendar's complete month/year heading and weekday names. The calendar stays
-Gregorian and currently remains Sunday-first. Month and weekday names come
-from `Intl.DateTimeFormat`; do not add them to the message object.
+calendar's complete month/year heading, weekday names, and day numerals. The
+calendar stays Gregorian and currently remains Sunday-first. Calendar display
+values come from `Intl`; do not add them to the message object.
 
 Every `FrayMessageOverrides` property is optional. Fray copies supplied values
 at runtime construction and fills omitted properties from English defaults.

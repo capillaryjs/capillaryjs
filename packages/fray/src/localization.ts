@@ -55,6 +55,7 @@ export interface FrayMessageOverrides {
     readonly toolbarLabel?: string
     readonly treeViewEmpty?: string
     readonly treeViewLoadError?: string
+    readonly treeViewLoading?: string
 }
 
 export type FrayMessage<TKey extends keyof FrayMessageOverrides> =
@@ -130,6 +131,7 @@ const englishFrayMessages = Object.freeze({
     toolbarLabel: 'Actions',
     treeViewEmpty: 'No tree items',
     treeViewLoadError: 'Unable to load tree items',
+    treeViewLoading: 'Loading tree items…',
 } satisfies ResolvedFrayMessages)
 
 class RuntimeLocalization implements FrayLocalization {

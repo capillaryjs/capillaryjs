@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict'
 import {after, afterEach, before, describe, test} from 'node:test'
 import {Window} from 'happy-dom'
+import {Emitter, FetchState} from '@sylwellsoftware/glue'
 
 import {
     Checkbox,
@@ -9,6 +10,7 @@ import {
     DatePicker,
     Dialog,
     Dropdown,
+    TreeView,
     Toolbar,
     createFrayRuntime,
     h,
@@ -159,6 +161,60 @@ describe('Fray runtime localization', () => {
             weekday: 'long',
         }).format(new Date(2026, 0, 4, 12, 0, 0))
         assert.equal(requiredQuery('thead th span').getAttribute('aria-label'), expectedSunday)
+    })
+
+    test('uses the selected locale for calendar day numerals', () => {
+        const runtime = createFrayRuntime({
+            localization: {locale: 'ar-EG'},
+        })
+        runtime.mount(new DatePicker({defaultValue: '2026-09-15'}), document.body)
+
+        requiredQuery<HTMLButtonElement>('fray-datepicker > button').click()
+        const day = requiredQuery<HTMLButtonElement>('button[data-day="15"]')
+        assert.equal(day.textContent, new Intl.NumberFormat('ar-EG', {
+            useGrouping: false,
+        }).format(15))
+    })
+
+    test('uses a localized loading message rather than an empty tree state', () => {
+        const nodes = new Emitter<readonly {id: string; label: string}[]>([])
+        nodes.setWithState([], FetchState.Loading)
+        const runtime = createFrayRuntime({
+            localization: {
+                locale: 'da',
+                messages: {
+                    treeViewEmpty: 'Ingen træelementer',
+                    treeViewLoading: 'Indlæser træelementer…',
+                },
+            },
+        })
+        runtime.mount(new TreeView({label: 'Projekter', nodes}), document.body)
+
+        assert.equal(requiredQuery('[role="status"]').textContent, 'Indlæser træelementer…')
+        assert.equal(document.querySelector('[role="tree"]'), null)
+
+        nodes.setWithState([], FetchState.Ready)
+        assert.equal(requiredQuery('[role="status"]').textContent, 'Ingen træelementer')
+    })
+
+    test('falls back to English while loading and retains populated tree rows on refresh', () => {
+        const nodes = new Emitter<readonly {id: string; label: string}[]>([])
+        nodes.setWithState([], FetchState.Loading)
+        const runtime = createFrayRuntime()
+        runtime.mount(new TreeView({label: 'Projects', nodes}), document.body)
+
+        assert.equal(requiredQuery('[role="status"]').textContent, 'Loading tree items…')
+        assert.equal(document.querySelector('[role="tree"]'), null)
+
+        const populated = [{id: 'alpha', label: 'Alpha'}]
+        nodes.setWithState(populated, FetchState.Ready)
+        const tree = requiredQuery('[role="tree"]')
+        assert.equal(tree.getAttribute('aria-busy'), null)
+
+        nodes.setWithState(populated, FetchState.Loading)
+        assert.equal(requiredQuery('[role="tree"]'), tree)
+        assert.equal(tree.getAttribute('aria-busy'), 'true')
+        assert.equal(document.querySelector('[role="status"]'), null)
     })
 
     test('localizes parameterized accessibility messages without coercing rich labels', () => {

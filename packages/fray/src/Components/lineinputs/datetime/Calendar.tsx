@@ -47,6 +47,7 @@ export class Calendar extends Component<CalendarProps> {
         const monthStartDay = startOfMonthDay(viewYear, viewMonth)
         const totalDays = daysInMonth(viewYear, viewMonth)
         const rowCount = Math.ceil((monthStartDay + totalDays) / 7)
+        const locale = this.localization.locale
 
         const focusedDayId = `fray-calendar-day-${focusedDate}`
 
@@ -117,7 +118,7 @@ export class Calendar extends Component<CalendarProps> {
                                 if (!isDisabled) onSelect(date, event)
                             }}
                         >
-                            {String(dayNumber)}
+                            {formatCalendarDay(dayNumber, locale)}
                         </button>
                     </td>,
                 )
@@ -125,7 +126,6 @@ export class Calendar extends Component<CalendarProps> {
             rows.push(<tr role="row" key={row}>{cells}</tr>)
         }
 
-        const locale = this.localization.locale
         const monthLabel = formatCalendarMonth(viewYear, viewMonth, locale)
         const dayLabels = calendarDayLabels(locale)
 
@@ -250,6 +250,7 @@ interface CalendarDayLabel {
 }
 
 const calendarDayLabelCache = new Map<string, readonly CalendarDayLabel[]>()
+const calendarDayNumberFormatterCache = new Map<string, Intl.NumberFormat>()
 
 function calendarDayLabels(locale: string | undefined): readonly CalendarDayLabel[] {
     const cacheKey = locale ?? ''
@@ -286,4 +287,14 @@ function formatCalendarMonth(
         month: 'long',
         year: 'numeric',
     }).format(new Date(year, month - 1, 15, 12, 0, 0))
+}
+
+function formatCalendarDay(day: number, locale: string | undefined): string {
+    const cacheKey = locale ?? ''
+    let formatter = calendarDayNumberFormatterCache.get(cacheKey)
+    if (formatter == null) {
+        formatter = new Intl.NumberFormat(locale, {useGrouping: false})
+        calendarDayNumberFormatterCache.set(cacheKey, formatter)
+    }
+    return formatter.format(day)
 }

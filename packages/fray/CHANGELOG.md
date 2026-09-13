@@ -12,7 +12,8 @@ Versioning.
   a BCP 47 locale and typed partial `FrayMessageOverrides` from their existing
   localization system. Fray applies immutable per-runtime English fallback,
   uses typed functions for parameterized accessibility messages, and formats
-  Gregorian Calendar month/year and weekday names with the selected locale.
+  Gregorian Calendar month/year heading, weekday labels, and day numerals with
+  the selected locale.
   Catalog loading, locale policy, application text, live switching, document
   language/direction, and RTL remain application concerns.
 - Added textual `ariaLabel` alternatives to `Checkbox` and `TableColumn` for
@@ -61,6 +62,11 @@ Versioning.
   a native `dt`/`dd` pair with `label` and `value` props.
 
 ### Fixed
+
+- `TreeView` now presents a localized loading state rather than a misleading
+  empty state while an empty node source is loading. Calendar day cells now use
+  the runtime locale's numeral system alongside its localized heading and
+  weekday labels.
 
 - Fray-generated table sort/filter and Checkbox state labels no longer coerce
   rich vnode labels to `"[object Object]"`.

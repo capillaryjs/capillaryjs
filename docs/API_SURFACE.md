@@ -179,8 +179,9 @@ runtime defaults.
 `runtime.localization` is an immutable runtime-local `FrayLocalization` with
 the canonical `locale` and typed `message(key)` resolver. If localization is
 omitted, messages remain English and Fray-owned `Intl` formatting uses the
-browser default locale. Calendar month/year and weekday names use the configured
-locale and an explicit Gregorian calendar; they are not message keys.
+browser default locale. Calendar month/year and weekday labels, plus day
+numerals, use the configured locale and an explicit Gregorian calendar; they
+are not message keys.
 
 Localization is static and is not a service-scope dependency. Catalogs,
 translations, locale selection/fallback/loading/persistence, interpolation and
