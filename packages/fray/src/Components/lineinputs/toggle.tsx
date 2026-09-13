@@ -1,5 +1,6 @@
-import {Component, css} from '../component.js'
+import {css} from '../component.js'
 import type {FrayChild, Key, LivePropContract} from '../component.js'
+import {LabeledInputControl} from './LabeledInputControl.js'
 import {
     assertOptions,
     componentClass,
@@ -29,7 +30,7 @@ export interface ToggleProps<TValue extends Key = string>
 }
 
 /** Mutually exclusive button group with radio-group semantics. */
-export class Toggle<TValue extends Key = string> extends Component<ToggleProps<TValue>> {
+export class Toggle<TValue extends Key = string> extends LabeledInputControl<ToggleProps<TValue>> {
     static override liveProps = toggleLiveProps
     readonly valueEmitter: ValueEmitter<TValue>
     readonly groupId: string
@@ -173,6 +174,7 @@ export class Toggle<TValue extends Key = string> extends Component<ToggleProps<T
             box-sizing: border-box;
             cursor: pointer;
             user-select: none;
+            margin-left: auto;
         }
 
         & > fray-options > button[role="radio"] {

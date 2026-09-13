@@ -309,7 +309,8 @@ fray-tricheckbox > label > input[value="require"] + fray-checkshell {
 fray-dropdown,
 fray-datepicker,
 fray-timepicker,
-fray-textbox {
+fray-textbox,
+fray-toggle {
             display: flex;
             flex-flow: row nowrap;
             position: relative;
@@ -323,10 +324,19 @@ fray-textbox {
             user-select: none;
         }
 
+        fray-groupbox > fray-content > fray-layout > fray-dropdown,
+        fray-groupbox > fray-content > fray-layout > fray-datepicker,
+        fray-groupbox > fray-content > fray-layout > fray-timepicker,
+        fray-groupbox > fray-content > fray-layout > fray-textbox,
+        fray-groupbox > fray-content > fray-layout > fray-toggle {
+            align-self: stretch;
+        }
+
         fray-dropdown > label,
         fray-datepicker > label,
         fray-timepicker > label,
-        fray-textbox > label {
+        fray-textbox > label,
+        fray-toggle > label {
             align-self: center;
             user-select: none;
             white-space: nowrap;
@@ -346,6 +356,7 @@ fray-timepicker {
             min-height: var(--control-min-height, 2rem);
             min-width: 0;
             box-sizing: border-box;
+            margin-left: auto;
         }
 
         fray-dropdown > fray-selectshell > select,
@@ -1006,10 +1017,23 @@ fray-optionsbox {
             --fray-groupbox-content-margin: 0;
         }
 
-        [data-fray-context='form'] fray-groupbox {
+        [data-fray-context='form'] fray-groupbox,
+        [data-fray-context='form'] fray-optionsbox {
             flex: 1 1 auto;
             align-self: stretch;
             padding-top: 1em;
+        }
+
+        .fray-layout-horizontal fray-groupbox,
+        .fray-layout-horizontal fray-optionsbox {
+            max-width: 15rem;
+            min-width: max-content;
+        }
+
+        .fray-layout-vertical  fray-groupbox,
+        .fray-layout-vertical  fray-optionsbox {
+            max-height: 15rem;
+            min-height: max-content;
         }
 
         [data-fray-context='form'] fray-groupbox > fray-header {
@@ -1700,6 +1724,7 @@ fray-textbox {
             user-select: text;
             white-space: nowrap;
             cursor: text;
+            margin-left: auto;
         }
 
         fray-textbox > input:disabled {
@@ -1744,6 +1769,7 @@ fray-toggle {
             box-sizing: border-box;
             cursor: pointer;
             user-select: none;
+            margin-left: auto;
         }
 
         fray-toggle > fray-options > button[role="radio"] {

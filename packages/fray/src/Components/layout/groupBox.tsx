@@ -128,10 +128,20 @@ export class GroupBox<
             --fray-groupbox-content-margin: 0;
         }
 
-        [data-fray-context='form'] fray-groupbox {
+        [data-fray-context='form'] & {
             flex: 1 1 auto;
             align-self: stretch;
             padding-top: 1em;
+        }
+
+        .fray-layout-horizontal & {
+            max-width: 15rem;
+            min-width: max-content;
+        }
+
+        .fray-layout-vertical  & {
+            max-height: 15rem;
+            min-height: max-content;
         }
 
         [data-fray-context='form'] fray-groupbox > fray-header {

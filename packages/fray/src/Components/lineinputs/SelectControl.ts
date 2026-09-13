@@ -19,6 +19,7 @@ export abstract class SelectControl<
             min-height: var(--control-min-height, 2rem);
             min-width: 0;
             box-sizing: border-box;
+            margin-left: auto;
         }
 
         & > fray-selectshell > select {

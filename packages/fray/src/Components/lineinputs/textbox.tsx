@@ -140,6 +140,7 @@ export class Textbox extends LabeledInputControl<TextboxProps> {
             user-select: text;
             white-space: nowrap;
             cursor: text;
+            margin-left: auto;
         }
 
         & > input:disabled {

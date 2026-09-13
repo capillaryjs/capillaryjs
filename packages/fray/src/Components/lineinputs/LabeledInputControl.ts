@@ -20,6 +20,10 @@ export abstract class LabeledInputControl<
             user-select: none;
         }
 
+        fray-groupbox > fray-content > fray-layout > & {
+            align-self: stretch;
+        }
+
         & > label {
             align-self: center;
             user-select: none;
