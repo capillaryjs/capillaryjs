@@ -124,7 +124,7 @@ export class TimePicker extends SelectControl<TimePickerProps> {
         const {
             label,
             ariaLabel,
-            placeholder = 'Select time…',
+            placeholder = this.frayMessage('timePickerPlaceholder'),
             disabled = false,
             required = false,
             error = null,

@@ -70,27 +70,27 @@ export class FilterPanel extends Component<FilterPanelProps> {
         const hostClass = componentClass(this.props) || null
         if (fetchState === FetchState.Error && values.length === 0) {
             return <Host className={hostClass}>
-                <p role="alert">{errorMessage(error, 'Unable to load filter options')}</p>
+                <p role="alert">{errorMessage(error, this.frayMessage('filterPanelLoadError'))}</p>
             </Host>
         }
         if (isLoading && values.length === 0) {
             return <Host className={hostClass}>
-                <p role="status">Loading filter options…</p>
+                <p role="status">{this.frayMessage('filterPanelLoading')}</p>
             </Host>
         }
 
         return <Host
             className={hostClass}
             role="group"
-            aria-label={this.props.label ?? 'Filter options'}
+            aria-label={this.props.label ?? this.frayMessage('filterPanelLabel')}
             aria-busy={isLoading ? 'true' : null}
         >
             {fetchState === FetchState.Error
-                ? <p role="alert">{errorMessage(error, 'Unable to load filter options')}</p>
+                ? <p role="alert">{errorMessage(error, this.frayMessage('filterPanelLoadError'))}</p>
                 : null}
-            {isLoading ? <p role="status">Loading filter options…</p> : null}
+            {isLoading ? <p role="status">{this.frayMessage('filterPanelLoading')}</p> : null}
             {values.length === 0
-                ? <p>No filter options</p>
+                ? <p>{this.frayMessage('filterPanelEmpty')}</p>
                 : values.map((option) => {
                     const value = optionValue(option)
                     const label = optionLabel(option)

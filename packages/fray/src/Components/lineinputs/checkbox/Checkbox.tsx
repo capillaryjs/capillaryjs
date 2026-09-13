@@ -26,6 +26,8 @@ export interface CheckboxProps<TValue extends CheckboxValue = FilterModeValue>
     symbols?: readonly CheckboxSymbol<TValue>[]
     initialSemanticState?: TValue
     label?: FrayChild
+    /** Text alternative used by Fray's state announcement when `label` is rich content. */
+    ariaLabel?: string
     disabled?: boolean
     required?: boolean
     error?: unknown
@@ -89,7 +91,8 @@ export class Checkbox<TValue extends CheckboxValue = FilterModeValue>
 
     render(): FrayChild {
         const {
-            label = this.props.value ?? 'Option',
+            label = this.props.value ?? this.frayMessage('checkboxOptionLabel'),
+            ariaLabel,
             disabled = false,
             required = false,
             error = null,
@@ -102,6 +105,8 @@ export class Checkbox<TValue extends CheckboxValue = FilterModeValue>
         // checkbox surface; it is not visible glyph content.
         const shellSymbol = symbol === '☐' ? null : symbol
         const stateName = describeState(semanticState)
+        const localizedStateName = this.localizedStateName(semanticState, stateName)
+        const textLabel = ariaLabel ?? textAlternative(label)
         const checked = isCheckedSemanticState(this.symbols, semanticState)
 
         const Host = this.Host
@@ -118,7 +123,9 @@ export class Checkbox<TValue extends CheckboxValue = FilterModeValue>
                     required={required}
                     name={this.props.name}
                     value={String(semanticState)}
-                    aria-label={`${label}: ${stateName}`}
+                    aria-label={textLabel == null
+                        ? null
+                        : this.frayMessage('checkboxStateLabel')(textLabel, localizedStateName)}
                     aria-invalid={error == null ? null : 'true'}
                     aria-describedby={error == null ? null : this.errorId}
                     onChange={(event: Event) => {
@@ -165,6 +172,20 @@ export class Checkbox<TValue extends CheckboxValue = FilterModeValue>
         }
     `
 
+    private localizedStateName(semanticState: TValue, fallback: string): string {
+        if (semanticState === FilterMode.Deny) return this.frayMessage('filterModeDenyLabel')
+        if (semanticState === FilterMode.Neutral) return this.frayMessage('filterModeNeutralLabel')
+        if (semanticState === FilterMode.Prefer) return this.frayMessage('filterModePreferLabel')
+        if (semanticState === FilterMode.Require) return this.frayMessage('filterModeRequireLabel')
+        return fallback
+    }
+
+}
+
+function textAlternative(label: FrayChild): string | null {
+    return typeof label === 'string' || typeof label === 'number'
+        ? String(label)
+        : null
 }
 
 function validateSymbols<TValue extends CheckboxValue>(

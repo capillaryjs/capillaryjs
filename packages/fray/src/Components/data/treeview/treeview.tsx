@@ -109,10 +109,10 @@ export class TreeView<TValue = unknown> extends Component<TreeViewProps<TValue>>
         const Host = this.Host
         return <Host className={componentClass(this.props) || null}>
             {fetchState === FetchState.Error
-                ? <p role="alert">{errorMessage(sourceError, 'Unable to load tree items')}</p>
+                ? <p role="alert">{errorMessage(sourceError, this.frayMessage('treeViewLoadError'))}</p>
                 : null}
             {fetchState !== FetchState.Error && visible.length === 0
-                ? <p role="status">No tree items</p>
+                ? <p role="status">{this.frayMessage('treeViewEmpty')}</p>
                 : <ul role="tree" aria-label={this.props.label}>
                     {visible.map((item, index) => {
                         const {node, depth, position, setSize} = item

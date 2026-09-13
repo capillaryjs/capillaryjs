@@ -121,12 +121,12 @@ export class ListView<TItem = unknown> extends Component<ListViewProps<TItem>> {
         >
             {status === FetchState.Error
                 ? <p role="alert">
-                    {errorMessage(error, 'Unable to load items')}
+                    {errorMessage(error, this.frayMessage('listViewLoadError'))}
                 </p>
                 : null}
             {isLoading && rows.length === 0
                 ? <>
-                    <p role="status">Loading items…</p>
+                    <p role="status">{this.frayMessage('listViewLoading')}</p>
                     <ul aria-hidden="true">
                         {Array.from({length: this.props.placeholderCount ?? 5}, (_, index) =>
                             <li key={`placeholder-${index}`}>
@@ -136,12 +136,12 @@ export class ListView<TItem = unknown> extends Component<ListViewProps<TItem>> {
                 </>
                 : null}
             {status === FetchState.Ready && rows.length === 0
-                ? <p role="status">No items</p>
+                ? <p role="status">{this.frayMessage('listViewEmpty')}</p>
                 : null}
             {rows.length > 0
                 ? <ul
                     role="listbox"
-                    aria-label={this.props.label ?? 'Items'}
+                    aria-label={this.props.label ?? this.frayMessage('listViewLabel')}
                     aria-busy={isLoading ? 'true' : null}
                     aria-multiselectable={this.props.multiSelect ? 'true' : null}
                 >{rows.map((item, index) => {

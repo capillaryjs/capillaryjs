@@ -3,7 +3,8 @@
 Fray is a browser-only TypeScript component runtime built around Glue
 emitters. It provides TSX rendering, explicit component lifecycle, accessible
 controls and data views, scoped services and routing, and dependency-collected
-structural CSS.
+structural CSS. Its built-in messages and calendar display names can be
+localized once per runtime.
 
 Fray 1.x is ESM-only and targets current evergreen browsers. Install it with
 its Glue peer:
@@ -37,7 +38,9 @@ The boundaries are deliberate:
 | Concern | Owner |
 | --- | --- |
 | Domain state, validation policy, endpoint configuration, service providers, routes, page composition | Application |
+| Translation catalogs, locale policy, application text, document `lang`/`dir` | Application |
 | DOM structure, native events, accessible semantics, component lifetime, visual async states | Fray |
+| Fray-authored message defaults and Fray-owned `Intl` display names | Fray, using optional runtime localization |
 | Mutable and computed values, query execution and status, command lifecycle, optional causality | Glue |
 | Retrieval, wire serialization, persistence | Application-supplied handlers and adapters |
 | Structural selectors and component layout | Fray component CSS |
@@ -318,7 +321,7 @@ the tables below denotes that TypeScript type parameter.
 | `RadioButton` | Standalone native radio and label | `label`, `name`, `value`, `checked`, `disabled`, `required`, `error`, `onChange`; live: state, availability, `error` |
 | `RadioGroup<T>` | Named native-radio fieldset owning one value | `options` as `[value, label]` tuples, `label`, `valueEmitter`, `defaultValue`, `disabled`, `required`, `error`, `onChange`; options are ordinary render data |
 | `Toggle<T>` | ARIA radio group rendered as toggle buttons | `options` as `[value, label]` tuples, `label`, `valueEmitter`, `defaultValue`, `disabled`, `required`, `error`, `onChange` |
-| `Checkbox<T>` | Configurable keyboard-operable semantic state cycle | `symbols` as `[content, value]` tuples, `label`, `valueEmitter`, `defaultValue`, `disabled`, `required`, `error`, `onChange` |
+| `Checkbox<T>` | Configurable keyboard-operable semantic state cycle | `symbols` as `[content, value]` tuples, `label`/`ariaLabel`, `valueEmitter`, `defaultValue`, `disabled`, `required`, `error`, `onChange` |
 | `TriCheckbox` | Neutral/prefer/deny `FilterMode` cycle | Same public props as `Checkbox`, except fixed symbols |
 | `QuadCheckbox` | Neutral/prefer/require/deny `FilterMode` cycle | Same public props as `Checkbox`, except fixed symbols |
 
@@ -469,6 +472,8 @@ For reusable sources, use `createLocalTableDataSource`,
 `filtersEmitter`, optional `retry`, and `dispose()`.
 
 `TableColumn` definitions own display and local comparison/filter functions.
+When a column's visible `label` is rich content, supply its textual
+`ariaLabel` for Fray-generated sort and filter control names.
 The pure `applyLocalTableState`, `serializeTableQuery`, and related table-query
 helpers keep local behavior and remote encoding explicit. Pagination,
 virtualization, and server-specific wire policy remain application concerns.
@@ -500,6 +505,60 @@ current matching.
 Use `matchesFilterState` or `filterByState` for pure evaluation;
 `deriveFilterPredicate` and `deriveFilteredItems` for reactive results; and
 `serializeFilterState`/`parseFilterState` for deterministic versioned data.
+
+## Localization
+
+Fray can consume the result of your existing localization system for text and
+formatting that Fray itself owns. Configure it once when creating the runtime:
+
+```tsx
+import {createFrayRuntime} from '@sylwellsoftware/fray'
+import type {FrayMessageOverrides} from '@sylwellsoftware/fray'
+
+const messages: FrayMessageOverrides = {
+    toolbarLabel: i18n.t('fray.toolbar.label'),
+    dialogCloseLabel: i18n.t('fray.dialog.close'),
+    dataTableEmpty: i18n.t('fray.table.empty'),
+    tableSortColumnLabel: (label) => i18n.t('fray.table.sort', {label}),
+    checkboxStateLabel: (label, state) =>
+        i18n.t('fray.checkbox.state', {label, state}),
+}
+
+const runtime = createFrayRuntime({
+    localization: {
+        locale: i18n.locale,
+        messages,
+    },
+})
+```
+
+`locale` is a non-empty BCP 47 tag. Fray canonicalizes it and uses it for the
+calendar's complete month/year heading and weekday names. The calendar stays
+Gregorian and currently remains Sunday-first. Month and weekday names come
+from `Intl.DateTimeFormat`; do not add them to the message object.
+
+Every `FrayMessageOverrides` property is optional. Fray copies supplied values
+at runtime construction and fills omitted properties from English defaults.
+Fixed messages are strings; messages that insert a label are typed functions,
+so the organization's localization adapter controls word order and
+interpolation. Explicit component props such as `Dialog.closeLabel`,
+`Toolbar.label`, or `DataTable.emptyMessage` still take precedence.
+
+The configuration is immutable and runtime-local. It is not a `ServiceScope`
+service or a live locale binding. To select another language, create and mount
+a runtime with the new localization configuration. Multiple runtimes may use
+different locales on one page.
+
+Fray does not load catalogs, select or persist a locale, define fallbacks or
+plural rules, translate caller-provided labels/errors/content, or set the
+document's `lang` or `dir`. The application must set `lang` consistently with
+the configured locale and owns RTL behavior. Localized parsing, locale-specific
+week starts, time/number/percentage formatting, and collation are not part of
+this contract.
+
+`Checkbox.ariaLabel` and `TableColumn.ariaLabel` are textual alternatives for
+rich visible labels used inside Fray-generated accessibility messages. For
+ordinary string/number labels they are unnecessary.
 
 ## Application services
 
@@ -538,9 +597,10 @@ missing providers fail clearly. `ServiceScope.dispose()` disposes initialized
 services in reverse creation order. Components own the queries/results they
 open; they do not dispose scope-shared services.
 
-`FrayRuntime` carries one `ServiceScope`, optional router, and isolated
-`StyleRegistry`. `createFrayRuntime()` is the normal construction entry point;
-`defaultFrayRuntime` supports direct compatibility mounting.
+`FrayRuntime` carries one `ServiceScope`, optional router, optional static
+localization, and isolated `StyleRegistry`. `createFrayRuntime()` is the normal
+construction entry point; `defaultFrayRuntime` supports direct compatibility
+mounting with English messages and the browser's default locale.
 
 ## Browser routing
 

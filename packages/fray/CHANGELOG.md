@@ -8,6 +8,15 @@ Versioning.
 
 ### Added
 
+- Added optional static localization to `FrayRuntime`: applications can supply
+  a BCP 47 locale and typed partial `FrayMessageOverrides` from their existing
+  localization system. Fray applies immutable per-runtime English fallback,
+  uses typed functions for parameterized accessibility messages, and formats
+  Gregorian Calendar month/year and weekday names with the selected locale.
+  Catalog loading, locale policy, application text, live switching, document
+  language/direction, and RTL remain application concerns.
+- Added textual `ariaLabel` alternatives to `Checkbox` and `TableColumn` for
+  Fray-generated accessibility messages when visible labels are rich content.
 - Added external destinations to `NavigationBar`: an item whose `to` is
   `{kind: 'external', href}` renders a plain anchor the router never
   intercepts, preserving native link behavior for cross-application and
@@ -52,6 +61,9 @@ Versioning.
   a native `dt`/`dd` pair with `label` and `value` props.
 
 ### Fixed
+
+- Fray-generated table sort/filter and Checkbox state labels no longer coerce
+  rich vnode labels to `"[object Object]"`.
 
 - `ListView` now re-renders when its plain-array `items` prop changes. A static
   `items` array was wrapped in an internal emitter only once at construction and

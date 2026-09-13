@@ -25,10 +25,6 @@ export interface CalendarProps extends ComponentProps {
     onCancel: () => void
 }
 
-const DAY_LABELS = Array.from({length: 7}, (_, i) =>
-    new Date(2026, 0, 4 + i, 12, 0, 0).toLocaleDateString(undefined, {weekday: 'short'})
-)
-
 export class Calendar extends Component<CalendarProps> {
     render(): FrayChild {
         const {
@@ -129,14 +125,16 @@ export class Calendar extends Component<CalendarProps> {
             rows.push(<tr role="row" key={row}>{cells}</tr>)
         }
 
-        const monthLabel = `${monthName(viewMonth)} ${viewYear}`
+        const locale = this.localization.locale
+        const monthLabel = formatCalendarMonth(viewYear, viewMonth, locale)
+        const dayLabels = calendarDayLabels(locale)
 
         return (
             <div className="fray-calendar">
                 <div className="fray-calendar-header">
                     <button
                         type="button"
-                        aria-label="Previous month"
+                        aria-label={this.frayMessage('calendarPreviousMonthLabel')}
                         onClick={() => setMonth(-1)}
                     >
                         {'<'}
@@ -144,7 +142,7 @@ export class Calendar extends Component<CalendarProps> {
                     <span role="heading" aria-level="3">{monthLabel}</span>
                     <button
                         type="button"
-                        aria-label="Next month"
+                        aria-label={this.frayMessage('calendarNextMonthLabel')}
                         onClick={() => setMonth(1)}
                     >
                         {'>'}
@@ -152,7 +150,7 @@ export class Calendar extends Component<CalendarProps> {
                 </div>
                 <table
                     role="grid"
-                    aria-label="Choose a date"
+                    aria-label={this.frayMessage('calendarGridLabel')}
                     tabIndex={-1}
                     onKeyDown={(event: KeyboardEvent) => {
                         switch (event.key) {
@@ -205,9 +203,9 @@ export class Calendar extends Component<CalendarProps> {
                 >
                     <thead>
                         <tr role="row">
-                            {DAY_LABELS.map((label) => (
-                                <th scope="col" role="columnheader" key={label}>
-                                    <span aria-label={fullDayName(label)}>{label}</span>
+                            {dayLabels.map(({index, short, long}) => (
+                                <th scope="col" role="columnheader" key={index}>
+                                    <span aria-label={long}>{short}</span>
                                 </th>
                             ))}
                         </tr>
@@ -245,12 +243,47 @@ export class Calendar extends Component<CalendarProps> {
     static override css = ''
 }
 
-function monthName(month: number): string {
-    return new Date(2026, month - 1, 15, 12, 0, 0).toLocaleDateString(undefined, {month: 'long'})
+interface CalendarDayLabel {
+    readonly index: number
+    readonly short: string
+    readonly long: string
 }
 
-function fullDayName(short: string): string {
-    const index = DAY_LABELS.indexOf(short)
-    if (index === -1) return short
-    return new Date(2026, 0, 4 + index, 12, 0, 0).toLocaleDateString(undefined, {weekday: 'long'})
+const calendarDayLabelCache = new Map<string, readonly CalendarDayLabel[]>()
+
+function calendarDayLabels(locale: string | undefined): readonly CalendarDayLabel[] {
+    const cacheKey = locale ?? ''
+    const cached = calendarDayLabelCache.get(cacheKey)
+    if (cached != null) return cached
+
+    const shortFormatter = new Intl.DateTimeFormat(locale, {
+        calendar: 'gregory',
+        weekday: 'short',
+    })
+    const longFormatter = new Intl.DateTimeFormat(locale, {
+        calendar: 'gregory',
+        weekday: 'long',
+    })
+    const labels = Object.freeze(Array.from({length: 7}, (_, index) => {
+        const date = new Date(2026, 0, 4 + index, 12, 0, 0)
+        return Object.freeze({
+            index,
+            short: shortFormatter.format(date),
+            long: longFormatter.format(date),
+        })
+    }))
+    calendarDayLabelCache.set(cacheKey, labels)
+    return labels
+}
+
+function formatCalendarMonth(
+    year: number,
+    month: number,
+    locale: string | undefined,
+): string {
+    return new Intl.DateTimeFormat(locale, {
+        calendar: 'gregory',
+        month: 'long',
+        year: 'numeric',
+    }).format(new Date(year, month - 1, 15, 12, 0, 0))
 }

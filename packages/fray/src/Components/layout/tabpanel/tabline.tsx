@@ -64,7 +64,11 @@ export class TabLine extends Component<TabLineProps> {
     }
 
     render(): FrayChild {
-        const {tabs = [], label = 'Sections', baseId = 'fray-tabs'} = this.props
+        const {
+            tabs = [],
+            label = this.frayMessage('tabLineLabel'),
+            baseId = 'fray-tabs',
+        } = this.props
         validateTabs(tabs)
         const activeTabId = this.valueEmitter.get()
 

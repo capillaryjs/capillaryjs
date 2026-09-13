@@ -125,7 +125,7 @@ export class DateTimePicker extends Component<DateTimePickerProps> {
                 >
                     {label != null ? <legend>{label}</legend> : null}
                     <DatePicker
-                        ariaLabel="Date"
+                        ariaLabel={this.frayMessage('dateTimePickerDateLabel')}
                         valueEmitter={this.datePart}
                         disabled={disabled}
                         required={required}
@@ -136,7 +136,7 @@ export class DateTimePicker extends Component<DateTimePickerProps> {
                         onChange={(_value, event) => this.handlePartChange('date', event)}
                     />
                     <TimePicker
-                        ariaLabel="Time"
+                        ariaLabel={this.frayMessage('dateTimePickerTimeLabel')}
                         valueEmitter={this.timePart}
                         disabled={disabled}
                         required={required}

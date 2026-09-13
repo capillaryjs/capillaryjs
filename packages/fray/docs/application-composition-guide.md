@@ -156,6 +156,35 @@ owns the destination content and registers its sibling routes. Keep one owner
 for that route set. Navigation does not require rebuilding the application
 root or duplicating the header in each page.
 
+### Adapt organization localization at the root
+
+When the application has selected a locale and loaded its ordinary catalogs,
+adapt only Fray-authored messages into the same runtime composition:
+
+```tsx
+const frayMessages: FrayMessageOverrides = {
+    toolbarLabel: i18n.t('fray.toolbar.label'),
+    dataTableEmpty: i18n.t('fray.table.empty'),
+    tableSortColumnLabel: (label) => i18n.t('fray.table.sort', {label}),
+}
+
+document.documentElement.lang = i18n.locale
+
+const runtime = createFrayRuntime({
+    router,
+    localization: {locale: i18n.locale, messages: frayMessages},
+})
+```
+
+Keep screen headings, navigation items, field labels, validation text, and
+domain messages in the application's catalogs and pass their resolved values
+as ordinary props/content. Fray applies English fallback to omitted internal
+keys and uses the configured locale for calendar names. It does not load the
+catalog, change `lang`/`dir`, or switch the runtime's locale reactively. If the
+application changes language in place, recreate its Fray runtime tree with a
+new static localization snapshot. The application also owns direction and RTL
+policy.
+
 The header remains mounted; it can still update a title or status. Remaining
 mounted also differs from remaining visible: in a document-flow application,
 a persistent header may scroll off screen. Section 4 explains the sizing

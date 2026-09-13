@@ -7,6 +7,11 @@ import type {
 import {FrayRuntime, defaultFrayRuntime} from '../runtime.js'
 import type {ServiceKey} from '../services.js'
 import type {ResolvedRoute} from '../routing/router.js'
+import type {
+    FrayLocalization,
+    FrayMessage,
+    FrayMessageOverrides,
+} from '../localization.js'
 
 export const Fragment = Symbol.for('@sylwellsoftware/fray.Fragment')
 
@@ -716,6 +721,18 @@ export class Component<TProps extends ComponentProps = ComponentProps> {
             )
         }
         return this._runtime.services.require(key)
+    }
+
+    /** Read the immutable Fray localization selected for this component's runtime. */
+    protected get localization(): FrayLocalization {
+        return this._runtime.localization
+    }
+
+    /** Resolve one Fray-authored message with the runtime's English fallback. */
+    protected frayMessage<TKey extends keyof FrayMessageOverrides>(
+        key: TKey,
+    ): FrayMessage<TKey> {
+        return this.localization.message(key)
     }
 
     listen<TEvent extends Event = Event>(

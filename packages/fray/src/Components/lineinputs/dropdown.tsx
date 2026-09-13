@@ -78,7 +78,7 @@ export class Dropdown<TValue extends DropdownValue = string>
             disabled = false,
             required = false,
             error = null,
-            placeholder = 'Select…',
+            placeholder = this.frayMessage('dropdownPlaceholder'),
             ariaLabel,
             onChange,
         } = this.props

@@ -166,15 +166,15 @@ export class DataTable<TRow extends TableRow = TableRow>
         return <Host
             className={componentClass(this.props) || null}
         >
-            {isLoading ? <p role="status">Loading rows…</p> : null}
+            {isLoading ? <p role="status">{this.frayMessage('dataTableLoading')}</p> : null}
             {status === FetchState.Error
-                ? <p role="alert">{errorMessage(error, 'Unable to load rows')}</p>
+                ? <p role="alert">{errorMessage(error, this.frayMessage('dataTableLoadError'))}</p>
                 : null}
             {status === FetchState.Error && typeof this.dataSource?.retry === 'function'
                 ? <button
                     type="button"
                     onClick={() => this.dataSource?.retry?.('table retry')}
-                >Retry</button>
+                >{this.frayMessage('dataTableRetry')}</button>
                 : null}
             <table aria-busy={isLoading ? 'true' : null}>
                 {this.props.caption == null ? null : <caption>{this.props.caption}</caption>}
@@ -203,7 +203,7 @@ export class DataTable<TRow extends TableRow = TableRow>
                                 ? null
                                 : <tr key="empty">
                                     <td colSpan={this.columns.length}>
-                                        {this.props.emptyMessage ?? 'No rows'}
+                                        {this.props.emptyMessage ?? this.frayMessage('dataTableEmpty')}
                                     </td>
                                 </tr>}
                 </tbody>

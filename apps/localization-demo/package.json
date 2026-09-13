@@ -1,0 +1,31 @@
+{
+  "name": "@sylwellsoftware/localization-demo",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Mini Fray localization component gallery.",
+  "type": "module",
+  "packageManager": "pnpm@10.11.0",
+  "engines": {
+    "node": ">=22.6",
+    "pnpm": ">=10"
+  },
+  "scripts": {
+    "dev": "vite --host 127.0.0.1",
+    "build": "pnpm typecheck && vite build",
+    "preview": "vite preview --host 127.0.0.1",
+    "typecheck": "tsc --noEmit",
+    "test": "node --import tsx --test src/*.test.ts src/app/*.test.ts",
+    "verify": "pnpm typecheck && pnpm test"
+  },
+  "dependencies": {
+    "@sylwellsoftware/fray": "workspace:^",
+    "@sylwellsoftware/glue": "workspace:^"
+  },
+  "devDependencies": {
+    "@types/node": "^26.4.0",
+    "happy-dom": "^20.0.10",
+    "tsx": "^4.23.13",
+    "typescript": "^5.9.2",
+    "vite": "^6.4.3"
+  }
+}

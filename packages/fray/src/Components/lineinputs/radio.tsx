@@ -50,7 +50,7 @@ export class RadioButton extends CheckableControl<RadioButtonProps> {
 
     render(): FrayChild {
         const {
-            label = this.props.value ?? 'Option',
+            label = this.props.value ?? this.frayMessage('radioOptionLabel'),
             checked = false,
             disabled = false,
             required = false,

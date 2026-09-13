@@ -15,7 +15,7 @@ export class Toolbar extends Component<ToolbarProps> {
         const {
             children = [],
             id,
-            label = 'Actions',
+            label = this.frayMessage('toolbarLabel'),
             orientation = 'horizontal',
         } = this.props
         if (!['horizontal', 'vertical'].includes(orientation)) {

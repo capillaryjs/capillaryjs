@@ -201,6 +201,14 @@ The [public API surface](docs/API_SURFACE.md) is the concise compatibility
 inventory. The [architecture guide](docs/architecture.md) explains ownership
 and dependency boundaries.
 
+## Demo applications
+
+- [`apps/component-gallery`](apps/component-gallery/README.md) tours the wider
+  Glue, Fray, and Fray Visualization component surface.
+- [`apps/localization-demo`](apps/localization-demo/README.md) is a focused
+  English, Danish, and German gallery for Fray runtime localization.
+- [`apps/fray-demo`](apps/fray-demo/) is the Fray styling lab.
+
 ## Presentation files
 
 Fray presentation has four independently owned inputs, loaded in this order:

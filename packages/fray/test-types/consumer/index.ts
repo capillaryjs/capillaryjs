@@ -36,6 +36,8 @@ import {
     serializeTableQuery,
 } from '@sylwellsoftware/fray'
 import type {
+    FrayLocalizationOptions,
+    FrayMessageOverrides,
     FrayLayoutAllocation,
     FrayLayoutDirection,
     NavigationAdapter,
@@ -73,6 +75,15 @@ mountFrayApp(createFrayRuntime(), FrayApp, document.body, {
     landmark: 'main',
     children: 'Application',
 })
+const localizedMessages: FrayMessageOverrides = {
+    dialogCloseLabel: 'Luk',
+    checkboxStateLabel: (label, state) => `${label}: ${state}`,
+}
+const localizedOptions: FrayLocalizationOptions = {
+    locale: 'da-DK',
+    messages: localizedMessages,
+}
+createFrayRuntime({localization: localizedOptions})
 const direction: FrayLayoutDirection = 'horizontal'
 const allocation: FrayLayoutAllocation = 'flexible'
 new FrayApp({layout: direction})
@@ -80,7 +91,12 @@ new Panel({allocation, orientation: 'vertical'})
 
 type Row = {id: number; name: string}
 new DataTable<Row>({
-    columns: [{field: 'name', render: (row) => row.name.toUpperCase()}],
+    columns: [{
+        field: 'name',
+        label: h('strong', null, 'Name'),
+        ariaLabel: 'Person name',
+        render: (row) => row.name.toUpperCase(),
+    }],
     data: [{id: 1, name: 'Ada'}],
 })
 

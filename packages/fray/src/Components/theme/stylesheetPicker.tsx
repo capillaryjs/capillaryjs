@@ -86,7 +86,7 @@ abstract class StylesheetPicker extends SelectControl<StylesheetPickerProps> {
                         key={option.value}
                         value={option.value}
                         selected={option.value === selected.value}
-                    >{option.label}</option>)}
+                    >{this.optionLabel(option)}</option>)}
                 </select>
             </fray-selectshell>
         </Host>
@@ -104,6 +104,24 @@ abstract class StylesheetPicker extends SelectControl<StylesheetPickerProps> {
         const options = this.props.options ?? this.defaults
         validateOptions(options)
         return options
+    }
+
+    private optionLabel(option: FrayStylesheetOption): string {
+        if (this.props.options != null) return option.label
+        switch (`${this.kind}:${option.value}`) {
+            case 'theme:java': return this.frayMessage('themeOptionJavaLabel')
+            case 'theme:minimal': return this.frayMessage('themeOptionMinimalLabel')
+            case 'theme:shiny': return this.frayMessage('themeOptionShinyLabel')
+            case 'colors:gray': return this.frayMessage('colorOptionGrayLabel')
+            case 'colors:green': return this.frayMessage('colorOptionGreenLabel')
+            case 'colors:iceblue': return this.frayMessage('colorOptionIceBlueLabel')
+            case 'colors:ocean': return this.frayMessage('colorOptionOceanLabel')
+            case 'colors:orange': return this.frayMessage('colorOptionOrangeLabel')
+            case 'colors:purple': return this.frayMessage('colorOptionPurpleLabel')
+            case 'colors:red': return this.frayMessage('colorOptionRedLabel')
+            case 'colors:yellow': return this.frayMessage('colorOptionYellowLabel')
+            default: return option.label
+        }
     }
 
     private applySelection(): void {

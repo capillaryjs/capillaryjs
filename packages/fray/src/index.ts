@@ -82,6 +82,12 @@ export type {
 export * from './util/filterMode.js'
 
 export * from './runtime.js'
+export type {
+    FrayLocalization,
+    FrayLocalizationOptions,
+    FrayMessage,
+    FrayMessageOverrides,
+} from './localization.js'
 export * from './services.js'
 export * from './routing/navigationAdapter.js'
 export * from './routing/route.js'

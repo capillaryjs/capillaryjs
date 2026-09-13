@@ -70,7 +70,8 @@ peer dependency.
 | `FrayHostElementTagNameMap`, `FrayElementTagNameMap` | Custom `fray-*` host element tag maps that extend JSX intrinsic elements |
 | `css` | Static CSS template helper |
 | `live` | Explicit one-way emitter binding for DOM properties and allowlisted component props |
-| `FrayRuntime`, `createFrayRuntime`, `defaultFrayRuntime` | Application-scoped component creation, mounting, styles, services, and optional routing |
+| `FrayRuntime`, `createFrayRuntime`, `defaultFrayRuntime` | Application-scoped component creation, mounting, styles, services, optional routing, and static localization |
+| `FrayLocalizationOptions`, `FrayLocalization`, `FrayMessageOverrides`, `FrayMessage` | Typed runtime locale and partial Fray-authored message overrides with English fallback |
 | `StyleRegistry`, `createStyleRegistry`, `styleRegistry` | Dependency-aware structural CSS collection and injection |
 
 Public declaration contracts include component constructors/dependencies,
@@ -135,6 +136,8 @@ Notable public behavior:
   typeahead, and per-label class/style callbacks.
 - `DataTable` accepts exactly one of direct `data`, a caller-owned
   `dataSource`, or table-owned `rest` options.
+- Rich `Checkbox` and `TableColumn` labels accept a textual `ariaLabel` for
+  Fray-generated state, sort, and filter accessibility messages.
 - `Dialog` uses a native modal surface with focus containment and restoration.
 - `GroupPanel` is a named group with a bordered body and vertical header.
 - `OptionGroup` renders a labelled `fieldset`/`legend` shell and accepts an
@@ -163,6 +166,26 @@ Fray exports the following data-model utilities from its root:
 
 Component-created sources are component-owned. Explicit sources passed by a
 caller remain caller-owned.
+
+### Localization
+
+`createFrayRuntime({localization: {locale, messages}})` accepts a non-empty BCP
+47 locale and optional `FrayMessageOverrides`. Fray canonicalizes the locale,
+copies the overrides, and resolves each omitted semantic key from its English
+default. Fixed messages are strings; parameterized messages have typed function
+signatures. Explicit component label/message props take precedence over the
+runtime defaults.
+
+`runtime.localization` is an immutable runtime-local `FrayLocalization` with
+the canonical `locale` and typed `message(key)` resolver. If localization is
+omitted, messages remain English and Fray-owned `Intl` formatting uses the
+browser default locale. Calendar month/year and weekday names use the configured
+locale and an explicit Gregorian calendar; they are not message keys.
+
+Localization is static and is not a service-scope dependency. Catalogs,
+translations, locale selection/fallback/loading/persistence, interpolation and
+plurals, application-authored text, document `lang`/`dir`, RTL policy, and live
+language switching remain application concerns.
 
 ### Services
 
@@ -289,4 +312,6 @@ The public stack does not provide:
 - built-in pagination or table virtualization;
 - CommonJS builds or legacy-browser compatibility;
 - automatic theme selection or a nested theme/palette scope;
+- localization catalogs, locale negotiation, live language switching, or RTL
+  policy;
 - a retained diagnostic history store.

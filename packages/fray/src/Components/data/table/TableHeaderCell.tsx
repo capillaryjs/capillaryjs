@@ -16,6 +16,8 @@ export type TableRow = Record<string, unknown>
 export interface TableColumnBase {
     field: string
     label?: FrayChild
+    /** Text alternative used by Fray-authored sort and filter controls. */
+    ariaLabel?: string
     sortable?: boolean
     filterOptions?: FilterOptionsSource
 }
@@ -80,7 +82,8 @@ export class TableHeaderCell extends Component<TableHeaderCellProps> {
                 .filter(isFilterSelectionEntry),
         )
         const label = this.props.label ?? String(this.props.field)
-        const filterLabel = `Filter ${String(label)}`
+        const textLabel = this.props.ariaLabel ?? textAlternative(label) ?? String(this.props.field)
+        const filterLabel = this.frayMessage('tableFilterColumnLabel')(textLabel)
 
         let panel: FrayChild = null
         if (this.filterVisible && this.props.filterOptions != null) {
@@ -110,7 +113,7 @@ export class TableHeaderCell extends Component<TableHeaderCellProps> {
                 ? <button
                     type="button"
                     class="sort"
-                    aria-label={`Sort ${String(label)}`}
+                    aria-label={this.frayMessage('tableSortColumnLabel')(textLabel)}
                     onClick={() => this.toggleSort()}
                 >
                     {label}
@@ -200,6 +203,12 @@ export class TableHeaderCell extends Component<TableHeaderCellProps> {
             opacity: 1;
         }
     `
+}
+
+function textAlternative(label: FrayChild): string | null {
+    return typeof label === 'string' || typeof label === 'number'
+        ? String(label)
+        : null
 }
 
 function isFilterSelectionEntry(

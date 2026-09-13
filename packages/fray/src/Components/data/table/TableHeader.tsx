@@ -31,6 +31,7 @@ export class TableHeader<TRow extends TableRow = TableRow>
                     sortEmitter={this.props.sortEmitter}
                     filtersEmitter={this.props.filtersEmitter}
                     {...(column.label == null ? {} : {label: column.label})}
+                    {...(column.ariaLabel == null ? {} : {ariaLabel: column.ariaLabel})}
                     {...(column.sortable == null ? {} : {sortable: column.sortable})}
                     {...(column.filterOptions == null
                         ? {}

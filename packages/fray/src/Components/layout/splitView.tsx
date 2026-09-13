@@ -120,7 +120,7 @@ export class SplitView extends Component<SplitViewProps> {
             primaryMinSize = 96,
             secondaryMinSize = 96,
             resizeStep = 16,
-            separatorLabel = 'Resize panes',
+            separatorLabel = this.frayMessage('splitViewSeparatorLabel'),
             resizable = true,
         } = this.props
         if (direction != null && !['horizontal', 'vertical'].includes(direction)) {

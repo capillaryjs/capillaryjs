@@ -40,7 +40,7 @@ export class ProgressBar extends Component<ProgressBarProps> {
         const value = sourceValue == null ? null : Math.min(sourceValue, max)
         const percentage = value == null ? null : value / max * 100
         const valueText = this.props.valueText ?? (value == null
-            ? 'In progress'
+            ? this.frayMessage('progressInProgress')
             : `${Math.round(value / max * 100)}%`)
         const Host = this.Host
         return <Host className={componentClass(this.props) || null}>

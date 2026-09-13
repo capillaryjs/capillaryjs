@@ -50,6 +50,9 @@ import {
 } from '../src/index.js'
 import type {
     ComponentProps,
+    FrayLocalizationOptions,
+    FrayMessage,
+    FrayMessageOverrides,
     Key,
     NavigationAdapter,
     Ref,
@@ -77,6 +80,23 @@ new GroupPanel({header: 'Grouping', children: 'Controls'})
 new FrayApp({sizing: 'viewport', landmark: 'main', children: 'Application'})
 const appRuntime = createFrayRuntime()
 mountFrayApp(appRuntime, FrayApp, document.body, {landmark: 'none'})
+const messageOverrides: FrayMessageOverrides = {
+    dialogCloseLabel: 'Luk',
+    tableSortColumnLabel: (label) => `Sorter ${label}`,
+}
+const localizationOptions: FrayLocalizationOptions = {
+    locale: 'da-DK',
+    messages: messageOverrides,
+}
+const localizedRuntime = createFrayRuntime({localization: localizationOptions})
+const closeMessage: FrayMessage<'dialogCloseLabel'> =
+    localizedRuntime.localization.message('dialogCloseLabel')
+closeMessage.toUpperCase()
+localizedRuntime.localization.message('tableSortColumnLabel')('Name').toUpperCase()
+// @ts-expect-error Fray localization requires the Intl formatting locale.
+createFrayRuntime({localization: {messages: {dialogCloseLabel: 'Luk'}}})
+// @ts-expect-error Parameterized Fray messages preserve their function signature.
+createFrayRuntime({localization: {locale: 'da', messages: {tableSortColumnLabel: 'Sorter'}}})
 // @ts-expect-error FrayApp sizing is a bounded application-root policy.
 new FrayApp({sizing: 'container'})
 
@@ -229,7 +249,12 @@ new Dialog({
 new DataTable<Row>({
     data: [{id: 1, name: 'Ada'}],
     selectedItemEmitter: selectedRow,
-    columns: [{field: 'name', render: (row) => row.name.toUpperCase()}],
+    columns: [{
+        field: 'name',
+        label: h('strong', null, 'Name'),
+        ariaLabel: 'Person name',
+        render: (row) => row.name.toUpperCase(),
+    }],
 })
 new DataTable<Row>({
     rest: {url: '/rows', baseUrl: 'https://example.test/'},

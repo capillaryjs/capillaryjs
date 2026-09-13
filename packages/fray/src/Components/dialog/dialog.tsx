@@ -58,7 +58,7 @@ export class Dialog extends Component<DialogProps> {
         const {
             title,
             description,
-            closeLabel = 'Close',
+            closeLabel = this.frayMessage('dialogCloseLabel'),
             showCloseButton = true,
             children = [],
         } = this.props

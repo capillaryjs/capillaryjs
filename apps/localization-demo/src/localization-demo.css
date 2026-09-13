@@ -1,0 +1,155 @@
+:root {
+    background: var(--application-background, #eef3f8);
+}
+
+body {
+    margin: 0;
+}
+
+.localization-demo-app {
+    min-block-size: 100dvh;
+}
+
+.localization-demo-hero {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 1.5rem 3rem;
+    padding: clamp(1.25rem, 4vw, 3.5rem);
+    color: var(--palette-contrast-light, white);
+    background:
+        radial-gradient(circle at 15% 10%, rgb(255 255 255 / 18%), transparent 35%),
+        linear-gradient(125deg, var(--palette-blue, #1466a8), var(--palette-purple, #6044a5));
+}
+
+.localization-demo-hero > div:first-child {
+    max-inline-size: 48rem;
+}
+
+.localization-demo-eyebrow {
+    margin: 0 0 0.45rem;
+    font-size: 0.78rem;
+    font-weight: 750;
+    letter-spacing: 0.13em;
+    text-transform: uppercase;
+}
+
+.localization-demo-hero h1 {
+    margin: 0;
+    font-size: clamp(2rem, 5vw, 4rem);
+    line-height: 1;
+}
+
+.localization-demo-hero p:last-child {
+    margin: 0.85rem 0 0;
+}
+
+.localization-demo-language {
+    max-inline-size: 30rem;
+    padding: 1rem;
+    color: var(--ui-color, #182433);
+    background: rgb(255 255 255 / 92%);
+    border: 1px solid rgb(255 255 255 / 45%);
+    border-radius: var(--panel-radius, 0.75rem);
+    box-shadow: 0 1rem 2.5rem rgb(10 20 40 / 22%);
+}
+
+.localization-demo-language > p {
+    margin: 0.65rem 0 0;
+    font-size: 0.84rem;
+    line-height: 1.4;
+}
+
+.localization-demo-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: clamp(1rem, 2vw, 1.5rem);
+    width: min(88rem, calc(100% - 2rem));
+    margin-inline: auto;
+    padding-block: clamp(1rem, 3vw, 2.5rem);
+}
+
+.localization-demo-panel {
+    min-block-size: 16rem;
+}
+
+.localization-demo-fields {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(12rem, 1fr));
+    align-items: end;
+    gap: 1rem;
+}
+
+.localization-demo-states {
+    display: grid;
+    grid-template-columns: minmax(10rem, 0.8fr) minmax(16rem, 1.2fr);
+    gap: 1rem;
+    min-block-size: 10rem;
+}
+
+.localization-demo-states > section {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    min-block-size: 0;
+}
+
+.localization-demo-states h2 {
+    margin: 0;
+    font-size: 0.95rem;
+}
+
+.localization-demo-dialog-launcher {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-block-size: 9rem;
+}
+
+.localization-demo-note {
+    margin: 0;
+}
+
+.localization-demo-messages {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.75rem;
+    margin: 0;
+}
+
+.localization-demo-messages > div {
+    padding: 0.7rem;
+    background: var(--ui-input-bg, rgb(255 255 255 / 70%));
+    border: var(--ui-input-border, 1px solid rgb(0 0 0 / 16%));
+    border-radius: var(--ui-border-radius, 0.4rem);
+}
+
+.localization-demo-messages dt {
+    font-size: 0.75rem;
+    font-weight: 700;
+    opacity: 0.72;
+}
+
+.localization-demo-messages dd {
+    margin: 0.2rem 0 0;
+    font-size: 1rem;
+}
+
+@media (max-width: 56rem) {
+    .localization-demo-grid,
+    .localization-demo-states {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}
+
+@media (max-width: 34rem) {
+    .localization-demo-fields,
+    .localization-demo-messages {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .localization-demo-grid {
+        width: min(100% - 1rem, 88rem);
+    }
+}

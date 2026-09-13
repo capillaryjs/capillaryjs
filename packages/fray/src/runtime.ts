@@ -9,6 +9,8 @@ import {
 import type {StyleRegistry} from './styling/styleRegistry.js'
 import {ServiceScope, createServiceScope} from './services.js'
 import type {BrowserRouter} from './routing/router.js'
+import {createRuntimeLocalization} from './localization.js'
+import type {FrayLocalization, FrayLocalizationOptions} from './localization.js'
 
 const RESERVED_CUSTOM_ELEMENT_NAMES = new Set([
     'annotation-xml',
@@ -26,13 +28,16 @@ export interface FrayRuntimeOptions {
     services?: ServiceScope
     /** Optional caller-owned browser router inherited by routed components. */
     router?: BrowserRouter
+    /** Static Fray message overrides and formatting locale for this runtime. */
+    localization?: FrayLocalizationOptions
 }
 
-/** Immutable application scope for structural styles and browser services. */
+/** Application scope for structural styles, browser integrations, and localization. */
 export class FrayRuntime {
     readonly styleRegistry: StyleRegistry
     readonly services: ServiceScope
     readonly router: BrowserRouter | null
+    readonly localization: FrayLocalization
     private readonly routedRoots = new WeakSet<Component>()
 
     constructor(
@@ -46,6 +51,7 @@ export class FrayRuntime {
             throw new TypeError('FrayRuntime no longer supports configurable element names')
         }
         this.styleRegistry = registry
+        this.localization = createRuntimeLocalization(options.localization)
         this.services = options.services ?? createServiceScope()
         if (!(this.services instanceof ServiceScope)) {
             throw new TypeError('Fray services must be a ServiceScope')

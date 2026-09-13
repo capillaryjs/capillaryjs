@@ -38,7 +38,7 @@ export class Breadcrumb extends Component<BreadcrumbProps> {
         const items = this.props.items
         const last = items.length - 1
         return <Host className={componentClass(this.props) || null}>
-            <nav aria-label={this.props.label ?? 'Breadcrumb'}>
+            <nav aria-label={this.props.label ?? this.frayMessage('breadcrumbLabel')}>
                 <ol>{items.map((item, index) => <li key={String(item.id)}>
                     {index === last
                         ? <span aria-current="page" {...(item.title == null ? {} : {title: item.title})}>{item.label}</span>

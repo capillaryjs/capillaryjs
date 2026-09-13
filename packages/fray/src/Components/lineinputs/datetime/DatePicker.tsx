@@ -284,7 +284,7 @@ export class DatePicker extends LabeledInputControl<DatePickerProps> {
                     type="button"
                     disabled={disabled || readOnly}
                     tabIndex={-1}
-                    aria-label="Open calendar"
+                    aria-label={this.frayMessage('datePickerOpenCalendarLabel')}
                     onClick={() => !readOnly && !disabled && this.open(true)}
                 >
                     {'▼'}
@@ -294,7 +294,7 @@ export class DatePicker extends LabeledInputControl<DatePickerProps> {
                         id={this.popupId}
                         role="dialog"
                         aria-modal="false"
-                        aria-label="Choose a date"
+                        aria-label={this.frayMessage('datePickerDialogLabel')}
                         open
                         ref={dialogRef}
                         onKeyDown={(event: KeyboardEvent) => this.handleCalendarKeyDown(event)}
