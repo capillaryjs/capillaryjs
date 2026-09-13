@@ -387,10 +387,23 @@ fray-groupbox {
             --fray-groupbox-content-margin: 0;
         }
 
+        [data-fray-context='form'] fray-categoryhidepanel,
         [data-fray-context='form'] fray-groupbox {
             flex: 1 1 auto;
             align-self: stretch;
             padding-top: 1em;
+        }
+
+        .fray-layout-horizontal fray-categoryhidepanel,
+        .fray-layout-horizontal fray-groupbox {
+            max-width: 15rem;
+            min-width: max-content;
+        }
+
+        .fray-layout-vertical  fray-categoryhidepanel,
+        .fray-layout-vertical  fray-groupbox {
+            max-height: 15rem;
+            min-height: max-content;
         }
 
         [data-fray-context='form'] fray-groupbox > fray-header {

@@ -13,6 +13,7 @@ import {
     Dropdown,
     FilterMode,
     Fragment,
+    GroupBox,
     NavigationBar,
     Panel,
     ProgressBar,
@@ -162,6 +163,7 @@ DatePicker.registerStyles()
 DateTimePicker.registerStyles()
 Dropdown.registerStyles()
 DescriptionList.registerStyles()
+GroupBox.registerStyles()
 Dialog.registerStyles()
 DataTable.registerStyles()
 Panel.registerStyles()

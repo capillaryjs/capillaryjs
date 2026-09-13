@@ -60,6 +60,8 @@ export class GroupBox<
             border: var(--fray-groupbox-border, 1px solid var(--ui-border-color));
             border-radius: var(--ui-border-radius);
             position: relative;
+            min-width: 0;
+            min-height: 0;
         }
 
         & > fray-header {
@@ -76,10 +78,14 @@ export class GroupBox<
             transform: var(--fray-groupbox-header-transform, rotate(180deg));
             font-weight: normal;
             font-size: var(--ui-font-size);
+            min-width: 0;
+            min-height: 0;
         }
 
         & > fray-content {
             display: block;
+            min-width: 0;
+            min-height: 0;
             margin-left: var(--fray-groupbox-content-margin, .25em);
         }
 
@@ -136,12 +142,12 @@ export class GroupBox<
 
         .fray-layout-horizontal & {
             max-width: 15rem;
-            min-width: max-content;
+            min-width: 0;
         }
 
         .fray-layout-vertical  & {
             max-height: 15rem;
-            min-height: max-content;
+            min-height: 0;
         }
 
         [data-fray-context='form'] fray-groupbox > fray-header {

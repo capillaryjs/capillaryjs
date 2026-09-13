@@ -945,6 +945,8 @@ fray-optionsbox {
             border: var(--fray-groupbox-border, 1px solid var(--ui-border-color));
             border-radius: var(--ui-border-radius);
             position: relative;
+            min-width: 0;
+            min-height: 0;
         }
 
         fray-groupbox > fray-header,
@@ -962,11 +964,15 @@ fray-optionsbox {
             transform: var(--fray-groupbox-header-transform, rotate(180deg));
             font-weight: normal;
             font-size: var(--ui-font-size);
+            min-width: 0;
+            min-height: 0;
         }
 
         fray-groupbox > fray-content,
         fray-optionsbox > fray-content {
             display: block;
+            min-width: 0;
+            min-height: 0;
             margin-left: var(--fray-groupbox-content-margin, .25em);
         }
 
@@ -1027,13 +1033,13 @@ fray-optionsbox {
         .fray-layout-horizontal fray-groupbox,
         .fray-layout-horizontal fray-optionsbox {
             max-width: 15rem;
-            min-width: max-content;
+            min-width: 0;
         }
 
         .fray-layout-vertical  fray-groupbox,
         .fray-layout-vertical  fray-optionsbox {
             max-height: 15rem;
-            min-height: max-content;
+            min-height: 0;
         }
 
         [data-fray-context='form'] fray-groupbox > fray-header {
