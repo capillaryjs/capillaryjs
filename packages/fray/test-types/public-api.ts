@@ -11,7 +11,7 @@ import {
     Dialog,
     DialogActions,
     Dropdown,
-    GroupPanel,
+    GroupBox,
     FrayApp,
     ListView,
     Layout,
@@ -76,7 +76,7 @@ const combinedValue = new Emitter<{date: string | null; time: string | null} | n
 const combined = new DateTimePicker({label: 'Schedule', valueEmitter: combinedValue})
 combined.valueEmitter.get()?.date?.slice(0, 4)
 
-new GroupPanel({header: 'Grouping', children: 'Controls'})
+new GroupBox({header: 'Grouping', children: 'Controls'})
 new FrayApp({sizing: 'viewport', landmark: 'main', children: 'Application'})
 const appRuntime = createFrayRuntime()
 mountFrayApp(appRuntime, FrayApp, document.body, {landmark: 'none'})

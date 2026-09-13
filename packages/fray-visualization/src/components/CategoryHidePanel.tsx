@@ -2,10 +2,10 @@ import {FetchState} from '@sylwellsoftware/glue'
 import type {ReadableEmitter} from '@sylwellsoftware/glue'
 import {
     Checkbox,
-    OptionsPanel,
+    OptionsBox,
     css,
 } from '@sylwellsoftware/fray'
-import type {FrayChild, GroupPanelBaseProps} from '@sylwellsoftware/fray'
+import type {FrayChild, GroupBoxBaseProps} from '@sylwellsoftware/fray'
 
 import {CollapsibleOptionGroup} from './CollapsibleOptionGroup.js'
 
@@ -17,7 +17,7 @@ const visibilitySymbols = [
     ['✓', 'visible'],
 ] as const
 
-export interface CategoryHidePanelProps<TItem> extends GroupPanelBaseProps {
+export interface CategoryHidePanelProps<TItem> extends GroupBoxBaseProps {
     readonly items$: ReadableEmitter<readonly TItem[]>
     readonly criteria: readonly GroupingCriterion<TItem>[]
     readonly label?: string
@@ -26,7 +26,7 @@ export interface CategoryHidePanelProps<TItem> extends GroupPanelBaseProps {
 
 /** Show/hide controls with live counts against the unfiltered item source. */
 export class CategoryHidePanel<TItem = unknown>
-extends OptionsPanel<CategoryHidePanelProps<TItem>> {
+extends OptionsBox<CategoryHidePanelProps<TItem>> {
     static override liveProps: readonly string[] = []
     render(): FrayChild {
         const {
@@ -36,7 +36,7 @@ extends OptionsPanel<CategoryHidePanelProps<TItem>> {
         } = this.props
         const itemSnapshot = this.snapshot(this.props.items$)
         const items = Array.isArray(itemSnapshot.value) ? itemSnapshot.value : []
-        return this.renderGroupPanel(label,
+        return this.renderGroupBox(label,
             <fray-categoryhidecontent>
                 <p>{description}</p>
                 {itemSnapshot.fetchState === FetchState.Error

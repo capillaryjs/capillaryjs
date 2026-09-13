@@ -198,11 +198,11 @@ source.
 | --- | --- |
 | `items$` | Required readable source used for live counts |
 | `criteria` | Required criterion list |
-| `label` | GroupPanel heading; defaults to “Show or hide categories” |
+| `label` | GroupBox heading; defaults to “Show or hide categories” |
 | `description` | Introductory help text |
 | `initiallyOpen` | Initial disclosure policy per criterion |
 
-The outer surface inherits Fray's `GroupPanel` contract: a labelled group with
+The outer surface inherits Fray's `GroupBox` contract: a labelled group with
 a vertical chromed header. Criterion summaries remain horizontal disclosure
 headers above their options.
 
@@ -214,7 +214,7 @@ recursive order.
 | Prop | Meaning |
 | --- | --- |
 | `model` | Required caller-owned `SplitSelectionModel` |
-| `label` | GroupPanel heading |
+| `label` | GroupBox heading |
 | `description` | Introductory help text |
 
 Pointer dragging reorders entries. From a drag handle,

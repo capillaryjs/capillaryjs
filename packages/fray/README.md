@@ -348,9 +348,9 @@ const view = new Emitter<'list' | 'grid'>('list')
 | --- | --- | --- |
 | `FrayApp` | Fixed `fray-app` application shell and theme-text boundary | `sizing`: `embedded`/viewport axes; `layout`: `horizontal`/`vertical`; `landmark`: `main`/`none`; content or overridden `renderContent()` |
 | `Header` | Styled native heading surface | `level` (1–6), `headingId`, content |
-| `GroupPanel` | Labelled bordered group with a vertical header | required `header`, content |
+| `GroupBox` | Labelled bordered group with a vertical header | required `header`, content |
 | `OptionGroup` | Labelled native fieldset for related controls | `label`/`ariaLabel`, `OptionGroupHeaderEnd` and ordinary content children, validation props |
-| `OptionsPanel` | GroupPanel specialization arranging option groups | required `header`, `OptionGroup` content |
+| `OptionsBox` | GroupBox specialization arranging option groups | required `header`, `OptionGroup` content |
 | `Layout` | Presentation-only arrangement of arbitrary children | exactly one of `horizontal`/`vertical`; `allocation`, `scroll`, optional accessible-region configuration |
 | `Panel` | Optional labelled, themed region composed over a Layout body | `header`, `horizontal`/`vertical`, `allocation`, `scroll`, `disabled`; `PanelToolbar` and ordinary content children; live: `disabled` |
 | `Sidebar` | Labelled `aside` with fixed header/toolbar and scrolling content | `header`, `ariaLabel`; `SidebarToolbar` and ordinary content children |

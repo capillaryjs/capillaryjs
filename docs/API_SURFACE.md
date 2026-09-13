@@ -116,7 +116,7 @@ custom elements.
 | --- | --- |
 | Actions | `Button`, `Toolbar` |
 | Text and choices | `Label`, `Textbox`, `Dropdown`, `RadioButton`, `RadioGroup`, `Toggle`, `Checkbox`, `TriCheckbox`, `QuadCheckbox` |
-| Layout and navigation | `Breadcrumb`, `FrayApp`, `Layout`, `Header`, `GroupPanel`, `NavigationBar`, `OptionGroup`, `OptionGroupHeaderEnd`, `OptionsPanel`, `Panel`, `PanelToolbar`, `Sidebar`, `SidebarToolbar`, `SplitPrimary`, `SplitSecondary`, `SplitView`, `Tab`, `TabLine`, `TabPanel` |
+| Layout and navigation | `Breadcrumb`, `FrayApp`, `Layout`, `Header`, `GroupBox`, `NavigationBar`, `OptionGroup`, `OptionGroupHeaderEnd`, `OptionsBox`, `Panel`, `PanelToolbar`, `Sidebar`, `SidebarToolbar`, `SplitPrimary`, `SplitSecondary`, `SplitView`, `Tab`, `TabLine`, `TabPanel` |
 | Records and collections | `DescriptionItem`, `DescriptionList`, `InfoField`, `InfoPanel`, `Placeholder`, `ListView`, `TreeItem`, `TreeView` |
 | Tables and filters | `DataTable`, `FilterPanel`, `TableHeader`, `TableHeaderCell` |
 | Dialog and status | `Dialog`, `DialogActions`, `ProgressBar` |
@@ -140,10 +140,10 @@ Notable public behavior:
 - Rich `Checkbox` and `TableColumn` labels accept a textual `ariaLabel` for
   Fray-generated state, sort, and filter accessibility messages.
 - `Dialog` uses a native modal surface with focus containment and restoration.
-- `GroupPanel` is a named group with a bordered body and vertical header.
+- `GroupBox` is a named group with a bordered body and vertical header.
 - `OptionGroup` renders a labelled `fieldset`/`legend` shell and accepts an
   `OptionGroupHeaderEnd` declarative region child.
-- `OptionsPanel` extends `GroupPanel` with a flex-column content area for `OptionGroup` children.
+- `OptionsBox` extends `GroupBox` with a flex-column content area for `OptionGroup` children.
 - `ContentMountPolicy` selects eager, lazy-retained, or active-only content
   lifetime for `TabPanel` and `RouteOutlet`; `TabPanelMountPolicy` remains an
   alias while tabs preserve semantic tabpanel shells.

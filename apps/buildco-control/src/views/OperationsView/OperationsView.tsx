@@ -2,7 +2,7 @@ import type {FrayChild} from "@sylwellsoftware/fray";
 import {
     Component, DataTable, Panel, PanelToolbar, Sidebar, SidebarToolbar,
     SplitPrimary, SplitSecondary, SplitView,
-    TabPanel, Toggle, Checkbox, OptionsPanel, OptionGroup,
+    TabPanel, Toggle, Checkbox, OptionsBox, OptionGroup,
     Dropdown, Textbox, Button, RouteQuery, Placeholder, Toolbar, stringRouteQueryCodec,
 } from "@sylwellsoftware/fray";
 import type {TableColumn, TableRow} from "@sylwellsoftware/fray";
@@ -51,7 +51,7 @@ const filterFields = ["search", "project", "scope", "from", "to", "overtime", "s
 export class OperationsView extends Component {
     static dependencies = [
         DataTable, Panel, PanelToolbar, Sidebar, SidebarToolbar, SplitView,
-        TabPanel, Toggle, Checkbox, OptionsPanel, OptionGroup,
+        TabPanel, Toggle, Checkbox, OptionsBox, OptionGroup,
         Dropdown, Textbox, Button, RouteQuery, Placeholder, Toolbar,
     ];
 
@@ -124,7 +124,7 @@ export class OperationsView extends Component {
                             />
                         </Toolbar>
                     </SidebarToolbar>
-                    <OptionsPanel header="Filters">
+                    <OptionsBox header="Filters">
                         <OptionGroup label="Scope">
                             <Dropdown
                                 label="Project"
@@ -168,7 +168,7 @@ export class OperationsView extends Component {
                                 valueEmitter={this.compact}
                             />
                         </OptionGroup>
-                    </OptionsPanel>
+                    </OptionsBox>
                 </Sidebar>
             </SplitPrimary>
             <SplitSecondary>

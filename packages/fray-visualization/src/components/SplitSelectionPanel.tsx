@@ -1,4 +1,4 @@
-import {Button, Checkbox, Component, GroupPanel, css} from '@sylwellsoftware/fray'
+import {Button, Checkbox, Component, GroupBox, css} from '@sylwellsoftware/fray'
 import type {ComponentProps, FrayChild} from '@sylwellsoftware/fray'
 
 import type {CategoryVisibility} from '../grouping.js'
@@ -44,7 +44,7 @@ extends Component<SplitSelectionPanelProps<TItem>> {
         const activePreset = this.read(model.activePreset$)
         const Host = this.Host
         return <Host>
-            {model.presets.length === 0 ? null : <GroupPanel header={presetsLabel}>
+            {model.presets.length === 0 ? null : <GroupBox header={presetsLabel}>
                 <fray-presets>
                     {model.presets.map((preset) => <Button
                         key={preset.key}
@@ -56,8 +56,8 @@ extends Component<SplitSelectionPanelProps<TItem>> {
                         }}
                     />)}
                 </fray-presets>
-            </GroupPanel>}
-            <GroupPanel header={label}>
+            </GroupBox>}
+            <GroupBox header={label}>
                 <p>{description}</p>
                 <ol>{order.map((criterion) => <li
                     key={criterion.key}
@@ -94,12 +94,12 @@ extends Component<SplitSelectionPanelProps<TItem>> {
                 <p role="status" aria-live="polite" aria-atomic="true">
                     {this.announcement}
                 </p>
-            </GroupPanel>
+            </GroupBox>
         </Host>
     }
 
     static override hostName = 'split-selection-panel'
-    static dependencies = [Button, Checkbox, GroupPanel]
+    static dependencies = [Button, Checkbox, GroupBox]
 
     static css = css`
         & {
@@ -109,35 +109,35 @@ extends Component<SplitSelectionPanelProps<TItem>> {
             user-select: none;
         }
 
-        & > fray-grouppanel {
+        & > fray-groupbox {
             min-width: 0;
         }
 
-        & > fray-grouppanel > fray-content {
+        & > fray-groupbox > fray-content {
             display: flex;
             flex-flow: column;
             padding: .25em;
             flex: 1 1 0;
         }
 
-        & > fray-grouppanel > fray-content > p,
-        & > fray-grouppanel > fray-content > ol {
+        & > fray-groupbox > fray-content > p,
+        & > fray-groupbox > fray-content > ol {
             margin: 0;
         }
 
-        & > fray-grouppanel > fray-content > p:first-child {
+        & > fray-groupbox > fray-content > p:first-child {
             color: var(--viz-muted-color, var(--ui-muted-text-color, currentColor));
             font-size: 0.875em;
         }
 
-        & > fray-grouppanel > fray-content > fray-presets {
+        & > fray-groupbox > fray-content > fray-presets {
             display: grid;
             gap: 0.35rem;
             align-content: stretch;
             justify-content: stretch;
         }
 
-        & > fray-grouppanel > fray-content > fray-presets > fray-button {
+        & > fray-groupbox > fray-content > fray-presets > fray-button {
             display: flex;
             flex-flow: column;
             align-content: stretch;
@@ -201,7 +201,7 @@ extends Component<SplitSelectionPanelProps<TItem>> {
             align-content: center;
         }
 
-        & > fray-grouppanel > fray-content > p[role="status"][aria-live="polite"][aria-atomic="true"] {
+        & > fray-groupbox > fray-content > p[role="status"][aria-live="polite"][aria-atomic="true"] {
             position: absolute;
             width: 1px;
             height: 1px;

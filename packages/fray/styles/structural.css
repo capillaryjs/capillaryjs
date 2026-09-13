@@ -955,8 +955,8 @@ fray-app {
             line-height: var(--line-height);
         }
 
-fray-grouppanel,
-fray-optionspanel {
+fray-groupbox,
+fray-optionsbox {
             display: flex;
             flex-flow: row nowrap;
             align-items: stretch;
@@ -970,8 +970,8 @@ fray-optionspanel {
             border-radius: var(--ui-border-radius);
         }
 
-        fray-grouppanel > fray-header,
-        fray-optionspanel > fray-header {
+        fray-groupbox > fray-header,
+        fray-optionsbox > fray-header {
             display: grid;
             place-items: center;
             box-sizing: border-box;
@@ -986,8 +986,8 @@ fray-optionspanel {
             font-size: var(--ui-font-size);
         }
 
-        fray-grouppanel > fray-content,
-        fray-optionspanel > fray-content {
+        fray-groupbox > fray-content,
+        fray-optionsbox > fray-content {
             display: block;
             min-width: 0;
             min-height: 0;
@@ -1214,7 +1214,7 @@ fray-optiongroup {
             margin: 0.25em 0 0;
         }
 
-fray-optionspanel > fray-content {
+fray-optionsbox > fray-content {
             display: flex;
             flex-direction: column;
             align-self: stretch;
@@ -1222,7 +1222,7 @@ fray-optionspanel > fray-content {
             gap: .5em;
         }
 
-        fray-optionspanel > fray-content * > fieldset > legend {
+        fray-optionsbox > fray-content * > fieldset > legend {
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -1237,7 +1237,7 @@ fray-optionspanel > fray-content {
             user-select: none;
         }
 
-        fray-optionspanel > fray-content * > fieldset {
+        fray-optionsbox > fray-content * > fieldset {
             display: flex;
             flex-flow: column;
             justify-content: stretch;

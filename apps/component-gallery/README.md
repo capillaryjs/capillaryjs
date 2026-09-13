@@ -5,30 +5,37 @@ component surfaces inside one routed shell. It is the framework-side companion
 to the private `layout-demo` app: where layout-demo exercises allocation
 scenarios, this app exercises real component compositions.
 
-## Layout variants
+The app is being rebuilt step by step. The current shell provides the shared
+controls every gallery page consumes; pages are added one at a time.
 
-A `Toggle` in the header island switches `FrayApp` between two sizing modes:
+## Shell controls
 
-- **App shell** (`sizing="viewport"`): the application owns the viewport and
-  each region (sidebar body, panel content, route outlet) owns its own
-  scrolling.
-- **Website** (`sizing="embedded"`): the application grows with its content
-  inside a centered, max-width column and the document scrolls.
+The header island carries the page navbar and a control toolbar below it:
 
-Both variants render the same island structure: a header island with the page
-navbar, an island sidebar per page, a main content area with an island control
-panel on top and a data control area below, and a footer island with the theme
-and color pickers.
+- **Layout** — a `Toggle` switching `FrayApp` between **App shell**
+  (`sizing="viewport"`, the application owns the viewport and each region owns
+  its scrolling) and **Website** (`sizing="embedded"`, the application grows
+  with its content inside a centered, max-width column and the document
+  scrolls).
+- **Theme / Colors** — `ThemePicker` and `ColorPicker` swap the loaded Fray
+  theme and color stylesheets.
+- **Data** — a `Toggle` selecting the shared fetch state (`initial`, `ready`,
+  `loading`, `error`) applied to `GalleryModel.dataSource`, the derived
+  emitter gallery pages bind data-aware components to. The error state raises
+  a simulated load error.
+- **Component state** — checkboxes for `disabled`, `required`, `read-only`,
+  and `error` flags exposed on `GalleryModel` for gallery pages to apply to
+  showcased controls.
+
+Both layout variants render the same island structure: a header island with
+the navbar and control toolbar, a routed page body, and a footer island with
+the status line.
 
 ## Pages
 
-| Page | Sidebar | Control panel | Data area |
-| --- | --- | --- | --- |
-| Data grid | `Panel`-style island with `Textbox`, `Dropdown`, `Checkbox`, native checkbox | `FilterPanel` + `Toolbar` | `DataTable` |
-| Explorer | `TreeView` | Chart option checkboxes + `DescriptionList` | `LineGraph` |
-| Directory | `ListView` | `DescriptionList` + `Dialog` trigger | `DataTable` |
-| Analytics | `OptionsPanel` with `CollapsibleOptionGroup` accordion (`CategoryHidePanel`, `SplitSelectionPanel`) | Selection summary + `Toolbar` | `BlockGraph` + `LineGraph` in a `SplitView` |
-| Forms | `OptionsPanel` with `OptionGroup` state/semantics controls | Line inputs (`Textbox`, `Dropdown`, `Toggle`, `RadioGroup`, `Checkbox`, `DatePicker`, `TimePicker`, `DateTimePicker`, `ProgressBar`) + `Dialog` | `DataTable` of submissions |
+| Page | Content |
+| --- | --- |
+| Line inputs | Every line-input control across three island panels (checkboxes, basic inputs, date/time), each with a `PanelToolbar` so controls render in both panel and toolbar contexts. `OptionGroup` fieldsets hold one instance per intrinsic state and content variant; every flag-capable prop binds the shared toolbar emitters via `live()`, so toggling a header flag makes that state the uniform expectation across the page and themed outliers stand out. The sidebar offers section navigation and reports the shared data state. |
 
 Navigation uses the public router (`createBrowserRouter` +
 `createHashNavigation`), a `NavigationBar` of `RouteLink`s, and a `RouteOutlet`
@@ -56,5 +63,4 @@ tasks:
 The app is also included in the framework root `typecheck`, `test`, and
 `build` scripts, so `pnpm verify` (and `./gradlew frameworkCheck`) covers it.
 
-The demo runs entirely on a deterministic in-memory service catalog; there is
-no backend.
+The demo runs entirely on local reactive state; there is no backend.

@@ -19,10 +19,10 @@ import {
     InfoField,
     InfoPanel,
     FilterPanel,
-    GroupPanel,
+    GroupBox,
     Header,
     OptionGroup,
-    OptionsPanel,
+    OptionsBox,
     ListView,
     NavigationBar,
     Panel,
@@ -450,29 +450,29 @@ describe('style registry', () => {
         assert.match(stylesheet, /fray-optiongroup > fieldset\s*\{[^}]*margin:\s*0[^}]*padding:\s*0[^}]*border:\s*0/)
         assert.match(stylesheet, /fray-optiongroup > fieldset > legend\s*\{[^}]*display:\s*flex[^}]*justify-content:\s*space-between[^}]*border-bottom:\s*1px solid var\(--ui-border-color\)/)
         assert.match(stylesheet, /fray-optiongroup > fieldset > legend > span\s*\{[^}]*flex:\s*1/)
-        assert.doesNotMatch(stylesheet, /fray-grouppanel|fray-panel|fray-header|fray-checkbox/)
+        assert.doesNotMatch(stylesheet, /fray-groupbox|fray-panel|fray-header|fray-checkbox/)
     })
 
-    test('collects OptionsPanel with inherited GroupPanel flex layout and flex content override', () => {
+    test('collects OptionsBox with inherited GroupBox flex layout and flex content override', () => {
         const runtime = createFrayRuntime()
-        runtime.registerStyles(OptionsPanel)
+        runtime.registerStyles(OptionsBox)
         const stylesheet = runtime.styleRegistry.generateCSS()
 
-        assert.match(stylesheet, /fray-optionspanel\s*\{[^}]*display:\s*flex[^}]*flex-flow:\s*row nowrap[^}]*border:\s*1px solid var\(--ui-border-color\)/)
-        assert.match(stylesheet, /fray-optionspanel > fray-header\s*\{[^}]*place-items:\s*center[^}]*writing-mode:\s*vertical-rl[^}]*transform:\s*rotate\(180deg\)/)
-        assert.match(stylesheet, /fray-optionspanel > fray-content\s*\{[^}]*display:\s*flex[^}]*flex-direction:\s*column[^}]*gap:\s*\.5em/)
+        assert.match(stylesheet, /fray-optionsbox\s*\{[^}]*display:\s*flex[^}]*flex-flow:\s*row nowrap[^}]*border:\s*1px solid var\(--ui-border-color\)/)
+        assert.match(stylesheet, /fray-optionsbox > fray-header\s*\{[^}]*place-items:\s*center[^}]*writing-mode:\s*vertical-rl[^}]*transform:\s*rotate\(180deg\)/)
+        assert.match(stylesheet, /fray-optionsbox > fray-content\s*\{[^}]*display:\s*flex[^}]*flex-direction:\s*column[^}]*gap:\s*\.5em/)
         assert.match(stylesheet, /fray-header\s*\{[^}]*background:\s*var\(--section-header-background\)/)
         assert.doesNotMatch(stylesheet, /fray-panel|fray-sidebar|fray-checkbox/)
     })
 
-    test('collects GroupPanel border and vertical Header treatment', () => {
+    test('collects GroupBox border and vertical Header treatment', () => {
         const runtime = createFrayRuntime()
-        runtime.registerStyles(GroupPanel)
+        runtime.registerStyles(GroupBox)
         const stylesheet = runtime.styleRegistry.generateCSS()
 
-        assert.match(stylesheet, /fray-grouppanel\s*\{[^}]*display:\s*flex[^}]*flex-flow:\s*row nowrap[^}]*column-gap:\s*0\.35rem[^}]*padding-inline:\s*0\.125rem 0\.35rem[^}]*border:\s*1px solid var\(--ui-border-color\)/)
-        assert.match(stylesheet, /fray-grouppanel > fray-header\s*\{[^}]*place-items:\s*center[^}]*box-sizing:\s*border-box[^}]*width:\s*1\.7em[^}]*min-width:\s*0[^}]*border-radius:\s*var\(--ui-border-radius\)/)
-        assert.match(stylesheet, /fray-grouppanel > fray-header\s*\{[^}]*writing-mode:\s*vertical-rl[^}]*transform:\s*rotate\(180deg\)/)
+        assert.match(stylesheet, /fray-groupbox\s*\{[^}]*display:\s*flex[^}]*flex-flow:\s*row nowrap[^}]*column-gap:\s*0\.35rem[^}]*padding-inline:\s*0\.125rem 0\.35rem[^}]*border:\s*1px solid var\(--ui-border-color\)/)
+        assert.match(stylesheet, /fray-groupbox > fray-header\s*\{[^}]*place-items:\s*center[^}]*box-sizing:\s*border-box[^}]*width:\s*1\.7em[^}]*min-width:\s*0[^}]*border-radius:\s*var\(--ui-border-radius\)/)
+        assert.match(stylesheet, /fray-groupbox > fray-header\s*\{[^}]*writing-mode:\s*vertical-rl[^}]*transform:\s*rotate\(180deg\)/)
         assert.match(stylesheet, /fray-header\s*\{[^}]*background:\s*var\(--section-header-background\)[^}]*box-shadow:\s*var\(--section-header-shadow\)/)
         assert.doesNotMatch(stylesheet, /fray-panel|fray-sidebar|fray-checkbox/)
     })

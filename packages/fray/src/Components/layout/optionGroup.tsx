@@ -17,7 +17,7 @@ export interface OptionGroupBaseProps extends ComponentProps {
     error?: unknown
 }
 
-/** Labeled fieldset section for use inside an OptionsPanel or standalone. */
+/** Labeled fieldset section for use inside an OptionsBox or standalone. */
 export class OptionGroup<TProps extends OptionGroupBaseProps = OptionGroupBaseProps>
     extends Component<TProps> {
     static override liveProps: readonly string[] = []

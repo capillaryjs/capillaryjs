@@ -5,7 +5,7 @@ import {fileURLToPath} from 'node:url'
 import {Window} from 'happy-dom'
 
 import {Emitter, FetchState} from '@sylwellsoftware/glue'
-import {GroupPanel, OptionGroupHeaderEnd, h} from '@sylwellsoftware/fray'
+import {GroupBox, OptionGroupHeaderEnd, h} from '@sylwellsoftware/fray'
 
 import {
     BlockGraph,
@@ -123,8 +123,8 @@ describe('visualization controls', () => {
 
     test('CategoryHidePanel uses Fray checkboxes and unfiltered live counts', () => {
         assert.match(CategoryHidePanel.css, /flex: 0 0 auto/)
-        assert.match(GroupPanel.css, /display:\s*flex[^}]*flex-flow:\s*row nowrap/)
-        assert.match(GroupPanel.css, /> fray-header\s*\{[^}]*writing-mode:\s*vertical-rl[^}]*transform:\s*rotate\(180deg\)/)
+        assert.match(GroupBox.css, /display:\s*flex[^}]*flex-flow:\s*row nowrap/)
+        assert.match(GroupBox.css, /> fray-header\s*\{[^}]*writing-mode:\s*vertical-rl[^}]*transform:\s*rotate\(180deg\)/)
         assert.match(CategoryHidePanel.css, /fray-collapsible-option-group > fieldset > legend small/)
         assert.match(CategoryHidePanel.css, /fray-categoryoption > fray-checkbox > label/)
         assert.doesNotMatch(CategoryHidePanel.css, /fray-check-box/)
@@ -191,8 +191,8 @@ describe('visualization controls', () => {
             'split-selection-panel')
         const splitPanel = required('fray-splitselectionpanel')
         assert.equal(splitPanel.getAttribute('role'), null)
-        assert.ok(splitPanel.querySelector(':scope > fray-grouppanel > fray-header'))
-        assert.ok(splitPanel.querySelector(':scope > fray-grouppanel > fray-content > ol'))
+        assert.ok(splitPanel.querySelector(':scope > fray-groupbox > fray-header'))
+        assert.ok(splitPanel.querySelector(':scope > fray-groupbox > fray-content > ol'))
         assert.equal(required('[data-split-key="state"]').className, '')
         assert.equal(document.querySelector('[data-part="position"]'), null)
         assert.equal(required('fray-draghandle').localName, 'fray-draghandle')

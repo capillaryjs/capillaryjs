@@ -7,11 +7,7 @@ export interface GalleryPageDefinition {
     readonly route: LiteralRouteDescriptor
 }
 
-/** Ordered gallery page registry shared by the navbar, outlet, and breadcrumb. */
+/** Ordered gallery page registry shared by the navbar and the route outlet. */
 export const galleryPages: readonly GalleryPageDefinition[] = Object.freeze([
-    {id: 'data-grid', label: 'Data grid', route: defineRoute('data-grid')},
-    {id: 'explorer', label: 'Explorer', route: defineRoute('explorer')},
-    {id: 'directory', label: 'Directory', route: defineRoute('directory')},
-    {id: 'analytics', label: 'Analytics', route: defineRoute('analytics')},
-    {id: 'forms', label: 'Forms', route: defineRoute('forms')},
+    {id: 'line-inputs', label: 'Line inputs', route: defineRoute('line-inputs')},
 ])

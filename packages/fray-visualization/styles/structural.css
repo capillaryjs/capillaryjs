@@ -305,7 +305,7 @@ fray-button > button {
         }
 
 fray-categoryhidepanel,
-fray-grouppanel {
+fray-groupbox {
             display: flex;
             flex-flow: row nowrap;
             align-items: stretch;
@@ -320,7 +320,7 @@ fray-grouppanel {
         }
 
         fray-categoryhidepanel > fray-header,
-        fray-grouppanel > fray-header {
+        fray-groupbox > fray-header {
             display: grid;
             place-items: center;
             box-sizing: border-box;
@@ -336,7 +336,7 @@ fray-grouppanel {
         }
 
         fray-categoryhidepanel > fray-content,
-        fray-grouppanel > fray-content {
+        fray-groupbox > fray-content {
             display: block;
             min-width: 0;
             min-height: 0;
@@ -743,35 +743,35 @@ fray-splitselectionpanel {
             user-select: none;
         }
 
-        fray-splitselectionpanel > fray-grouppanel {
+        fray-splitselectionpanel > fray-groupbox {
             min-width: 0;
         }
 
-        fray-splitselectionpanel > fray-grouppanel > fray-content {
+        fray-splitselectionpanel > fray-groupbox > fray-content {
             display: flex;
             flex-flow: column;
             padding: .25em;
             flex: 1 1 0;
         }
 
-        fray-splitselectionpanel > fray-grouppanel > fray-content > p,
-        fray-splitselectionpanel > fray-grouppanel > fray-content > ol {
+        fray-splitselectionpanel > fray-groupbox > fray-content > p,
+        fray-splitselectionpanel > fray-groupbox > fray-content > ol {
             margin: 0;
         }
 
-        fray-splitselectionpanel > fray-grouppanel > fray-content > p:first-child {
+        fray-splitselectionpanel > fray-groupbox > fray-content > p:first-child {
             color: var(--viz-muted-color, var(--ui-muted-text-color, currentColor));
             font-size: 0.875em;
         }
 
-        fray-splitselectionpanel > fray-grouppanel > fray-content > fray-presets {
+        fray-splitselectionpanel > fray-groupbox > fray-content > fray-presets {
             display: grid;
             gap: 0.35rem;
             align-content: stretch;
             justify-content: stretch;
         }
 
-        fray-splitselectionpanel > fray-grouppanel > fray-content > fray-presets > fray-button {
+        fray-splitselectionpanel > fray-groupbox > fray-content > fray-presets > fray-button {
             display: flex;
             flex-flow: column;
             align-content: stretch;
@@ -835,7 +835,7 @@ fray-splitselectionpanel {
             align-content: center;
         }
 
-        fray-splitselectionpanel > fray-grouppanel > fray-content > p[role="status"][aria-live="polite"][aria-atomic="true"] {
+        fray-splitselectionpanel > fray-groupbox > fray-content > p[role="status"][aria-live="polite"][aria-atomic="true"] {
             position: absolute;
             width: 1px;
             height: 1px;

@@ -2,7 +2,7 @@ import type {FrayChild} from "@sylwellsoftware/fray";
 import {
     Button,
     FilterPanel,
-    GroupPanel,
+    GroupBox,
     ListView,
     live,
     Panel,
@@ -50,7 +50,7 @@ export class QueueScreen extends ScreenView {
                             {this.select("phaseType", "Phase types", b?.choices.phaseTypes ?? [])}
                         </Toolbar>
 
-                        <GroupPanel header="Conditions">
+                        <GroupBox header="Conditions">
                             <div className="semantic-grid">
                                 {this.conditionFields.map(c => (
                                     <QuadCheckbox
@@ -61,7 +61,7 @@ export class QueueScreen extends ScreenView {
                                     />
                                 ))}
                             </div>
-                        </GroupPanel>
+                        </GroupBox>
 
                         <p className="muted semantic-help">
                             ☐ Neutral · ✓ Prefer (any) · + Require (all) · × Deny. Deny always wins.

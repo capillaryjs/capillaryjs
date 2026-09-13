@@ -2,7 +2,7 @@ import type {FrayChild} from "@sylwellsoftware/fray";
 import {
     Component, ListView, Panel, PanelToolbar, Sidebar, SidebarToolbar,
     SplitPrimary, SplitSecondary, SplitView,
-    OptionsPanel, OptionGroup, OptionGroupHeaderEnd,
+    OptionsBox, OptionGroup, OptionGroupHeaderEnd,
     QuadCheckbox, TriCheckbox, Dropdown, Textbox, Button,
     DescriptionList, DescriptionItem, ProgressBar, RouteLink, RouteQuery, Placeholder, Toolbar,
     routeTarget, stringRouteQueryCodec, withRouteQuery,
@@ -34,7 +34,7 @@ function encodeModes(params: Parameters, keys: readonly string[]): string {
 export class QueueView extends Component {
     static dependencies = [
         ListView, Panel, PanelToolbar, Sidebar, SidebarToolbar, SplitView,
-        OptionsPanel, OptionGroup, OptionGroupHeaderEnd,
+        OptionsBox, OptionGroup, OptionGroupHeaderEnd,
         QuadCheckbox, TriCheckbox, Dropdown, Textbox, Button,
         DescriptionList, DescriptionItem, ProgressBar, RouteLink, RouteQuery, Placeholder, Toolbar,
     ];
@@ -112,7 +112,7 @@ export class QueueView extends Component {
                             />
                         </Toolbar>
                     </SidebarToolbar>
-                    <OptionsPanel header="Conditions">
+                    <OptionsBox header="Conditions">
                         <OptionGroup label="Phase conditions">
                             <OptionGroupHeaderEnd>
                                 <Button
@@ -138,7 +138,7 @@ export class QueueView extends Component {
                             options={[{value: "", label: "All projects"}, ...(b.value.choices.projects ?? [])]}
                             valueEmitter={this.state.field("project") as any}
                         />
-                    </OptionsPanel>
+                    </OptionsBox>
                 </Sidebar>
             </SplitPrimary>
             <SplitSecondary>

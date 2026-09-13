@@ -3,17 +3,17 @@ import type {ComponentDependency, ComponentProps, FrayChild} from '../component.
 import {componentClass, controlId} from '../controlUtils.js'
 import {Header} from './header.js'
 
-export interface GroupPanelBaseProps extends ComponentProps {
+export interface GroupBoxBaseProps extends ComponentProps {
     id?: string | number | null
 }
 
-export interface GroupPanelProps extends GroupPanelBaseProps {
+export interface GroupBoxProps extends GroupBoxBaseProps {
     header: FrayChild
 }
 
 /** Bordered control group with a full-height vertical section header. */
-export class GroupPanel<
-    TProps extends GroupPanelBaseProps = GroupPanelProps,
+export class GroupBox<
+    TProps extends GroupBoxBaseProps = GroupBoxProps,
 > extends Component<TProps> {
     static override liveProps: readonly string[] = []
     readonly panelId: string
@@ -21,16 +21,16 @@ export class GroupPanel<
 
     constructor(props: TProps) {
         super(props)
-        this.panelId = controlId('group-panel', props.id)
+        this.panelId = controlId('group-box', props.id)
         this.headerId = `${this.panelId}-title`
     }
 
     render(): FrayChild {
-        const {header, children = []} = this.props as TProps & GroupPanelProps
-        return this.renderGroupPanel(header, children)
+        const {header, children = []} = this.props as TProps & GroupBoxProps
+        return this.renderGroupBox(header, children)
     }
 
-    protected renderGroupPanel(header: FrayChild, content: FrayChild): FrayChild {
+    protected renderGroupBox(header: FrayChild, content: FrayChild): FrayChild {
         const Host = this.Host
         return <Host
             id={this.panelId}
@@ -46,7 +46,7 @@ export class GroupPanel<
         </Host>
     }
 
-    static override hostName = 'group-panel'
+    static override hostName = 'group-box'
     static override dependencies: ComponentDependency[] = [Header]
 
     static css = css`

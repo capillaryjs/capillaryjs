@@ -16,7 +16,7 @@ import {
     InfoField,
     InfoPanel,
     FilterMode,
-    GroupPanel,
+    GroupBox,
     Header,
     Label,
     Layout,
@@ -934,13 +934,13 @@ describe('layout controls', () => {
         assert.throws(() => Header.new({level: 7 as never}).mount(), /integer from 1 to 6/)
     })
 
-    test('GroupPanel labels a bordered group through a vertical Header', () => {
-        GroupPanel.new({
+    test('GroupBox labels a bordered group through a vertical Header', () => {
+        GroupBox.new({
             header: 'Select and order splits',
             children: h('ol', null, h('li', null, 'Severity')),
         }).attachTo(document.body)
 
-        const group = requiredQuery<HTMLElement>('fray-grouppanel')
+        const group = requiredQuery<HTMLElement>('fray-groupbox')
         const header = requiredQuery<HTMLElement>(':scope > fray-header', group)
         const title = requiredQuery<HTMLHeadingElement>(':scope > h2', header)
         const content = requiredQuery<HTMLElement>(':scope > fray-content', group)

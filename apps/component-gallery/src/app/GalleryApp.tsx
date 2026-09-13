@@ -1,27 +1,19 @@
 import {Component} from '@sylwellsoftware/fray'
 import type {FrayChild} from '@sylwellsoftware/fray'
-import {
-    Breadcrumb,
-    FrayApp,
-    NavigationBar,
-    RouteOutlet,
-    Toggle,
-} from '@sylwellsoftware/fray'
+import {FrayApp, NavigationBar, RouteOutlet, Toggle} from '@sylwellsoftware/fray'
 
 import {GalleryFooter} from './components/GalleryFooter.js'
 import {GalleryHeader} from './components/GalleryHeader.js'
+import {GalleryToolbar} from './components/GalleryToolbar.js'
 import {GalleryModel} from './model/GalleryModel.js'
-import {AnalyticsPage} from './pages/AnalyticsPage.js'
-import {DataGridPage} from './pages/DataGridPage.js'
-import {DirectoryPage} from './pages/DirectoryPage.js'
-import {ExplorerPage} from './pages/ExplorerPage.js'
-import {FormsPage} from './pages/FormsPage.js'
+import {LineInputsPage} from './pages/LineInputsPage.js'
 import {galleryPages} from './routing.js'
 
 /**
- * Gallery root: an island header with the page navbar, a routed page body, and
- * an island footer. The header toggle switches FrayApp between the viewport
- * application shell and the embedded, document-scrolling website variant.
+ * Gallery root: an island header with the page navbar and the gallery control
+ * toolbar, a routed page body, and an island footer. The toolbar's layout
+ * toggle switches FrayApp between the viewport application shell and the
+ * embedded, document-scrolling website variant.
  */
 export class GalleryApp extends Component {
     private readonly model = new GalleryModel()
@@ -51,16 +43,8 @@ export class GalleryApp extends Component {
 
     private renderPage(id: string): FrayChild {
         switch (id) {
-            case 'explorer':
-                return <ExplorerPage model={this.model} />
-            case 'directory':
-                return <DirectoryPage model={this.model} />
-            case 'analytics':
-                return <AnalyticsPage model={this.model} />
-            case 'forms':
-                return <FormsPage model={this.model} />
             default:
-                return <DataGridPage model={this.model} />
+                return <LineInputsPage model={this.model} />
         }
     }
 
@@ -72,14 +56,10 @@ export class GalleryApp extends Component {
         FrayApp,
         NavigationBar,
         RouteOutlet,
-        Breadcrumb,
         Toggle,
         GalleryHeader,
+        GalleryToolbar,
         GalleryFooter,
-        DataGridPage,
-        ExplorerPage,
-        DirectoryPage,
-        AnalyticsPage,
-        FormsPage,
+        LineInputsPage,
     ]
 }

@@ -1,16 +1,16 @@
 import {css} from '../component.js'
-import {GroupPanel} from './groupPanel.js'
-import type {GroupPanelBaseProps} from './groupPanel.js'
+import {GroupBox} from './groupBox.js'
+import type {GroupBoxBaseProps} from './groupBox.js'
 import type {FrayChild} from '../component.js'
 
-export interface OptionsPanelProps extends GroupPanelBaseProps {
+export interface OptionsBoxProps extends GroupBoxBaseProps {
     header: FrayChild
 }
 
 /** Bordered panel with a vertical section header, designed to contain OptionGroups. */
-export class OptionsPanel<TProps extends GroupPanelBaseProps = OptionsPanelProps>
-    extends GroupPanel<TProps> {
-    static override hostName = 'options-panel'
+export class OptionsBox<TProps extends GroupBoxBaseProps = OptionsBoxProps>
+    extends GroupBox<TProps> {
+    static override hostName = 'options-box'
 
     static css = css`
         & > fray-content {

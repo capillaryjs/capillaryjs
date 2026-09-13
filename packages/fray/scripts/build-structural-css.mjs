@@ -13,10 +13,10 @@ import {TableHeaderCell} from '../src/Components/data/table/TableHeaderCell.tsx'
 import {TreeItem} from '../src/Components/data/treeview/treeitem.tsx'
 import {TreeView} from '../src/Components/data/treeview/treeview.tsx'
 import {Dialog} from '../src/Components/dialog/dialog.tsx'
-import {GroupPanel} from '../src/Components/layout/groupPanel.tsx'
+import {GroupBox} from '../src/Components/layout/groupBox.tsx'
 import {Header} from '../src/Components/layout/header.tsx'
 import {OptionGroup} from '../src/Components/layout/optionGroup.tsx'
-import {OptionsPanel} from '../src/Components/layout/optionsPanel.tsx'
+import {OptionsBox} from '../src/Components/layout/optionsBox.tsx'
 import {Panel} from '../src/Components/layout/panel.tsx'
 import {Sidebar} from '../src/Components/layout/sidebar.tsx'
 import {SplitView} from '../src/Components/layout/splitView.tsx'
@@ -56,13 +56,13 @@ const components = [
     Dropdown,
     FilterPanel,
     FrayApp,
-    GroupPanel,
+    GroupBox,
     Header,
     InfoPanel,
     ListView,
     NavigationBar,
     OptionGroup,
-    OptionsPanel,
+    OptionsBox,
     Panel,
     Placeholder,
     ProgressBar,

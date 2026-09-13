@@ -248,6 +248,55 @@ regions; only the outlet registers the routes. Keep presentation markup in
 components and data/operations in services. Avoid having mounted pages locate
 and modify shell DOM or leave global toolbar registrations behind on exit.
 
+### Arrange form fields in vertical groups
+
+Controls in a form read top to bottom. Choose the grouping component by the
+relationship among its contents: `OptionGroup` is a fieldset of *peer*
+controls answering one narrow concern — its legend names the question —
+while `GroupBox` gathers *distinct* fields under one broader subject, its
+header naming the topic. Stack each group's controls in a vertical `Layout`.
+When a form has several groups, place them side by side in a horizontal
+`Layout` so the columns use the available width and wrap when it runs out;
+each group still owns its vertical field order.
+
+```tsx
+<Panel header="Connection">
+    <Layout horizontal className="form-groups">
+        <GroupBox header="Server">
+            <Layout vertical>
+                <Textbox label="Host" valueEmitter={state.host} />
+                <Textbox label="Port" valueEmitter={state.port} />
+            </Layout>
+        </GroupBox>
+        <GroupBox header="Credentials">
+            <Layout vertical>
+                <Textbox label="User" valueEmitter={state.user} />
+                <Textbox label="Password" type="password"
+                    valueEmitter={state.password} />
+            </Layout>
+        </GroupBox>
+        <OptionGroup label="Protocol">
+            <Layout vertical>
+                <Checkbox label="TLS" valueEmitter={state.tls} />
+                <Checkbox label="Compression"
+                    valueEmitter={state.compression} />
+            </Layout>
+        </OptionGroup>
+    </Layout>
+</Panel>
+```
+
+```css
+.form-groups { flex-wrap: wrap; align-items: flex-start; gap: 1rem 2rem; }
+```
+
+`GroupBox`'s current presentation carries sidebar-weighted chrome — a
+vertical section header and border — and a quieter form presentation is
+planned via presentation contexts; the contract distinction above already
+holds. `OptionsBox` is the `GroupBox` specialization for sidebar panels of
+`OptionGroup`s. Prefer these components over anonymous wrappers: the
+fieldset, legend, and vertical rhythm are the contract a theme styles.
+
 ## 3. Choose state lifetime and transition boundaries
 
 Decide what the user should find when returning to a screen. A draft may need
@@ -496,7 +545,7 @@ Use this decision table when similar markup appears:
 | --- | --- |
 | Styling, spacing, or widths, with varying anatomy | Native markup and shared CSS traits/tokens |
 | A fixed arrangement with a few meaningful content regions | A shared layout component accepting parent-specific named region children |
-| An accessible interaction or recognizable widget | A component such as `GroupPanel`, `Sidebar`, or a domain-specific presentation |
+| An accessible interaction or recognizable widget | A component such as `GroupBox`, `Sidebar`, or a domain-specific presentation |
 | A substantial part of one screen | A component colocated with that screen, even if it has only one caller |
 | Mostly another component's props, passed straight through | Keep the direct use unless the wrapper adds a meaningful contract |
 
@@ -537,12 +586,12 @@ If a component simply renders several supplied elements in one panel body,
 ordinary children are already the ordered contract. Do not assign special
 meaning to child indexes unnecessarily:
 
-`GroupPanel` owns its labeled group structure and presentation. Its caller owns
+`GroupBox` owns its labeled group structure and presentation. Its caller owns
 the controls. For example, `state.colorBy` and `state.relativeTo` below are
 writable emitters created by the view's state owner:
 
 ```tsx
-<GroupPanel header="Display options">
+<GroupBox header="Display options">
     <RadioGroup
         label="Colors represent"
         options={[
@@ -559,11 +608,11 @@ writable emitters created by the view's state owner:
         ]}
         valueEmitter={state.relativeTo}
     />
-</GroupPanel>
+</GroupBox>
 ```
 
 This keeps the controls, their order, and their bindings visible while sharing
-the group chrome. `OptionsPanel` provides a more specific arrangement for
+the group chrome. `OptionsBox` provides a more specific arrangement for
 option groups when that is the intended structure.
 
 A wrapper that accepts an array of radio-group specifications merely to
@@ -721,7 +770,7 @@ choice for assembling application screens.
 
 Inheritance remains useful where Fray provides an intentional specialization
 contract. An application root can extend `FrayApp` and override
-`renderContent()`, as above. `OptionsPanel` extends `GroupPanel` to specialize
+`renderContent()`, as above. `OptionsBox` extends `GroupBox` to specialize
 shared chrome. Such examples do not require an application-wide hierarchy of
 page base classes.
 
@@ -735,7 +784,7 @@ belong to one island; islands must not nest.
 Let the composition that knows the surrounding surfaces choose island
 placement. A reusable inner component should normally leave that choice to
 its caller. The `island` prop or class supplies surface treatment, not space
-allocation or the intended scroll owner. A `GroupPanel` inside an island can
+allocation or the intended scroll owner. A `GroupBox` inside an island can
 retain its ordinary group chrome without itself being another island.
 
 Use native elements for native semantics. Apply Fray's public traits directly

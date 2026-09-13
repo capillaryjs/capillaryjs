@@ -30,8 +30,8 @@ before(() => {
 
 after(() => window.close())
 
-test('gallery shell mounts the routed data-grid page with islands', async () => {
-    const adapter = new MemoryNavigationAdapter('/data-grid')
+test('gallery shell mounts the line-inputs page with islands and toolbar', async () => {
+    const adapter = new MemoryNavigationAdapter('/line-inputs')
     const router = createBrowserRouter({adapter})
     const runtime = createFrayRuntime({router})
     const app = runtime.mount(runtime.create(GalleryApp), document.body)
@@ -41,47 +41,84 @@ test('gallery shell mounts the routed data-grid page with islands', async () => 
     assert.ok(document.querySelector('header.gallery-masthead'), 'masthead island')
     assert.ok(document.querySelector('footer.gallery-footer'), 'footer island')
     assert.ok(document.querySelector('nav'), 'page navbar')
-    assert.ok(document.querySelector('fray-sidebar'), 'sidebar island')
-    assert.ok(document.querySelector('fray-datatable'), 'service register table')
-    assert.ok(document.querySelector('fray-filterpanel'), 'semantic criteria panel')
+    assert.ok(document.querySelector('fray-toolbar.gallery-controls'), 'control toolbar')
+    assert.ok(document.querySelector('fray-sidebar'), 'page sidebar')
+    assert.ok(document.querySelector('fray-panel'), 'content panel')
 
-    // Navbar links resolve to registered page routes
-    const hrefs = [...document.querySelectorAll<HTMLAnchorElement>('nav a')]
-        .map((anchor) => anchor.getAttribute('href'))
-    for (const page of ['explorer', 'directory', 'analytics', 'forms']) {
-        assert.ok(
-            hrefs.some((href) => href?.includes(page)),
-            `navbar link for ${page}`,
-        )
-    }
+    // Toolbar controls
+    assert.ok(document.querySelector('fray-themepicker'), 'theme picker')
+    assert.ok(document.querySelector('fray-colorpicker'), 'color picker')
+    const headerToggles = document.querySelectorAll('.gallery-controls fray-toggle')
+    assert.equal(headerToggles.length, 2, 'layout and data-state toggles')
+    const flagInputs = document.querySelectorAll('.gallery-flag-group input')
+    assert.equal(flagInputs.length, 4, 'component-state flags')
 
-    // The data grid renders deterministic catalog rows
+    // The line-inputs page renders its state matrix
+    assert.ok(document.querySelector('#gallery-checkboxes'), 'checkbox panel')
+    assert.ok(document.querySelector('#gallery-basic-inputs'), 'basic inputs panel')
+    assert.ok(document.querySelector('#gallery-date-time'), 'date/time panel')
+    assert.ok(document.querySelector('fray-tricheckbox'), 'tri-state checkbox')
+    assert.ok(document.querySelector('fray-quadcheckbox'), 'quad-state checkbox')
+    assert.ok(document.querySelector('fray-datepicker'), 'date picker')
+    assert.ok(document.querySelector('fray-timepicker'), 'time picker')
+    assert.ok(document.querySelector('fray-datetimepicker'), 'datetime picker')
+    assert.ok(document.querySelector('fray-progressbar'), 'progress bar')
     assert.ok(
-        document.querySelector('fray-datatable')?.textContent?.includes('SVC-001'),
-        'catalog row rendered',
+        document.querySelectorAll('fray-panel fray-toolbar').length >= 3,
+        'panel toolbars',
+    )
+    assert.ok(
+        document.querySelector('.gallery-data-state')?.textContent?.includes('ready'),
+        'data-state readout',
     )
 
     app.destroy()
     router.dispose()
 })
 
-test('navbar navigation mounts the explorer page lazily', async () => {
-    const adapter = new MemoryNavigationAdapter('/data-grid')
+test('toolbar toggles switch layout variant and shared data state', async () => {
+    const adapter = new MemoryNavigationAdapter('/line-inputs')
     const router = createBrowserRouter({adapter})
     const runtime = createFrayRuntime({router})
     const app = runtime.mount(runtime.create(GalleryApp), document.body)
     await waitUntil(() => router.transition.get().state === 'idle')
 
-    const explorerLink = [...document.querySelectorAll<HTMLAnchorElement>('nav a')]
-        .find((anchor) => anchor.getAttribute('href')?.includes('explorer'))
-    assert.ok(explorerLink, 'explorer nav link')
-    explorerLink.click()
-    await waitUntil(() => router.transition.get().state === 'idle'
-        && document.querySelector('fray-treeview') != null)
+    const root = document.querySelector('fray-app')
+    assert.ok(root?.classList.contains('gallery-shell'), 'app shell variant')
 
-    assert.equal(adapter.read(), '/explorer')
-    assert.ok(document.querySelector('fray-treeview'), 'catalog tree')
-    assert.ok(document.querySelector('fray-linegraph'), 'incident history chart')
+    // Layout toggle → website variant
+    const websiteOption = [...document.querySelectorAll<HTMLElement>(
+        'fray-toggle button[role="radio"]',
+    )].find((button) => button.textContent === 'Website')
+    assert.ok(websiteOption, 'website layout option')
+    websiteOption.click()
+    assert.ok(root?.classList.contains('gallery-website'), 'website variant')
+
+    // Data-state toggle → error propagates to the page readout
+    const errorOption = [...document.querySelectorAll<HTMLElement>(
+        'fray-toggle button[role="radio"]',
+    )].find((button) => button.textContent === 'Error')
+    assert.ok(errorOption, 'error data-state option')
+    errorOption.click()
+    assert.ok(
+        document.querySelector('.gallery-data-state')?.textContent?.includes('error'),
+        'error state readout',
+    )
+
+    // Component-state flag → checkbox binding updates the model
+    const disabledFlag = document.querySelector<HTMLInputElement>(
+        '.gallery-flag-group input',
+    )
+    assert.ok(disabledFlag, 'disabled flag checkbox')
+    disabledFlag.click()
+    assert.equal(disabledFlag.checked, true, 'disabled flag applied')
+
+    // The global disabled flag reaches showcased page controls
+    const pageTextbox = document.querySelector<HTMLInputElement>(
+        '#gallery-basic-inputs fray-textbox input',
+    )
+    assert.ok(pageTextbox, 'page textbox input')
+    assert.equal(pageTextbox.disabled, true, 'global disabled flag applied to page control')
 
     app.destroy()
     router.dispose()

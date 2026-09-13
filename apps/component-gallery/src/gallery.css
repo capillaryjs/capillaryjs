@@ -1,26 +1,61 @@
 /* Component gallery application styles. */
 
+/* The document is application policy: drop the browser's default body margin
+   so the viewport-sized shell does not overflow into scrollbars, and paint
+   the page background around the centered website column. */
+html,
+body,
+#app {
+    margin: 0;
+}
+
+body {
+    background: var(--application-background);
+    color: var(--ui-color);
+}
+
 .gallery-masthead {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.gallery-masthead-row {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
     gap: 0.75rem 1.5rem;
 }
 
-.gallery-masthead > h1 {
+.gallery-masthead-row > h1 {
     margin: 0;
     font-size: 1.15rem;
     font-weight: 700;
     white-space: nowrap;
 }
 
-.gallery-masthead > nav {
+.gallery-masthead-row > nav {
     flex: 1 1 auto;
     min-width: 0;
 }
 
-.gallery-masthead > fray-toggle {
-    flex: none;
+.gallery-controls {
+    row-gap: 0.5rem;
+}
+
+.gallery-controls .gallery-flag-group {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.35rem 0.9rem;
+    user-select: none;
+}
+
+.gallery-controls .gallery-flag-group > label {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    white-space: nowrap;
 }
 
 .gallery-footer {
@@ -41,27 +76,40 @@
     flex: 0 0 auto;
 }
 
-.gallery-sidebar-stack {
-    display: flex;
-    flex-direction: column;
-    gap: 0.75rem;
-    padding: 0.75rem;
-}
-
 .gallery-main {
     min-width: 0;
     min-height: 0;
 }
 
-.gallery-form-grid {
-    display: flex;
-    flex-flow: row wrap;
-    align-items: center;
-    gap: 0.75rem 1.25rem;
+.gallery-placeholder {
+    margin: 0;
+    padding: 0.75rem;
+    opacity: 0.7;
 }
 
-.gallery-note {
+.gallery-data-state {
     margin: 0;
+    padding: 0 0.75rem 0.75rem;
+}
+
+.gallery-section-nav {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.35rem;
+    padding: 0.75rem;
+}
+
+/* OptionGroup columns flow side by side and wrap within the panel body. */
+.gallery-group-row {
+    flex-wrap: wrap;
+    align-items: flex-start;
+    gap: 1rem 2rem;
+}
+
+/* Each group stacks its control variants vertically. */
+.gallery-state-column {
+    gap: 0.5rem;
 }
 
 .gallery-website {
