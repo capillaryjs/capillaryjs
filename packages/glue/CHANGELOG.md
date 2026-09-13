@@ -6,6 +6,8 @@ Versioning.
 
 ## Unreleased
 
+## 0.10.0 - 2026-09-13
+
 ### Added
 
 - Added an opt-in `RetryPolicy` for `LiveQuery`, `AsyncCommand`, and endpoint

@@ -6,6 +6,8 @@ Versioning.
 
 ## Unreleased
 
+## 1.4.0 - 2026-09-13
+
 ### Added
 
 - Added optional static localization to `FrayRuntime`: applications can supply

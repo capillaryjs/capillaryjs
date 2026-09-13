@@ -6,6 +6,8 @@ and Semantic Versioning.
 
 ## Unreleased
 
+## 0.12.0 - 2026-09-13
+
 ### Changed
 
 - `CollapsibleOptionGroup` now consumes `OptionGroupHeaderEnd` declarative
