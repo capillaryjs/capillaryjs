@@ -356,12 +356,26 @@ describe('routed Fray components', () => {
         assert.throws(() => new NavigationBar({
             label: 'Primary',
             items: [{id: 'ext', label: 'External', to: {kind: 'external', href: ''}}],
-        }), /non-empty href/)
+        }), /non-blank href/)
+        assert.throws(() => new NavigationBar({
+            label: 'Primary',
+            items: [{id: 'ext', label: 'External', to: {kind: 'external', href: '  '}}],
+        }), /non-blank href/)
         assert.throws(() => new NavigationBar({
             label: 'Primary',
             // @ts-expect-error Runtime validation remains for JavaScript consumers.
             items: [{id: 'ext', label: 'External', to: {kind: 'external'}}],
-        }), /non-empty href/)
+        }), /non-blank href/)
+        assert.throws(() => new NavigationBar({
+            label: 'Primary',
+            // @ts-expect-error External destinations have no route-current state.
+            items: [{
+                id: 'ext',
+                label: 'External',
+                to: {kind: 'external', href: 'https://portal.example/'},
+                exact: true,
+            }],
+        }), /cannot use exact route matching/)
         assert.throws(() => new RouteOutlet({
             // @ts-expect-error Runtime validation remains for JavaScript consumers.
             views: null,
@@ -529,6 +543,7 @@ describe('routed Fray components', () => {
                     label: 'Portal',
                     to: {kind: 'external', href: 'https://portal.example/app?x=1'},
                     target: '_blank',
+                    download: 'portal.html',
                     title: 'Customer portal',
                     onClick: () => {
                         clicked += 1
@@ -551,6 +566,7 @@ describe('routed Fray components', () => {
         const external = requiredAt(links, 1)
         assert.equal(external.getAttribute('href'), 'https://portal.example/app?x=1')
         assert.equal(external.getAttribute('target'), '_blank')
+        assert.equal(external.getAttribute('download'), 'portal.html')
         assert.equal(external.getAttribute('title'), 'Customer portal')
         assert.equal(external.getAttribute('aria-current'), null)
 
@@ -565,6 +581,18 @@ describe('routed Fray components', () => {
         external.dispatchEvent(native as unknown as Event)
         assert.equal(native.defaultPrevented, false)
         assert.equal(clicked, 1)
+        assert.equal(adapter.read(), '/')
+        assert.equal(adapter.length, 1)
+
+        const modified = new window.MouseEvent('click', {
+            bubbles: true,
+            cancelable: true,
+            button: 0,
+            ctrlKey: true,
+        })
+        external.dispatchEvent(modified as unknown as Event)
+        assert.equal(modified.defaultPrevented, false)
+        assert.equal(clicked, 2)
         assert.equal(adapter.read(), '/')
         assert.equal(adapter.length, 1)
 

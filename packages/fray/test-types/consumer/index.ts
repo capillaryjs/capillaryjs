@@ -167,6 +167,16 @@ new NavigationBar({
         {id: 'portal', label: 'Portal', to: {kind: 'external', href: 'https://portal.example/'}},
     ],
 })
+new NavigationBar({
+    label: 'Primary',
+    // @ts-expect-error External destinations have no route-current state.
+    items: [{
+        id: 'portal',
+        label: 'Portal',
+        to: {kind: 'external', href: 'https://portal.example/'},
+        exact: true,
+    }],
+})
 new RouteOutlet({
     valueEmitter: new Emitter<string | number | null>('home'),
     mountPolicy: 'active-only',

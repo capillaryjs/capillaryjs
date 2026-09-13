@@ -355,7 +355,7 @@ const view = new Emitter<'list' | 'grid'>('list')
 | `Panel` | Optional labelled, themed region composed over a Layout body | `header`, `horizontal`/`vertical`, `allocation`, `scroll`, `disabled`; `PanelToolbar` and ordinary content children; live: `disabled` |
 | `Sidebar` | Labelled `aside` with fixed header/toolbar and scrolling content | `header`, `ariaLabel`; `SidebarToolbar` and ordinary content children |
 | `SplitView` | Resizable two-pane layout | required `SplitPrimary` and `SplitSecondary` Layout panes; `horizontal`/`vertical`, `allocation`, initial/minimum sizes, separator label, `onResize` |
-| `NavigationBar` | Labelled native navigation list over router-aware or external anchors | required `label`, `items`; per-item route target or `{kind: 'external', href}`, `exact`, disabled/link options |
+| `NavigationBar` | Labelled native navigation list over router-aware or external anchors | required `label`, `items`; route items accept `exact`; external items use `{kind: 'external', href}` plus disabled/link options |
 | `Tab` | Declarative tab definition consumed by `TabPanel` | `id`, `label`, `disabled`, optional literal `route`, content |
 | `TabLine` | Standalone keyboard-operable tab list | `tabs`, `valueEmitter`/`activeTabEmitter`, initial value, `label`, `onChange` |
 | `TabPanel` | Tab list plus owned tabpanel sections | declarative `Tab` children or `tabs` definitions; value props, `mountPolicy`, `label`, `onChange` |
@@ -417,7 +417,9 @@ required in the runtime. It has ordinary link tab order and no tab or
 ARIA-menu keyboard
 model. A disabled item is rendered as a visible non-link with
 `aria-disabled="true"`. The bar navigates only; it never locates or owns the
-content affected by a route.
+content affected by a route. `href` is application-controlled and passed to
+the native anchor: destination trust, allowed URL schemes, availability, and
+cross-application policy remain application responsibilities.
 
 Its `--navigation-bar-*` and `--navigation-link-*` theme variables are
 independent from `--button-*`. The base theme deliberately presents navigation

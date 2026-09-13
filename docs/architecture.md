@@ -100,13 +100,16 @@ Invalid locations settle at the deepest valid parent and expose a structured
 issue emitter. The application decides how to present that issue accessibly.
 Tables, filters, endpoints, and domain models do not acquire router knowledge.
 
-`NavigationBar` presents router-aware destinations as native links without
-owning their content. `RouteOutlet` is the canonical owner for one sibling
-literal-route set: it writes restoration into an application-owned emitter,
-applies eager, lazy-retained, or active-only mounting, and supplies the selected
-branch's nested route scope. Disconnected titles, sidebars, and actions may
-observe that emitter directly; they do not duplicate route registration or use
-router transition state as an application store.
+`NavigationBar` presents router-aware destinations and application-controlled
+external destinations as native links without owning their content. Only the
+former use the router or have current-route semantics; external URL trust and
+availability remain application policy. `RouteOutlet` is the canonical owner
+for one sibling literal-route set: it writes restoration into an
+application-owned emitter, applies eager, lazy-retained, or active-only
+mounting, and supplies the selected branch's nested route scope. Disconnected
+titles, sidebars, and actions may observe that emitter directly; they do not
+duplicate route registration or use router transition state as an application
+store.
 
 ## Data components
 

@@ -22,17 +22,31 @@ export function isExternalDestination(value: unknown): value is ExternalDestinat
         && (value as {kind?: unknown}).kind === 'external'
 }
 
-export interface NavigationBarItem {
+interface NavigationBarItemBase {
     id: Key
     label: FrayChild
-    to: RouteDescriptor | RouteTarget | ResolvedRoute | ExternalDestination
-    exact?: boolean
     disabled?: boolean
     target?: string
     download?: string | boolean
     title?: string
     onClick?: (event: MouseEvent) => void
 }
+
+/** A router-owned destination with optional route-current matching. */
+export interface NavigationBarRouteItem extends NavigationBarItemBase {
+    to: RouteDescriptor | RouteTarget | ResolvedRoute
+    exact?: boolean
+}
+
+/** An application-controlled native-link destination outside the current router. */
+export interface NavigationBarExternalItem extends NavigationBarItemBase {
+    to: ExternalDestination
+    /** External links have no router-current state, so exact matching is invalid. */
+    exact?: never
+}
+
+/** One router-aware or application-controlled destination in a NavigationBar. */
+export type NavigationBarItem = NavigationBarRouteItem | NavigationBarExternalItem
 
 export interface NavigationBarProps extends ComponentProps, FrayLayoutParticipantProps {
     items: readonly NavigationBarItem[]
@@ -174,9 +188,13 @@ function validateNavigation(props: NavigationBarProps): void {
         if (item == null || item.id == null) throw new TypeError('Each navigation item requires an id')
         if (item.label == null) throw new TypeError('Each navigation item requires a label')
         if (item.to == null) throw new TypeError('Each navigation item requires a destination')
-        if (isExternalDestination(item.to)
-            && (typeof item.to.href !== 'string' || item.to.href === '')) {
-            throw new TypeError('External navigation item requires a non-empty href')
+        if (isExternalDestination(item.to)) {
+            if (typeof item.to.href !== 'string' || item.to.href.trim() === '') {
+                throw new TypeError('External navigation item requires a non-blank href')
+            }
+            if (item.exact != null) {
+                throw new TypeError('External navigation item cannot use exact route matching')
+            }
         }
         if (ids.has(item.id)) throw new Error(`Duplicate navigation item id: ${String(item.id)}`)
         if (item.onClick != null && typeof item.onClick !== 'function') {

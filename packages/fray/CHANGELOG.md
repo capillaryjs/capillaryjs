@@ -63,6 +63,10 @@ Versioning.
 
 ### Fixed
 
+- `NavigationBar` now rejects meaningless `exact` matching on external
+  destinations; the public item union exposes `exact` only for router-aware
+  targets. Blank external hrefs are also rejected consistently.
+
 - `TreeView` now presents a localized loading state rather than a misleading
   empty state while an empty node source is loading. Calendar day cells now use
   the runtime locale's numeral system alongside its localized heading and
