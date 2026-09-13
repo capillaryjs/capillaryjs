@@ -335,22 +335,25 @@ fray-button > button {
         }
 
 fray-error {
-            display: flex;
-            flex: 1 0 100%;
-            align-items: flex-start;
-            gap: .35em;
-            min-width: 0;
-            margin: .25em 0 0;
+            position: absolute;
+            z-index: 1200;
+            inset-block-start: -.35em;
+            inset-inline-end: -.35em;
+            display: block;
+            width: 1.25em;
+            height: 1.25em;
+            margin: 0;
             color: var(--error-color);
             font-size: .875em;
             line-height: 1.35;
-            white-space: normal;
+            outline: none;
             box-sizing: border-box;
         }
 
         fray-error > fray-erroricon {
+            position: absolute;
+            inset: 0;
             display: grid;
-            flex: 0 0 1.25em;
             width: 1.25em;
             height: 1.25em;
             color: var(--error-contrast);
@@ -368,37 +371,11 @@ fray-error {
         }
 
         fray-error > fray-errortext {
-            display: block;
-            min-width: 0;
-            overflow-wrap: anywhere;
-        }
-
-        fray-error.fray-error-banner {
-            width: 100%;
-            padding: var(--space-xs) var(--space-sm);
-            margin: 0 0 var(--space-xs);
-            background: var(--error-bg-translucent, rgb(255 0 0 / .13));
-            border: 1px solid var(--error-color);
-            border-radius: var(--radius-md);
-        }
-
-        [data-fray-context="control"] fray-error {
-            position: absolute;
-            z-index: 1200;
-            inset-block-start: -.35em;
-            inset-inline-end: -.35em;
-            display: block;
-            width: 1.25em;
-            height: 1.25em;
-            margin: 0;
-            outline: none;
-        }
-
-        [data-fray-context="control"] fray-error > fray-errortext {
             position: absolute;
             z-index: 1;
             inset-block-start: calc(100% + .25em);
             inset-inline-end: 0;
+            display: block;
             visibility: hidden;
             width: max-content;
             max-width: min(22rem, 80vw);
@@ -409,19 +386,21 @@ fray-error {
             border-radius: var(--radius-md);
             box-shadow: var(--ui-shadow);
             opacity: 0;
+            overflow-wrap: anywhere;
             pointer-events: none;
             transform: translateY(-.2em);
             transition: opacity var(--motion-fast), transform var(--motion-fast), visibility 0s linear var(--motion-fast);
         }
 
-        [data-fray-context="control"] fray-error:is(:hover, :focus, :focus-within) > fray-errortext {
+        fray-error > fray-erroricon:hover + fray-errortext,
+        fray-error:focus-visible > fray-errortext {
             visibility: visible;
             opacity: 1;
             transform: translateY(0);
             transition-delay: 0s;
         }
 
-        [data-fray-context="control"] fray-error:focus-visible > fray-erroricon {
+        fray-error:focus-visible > fray-erroricon {
             outline: 2px solid transparent;
             outline-offset: 1px;
             box-shadow: var(--focus-ring);
@@ -429,8 +408,7 @@ fray-error {
 
         @media (forced-colors: active) {
             fray-error > fray-erroricon,
-            fray-error.fray-error-banner,
-            [data-fray-context="control"] fray-error > fray-errortext {
+            fray-error > fray-errortext {
                 color: CanvasText;
                 background: Canvas;
                 border-color: Mark;
