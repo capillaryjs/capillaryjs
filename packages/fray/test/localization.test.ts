@@ -250,7 +250,7 @@ describe('Fray runtime localization', () => {
 
         assert.equal(requiredQuery('fray-checkbox input').getAttribute('aria-label'),
             'Prioritet, tilstand neutral DA')
-        const green = [...document.querySelectorAll('fray-colorpicker option')]
+        const green = [...document.querySelectorAll('.fray-colors-picker option')]
             .find((option) => option.getAttribute('value') === 'green')
         assert.equal(green?.textContent, 'Grøn')
         assert.equal(requiredQuery('button.sort').getAttribute('aria-label'), 'Sorter Personnavn')

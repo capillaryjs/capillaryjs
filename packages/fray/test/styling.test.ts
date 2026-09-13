@@ -353,10 +353,10 @@ describe('style registry', () => {
         runtime.registerStyles(ColorPicker)
         const stylesheet = runtime.styleRegistry.generateCSS()
 
-        assert.match(stylesheet, /fray-themepicker,\s*fray-colorpicker\s*\{[^}]*display:\s*flex/)
-        assert.match(stylesheet, /fray-themepicker > fray-selectshell > select,\s*fray-colorpicker > fray-selectshell > select\s*\{[^}]*min-width:\s*8rem/)
-        assert.match(stylesheet, /fray-themepicker > fray-selectshell::before,\s*fray-colorpicker > fray-selectshell::before/)
-        assert.doesNotMatch(stylesheet, /data-(?:kind|disabled|required|error)|fray-dropdown|fray-treeview/)
+        assert.match(stylesheet, /fray-dropdown\s*\{[^}]*display:\s*flex/)
+        assert.match(stylesheet, /fray-dropdown > fray-selectshell > select\s*\{[^}]*min-width:/)
+        assert.match(stylesheet, /fray-dropdown > fray-selectshell::before/)
+        assert.doesNotMatch(stylesheet, /data-(?:kind|disabled|required|error)|fray-themepicker|fray-colorpicker|fray-treeview/)
     })
 
     test('keeps checkbox controls separate from generic input and button treatment', () => {
@@ -560,7 +560,7 @@ describe('style registry', () => {
         runtime.registerStyles(Toggle)
         const stylesheet = runtime.styleRegistry.generateCSS()
 
-        assert.match(stylesheet, /fray-toggle\s*\{[^}]*display:\s*inline-block[^}]*inline-size:\s*fit-content/)
+        assert.match(stylesheet, /fray-toggle\s*\{[^}]*display:\s*flex[^}]*flex-flow:\s*row nowrap[^}]*align-items:\s*center/)
         assert.match(stylesheet, /fray-toggle > fray-options\s*\{[^}]*display:\s*flex[^}]*box-shadow:\s*var\(--toggle-group-shadow\)/)
         assert.match(stylesheet, /button\[role="radio"\]\[aria-checked="true"\]/)
         assert.match(stylesheet, /button\[role="radio"\]\[aria-checked="false"\]\s*\+\s*\[role="radio"\]\[aria-checked="false"\]::after/)

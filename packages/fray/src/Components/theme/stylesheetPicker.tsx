@@ -1,13 +1,11 @@
-import {css} from '../component.js'
-import type {ComponentProps, FrayChild, LivePropContract} from '../component.js'
+import type {FrayChild, LivePropContract} from '../component.js'
 import {
-    componentClass,
-    controlId,
-    createValueEmitter,
+    classNames,
     invoke,
 } from '../controlUtils.js'
-import type {ValueControlProps, ValueEmitter} from '../controlUtils.js'
-import {SelectControl} from '../lineinputs/SelectControl.js'
+import type {ValueControlProps} from '../controlUtils.js'
+import {Dropdown} from '../lineinputs/dropdown.js'
+import type {DropdownOption} from '../lineinputs/dropdown.js'
 import {
     findFrayStylesheetOption,
     frayColorOptions,
@@ -19,10 +17,8 @@ import type {
     FrayStylesheetOption,
 } from '../../styling/theme.js'
 
-const stylesheetPickerLiveProps = ['disabled'] as const
-
 export interface StylesheetPickerProps extends ValueControlProps<string>,
-    LivePropContract<(typeof stylesheetPickerLiveProps)[number]> {
+    LivePropContract<'disabled'> {
     id?: string | number | null
     label?: FrayChild
     ariaLabel?: string
@@ -32,82 +28,45 @@ export interface StylesheetPickerProps extends ValueControlProps<string>,
     onChange?: (value: string, option: FrayStylesheetOption, event: Event) => void
 }
 
-abstract class StylesheetPicker extends SelectControl<StylesheetPickerProps> {
-    static override liveProps = stylesheetPickerLiveProps
-    readonly valueEmitter: ValueEmitter<string>
-    readonly inputId: string
+/**
+ * A {@link Dropdown} that applies a Fray stylesheet (theme or color set) when
+ * the selection changes. Renders as a regular `fray-dropdown` host carrying a
+ * `fray-<kind>-picker` class, so it inherits all standard dropdown styling and
+ * behavior while adding stylesheet resolution and localized option labels.
+ */
+abstract class StylesheetPicker extends Dropdown<string> {
     private readonly kind: FrayStylesheetKind
-    private readonly defaults: readonly FrayStylesheetOption[]
+    private readonly stylesheetOptions: readonly FrayStylesheetOption[]
+    private readonly customOptions: boolean
+    private readonly targetDocument: Document | undefined
+    private readonly changeHandler?: StylesheetPickerProps['onChange']
 
     constructor(
         props: StylesheetPickerProps,
         kind: FrayStylesheetKind,
         defaults: readonly FrayStylesheetOption[],
     ) {
-        super(props)
-        const options = props.options ?? defaults
-        validateOptions(options)
-        const fallback = options[0]?.value
-        if (fallback == null) throw new TypeError(`${kind} picker requires at least one option`)
+        const stylesheetOptions = props.options ?? defaults
+        validateOptions(stylesheetOptions)
+        const {options: _options, targetDocument, onChange, ...dropdownProps} = props
+        super({
+            ...dropdownProps,
+            options: stylesheetOptions,
+        })
         this.kind = kind
-        this.defaults = defaults
-        this.inputId = controlId(`${kind}-picker`, props.id)
-        this.valueEmitter = createValueEmitter(this, props, fallback, `${kind} selection`)
-        findFrayStylesheetOption(options, this.valueEmitter.get())
+        this.stylesheetOptions = stylesheetOptions
+        this.customOptions = props.options != null
+        this.targetDocument = targetDocument
+        this.changeHandler = onChange
+        findFrayStylesheetOption(stylesheetOptions, this.valueEmitter.get())
     }
 
-    initialize(): void {
-        this.watch(this.valueEmitter)
+    protected override hostClass(): string {
+        return classNames(`fray-${this.kind}-picker`, super.hostClass())
     }
 
-    render(): FrayChild {
-        const options = this.options
-        const selected = findFrayStylesheetOption(options, this.valueEmitter.get())
-        const {label, ariaLabel, disabled = false, onChange} = this.props
-        const Host = this.Host
-        return <Host
-            className={componentClass(this.props)}
-        >
-            {label == null ? null : <label htmlFor={this.inputId}>{label}</label>}
-            <fray-selectshell>
-                <select
-                    id={this.inputId}
-                    value={selected.value}
-                    disabled={disabled}
-                    aria-label={label == null ? ariaLabel : null}
-                    onChange={(event: Event) => {
-                        const value = selectedValue(event)
-                        const option = findFrayStylesheetOption(options, value)
-                        this.valueEmitter.set(value, `${this.kind} selected`)
-                        invoke(onChange, value, option, event)
-                    }}
-                >
-                    {options.map((option) => <option
-                        key={option.value}
-                        value={option.value}
-                        selected={option.value === selected.value}
-                    >{this.optionLabel(option)}</option>)}
-                </select>
-            </fray-selectshell>
-        </Host>
-    }
-
-    afterMount(): void {
-        this.applySelection()
-    }
-
-    afterUpdate(): void {
-        this.applySelection()
-    }
-
-    protected get options(): readonly FrayStylesheetOption[] {
-        const options = this.props.options ?? this.defaults
-        validateOptions(options)
-        return options
-    }
-
-    private optionLabel(option: FrayStylesheetOption): string {
-        if (this.props.options != null) return option.label
+    protected override optionLabel(option: DropdownOption<string>): FrayChild {
+        if (this.customOptions) return super.optionLabel(option)
         switch (`${this.kind}:${option.value}`) {
             case 'theme:java': return this.frayMessage('themeOptionJavaLabel')
             case 'theme:minimal': return this.frayMessage('themeOptionMinimalLabel')
@@ -120,42 +79,51 @@ abstract class StylesheetPicker extends SelectControl<StylesheetPickerProps> {
             case 'colors:purple': return this.frayMessage('colorOptionPurpleLabel')
             case 'colors:red': return this.frayMessage('colorOptionRedLabel')
             case 'colors:yellow': return this.frayMessage('colorOptionYellowLabel')
-            default: return option.label
+            default: return super.optionLabel(option)
         }
     }
 
+    protected override emitChange(
+        value: string,
+        _option: DropdownOption<string> | undefined,
+        event: Event,
+    ): void {
+        invoke(this.changeHandler, value,
+            findFrayStylesheetOption(this.stylesheetOptions, value), event)
+    }
+
+    override afterMount(dom: ChildNode | null): void {
+        super.afterMount(dom)
+        this.applySelection()
+    }
+
+    override afterUpdate(dom: ChildNode | null): void {
+        super.afterUpdate(dom)
+        this.applySelection()
+    }
+
     private applySelection(): void {
-        const targetDocument = this.props.targetDocument
+        const targetDocument = this.targetDocument
             ?? (typeof document === 'undefined' ? null : document)
         if (targetDocument == null) return
         replaceFrayStylesheet(
             this.kind,
-            findFrayStylesheetOption(this.options, this.valueEmitter.get()),
+            findFrayStylesheetOption(this.stylesheetOptions, this.valueEmitter.get()),
             targetDocument,
         )
     }
-
-    static override css = css`
-        & > fray-selectshell > select {
-            min-width: 8rem;
-        }
-    `
 }
 
 export class ThemePicker extends StylesheetPicker {
     constructor(props: StylesheetPickerProps = {}) {
         super(props, 'theme', frayThemeOptions)
     }
-
-    static override hostName = 'theme-picker'
 }
 
 export class ColorPicker extends StylesheetPicker {
     constructor(props: StylesheetPickerProps = {}) {
         super(props, 'colors', frayColorOptions)
     }
-
-    static override hostName = 'color-picker'
 }
 
 function validateOptions(
@@ -179,14 +147,4 @@ function validateOptions(
         }
         values.add(option.value)
     }
-}
-
-function selectedValue(event: Event): string {
-    const value = event.currentTarget == null
-        ? null
-        : Reflect.get(event.currentTarget, 'value')
-    if (typeof value !== 'string') {
-        throw new TypeError('Stylesheet picker change requires a select element')
-    }
-    return value
 }

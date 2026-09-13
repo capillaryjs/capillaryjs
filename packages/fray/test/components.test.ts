@@ -278,9 +278,9 @@ describe('choice controls', () => {
         ColorPicker.new({label: 'Colors', valueEmitter: colors}).attachTo(document.body)
 
         assert.equal(document.querySelectorAll('select').length, 2)
-        assert.ok([...document.querySelectorAll('fray-themepicker, fray-colorpicker')]
+        assert.ok([...document.querySelectorAll('.fray-theme-picker, .fray-colors-picker')]
             .every((picker) => picker.querySelector(':scope > fray-selectshell > select') != null))
-        assert.ok([...document.querySelectorAll('fray-themepicker, fray-colorpicker')]
+        assert.ok([...document.querySelectorAll('.fray-theme-picker, .fray-colors-picker')]
             .every((picker) => !picker.hasAttribute('data-kind') && !picker.hasAttribute('data-disabled')))
         assert.equal(document.documentElement.dataset.theme, 'minimal')
         assert.equal(document.documentElement.dataset.color, 'iceblue')

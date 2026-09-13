@@ -306,12 +306,10 @@ fray-tricheckbox > label > input[value="require"] + fray-checkshell {
             box-shadow: var(--checkbox-box-shadow-checked);
         }
 
-fray-colorpicker,
+fray-dropdown,
 fray-datepicker,
 fray-timepicker,
-fray-dropdown,
-fray-textbox,
-fray-themepicker {
+fray-textbox {
             display: flex;
             flex-flow: row nowrap;
             position: relative;
@@ -320,32 +318,27 @@ fray-themepicker {
             min-height: var(--control-min-height, 2rem);
             color: var(--ui-text-color);
             font-size: var(--ui-font-size);
-            line-height: calc(var(--ui-font-size) + var(--ui-padding) + var(--ui-padding));
+            line-height: normal;
             box-sizing: border-box;
             user-select: none;
         }
 
-        fray-colorpicker > label,
+        fray-dropdown > label,
         fray-datepicker > label,
         fray-timepicker > label,
-        fray-dropdown > label,
-        fray-textbox > label,
-        fray-themepicker > label {
+        fray-textbox > label {
+            align-self: center;
             user-select: none;
             white-space: nowrap;
         }
 
-fray-colorpicker,
-fray-timepicker,
 fray-dropdown,
-fray-themepicker {
+fray-timepicker {
             min-width: 0;
         }
 
-        fray-colorpicker > fray-selectshell,
-        fray-timepicker > fray-selectshell,
         fray-dropdown > fray-selectshell,
-        fray-themepicker > fray-selectshell {
+        fray-timepicker > fray-selectshell {
             display: flex;
             flex-flow: row nowrap;
             position: relative;
@@ -355,10 +348,8 @@ fray-themepicker {
             box-sizing: border-box;
         }
 
-        fray-colorpicker > fray-selectshell > select,
-        fray-timepicker > fray-selectshell > select,
         fray-dropdown > fray-selectshell > select,
-        fray-themepicker > fray-selectshell > select {
+        fray-timepicker > fray-selectshell > select {
             position: relative;
             z-index: 1;
             min-height: var(--control-min-height, 2rem);
@@ -380,10 +371,8 @@ fray-themepicker {
             white-space: nowrap;
         }
 
-        fray-colorpicker > fray-selectshell::after,
-        fray-timepicker > fray-selectshell::after,
         fray-dropdown > fray-selectshell::after,
-        fray-themepicker > fray-selectshell::after {
+        fray-timepicker > fray-selectshell::after {
             content: var(--dropdown-underlay-content);
             position: absolute;
             z-index: 0;
@@ -398,10 +387,8 @@ fray-themepicker {
             pointer-events: none;
         }
 
-        fray-colorpicker > fray-selectshell::before,
-        fray-timepicker > fray-selectshell::before,
         fray-dropdown > fray-selectshell::before,
-        fray-themepicker > fray-selectshell::before {
+        fray-timepicker > fray-selectshell::before {
             content: var(--dropdown-trigger-content);
             position: absolute;
             z-index: 2;
@@ -421,64 +408,45 @@ fray-themepicker {
             pointer-events: none;
         }
 
-        fray-colorpicker > fray-selectshell:has(> select:hover:not(:disabled))::before,
-        fray-timepicker > fray-selectshell:has(> select:hover:not(:disabled))::before,
         fray-dropdown > fray-selectshell:has(> select:hover:not(:disabled))::before,
-        fray-themepicker > fray-selectshell:has(> select:hover:not(:disabled))::before {
+        fray-timepicker > fray-selectshell:has(> select:hover:not(:disabled))::before {
             background: var(--dropdown-trigger-background-hover);
             box-shadow: var(--dropdown-trigger-shadow-hover);
         }
 
-        fray-colorpicker > fray-selectshell:has(> select:disabled)::before,
-        fray-timepicker > fray-selectshell:has(> select:disabled)::before,
         fray-dropdown > fray-selectshell:has(> select:disabled)::before,
-        fray-themepicker > fray-selectshell:has(> select:disabled)::before {
+        fray-timepicker > fray-selectshell:has(> select:disabled)::before {
             color: var(--input-color-disabled);
             background: var(--dropdown-trigger-background-disabled);
             border: var(--dropdown-trigger-border-disabled);
         }
 
-        fray-colorpicker > fray-selectshell:has(> select:disabled)::after,
-        fray-timepicker > fray-selectshell:has(> select:disabled)::after,
         fray-dropdown > fray-selectshell:has(> select:disabled)::after,
-        fray-themepicker > fray-selectshell:has(> select:disabled)::after {
+        fray-timepicker > fray-selectshell:has(> select:disabled)::after {
             background: var(--dropdown-underlay-background-disabled);
             border: var(--dropdown-underlay-border-disabled);
         }
 
-        fray-colorpicker > fray-selectshell > select:focus-visible,
-        fray-timepicker > fray-selectshell > select:focus-visible,
         fray-dropdown > fray-selectshell > select:focus-visible,
-        fray-themepicker > fray-selectshell > select:focus-visible {
+        fray-timepicker > fray-selectshell > select:focus-visible {
             outline: 2px solid transparent;
             outline-offset: 1px;
             box-shadow: var(--focus-ring);
         }
 
         @media (forced-colors: active) {
-            fray-colorpicker > fray-selectshell::before,
-            fray-timepicker > fray-selectshell::before,
             fray-dropdown > fray-selectshell::before,
-            fray-themepicker > fray-selectshell::before,
-            fray-colorpicker > fray-selectshell::after,
-            fray-timepicker > fray-selectshell::after,
+            fray-timepicker > fray-selectshell::before,
             fray-dropdown > fray-selectshell::after,
-            fray-themepicker > fray-selectshell::after {
+            fray-timepicker > fray-selectshell::after {
                 display: none;
             }
 
-            fray-colorpicker > fray-selectshell > select,
-            fray-timepicker > fray-selectshell > select,
             fray-dropdown > fray-selectshell > select,
-            fray-themepicker > fray-selectshell > select {
+            fray-timepicker > fray-selectshell > select {
                 appearance: auto;
                 padding-inline-end: var(--space-sm);
             }
-        }
-
-fray-colorpicker > fray-selectshell > select,
-fray-themepicker > fray-selectshell > select {
-            min-width: 8rem;
         }
 
 fray-datatable {
@@ -961,12 +929,11 @@ fray-optionsbox {
             flex-flow: var(--fray-groupbox-flow, row nowrap);
             align-items: stretch;
             box-sizing: border-box;
-            min-width: 0;
-            min-height: 0;
             gap: var(--fray-groupbox-gap, 0 0.35rem);
             padding: var(--fray-groupbox-padding, 0.125rem 0.35rem 0.125rem 0.125rem);
             border: var(--fray-groupbox-border, 1px solid var(--ui-border-color));
             border-radius: var(--ui-border-radius);
+            position: relative;
         }
 
         fray-groupbox > fray-header,
@@ -975,8 +942,6 @@ fray-optionsbox {
             place-items: var(--fray-groupbox-header-align, center);
             box-sizing: border-box;
             width: var(--fray-groupbox-header-width, 1.7em);
-            min-width: 0;
-            min-height: 0;
             padding: var(--fray-groupbox-header-padding, 0.125em);
             border-radius: var(--ui-border-radius);
             color: var(--fray-groupbox-header-color, var(--section-header-color));
@@ -991,9 +956,18 @@ fray-optionsbox {
         fray-groupbox > fray-content,
         fray-optionsbox > fray-content {
             display: block;
-            min-width: 0;
-            min-height: 0;
             margin-left: var(--fray-groupbox-content-margin, .25em);
+        }
+
+        .fray-layout-horizontal fray-groupbox > fray-content > fray-layout,
+        .fray-layout-horizontal fray-optionsbox > fray-content > fray-layout,
+        .fray-layout-vertical fray-groupbox > fray-content > fray-layout,
+        .fray-layout-vertical fray-optionsbox > fray-content > fray-layout {
+            gap: .5rem;
+            justify-content: flex-start;
+            align-content: flex-start;
+            justify-items: flex-start;
+            align-items: flex-start;
         }
 
         /* Presentation contexts: each marker sets the complete context-sensitive
@@ -1030,6 +1004,20 @@ fray-optionsbox {
             --fray-groupbox-header-writing: horizontal-tb;
             --fray-groupbox-header-transform: none;
             --fray-groupbox-content-margin: 0;
+        }
+
+        [data-fray-context='form'] fray-groupbox {
+            flex: 1 1 auto;
+            align-self: stretch;
+            padding-top: 1em;
+        }
+
+        [data-fray-context='form'] fray-groupbox > fray-header {
+            position: absolute;
+            left: calc(0px - var(--ui-font-size) / 2);
+            top: calc(0px - var(--ui-font-size) / 2);
+            background: var(--panel-background);
+            padding: 2px 5px;
         }
 
 fray-header {
@@ -1687,7 +1675,13 @@ fray-tabpanel {
         }
 
 fray-textbox {
+            display: flex;
+            flex-flow: row nowrap;
+            align-items: center;
+            justify-content: center;
+            min-height: var(--control-min-height, 2rem);
             min-width: 0;
+            line-height: normal;
         }
 
         fray-textbox > input {
@@ -1695,7 +1689,6 @@ fray-textbox {
             width: var(--input-width, 15rem);
             max-width: 100%;
             min-width: var(--input-min-width, 6rem);
-            padding: var(--space-xs) var(--space-sm);
             color: var(--input-color);
             background: var(--input-background);
             border: var(--input-border);
@@ -1727,14 +1720,20 @@ fray-textbox {
         }
 
 fray-toggle {
-            display: inline-block;
-            inline-size: fit-content;
-            max-inline-size: 100%;
+            min-height: var(--control-min-height, 2rem);
+            display: flex;
+            flex-flow: row nowrap;
+            align-content: center;
+            align-items: center;
+            gap: .75em;
+            color: var(--text-color);
+            outline: none;
         }
 
         fray-toggle > fray-label,
         fray-toggle > fray-error {
             display: block;
+            align-self: center;
         }
 
         fray-toggle > fray-options {
@@ -1748,23 +1747,19 @@ fray-toggle {
         }
 
         fray-toggle > fray-options > button[role="radio"] {
-            position: relative;
             min-height: var(--control-min-height, 2rem);
-            padding: var(--space-xs) var(--space-sm);
+            position: relative;
             color: var(--button-color);
             background: var(--toggle-button-background);
-            border: var(--button-border);
-            border-radius: 0;
-            border-left: none;
-            border-right: none;
-            box-shadow: var(--toggle-button-shadow);
-            box-sizing: border-box;
-            cursor: default;
-            font-family: inherit;
-            font-size: var(--ui-font-size);
-            line-height: calc(var(--ui-font-size) + var(--ui-padding) + var(--ui-padding));
             user-select: none;
             white-space: nowrap;
+            box-sizing: border-box;
+            border: var(--button-border);
+            border-left: none;
+            border-right: none;
+            border-radius: 0;
+            box-shadow: var(--toggle-button-shadow);
+            cursor: default;
         }
 
         fray-toggle > fray-options > button[role="radio"]:hover:not(:disabled)[aria-checked="false"] {
@@ -1793,7 +1788,7 @@ fray-toggle {
             color: var(--selection-color);
             background: var(--toggle-button-background-checked);
             border: var(--toggle-button-border-checked);
-            box-shadow: var(--toggle-button-shadow-checked);
+            box-shadow: none;
             margin-inline: var(--toggle-button-selected-inline-overlap);
             z-index: var(--toggle-button-selected-z-index);
         }
@@ -1803,10 +1798,6 @@ fray-toggle {
             background: var(--button-background-disabled);
             border: var(--button-border-disabled);
             cursor: not-allowed;
-        }
-
-        fray-toggle > fray-options > button[role="radio"]:active:not(:disabled) {
-            border-style: var(--button-border-style-active);
         }
 
         fray-toggle > fray-options > button[role="radio"][aria-checked="false"]
@@ -1827,7 +1818,7 @@ fray-toolbar {
             background: var(--toolbar-background);
             border: var(--toolbar-border);
             box-shadow: var(--toolbar-shadow);
-            gap: var(--spacing-small, 0.5rem);
+            gap: var(--toolbar-spacing, 1.5rem);
             padding: var(--ui-padding);
             user-select: none;
         }

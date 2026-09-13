@@ -46,8 +46,8 @@ test('gallery shell mounts the line-inputs page with islands and toolbar', async
     assert.ok(document.querySelector('fray-panel'), 'content panel')
 
     // Toolbar controls
-    assert.ok(document.querySelector('fray-themepicker'), 'theme picker')
-    assert.ok(document.querySelector('fray-colorpicker'), 'color picker')
+    assert.ok(document.querySelector('fray-dropdown.fray-theme-picker'), 'theme picker')
+    assert.ok(document.querySelector('fray-dropdown.fray-colors-picker'), 'color picker')
     const headerToggles = document.querySelectorAll('.gallery-controls fray-toggle')
     assert.equal(headerToggles.length, 2, 'layout and data-state toggles')
     const flagInputs = document.querySelectorAll('.gallery-flag-group input')

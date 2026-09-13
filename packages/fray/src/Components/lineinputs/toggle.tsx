@@ -149,14 +149,20 @@ export class Toggle<TValue extends Key = string> extends Component<ToggleProps<T
 
     static override css = css`
         & {
-            display: inline-block;
-            inline-size: fit-content;
-            max-inline-size: 100%;
+            min-height: var(--control-min-height, 2rem);
+            display: flex;
+            flex-flow: row nowrap;
+            align-content: center;
+            align-items: center;
+            gap: .75em;
+            color: var(--text-color);
+            outline: none;
         }
 
         & > fray-label,
         & > fray-error {
             display: block;
+            align-self: center;
         }
 
         & > fray-options {
@@ -170,23 +176,19 @@ export class Toggle<TValue extends Key = string> extends Component<ToggleProps<T
         }
 
         & > fray-options > button[role="radio"] {
-            position: relative;
             min-height: var(--control-min-height, 2rem);
-            padding: var(--space-xs) var(--space-sm);
+            position: relative;
             color: var(--button-color);
             background: var(--toggle-button-background);
-            border: var(--button-border);
-            border-radius: 0;
-            border-left: none;
-            border-right: none;
-            box-shadow: var(--toggle-button-shadow);
-            box-sizing: border-box;
-            cursor: default;
-            font-family: inherit;
-            font-size: var(--ui-font-size);
-            line-height: calc(var(--ui-font-size) + var(--ui-padding) + var(--ui-padding));
             user-select: none;
             white-space: nowrap;
+            box-sizing: border-box;
+            border: var(--button-border);
+            border-left: none;
+            border-right: none;
+            border-radius: 0;
+            box-shadow: var(--toggle-button-shadow);
+            cursor: default;
         }
 
         & > fray-options > button[role="radio"]:hover:not(:disabled)[aria-checked="false"] {
@@ -215,7 +217,7 @@ export class Toggle<TValue extends Key = string> extends Component<ToggleProps<T
             color: var(--selection-color);
             background: var(--toggle-button-background-checked);
             border: var(--toggle-button-border-checked);
-            box-shadow: var(--toggle-button-shadow-checked);
+            box-shadow: none;
             margin-inline: var(--toggle-button-selected-inline-overlap);
             z-index: var(--toggle-button-selected-z-index);
         }
@@ -225,10 +227,6 @@ export class Toggle<TValue extends Key = string> extends Component<ToggleProps<T
             background: var(--button-background-disabled);
             border: var(--button-border-disabled);
             cursor: not-allowed;
-        }
-
-        & > fray-options > button[role="radio"]:active:not(:disabled) {
-            border-style: var(--button-border-style-active);
         }
 
         & > fray-options > button[role="radio"][aria-checked="false"]

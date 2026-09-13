@@ -142,6 +142,7 @@
     --toolbar-color: var(--palette-neutral-950);
     --toolbar-border: 0 solid transparent;
     --toolbar-shadow: none;
+    --toolbar-spacing: 1.5em;
 
     /* Input components */
     --input-background: #fff;
@@ -202,7 +203,7 @@
     --toggle-button-selected-inline-overlap: 0;
     --toggle-button-selected-z-index: 0;
     --toggle-button-shadow: none;
-    --toggle-button-shadow-checked: var(--button-shadow);
+    --toggle-button-shadow-checked: none;
     --toggle-group-shadow: none;
     --toggle-inactive-shared-border-color: var(--palette-neutral-500);
     --toggle-inactive-separator-background: transparent;
@@ -275,8 +276,8 @@
     /* Structural compatibility aliases */
     --base-font-size: var(--base-font-size);
     --ui-font-size: var(--font-size);
-    --ui-padding: 6px;
-    --ui-padding-h: 6px;
+    --ui-padding: 8px;
+    --ui-padding-h: 8px;
     --ui-padding-v: 0px;
     --ui-margin: 1px;
     --ui-border-radius: 3px;

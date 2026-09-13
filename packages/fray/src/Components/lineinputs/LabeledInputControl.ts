@@ -15,12 +15,13 @@ export abstract class LabeledInputControl<
             min-height: var(--control-min-height, 2rem);
             color: var(--ui-text-color);
             font-size: var(--ui-font-size);
-            line-height: calc(var(--ui-font-size) + var(--ui-padding) + var(--ui-padding));
+            line-height: normal;
             box-sizing: border-box;
             user-select: none;
         }
 
         & > label {
+            align-self: center;
             user-select: none;
             white-space: nowrap;
         }

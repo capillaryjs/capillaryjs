@@ -155,3 +155,7 @@ fray-navigationbar nav > ul > li > a {
 fray-header:has(+ fray-toolbar) {
   box-shadow: var(--section-header-with-toolbar-shadow);
 }
+
+fray-label {
+  margin-top: 5px;
+}

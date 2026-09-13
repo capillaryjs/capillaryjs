@@ -115,7 +115,13 @@ export class Textbox extends LabeledInputControl<TextboxProps> {
 
     static override css = css`
         & {
+            display: flex;
+            flex-flow: row nowrap;
+            align-items: center;
+            justify-content: center;
+            min-height: var(--control-min-height, 2rem);
             min-width: 0;
+            line-height: normal;
         }
 
         & > input {
@@ -123,7 +129,6 @@ export class Textbox extends LabeledInputControl<TextboxProps> {
             width: var(--input-width, 15rem);
             max-width: 100%;
             min-width: var(--input-min-width, 6rem);
-            padding: var(--space-xs) var(--space-sm);
             color: var(--input-color);
             background: var(--input-background);
             border: var(--input-border);

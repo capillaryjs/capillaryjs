@@ -80,7 +80,6 @@ export class Dropdown<TValue extends DropdownValue = string>
             error = null,
             placeholder = this.frayMessage('dropdownPlaceholder'),
             ariaLabel,
-            onChange,
         } = this.props
         const options = this.optionsEmitter.get() ?? []
         assertOptions<DropdownOption<TValue>>(options)
@@ -88,7 +87,7 @@ export class Dropdown<TValue extends DropdownValue = string>
 
         const Host = this.Host
         return <Host
-            className={componentClass(this.props)}
+            className={this.hostClass()}
         >
             {label == null ? null : <label htmlFor={this.inputId}>{label}</label>}
             <fray-selectshell>
@@ -101,15 +100,7 @@ export class Dropdown<TValue extends DropdownValue = string>
                     aria-label={label == null ? ariaLabel : null}
                     aria-invalid={error == null ? null : 'true'}
                     aria-describedby={error == null ? null : this.errorId}
-                    onChange={(event: Event) => {
-                        const raw = eventValue(event, 'dropdown change')
-                        const option = options.find(({value}) => String(value) === raw)
-                        // A declared option restores TValue; raw is the fallback for
-                        // JavaScript callers that mutate the select outside that list.
-                        const nextValue = option?.value ?? raw as TValue
-                        this.valueEmitter.set(nextValue, 'dropdown selection')
-                        invoke(onChange, nextValue, event)
-                    }}
+                    onChange={(event: Event) => this.selectOption(event)}
                 >
                     {currentValue == null || currentValue === ''
                         ? <option value="" disabled={required} selected={true}>{placeholder}</option>
@@ -123,7 +114,7 @@ export class Dropdown<TValue extends DropdownValue = string>
                             value={String(option.value)}
                             disabled={Boolean(option.disabled)}
                             selected={Object.is(currentValue, option.value)}
-                        >{option.label ?? String(option.value)}</option>
+                        >{this.optionLabel(option)}</option>
                     })}
                 </select>
             </fray-selectshell>
@@ -132,6 +123,37 @@ export class Dropdown<TValue extends DropdownValue = string>
                 role="alert"
             >{String(error)}</p>}
         </Host>
+    }
+
+    /** Host class list. Subclasses may prepend a stable marker class. */
+    protected hostClass(): string {
+        return componentClass(this.props)
+    }
+
+    /** Resolve the rendered label for one option. */
+    protected optionLabel(option: DropdownOption<TValue>): FrayChild {
+        return option.label ?? String(option.value)
+    }
+
+    /** Handle a native select change: resolve the option, update the value, emit. */
+    protected selectOption(event: Event): void {
+        const raw = eventValue(event, 'dropdown change')
+        const options = this.optionsEmitter.get() ?? []
+        const option = options.find(({value}) => String(value) === raw)
+        // A declared option restores TValue; raw is the fallback for
+        // JavaScript callers that mutate the select outside that list.
+        const nextValue = option?.value ?? raw as TValue
+        this.valueEmitter.set(nextValue, 'dropdown selection')
+        this.emitChange(nextValue, option, event)
+    }
+
+    /** Emit the public change callback. Subclasses may forward extra detail. */
+    protected emitChange(
+        value: TValue,
+        _option: DropdownOption<TValue> | undefined,
+        event: Event,
+    ): void {
+        invoke(this.props.onChange, value, event)
     }
 
     static override hostName = 'dropdown'

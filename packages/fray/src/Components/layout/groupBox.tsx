@@ -55,12 +55,11 @@ export class GroupBox<
             flex-flow: var(--fray-groupbox-flow, row nowrap);
             align-items: stretch;
             box-sizing: border-box;
-            min-width: 0;
-            min-height: 0;
             gap: var(--fray-groupbox-gap, 0 0.35rem);
             padding: var(--fray-groupbox-padding, 0.125rem 0.35rem 0.125rem 0.125rem);
             border: var(--fray-groupbox-border, 1px solid var(--ui-border-color));
             border-radius: var(--ui-border-radius);
+            position: relative;
         }
 
         & > fray-header {
@@ -68,8 +67,6 @@ export class GroupBox<
             place-items: var(--fray-groupbox-header-align, center);
             box-sizing: border-box;
             width: var(--fray-groupbox-header-width, 1.7em);
-            min-width: 0;
-            min-height: 0;
             padding: var(--fray-groupbox-header-padding, 0.125em);
             border-radius: var(--ui-border-radius);
             color: var(--fray-groupbox-header-color, var(--section-header-color));
@@ -83,9 +80,16 @@ export class GroupBox<
 
         & > fray-content {
             display: block;
-            min-width: 0;
-            min-height: 0;
             margin-left: var(--fray-groupbox-content-margin, .25em);
+        }
+
+        .fray-layout-horizontal & > fray-content > fray-layout,
+        .fray-layout-vertical & > fray-content > fray-layout {
+            gap: .5rem;
+            justify-content: flex-start;
+            align-content: flex-start;
+            justify-items: flex-start;
+            align-items: flex-start;
         }
 
         /* Presentation contexts: each marker sets the complete context-sensitive
@@ -122,6 +126,20 @@ export class GroupBox<
             --fray-groupbox-header-writing: horizontal-tb;
             --fray-groupbox-header-transform: none;
             --fray-groupbox-content-margin: 0;
+        }
+
+        [data-fray-context='form'] fray-groupbox {
+            flex: 1 1 auto;
+            align-self: stretch;
+            padding-top: 1em;
+        }
+
+        [data-fray-context='form'] fray-groupbox > fray-header {
+            position: absolute;
+            left: calc(0px - var(--ui-font-size) / 2);
+            top: calc(0px - var(--ui-font-size) / 2);
+            background: var(--panel-background);
+            padding: 2px 5px;
         }
     `
 }
