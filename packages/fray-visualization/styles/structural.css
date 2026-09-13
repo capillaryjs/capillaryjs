@@ -315,6 +315,8 @@ fray-groupbox {
             border: var(--fray-groupbox-border, 1px solid var(--ui-border-color));
             border-radius: var(--ui-border-radius);
             position: relative;
+            min-width: 0;
+            min-height: 0;
         }
 
         fray-categoryhidepanel > fray-header,
@@ -332,11 +334,15 @@ fray-groupbox {
             transform: var(--fray-groupbox-header-transform, rotate(180deg));
             font-weight: normal;
             font-size: var(--ui-font-size);
+            min-width: 0;
+            min-height: 0;
         }
 
         fray-categoryhidepanel > fray-content,
         fray-groupbox > fray-content {
             display: block;
+            min-width: 0;
+            min-height: 0;
             margin-left: var(--fray-groupbox-content-margin, .25em);
         }
 
@@ -397,13 +403,13 @@ fray-groupbox {
         .fray-layout-horizontal fray-categoryhidepanel,
         .fray-layout-horizontal fray-groupbox {
             max-width: 15rem;
-            min-width: max-content;
+            min-width: 0;
         }
 
         .fray-layout-vertical  fray-categoryhidepanel,
         .fray-layout-vertical  fray-groupbox {
             max-height: 15rem;
-            min-height: max-content;
+            min-height: 0;
         }
 
         [data-fray-context='form'] fray-groupbox > fray-header {
