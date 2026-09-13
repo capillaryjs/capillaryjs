@@ -207,8 +207,11 @@ describe('style registry', () => {
         assert.match(stylesheet, /fray-listview > \[role="listbox"\]\[aria-busy="true"\][\s\S]*\[role="option"\]::after/)
         assert.match(stylesheet, /fray-treeview > \[role="tree"\]\[aria-busy="true"\][\s\S]*\[role="treeitem"\]::after/)
 
+        assert.match(stylesheet, /fray-error\s*\{[^}]*position:\s*absolute/)
         assert.match(stylesheet, /fray-error > fray-erroricon\s*\{[^}]*background:\s*var\(--error-color\)/)
-        assert.match(stylesheet, /\[data-fray-context="control"\] fray-error > fray-errortext\s*\{[^}]*visibility:\s*hidden/)
+        assert.match(stylesheet, /fray-error > fray-erroricon\s*\{[^}]*position:\s*absolute/)
+        assert.match(stylesheet, /fray-error > fray-errortext\s*\{[^}]*position:\s*absolute[^}]*visibility:\s*hidden/)
+        assert.match(stylesheet, /fray-error > fray-erroricon:hover \+ fray-errortext/)
         assert.match(stylesheet, /\[aria-invalid="true"\][^{]*\{[^}]*border-color:\s*var\(--error-color\)/)
         assert.match(stylesheet, /@media \(prefers-reduced-motion: reduce\)[\s\S]*animation:\s*none/)
         assert.match(stylesheet, /@media \(forced-colors: active\)[\s\S]*(?:Mark|Highlight)/)

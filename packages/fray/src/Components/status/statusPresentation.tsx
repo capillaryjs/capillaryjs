@@ -20,7 +20,7 @@ export interface ErrorMessageProps extends ComponentProps {
     fallback?: string
 }
 
-/** Accessible error text with an icon that becomes a compact tooltip in control context. */
+/** Accessible error text exposed visually from an overlay icon on hover or focus. */
 export class ErrorMessage extends Component<ErrorMessageProps> {
     render(): FrayChild {
         const message = formatErrorMessage(this.props.error, this.props.fallback ?? '')
@@ -30,7 +30,7 @@ export class ErrorMessage extends Component<ErrorMessageProps> {
             className={componentClass(this.props) || null}
             role="alert"
             tabIndex={0}
-            title={message}
+            aria-label={message}
         >
             <fray-erroricon aria-hidden="true" />
             <fray-errortext>{message}</fray-errortext>
@@ -42,22 +42,25 @@ export class ErrorMessage extends Component<ErrorMessageProps> {
 
     static override css = css`
         & {
-            display: flex;
-            flex: 1 0 100%;
-            align-items: flex-start;
-            gap: .35em;
-            min-width: 0;
-            margin: .25em 0 0;
+            position: absolute;
+            z-index: 1200;
+            inset-block-start: -.35em;
+            inset-inline-end: -.35em;
+            display: block;
+            width: 1.25em;
+            height: 1.25em;
+            margin: 0;
             color: var(--error-color);
             font-size: .875em;
             line-height: 1.35;
-            white-space: normal;
+            outline: none;
             box-sizing: border-box;
         }
 
         & > fray-erroricon {
+            position: absolute;
+            inset: 0;
             display: grid;
-            flex: 0 0 1.25em;
             width: 1.25em;
             height: 1.25em;
             color: var(--error-contrast);
@@ -75,37 +78,11 @@ export class ErrorMessage extends Component<ErrorMessageProps> {
         }
 
         & > fray-errortext {
-            display: block;
-            min-width: 0;
-            overflow-wrap: anywhere;
-        }
-
-        &.fray-error-banner {
-            width: 100%;
-            padding: var(--space-xs) var(--space-sm);
-            margin: 0 0 var(--space-xs);
-            background: var(--error-bg-translucent, rgb(255 0 0 / .13));
-            border: 1px solid var(--error-color);
-            border-radius: var(--radius-md);
-        }
-
-        [data-fray-context="control"] & {
-            position: absolute;
-            z-index: 1200;
-            inset-block-start: -.35em;
-            inset-inline-end: -.35em;
-            display: block;
-            width: 1.25em;
-            height: 1.25em;
-            margin: 0;
-            outline: none;
-        }
-
-        [data-fray-context="control"] & > fray-errortext {
             position: absolute;
             z-index: 1;
             inset-block-start: calc(100% + .25em);
             inset-inline-end: 0;
+            display: block;
             visibility: hidden;
             width: max-content;
             max-width: min(22rem, 80vw);
@@ -116,19 +93,21 @@ export class ErrorMessage extends Component<ErrorMessageProps> {
             border-radius: var(--radius-md);
             box-shadow: var(--ui-shadow);
             opacity: 0;
+            overflow-wrap: anywhere;
             pointer-events: none;
             transform: translateY(-.2em);
             transition: opacity var(--motion-fast), transform var(--motion-fast), visibility 0s linear var(--motion-fast);
         }
 
-        [data-fray-context="control"] &:is(:hover, :focus, :focus-within) > fray-errortext {
+        & > fray-erroricon:hover + fray-errortext,
+        &:focus-visible > fray-errortext {
             visibility: visible;
             opacity: 1;
             transform: translateY(0);
             transition-delay: 0s;
         }
 
-        [data-fray-context="control"] &:focus-visible > fray-erroricon {
+        &:focus-visible > fray-erroricon {
             outline: 2px solid transparent;
             outline-offset: 1px;
             box-shadow: var(--focus-ring);
@@ -136,8 +115,7 @@ export class ErrorMessage extends Component<ErrorMessageProps> {
 
         @media (forced-colors: active) {
             & > fray-erroricon,
-            &.fray-error-banner,
-            [data-fray-context="control"] & > fray-errortext {
+            & > fray-errortext {
                 color: CanvasText;
                 background: Canvas;
                 border-color: Mark;

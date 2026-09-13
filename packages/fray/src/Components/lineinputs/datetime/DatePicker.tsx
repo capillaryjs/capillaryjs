@@ -343,10 +343,6 @@ export class DatePicker extends LabeledInputControl<DatePickerProps> {
             min-width: 0;
         }
 
-        &:has(> fray-error) {
-            flex-wrap: wrap;
-        }
-
         & > input {
             min-height: var(--control-min-height, 2rem);
             width: var(--input-width, 10rem);

@@ -67,9 +67,9 @@ Versioning.
   inputs, choices, date/time controls, option groups, progress, and data
   views. Loading uses the theme's animated working texture (with reduced-motion
   and forced-colors fallbacks); errors use the semantic error color on the
-  relevant native surface plus an accessible icon/message. Form contexts show
-  the message inline, while compact control contexts reveal it from the icon
-  on hover or focus. `ListView`, `DataTable`, and `TreeView` now show
+  relevant native surface plus an accessible icon/message. The icon and hidden
+  message are absolute overlays in every context, with details revealed from
+  the icon on hover or focus. `ListView`, `DataTable`, and `TreeView` now show
   deterministic Bank2-style placeholders for empty initial loads and animate
   retained rows during refresh; TreeView gains `placeholderCount`. The
   `busy` live prop is available across input/choice controls and

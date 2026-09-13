@@ -26,7 +26,7 @@ export class GalleryToolbar extends Component<GalleryToolbarProps> {
             <ThemePicker label="Theme" valueEmitter={model.themeSelection} />
             <ColorPicker label="Colors" valueEmitter={model.colorSelection} />
             <Toggle
-                label="Data"
+                label="Emitter state"
                 valueEmitter={model.dataState}
                 options={[
                     [FetchState.Initial, 'Initial'],
@@ -49,12 +49,12 @@ export class GalleryToolbar extends Component<GalleryToolbarProps> {
                     Read-only
                 </label>
                 <label>
-                    <input type="checkbox" bind:checked={model.componentBusy} />
-                    Busy
+                    <input type="checkbox" bind:checked={model.componentBusyFlag} />
+                    Busy override
                 </label>
                 <label>
                     <input type="checkbox" bind:checked={model.componentErrorFlag} />
-                    Error
+                    Validation error
                 </label>
             </div>
         </Toolbar>

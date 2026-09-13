@@ -336,11 +336,11 @@ the native forward cycle.
 the theme's moving working texture without disabling an input or choice.
 `Button` remains the exception: a busy action is unavailable until it settles.
 When `error` is also present, error presentation wins over the animation.
-Every error-bearing control describes its native surface with a visible,
-focusable `role="alert"` message. Form contexts render the full message inline;
-compact `context="control"` ancestors show an error icon whose message opens on
-hover, keyboard focus, or tap focus. Applications still own validation and the
-message text.
+Every error-bearing control describes its native surface with a focusable
+`role="alert"` overlay. Its icon and initially hidden message are absolutely
+positioned so errors do not change layout; the message opens when the icon is
+hovered or the alert receives keyboard/tap focus. Applications still own
+validation and the message text.
 
 ```tsx
 const view = new Emitter<'list' | 'grid'>('list')
@@ -467,7 +467,7 @@ On an empty initial/loading snapshot, all three collection views render
 deterministic, `aria-hidden` placeholder rows; `placeholderCount` selects their
 count. When a loading snapshot retains rows, those real rows remain semantic
 and usable while the working texture animates over their background. Error
-snapshots retain any available rows, add a visible error banner and error edge,
+snapshots retain any available rows, add an error edge and overlay detail icon,
 and stop the loading animation. A `DataTable` data source with `retry` also
 renders its localized retry action.
 

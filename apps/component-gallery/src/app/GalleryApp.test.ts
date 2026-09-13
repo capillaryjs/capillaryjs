@@ -112,7 +112,19 @@ test('toolbar toggles switch layout variant and shared data state', async () => 
     websiteOption.click()
     assert.ok(root?.classList.contains('gallery-website'), 'website variant')
 
-    // Data-state toggle → error propagates to the page readout
+    // The shared emitter's loading state drives control busy presentation.
+    const loadingOption = [...document.querySelectorAll<HTMLElement>(
+        'fray-toggle button[role="radio"]',
+    )].find((button) => button.textContent === 'Loading')
+    assert.ok(loadingOption, 'loading data-state option')
+    loadingOption.click()
+    const pageTextbox = document.querySelector<HTMLInputElement>(
+        '#gallery-basic-inputs fray-textbox input',
+    )
+    assert.ok(pageTextbox, 'page textbox input')
+    assert.equal(pageTextbox.getAttribute('aria-busy'), 'true', 'emitter loading applies busy')
+
+    // The shared emitter's error state drives both the readout and control chrome.
     const errorOption = [...document.querySelectorAll<HTMLElement>(
         'fray-toggle button[role="radio"]',
     )].find((button) => button.textContent === 'Error')
@@ -121,6 +133,12 @@ test('toolbar toggles switch layout variant and shared data state', async () => 
     assert.ok(
         document.querySelector('.gallery-data-state')?.textContent?.includes('error'),
         'error state readout',
+    )
+    assert.equal(pageTextbox.getAttribute('aria-busy'), null, 'error supersedes loading')
+    assert.equal(pageTextbox.getAttribute('aria-invalid'), 'true', 'emitter error applies chrome')
+    assert.match(
+        document.querySelector('#gallery-basic-inputs fray-error')?.textContent ?? '',
+        /Simulated data service failure/,
     )
 
     // Component-state flag → checkbox binding updates the model
@@ -132,10 +150,6 @@ test('toolbar toggles switch layout variant and shared data state', async () => 
     assert.equal(disabledFlag.checked, true, 'disabled flag applied')
 
     // The global disabled flag reaches showcased page controls
-    const pageTextbox = document.querySelector<HTMLInputElement>(
-        '#gallery-basic-inputs fray-textbox input',
-    )
-    assert.ok(pageTextbox, 'page textbox input')
     assert.equal(pageTextbox.disabled, true, 'global disabled flag applied to page control')
 
     app.destroy()

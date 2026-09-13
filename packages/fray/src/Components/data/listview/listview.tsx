@@ -259,8 +259,7 @@ export class ListView<TItem = unknown> extends Component<ListViewProps<TItem>> {
             background: var(--selected-bg-color, #e0e7ff);
         }
 
-        & > [role="status"],
-        & > [role="alert"] {
+        & > [role="status"] {
             margin: 0;
             padding: var(--ui-padding);
         }

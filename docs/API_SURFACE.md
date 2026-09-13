@@ -134,9 +134,10 @@ Notable public behavior:
   controls, and `OptionGroup`; it does not disable inputs, while a busy
   `Button` remains unavailable. Application commands and lifecycle stay in
   Glue/application code.
-- Error-capable controls connect their native surface to a visible
-  `role="alert"` icon/message, with inline form and compact control-context
-  presentation. Error visuals take precedence over simultaneous busy state.
+- Error-capable controls connect their native surface to a focusable
+  `role="alert"` overlay. Its icon and hidden message are absolutely positioned
+  in every context, and hover or focus reveals the details without changing
+  layout. Error visuals take precedence over simultaneous busy state.
 - Emitter-backed `Dropdown.options` derives loading/error feedback from the
   options snapshot. Value emitters remain value state and are not treated as
   implicit request lifecycle.

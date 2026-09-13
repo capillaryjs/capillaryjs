@@ -19,13 +19,15 @@ The header island carries the page navbar and a control toolbar below it:
   scrolls).
 - **Theme / Colors** — `ThemePicker` and `ColorPicker` swap the loaded Fray
   theme and color stylesheets.
-- **Data** — a `Toggle` selecting the shared fetch state (`initial`, `ready`,
+- **Emitter state** — a `Toggle` selecting the shared fetch state (`initial`, `ready`,
   `loading`, `error`) applied to `GalleryModel.dataItems`, the shared
-  emitter gallery pages bind data-aware components to. The error state raises
-  a simulated load error.
+  emitter gallery pages bind data-aware components to. Loading and error also
+  drive the corresponding busy or error presentation on the line-input page,
+  so the selector demonstrates one emitter state consistently throughout the
+  gallery. The error state raises a simulated load error.
 - **Component state** — checkboxes for `disabled`, `required`, `read-only`,
-  `busy`, and `error` flags exposed on `GalleryModel` for gallery pages to apply to
-  showcased controls.
+  a `busy` override, and a validation-error override exposed on `GalleryModel`
+  for gallery pages to apply to showcased controls.
 
 Both layout variants render the same island structure: a header island with
 the navbar and control toolbar, a routed page body, and a footer island with

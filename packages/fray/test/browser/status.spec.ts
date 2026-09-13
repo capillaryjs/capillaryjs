@@ -85,7 +85,7 @@ test('data components use hidden initial skeletons and animate retained rows', a
     await expect(failed.getByRole('treeitem')).toHaveCount(2)
 })
 
-test('errors mark controls and expose inline or focusable compact details', async ({page}) => {
+test('errors mark controls and expose overlay details on icon hover or focus', async ({page}) => {
     const root = page.locator('#status-root')
     const invalidControls = [
         root.getByRole('button', {name: 'Failed action'}),
@@ -100,9 +100,20 @@ test('errors mark controls and expose inline or focusable compact details', asyn
         await expect(root.locator(`#${describedBy}`)).toHaveAttribute('role', 'alert')
     }
 
-    const inlineMessages = root.locator('.error-controls fray-error > fray-errortext')
-    await expect(inlineMessages).toHaveCount(4)
-    for (const message of await inlineMessages.all()) await expect(message).toBeVisible()
+    const overlayAlerts = root.locator('.error-controls fray-error')
+    const overlayMessages = overlayAlerts.locator('fray-errortext')
+    await expect(overlayMessages).toHaveCount(4)
+    for (const message of await overlayMessages.all()) await expect(message).toBeHidden()
+    const firstAlert = overlayAlerts.first()
+    const firstMessage = firstAlert.locator('fray-errortext')
+    const positioning = await firstAlert.evaluate((alert) => ({
+        alert: getComputedStyle(alert).position,
+        icon: getComputedStyle(alert.querySelector('fray-erroricon')!).position,
+        message: getComputedStyle(alert.querySelector('fray-errortext')!).position,
+    }))
+    expect(positioning).toEqual({alert: 'absolute', icon: 'absolute', message: 'absolute'})
+    await firstAlert.locator('fray-erroricon').hover()
+    await expect(firstMessage).toBeVisible()
 
     const errorColor = await root.locator('.error-controls fray-erroricon').first()
         .evaluate((element) => getComputedStyle(element).borderColor)

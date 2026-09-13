@@ -154,6 +154,7 @@ export class Toggle<TValue extends Key = string> extends LabeledInputControl<Tog
         & {
             min-height: var(--control-min-height, 2rem);
             display: flex;
+            position: relative;
             flex-flow: row nowrap;
             align-content: center;
             align-items: center;
@@ -162,8 +163,7 @@ export class Toggle<TValue extends Key = string> extends LabeledInputControl<Tog
             outline: none;
         }
 
-        & > fray-label,
-        & > fray-error {
+        & > fray-label {
             display: block;
             align-self: center;
         }

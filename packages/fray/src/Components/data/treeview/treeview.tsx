@@ -282,8 +282,7 @@ export class TreeView<TValue = unknown> extends Component<TreeViewProps<TValue>>
             overflow-wrap: anywhere;
         }
 
-        & > [role="status"],
-        & > [role="alert"] {
+        & > [role="status"] {
             margin: 0;
             padding: var(--ui-padding, 0.75rem);
         }

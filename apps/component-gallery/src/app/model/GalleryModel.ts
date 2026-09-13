@@ -94,22 +94,40 @@ export class GalleryModel {
         owner: this,
         purpose: 'component read-only state',
     })
-    readonly componentBusy = new Emitter(false, {
+    readonly componentBusyFlag = new Emitter(false, {
         owner: this,
-        purpose: 'component busy state',
+        purpose: 'component busy override',
     })
     readonly componentErrorFlag = new Emitter(false, {
         owner: this,
-        purpose: 'component error flag',
+        purpose: 'component error override',
     })
+    readonly componentBusy: DerivedEmitter<boolean, readonly [
+        typeof this.componentBusyFlag,
+        typeof this.dataItems,
+    ]>
     readonly componentError: DerivedEmitter<string | null, readonly [
         typeof this.componentErrorFlag,
+        typeof this.dataItems,
     ]>
 
     constructor() {
+        this.componentBusy = new DerivedEmitter(
+            [this.componentBusyFlag, this.dataItems] as const,
+            ([override]): boolean => override
+                || this.dataItems.getFetchState() === FetchState.Loading,
+            {owner: this, purpose: 'component busy state'},
+        )
         this.componentError = new DerivedEmitter(
-            [this.componentErrorFlag] as const,
-            ([flag]): string | null => flag ? 'Validation failed' : null,
+            [this.componentErrorFlag, this.dataItems] as const,
+            ([override]): string | null => {
+                if (override) return 'Validation failed'
+                if (this.dataItems.getFetchState() !== FetchState.Error) return null
+                const error = this.dataItems.getError()
+                return error instanceof Error
+                    ? error.message
+                    : (error == null ? 'Data service failure' : String(error))
+            },
             {owner: this, purpose: 'component error'},
         )
         this.dataStateUnsubscribe = this.dataState.subscribe(({value: state}) => {
@@ -148,8 +166,9 @@ export class GalleryModel {
             this.componentDisabled,
             this.componentRequired,
             this.componentReadOnly,
-            this.componentBusy,
+            this.componentBusyFlag,
             this.componentErrorFlag,
+            this.componentBusy,
             this.componentError,
         ]
         this.dataStateUnsubscribe()
