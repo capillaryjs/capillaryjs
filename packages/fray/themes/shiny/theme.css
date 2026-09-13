@@ -158,11 +158,11 @@ fray-header:has(+ fray-toolbar) {
 
 fray-label,
 fray-dropdown > label {
-  margin-top: 5px;
+  margin-top: 3px;
 }
 
 fray-dropdown > fray-selectshell > select {
-  padding-top: 5px;
+  padding-top: 3px;
 }
 
 

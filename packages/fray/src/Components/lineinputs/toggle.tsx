@@ -180,6 +180,8 @@ export class Toggle<TValue extends Key = string> extends LabeledInputControl<Tog
         & > fray-options > button[role="radio"] {
             min-height: var(--control-min-height, 2rem);
             position: relative;
+            font-family: inherit;
+            font-size: var(--ui-font-size);
             color: var(--button-color);
             background: var(--toggle-button-background);
             user-select: none;
