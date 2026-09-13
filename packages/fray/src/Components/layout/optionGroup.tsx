@@ -1,12 +1,16 @@
 import {Component, css} from '../component.js'
-import type {ComponentProps, FrayChild} from '../component.js'
+import type {ComponentProps, FrayChild, LivePropContract} from '../component.js'
 import {componentClass, controlId} from '../controlUtils.js'
+import {ErrorMessage} from '../status/statusPresentation.js'
 import {DeclarativeRegion, readDeclarativeRegions} from './declarativeRegion.js'
 
 /** Trailing content rendered in an OptionGroup legend. */
 export class OptionGroupHeaderEnd extends DeclarativeRegion {}
 
-export interface OptionGroupBaseProps extends ComponentProps {
+const optionGroupLiveProps = ['disabled', 'required', 'busy', 'error'] as const
+
+export interface OptionGroupBaseProps extends ComponentProps,
+    LivePropContract<(typeof optionGroupLiveProps)[number]> {
     id?: string | number | null
     label?: FrayChild
     ariaLabel?: string
@@ -14,13 +18,14 @@ export interface OptionGroupBaseProps extends ComponentProps {
     headerEnd?: never
     disabled?: boolean
     required?: boolean
+    busy?: boolean
     error?: unknown
 }
 
 /** Labeled fieldset section for use inside an OptionsBox or standalone. */
 export class OptionGroup<TProps extends OptionGroupBaseProps = OptionGroupBaseProps>
     extends Component<TProps> {
-    static override liveProps: readonly string[] = []
+    static override liveProps = optionGroupLiveProps
     readonly groupId: string
     readonly errorId: string
 
@@ -47,6 +52,7 @@ export class OptionGroup<TProps extends OptionGroupBaseProps = OptionGroupBasePr
             ariaLabel,
             disabled = false,
             required = false,
+            busy = false,
             error = null,
         } = this.props
         return <Host className={componentClass(this.props) || null}>
@@ -55,6 +61,7 @@ export class OptionGroup<TProps extends OptionGroupBaseProps = OptionGroupBasePr
                 disabled={disabled}
                 aria-label={label == null ? ariaLabel : null}
                 aria-required={required ? 'true' : null}
+                aria-busy={busy ? 'true' : null}
                 aria-invalid={error == null ? null : 'true'}
                 aria-describedby={error == null ? null : this.errorId}
             >
@@ -64,19 +71,22 @@ export class OptionGroup<TProps extends OptionGroupBaseProps = OptionGroupBasePr
                 </legend> : null}
                 {content}
             </fieldset>
-            {error == null ? null : <p
-                id={this.errorId}
-                role="alert"
-            >{String(error)}</p>}
+            {this.renderOptionGroupError(error)}
         </Host>
     }
 
+    /** Shared error anatomy for OptionGroup specializations. */
+    protected renderOptionGroupError(error: unknown): FrayChild {
+        return error == null ? null : <ErrorMessage id={this.errorId} error={error} />
+    }
+
     static override hostName = 'option-group'
-    static override dependencies = [OptionGroupHeaderEnd]
+    static override dependencies = [OptionGroupHeaderEnd, ErrorMessage]
 
     static css = css`
         & {
             display: block;
+            position: relative;
             min-width: 0;
         }
 
@@ -86,6 +96,7 @@ export class OptionGroup<TProps extends OptionGroupBaseProps = OptionGroupBasePr
             min-inline-size: 0;
             border: 0;
             width: 100%;
+            box-sizing: border-box;
         }
 
         & > fieldset > legend {
@@ -107,8 +118,29 @@ export class OptionGroup<TProps extends OptionGroupBaseProps = OptionGroupBasePr
             min-width: 0;
         }
 
-        & > p[role="alert"] {
-            margin: 0.25em 0 0;
+        & > fieldset[aria-busy="true"]:not([aria-invalid="true"]) {
+            background-image: var(--working-background-image);
+            background-repeat: repeat;
+            background-size: 2rem 2rem;
+            animation: fray-working-progress .55s linear infinite;
+        }
+
+        & > fieldset[aria-invalid="true"] {
+            border: 1px solid var(--error-color);
+            border-radius: var(--radius-md);
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            & > fieldset[aria-busy="true"] {
+                animation: none !important;
+            }
+        }
+
+        @media (forced-colors: active) {
+            & > fieldset[aria-invalid="true"] {
+                outline: 2px solid Mark;
+                outline-offset: 1px;
+            }
         }
     `
 }

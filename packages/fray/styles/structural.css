@@ -161,6 +161,12 @@ fray-button > button {
             white-space: nowrap;
         }
 
+        fray-button {
+            display: inline-flex;
+            position: relative;
+            flex-flow: row wrap;
+        }
+
         fray-button > button:hover:not(:disabled, [aria-disabled="true"]) {
             background: var(--button-background-hover);
         }
@@ -186,11 +192,146 @@ fray-button > button {
             pointer-events: none;
         }
 
+        fray-button > button[aria-busy="true"]:not([aria-invalid="true"]) {
+            background: var(--working-background-image), var(--button-background-disabled);
+            background-repeat: repeat, no-repeat;
+            background-size: 2rem 2rem, 100% 100%;
+            animation: fray-working-progress .55s linear infinite;
+        }
+
+        fray-button > button[aria-invalid="true"] {
+            border-color: var(--error-color);
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            fray-button > button[aria-busy="true"] {
+                animation: none !important;
+            }
+        }
+
+        @media (forced-colors: active) {
+            fray-button > button[aria-invalid="true"] {
+                outline: 2px solid Mark;
+                outline-offset: 1px;
+            }
+        }
+
+fray-error {
+            display: flex;
+            flex: 1 0 100%;
+            align-items: flex-start;
+            gap: .35em;
+            min-width: 0;
+            margin: .25em 0 0;
+            color: var(--error-color);
+            font-size: .875em;
+            line-height: 1.35;
+            white-space: normal;
+            box-sizing: border-box;
+        }
+
+        fray-error > fray-erroricon {
+            display: grid;
+            flex: 0 0 1.25em;
+            width: 1.25em;
+            height: 1.25em;
+            color: var(--error-contrast);
+            background: var(--error-color);
+            border: 1px solid var(--error-color);
+            border-radius: 50%;
+            box-sizing: border-box;
+            font-weight: 700;
+            line-height: 1;
+            place-items: center;
+        }
+
+        fray-error > fray-erroricon::before {
+            content: "!";
+        }
+
+        fray-error > fray-errortext {
+            display: block;
+            min-width: 0;
+            overflow-wrap: anywhere;
+        }
+
+        fray-error.fray-error-banner {
+            width: 100%;
+            padding: var(--space-xs) var(--space-sm);
+            margin: 0 0 var(--space-xs);
+            background: var(--error-bg-translucent, rgb(255 0 0 / .13));
+            border: 1px solid var(--error-color);
+            border-radius: var(--radius-md);
+        }
+
+        [data-fray-context="control"] fray-error {
+            position: absolute;
+            z-index: 1200;
+            inset-block-start: -.35em;
+            inset-inline-end: -.35em;
+            display: block;
+            width: 1.25em;
+            height: 1.25em;
+            margin: 0;
+            outline: none;
+        }
+
+        [data-fray-context="control"] fray-error > fray-errortext {
+            position: absolute;
+            z-index: 1;
+            inset-block-start: calc(100% + .25em);
+            inset-inline-end: 0;
+            visibility: hidden;
+            width: max-content;
+            max-width: min(22rem, 80vw);
+            padding: var(--space-xs) var(--space-sm);
+            color: var(--ui-color);
+            background: var(--error-bg-neutral, var(--application-background));
+            border: 1px solid var(--error-color);
+            border-radius: var(--radius-md);
+            box-shadow: var(--ui-shadow);
+            opacity: 0;
+            pointer-events: none;
+            transform: translateY(-.2em);
+            transition: opacity var(--motion-fast), transform var(--motion-fast), visibility 0s linear var(--motion-fast);
+        }
+
+        [data-fray-context="control"] fray-error:is(:hover, :focus, :focus-within) > fray-errortext {
+            visibility: visible;
+            opacity: 1;
+            transform: translateY(0);
+            transition-delay: 0s;
+        }
+
+        [data-fray-context="control"] fray-error:focus-visible > fray-erroricon {
+            outline: 2px solid transparent;
+            outline-offset: 1px;
+            box-shadow: var(--focus-ring);
+        }
+
+        @media (forced-colors: active) {
+            fray-error > fray-erroricon,
+            fray-error.fray-error-banner,
+            [data-fray-context="control"] fray-error > fray-errortext {
+                color: CanvasText;
+                background: Canvas;
+                border-color: Mark;
+                forced-color-adjust: auto;
+            }
+        }
+
+@keyframes fray-working-progress {
+            from { background-position: 0 0, 0 0; }
+            to { background-position: 2rem 0, 0 0; }
+        }
+
 fray-checkbox,
 fray-quadcheckbox,
 fray-radiobutton,
 fray-tricheckbox {
             display: inline-flex;
+            position: relative;
+            flex-flow: row wrap;
             line-height: 1;
         }
 
@@ -290,6 +431,50 @@ fray-tricheckbox {
             filter: saturate(0.6);
         }
 
+        fray-checkbox > label > input[aria-busy="true"]:not([aria-invalid="true"]) + fray-checkshell,
+        fray-quadcheckbox > label > input[aria-busy="true"]:not([aria-invalid="true"]) + fray-checkshell,
+        fray-radiobutton > label > input[aria-busy="true"]:not([aria-invalid="true"]) + fray-checkshell,
+        fray-tricheckbox > label > input[aria-busy="true"]:not([aria-invalid="true"]) + fray-checkshell {
+            background: var(--working-background-image), var(--checkbox-box-background,
+                var(--ui-input-bg, transparent));
+            background-repeat: repeat, no-repeat;
+            background-size: 2rem 2rem, 100% 100%;
+            animation: fray-working-progress .55s linear infinite;
+        }
+
+        fray-checkbox > label:has(> input[aria-invalid="true"]),
+        fray-quadcheckbox > label:has(> input[aria-invalid="true"]),
+        fray-radiobutton > label:has(> input[aria-invalid="true"]),
+        fray-tricheckbox > label:has(> input[aria-invalid="true"]) {
+            color: var(--error-color);
+        }
+
+        fray-checkbox > label > input[aria-invalid="true"] + fray-checkshell,
+        fray-quadcheckbox > label > input[aria-invalid="true"] + fray-checkshell,
+        fray-radiobutton > label > input[aria-invalid="true"] + fray-checkshell,
+        fray-tricheckbox > label > input[aria-invalid="true"] + fray-checkshell {
+            border-color: var(--error-color);
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            fray-checkbox > label > input[aria-busy="true"] + fray-checkshell,
+            fray-quadcheckbox > label > input[aria-busy="true"] + fray-checkshell,
+            fray-radiobutton > label > input[aria-busy="true"] + fray-checkshell,
+            fray-tricheckbox > label > input[aria-busy="true"] + fray-checkshell {
+                animation: none !important;
+            }
+        }
+
+        @media (forced-colors: active) {
+            fray-checkbox > label > input[aria-invalid="true"] + fray-checkshell,
+            fray-quadcheckbox > label > input[aria-invalid="true"] + fray-checkshell,
+            fray-radiobutton > label > input[aria-invalid="true"] + fray-checkshell,
+            fray-tricheckbox > label > input[aria-invalid="true"] + fray-checkshell {
+                outline: 2px solid Mark;
+                outline-offset: 1px;
+            }
+        }
+
 fray-checkbox > label > input[value="require"] + fray-checkshell,
 fray-quadcheckbox > label > input[value="require"] + fray-checkshell,
 fray-tricheckbox > label > input[value="require"] + fray-checkshell {
@@ -322,6 +507,14 @@ fray-toggle {
             line-height: normal;
             box-sizing: border-box;
             user-select: none;
+        }
+
+        fray-dropdown:has(> fray-error),
+        fray-datepicker:has(> fray-error),
+        fray-timepicker:has(> fray-error),
+        fray-textbox:has(> fray-error),
+        fray-toggle:has(> fray-error) {
+            flex-wrap: wrap;
         }
 
         fray-groupbox > fray-content > fray-layout > fray-dropdown,
@@ -445,6 +638,40 @@ fray-timepicker {
             box-shadow: var(--focus-ring);
         }
 
+        fray-dropdown > fray-selectshell:has(> select[aria-busy="true"]:not([aria-invalid="true"]))::after,
+        fray-timepicker > fray-selectshell:has(> select[aria-busy="true"]:not([aria-invalid="true"]))::after {
+            background: var(--working-background-image), var(--dropdown-underlay-background);
+            background-repeat: repeat, no-repeat;
+            background-size: 2rem 2rem, 100% 100%;
+            animation: fray-working-progress .55s linear infinite;
+        }
+
+        fray-dropdown > fray-selectshell > select[aria-busy="true"]:not([aria-invalid="true"]),
+        fray-timepicker > fray-selectshell > select[aria-busy="true"]:not([aria-invalid="true"]) {
+            background: var(--working-background-image), var(--dropdown-select-background);
+            background-repeat: repeat, no-repeat;
+            background-size: 2rem 2rem, 100% 100%;
+            animation: fray-working-progress .55s linear infinite;
+        }
+
+        fray-dropdown > fray-selectshell:has(> select[aria-invalid="true"])::before,
+        fray-timepicker > fray-selectshell:has(> select[aria-invalid="true"])::before,
+        fray-dropdown > fray-selectshell:has(> select[aria-invalid="true"])::after,
+        fray-timepicker > fray-selectshell:has(> select[aria-invalid="true"])::after,
+        fray-dropdown > fray-selectshell > select[aria-invalid="true"],
+        fray-timepicker > fray-selectshell > select[aria-invalid="true"] {
+            border-color: var(--error-color);
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            fray-dropdown > fray-selectshell:has(> select[aria-busy="true"])::after,
+            fray-timepicker > fray-selectshell:has(> select[aria-busy="true"])::after,
+            fray-dropdown > fray-selectshell > select[aria-busy="true"],
+            fray-timepicker > fray-selectshell > select[aria-busy="true"] {
+                animation: none !important;
+            }
+        }
+
         @media (forced-colors: active) {
             fray-dropdown > fray-selectshell::before,
             fray-timepicker > fray-selectshell::before,
@@ -458,10 +685,17 @@ fray-timepicker {
                 appearance: auto;
                 padding-inline-end: var(--space-sm);
             }
+
+            fray-dropdown > fray-selectshell > select[aria-invalid="true"],
+            fray-timepicker > fray-selectshell > select[aria-invalid="true"] {
+                outline: 2px solid Mark;
+                outline-offset: 1px;
+            }
         }
 
 fray-datatable {
             display: block;
+            position: relative;
             overflow: auto;
         }
 
@@ -481,6 +715,7 @@ fray-datatable {
 
         fray-datatable th,
         fray-datatable td {
+            position: relative;
             text-align: left;
             padding: 0 var(--ui-padding);
             font-weight: normal;
@@ -519,6 +754,39 @@ fray-datatable {
             height: var(--ui-font-size);
         }
 
+        fray-datatable > table[aria-busy="true"] > tbody > tr[data-fray-selectable-row] > td::after {
+            content: "";
+            position: absolute;
+            z-index: 1;
+            inset: 0;
+            background-image: var(--working-background-image);
+            background-repeat: repeat;
+            background-size: 2rem 2rem;
+            animation: fray-working-progress .55s linear infinite;
+            pointer-events: none;
+        }
+
+        fray-datatable:has(> fray-error) {
+            outline: 1px solid var(--error-color);
+            outline-offset: -1px;
+        }
+
+        fray-datatable:has(> fray-error) > button {
+            border-color: var(--error-color);
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            fray-datatable > table[aria-busy="true"] > tbody > tr[data-fray-selectable-row] > td::after {
+                animation: none !important;
+            }
+        }
+
+        @media (forced-colors: active) {
+            fray-datatable:has(> fray-error) {
+                outline: 2px solid Mark;
+            }
+        }
+
 fray-placeholder {
             display: block;
             width: 5em;
@@ -535,7 +803,7 @@ fray-placeholder {
             z-index: 1;
             inset: 0;
             margin: auto;
-            animation: fray-placeholder-progress 0.55s linear infinite;
+            animation: fray-working-progress .55s linear infinite;
             background-repeat: repeat;
             background-size: 2rem 2rem;
             background-image: var(--working-background-image);
@@ -545,14 +813,9 @@ fray-placeholder {
             pointer-events: none;
         }
 
-        @keyframes fray-placeholder-progress {
-            from { background-position: 0rem 0; }
-            to { background-position: 2rem 0; }
-        }
-
         @media (prefers-reduced-motion: reduce) {
             fray-placeholder::after {
-                animation: none;
+                animation: none !important;
             }
         }
 
@@ -645,6 +908,28 @@ fray-filterpanel {
             margin: 0;
         }
 
+        fray-filterpanel[aria-busy="true"]::after {
+            content: "";
+            position: absolute;
+            z-index: 1;
+            inset: 0;
+            background-image: var(--working-background-image);
+            background-repeat: repeat;
+            background-size: 2rem 2rem;
+            animation: fray-working-progress .55s linear infinite;
+            pointer-events: none;
+        }
+
+        fray-filterpanel:has(> fray-error) {
+            border-color: var(--error-color);
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            fray-filterpanel[aria-busy="true"]::after {
+                animation: none !important;
+            }
+        }
+
 fray-datepicker {
             display: flex;
             flex-flow: row nowrap;
@@ -653,6 +938,10 @@ fray-datepicker {
             position: relative;
             min-height: var(--control-min-height, 2rem);
             min-width: 0;
+        }
+
+        fray-datepicker:has(> fray-error) {
+            flex-wrap: wrap;
         }
 
         fray-datepicker > input {
@@ -724,8 +1013,15 @@ fray-datepicker {
             display: none;
         }
 
-        fray-datepicker > [role="alert"] {
-            margin: 0;
+        fray-datepicker > input[aria-busy="true"]:not([aria-invalid="true"]) {
+            background: var(--working-background-image), var(--input-background);
+            background-repeat: repeat, no-repeat;
+            background-size: 2rem 2rem, 100% 100%;
+            animation: fray-working-progress .55s linear infinite;
+        }
+
+        fray-datepicker > input[aria-invalid="true"] {
+            border-color: var(--error-color);
         }
 
         fray-datepicker > dialog .fray-calendar {
@@ -800,7 +1096,18 @@ fray-datepicker {
             cursor: not-allowed;
         }
 
+        @media (prefers-reduced-motion: reduce) {
+            fray-datepicker > input[aria-busy="true"] {
+                animation: none !important;
+            }
+        }
+
         @media (forced-colors: active) {
+            fray-datepicker > input[aria-invalid="true"] {
+                outline: 2px solid Mark;
+                outline-offset: 1px;
+            }
+
             fray-datepicker > dialog .fray-calendar table[role="grid"] td button[data-selected="true"] {
                 outline: 2px solid ButtonText;
             }
@@ -808,6 +1115,7 @@ fray-datepicker {
 
 fray-datetimepicker {
             display: block;
+            position: relative;
             min-width: 0;
         }
 
@@ -832,8 +1140,18 @@ fray-datetimepicker {
             user-select: none;
         }
 
-        fray-datetimepicker > [role="alert"] {
-            margin: 0.25em 0 0;
+        fray-datetimepicker > fieldset[aria-invalid="true"] fray-datepicker > input,
+        fray-datetimepicker > fieldset[aria-invalid="true"] fray-timepicker > fray-selectshell::before,
+        fray-datetimepicker > fieldset[aria-invalid="true"] fray-timepicker > fray-selectshell::after,
+        fray-datetimepicker > fieldset[aria-invalid="true"] fray-timepicker > fray-selectshell > select {
+            border-color: var(--error-color);
+        }
+
+        @media (forced-colors: active) {
+            fray-datetimepicker > fieldset[aria-invalid="true"] {
+                outline: 2px solid Mark;
+                outline-offset: 1px;
+            }
         }
 
 fray-timepicker > fray-selectshell > select {
@@ -1102,6 +1420,7 @@ fray-infopanel {
 
 fray-listview {
             display: flex;
+            position: relative;
             flex-direction: column;
             overflow-y: auto;
             height: 100%;
@@ -1139,6 +1458,19 @@ fray-listview {
             user-select: none;
         }
 
+        fray-listview > [role="listbox"][aria-busy="true"] > [role="option"]::after {
+            content: "";
+            position: absolute;
+            z-index: 1;
+            inset: 0;
+            background-image: var(--working-background-image);
+            background-repeat: repeat;
+            background-size: 2rem 2rem;
+            border-radius: inherit;
+            animation: fray-working-progress .55s linear infinite;
+            pointer-events: none;
+        }
+
         fray-listview > [role="listbox"] > [role="option"]:hover {
             background: var(--hover-bg-color, #f5f5f5);
         }
@@ -1151,6 +1483,23 @@ fray-listview {
         fray-listview > [role="alert"] {
             margin: 0;
             padding: var(--ui-padding);
+        }
+
+        fray-listview:has(> fray-error) {
+            border-color: var(--error-color);
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            fray-listview > [role="listbox"][aria-busy="true"] > [role="option"]::after {
+                animation: none !important;
+            }
+        }
+
+        @media (forced-colors: active) {
+            fray-listview:has(> fray-error) {
+                outline: 2px solid Mark;
+                outline-offset: -2px;
+            }
         }
 
 fray-navigationbar {
@@ -1236,6 +1585,7 @@ fray-navigationbar {
 
 fray-optiongroup {
             display: block;
+            position: relative;
             min-width: 0;
         }
 
@@ -1245,6 +1595,7 @@ fray-optiongroup {
             min-inline-size: 0;
             border: 0;
             width: 100%;
+            box-sizing: border-box;
         }
 
         fray-optiongroup > fieldset > legend {
@@ -1266,8 +1617,29 @@ fray-optiongroup {
             min-width: 0;
         }
 
-        fray-optiongroup > p[role="alert"] {
-            margin: 0.25em 0 0;
+        fray-optiongroup > fieldset[aria-busy="true"]:not([aria-invalid="true"]) {
+            background-image: var(--working-background-image);
+            background-repeat: repeat;
+            background-size: 2rem 2rem;
+            animation: fray-working-progress .55s linear infinite;
+        }
+
+        fray-optiongroup > fieldset[aria-invalid="true"] {
+            border: 1px solid var(--error-color);
+            border-radius: var(--radius-md);
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            fray-optiongroup > fieldset[aria-busy="true"] {
+                animation: none !important;
+            }
+        }
+
+        @media (forced-colors: active) {
+            fray-optiongroup > fieldset[aria-invalid="true"] {
+                outline: 2px solid Mark;
+                outline-offset: 1px;
+            }
         }
 
 fray-optionsbox > fray-content {
@@ -1416,13 +1788,14 @@ fray-progressbar {
             background-image: var(--working-background-image);
             background-repeat: repeat;
             background-size: 2rem 2rem;
-            animation: fray-progressbar-indeterminate 0.55s linear infinite;
+            animation: fray-working-progress .55s linear infinite;
             opacity: .5;
         }
 
-        @keyframes fray-progressbar-indeterminate {
-            from { background-position: 0 0; }
-            to { background-position: 2rem 0; }
+        @media (prefers-reduced-motion: reduce) {
+            fray-progressbar:has(> progress:indeterminate) > fray-content::after {
+                animation: none !important;
+            }
         }
 
         @media (forced-colors: active) {
@@ -1454,11 +1827,30 @@ fray-radiogroup > fieldset {
             user-select: none;
         }
 
+        fray-radiogroup {
+            position: relative;
+        }
+
         fray-radiogroup > fieldset > legend {
             flex: 0 0 100%;
             padding: 0;
             margin-bottom: .5em;
             border-bottom: 1px solid #aaa;
+        }
+
+        fray-radiogroup > fieldset[aria-invalid="true"] fray-checkshell {
+            border-color: var(--error-color);
+        }
+
+        fray-radiogroup > fieldset[aria-invalid="true"] fray-radiobutton > label {
+            color: var(--error-color);
+        }
+
+        @media (forced-colors: active) {
+            fray-radiogroup > fieldset[aria-invalid="true"] {
+                outline: 2px solid Mark;
+                outline-offset: 1px;
+            }
         }
 
 fray-radiobutton > label > input[type="radio"] + fray-checkshell {
@@ -1746,8 +2138,34 @@ fray-textbox {
             box-shadow: var(--focus-ring);
         }
 
-        fray-textbox > [role="alert"] {
-            margin: 0;
+        fray-textbox > input[aria-busy="true"]:not([aria-invalid="true"]) {
+            background: var(--working-background-image), var(--input-background);
+            background-repeat: repeat, no-repeat;
+            background-size: 2rem 2rem, 100% 100%;
+            animation: fray-working-progress .55s linear infinite;
+        }
+
+        fray-textbox > input:disabled[aria-busy="true"]:not([aria-invalid="true"]) {
+            background: var(--working-background-image), var(--input-background-disabled);
+            background-repeat: repeat, no-repeat;
+            background-size: 2rem 2rem, 100% 100%;
+        }
+
+        fray-textbox > input[aria-invalid="true"] {
+            border-color: var(--error-color);
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            fray-textbox > input[aria-busy="true"] {
+                animation: none !important;
+            }
+        }
+
+        @media (forced-colors: active) {
+            fray-textbox > input[aria-invalid="true"] {
+                outline: 2px solid Mark;
+                outline-offset: 1px;
+            }
         }
 
 fray-toggle {
@@ -1781,6 +2199,8 @@ fray-toggle {
         fray-toggle > fray-options > button[role="radio"] {
             min-height: var(--control-min-height, 2rem);
             position: relative;
+            font-family: inherit;
+            font-size: var(--ui-font-size);
             color: var(--button-color);
             background: var(--toggle-button-background);
             user-select: none;
@@ -1832,6 +2252,25 @@ fray-toggle {
             cursor: not-allowed;
         }
 
+        fray-toggle > fray-options[aria-busy="true"]:not([aria-invalid="true"])
+        > button[role="radio"] {
+            background: var(--working-background-image), var(--toggle-button-background);
+            background-repeat: repeat, no-repeat;
+            background-size: 2rem 2rem, 100% 100%;
+            animation: fray-working-progress .55s linear infinite;
+        }
+
+        fray-toggle > fray-options[aria-busy="true"]:not([aria-invalid="true"])
+        > button[role="radio"][aria-checked="true"] {
+            background: var(--working-background-image), var(--toggle-button-background-checked);
+            background-repeat: repeat, no-repeat;
+            background-size: 2rem 2rem, 100% 100%;
+        }
+
+        fray-toggle > fray-options[aria-invalid="true"] > button[role="radio"] {
+            border-color: var(--error-color);
+        }
+
         fray-toggle > fray-options > button[role="radio"][aria-checked="false"]
         + [role="radio"][aria-checked="false"]::after {
             content: '';
@@ -1840,6 +2279,19 @@ fray-toggle {
             inline-size: 1px;
             inset-inline-start: -1px;
             background: var(--toggle-inactive-separator-background);
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            fray-toggle > fray-options[aria-busy="true"] > button[role="radio"] {
+                animation: none !important;
+            }
+        }
+
+        @media (forced-colors: active) {
+            fray-toggle > fray-options[aria-invalid="true"] {
+                outline: 2px solid Mark;
+                outline-offset: 1px;
+            }
         }
 
 fray-toolbar {
@@ -1866,13 +2318,15 @@ fray-toolbar {
 
 fray-treeview {
             display: flex;
+            position: relative;
             flex-direction: column;
             min-width: 0;
             min-height: 0;
             overflow: auto;
         }
 
-        fray-treeview > [role="tree"] {
+        fray-treeview > [role="tree"],
+        fray-treeview > ul[aria-hidden="true"] {
             display: grid;
             align-content: start;
             margin: 0;
@@ -1880,8 +2334,10 @@ fray-treeview {
             list-style: none;
         }
 
-        fray-treeview [role="treeitem"] {
+        fray-treeview [role="treeitem"],
+        fray-treeview > ul[aria-hidden="true"] > li {
             display: flex;
+            position: relative;
             align-items: flex-start;
             gap: 0.35rem;
             min-width: 0;
@@ -1889,6 +2345,23 @@ fray-treeview {
             padding-inline-start: calc(0.5rem + var(--tree-depth) * 1.1rem);
             cursor: default;
             user-select: none;
+        }
+
+        fray-treeview > ul[aria-hidden="true"] fray-placeholder {
+            align-self: center;
+            height: var(--ui-font-size);
+        }
+
+        fray-treeview > [role="tree"][aria-busy="true"] > [role="treeitem"]::after {
+            content: "";
+            position: absolute;
+            z-index: 1;
+            inset: 0;
+            background-image: var(--working-background-image);
+            background-repeat: repeat;
+            background-size: 2rem 2rem;
+            animation: fray-working-progress .55s linear infinite;
+            pointer-events: none;
         }
 
         fray-treeview [role="treeitem"]:hover {
@@ -1928,9 +2401,24 @@ fray-treeview {
             padding: var(--ui-padding, 0.75rem);
         }
 
+        fray-treeview:has(> fray-error) {
+            outline: 1px solid var(--error-color);
+            outline-offset: -1px;
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            fray-treeview > [role="tree"][aria-busy="true"] > [role="treeitem"]::after {
+                animation: none !important;
+            }
+        }
+
         @media (forced-colors: active) {
             fray-treeview [role="treeitem"][aria-selected="true"] {
                 outline: 2px solid Highlight;
                 forced-color-adjust: auto;
+            }
+
+            fray-treeview:has(> fray-error) {
+                outline: 2px solid Mark;
             }
         }

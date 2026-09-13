@@ -6,6 +6,7 @@ import {GalleryFooter} from './components/GalleryFooter.js'
 import {GalleryHeader} from './components/GalleryHeader.js'
 import {GalleryToolbar} from './components/GalleryToolbar.js'
 import {GalleryModel} from './model/GalleryModel.js'
+import {DataComponentsPage} from './pages/DataComponentsPage.js'
 import {LineInputsPage} from './pages/LineInputsPage.js'
 import {galleryPages} from './routing.js'
 
@@ -43,6 +44,8 @@ export class GalleryApp extends Component {
 
     private renderPage(id: string): FrayChild {
         switch (id) {
+            case 'data-components':
+                return <DataComponentsPage model={this.model} />
             default:
                 return <LineInputsPage model={this.model} />
         }
@@ -60,6 +63,7 @@ export class GalleryApp extends Component {
         GalleryHeader,
         GalleryToolbar,
         GalleryFooter,
+        DataComponentsPage,
         LineInputsPage,
     ]
 }

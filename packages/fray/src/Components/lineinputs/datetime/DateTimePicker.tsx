@@ -3,12 +3,13 @@ import {Component, css} from '../../component.js'
 import type {ComponentProps, FrayChild, LivePropContract} from '../../component.js'
 import {componentClass, controlId, createValueEmitter, invoke} from '../../controlUtils.js'
 import type {ValueControlProps, ValueEmitter} from '../../controlUtils.js'
+import {ErrorMessage} from '../../status/statusPresentation.js'
 import type {CivilDate} from './civilDate.js'
 import {DatePicker} from './DatePicker.js'
 import {TimePicker} from './TimePicker.js'
 import type {TimeString} from './timeString.js'
 
-const dateTimePickerLiveProps = ['disabled', 'required', 'error'] as const
+const dateTimePickerLiveProps = ['disabled', 'required', 'busy', 'error'] as const
 
 export interface DateTimeValue {
     date: CivilDate | null
@@ -22,6 +23,7 @@ export interface DateTimePickerProps extends ValueControlProps<DateTimeValue | n
     ariaLabel?: string
     disabled?: boolean
     required?: boolean
+    busy?: boolean
     error?: unknown
     minDate?: CivilDate | undefined
     maxDate?: CivilDate | undefined
@@ -37,7 +39,7 @@ export interface DateTimePickerProps extends ValueControlProps<DateTimeValue | n
 /** @experimental This component is experimental and may change in any release. */
 export class DateTimePicker extends Component<DateTimePickerProps> {
     static override liveProps = dateTimePickerLiveProps
-    static dependencies = [DatePicker, TimePicker]
+    static dependencies = [DatePicker, TimePicker, ErrorMessage]
     readonly valueEmitter: ValueEmitter<DateTimeValue | null>
     readonly datePart: ValueEmitter<CivilDate | null>
     readonly timePart: ValueEmitter<TimeString | null>
@@ -103,6 +105,7 @@ export class DateTimePicker extends Component<DateTimePickerProps> {
             ariaLabel,
             disabled = false,
             required = false,
+            busy = false,
             error = null,
             minDate,
             maxDate,
@@ -119,6 +122,7 @@ export class DateTimePicker extends Component<DateTimePickerProps> {
                 <fieldset
                     aria-label={label == null ? ariaLabel : null}
                     aria-required={required ? 'true' : null}
+                    aria-busy={busy ? 'true' : null}
                     aria-invalid={error == null ? null : 'true'}
                     aria-describedby={error == null ? null : this.errorId}
                     disabled={disabled}
@@ -129,6 +133,7 @@ export class DateTimePicker extends Component<DateTimePickerProps> {
                         valueEmitter={this.datePart}
                         disabled={disabled}
                         required={required}
+                        busy={busy && error == null}
                         min={minDate}
                         max={maxDate}
                         placeholder={datePlaceholder}
@@ -140,6 +145,7 @@ export class DateTimePicker extends Component<DateTimePickerProps> {
                         valueEmitter={this.timePart}
                         disabled={disabled}
                         required={required}
+                        busy={busy && error == null}
                         min={minTime}
                         max={maxTime}
                         step={timeStep}
@@ -148,11 +154,7 @@ export class DateTimePicker extends Component<DateTimePickerProps> {
                         onChange={(_value, event) => this.handlePartChange('time', event)}
                     />
                 </fieldset>
-                {error == null ? null : (
-                    <p id={this.errorId} role="alert">
-                        {String(error)}
-                    </p>
-                )}
+                {error == null ? null : <ErrorMessage id={this.errorId} error={error} />}
             </Host>
         )
     }
@@ -162,6 +164,7 @@ export class DateTimePicker extends Component<DateTimePickerProps> {
     static override css = css`
         & {
             display: block;
+            position: relative;
             min-width: 0;
         }
 
@@ -186,8 +189,18 @@ export class DateTimePicker extends Component<DateTimePickerProps> {
             user-select: none;
         }
 
-        & > [role="alert"] {
-            margin: 0.25em 0 0;
+        & > fieldset[aria-invalid="true"] fray-datepicker > input,
+        & > fieldset[aria-invalid="true"] fray-timepicker > fray-selectshell::before,
+        & > fieldset[aria-invalid="true"] fray-timepicker > fray-selectshell::after,
+        & > fieldset[aria-invalid="true"] fray-timepicker > fray-selectshell > select {
+            border-color: var(--error-color);
+        }
+
+        @media (forced-colors: active) {
+            & > fieldset[aria-invalid="true"] {
+                outline: 2px solid Mark;
+                outline-offset: 1px;
+            }
         }
     `
 }

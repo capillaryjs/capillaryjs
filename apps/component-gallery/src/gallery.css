@@ -92,6 +92,12 @@ body {
     padding: 0 0.75rem 0.75rem;
 }
 
+.gallery-data-guidance {
+    margin: 0;
+    padding: 0 0.75rem 0.75rem;
+    white-space: normal;
+}
+
 .gallery-section-nav {
     display: flex;
     flex-direction: column;
@@ -116,6 +122,17 @@ body {
 /* Each group stacks its control variants vertically. */
 .gallery-state-column {
     gap: 0.5rem;
+}
+
+.gallery-data-grid {
+    flex-wrap: wrap;
+    align-items: stretch;
+    gap: 1rem;
+}
+
+.gallery-data-grid > * {
+    flex: 1 1 18rem;
+    min-block-size: 10rem;
 }
 
 .gallery-website {

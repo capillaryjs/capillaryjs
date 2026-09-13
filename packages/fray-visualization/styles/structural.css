@@ -279,6 +279,12 @@ fray-button > button {
             white-space: nowrap;
         }
 
+        fray-button {
+            display: inline-flex;
+            position: relative;
+            flex-flow: row wrap;
+        }
+
         fray-button > button:hover:not(:disabled, [aria-disabled="true"]) {
             background: var(--button-background-hover);
         }
@@ -302,6 +308,139 @@ fray-button > button {
             border: var(--button-border-disabled);
             cursor: not-allowed;
             pointer-events: none;
+        }
+
+        fray-button > button[aria-busy="true"]:not([aria-invalid="true"]) {
+            background: var(--working-background-image), var(--button-background-disabled);
+            background-repeat: repeat, no-repeat;
+            background-size: 2rem 2rem, 100% 100%;
+            animation: fray-working-progress .55s linear infinite;
+        }
+
+        fray-button > button[aria-invalid="true"] {
+            border-color: var(--error-color);
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            fray-button > button[aria-busy="true"] {
+                animation: none !important;
+            }
+        }
+
+        @media (forced-colors: active) {
+            fray-button > button[aria-invalid="true"] {
+                outline: 2px solid Mark;
+                outline-offset: 1px;
+            }
+        }
+
+fray-error {
+            display: flex;
+            flex: 1 0 100%;
+            align-items: flex-start;
+            gap: .35em;
+            min-width: 0;
+            margin: .25em 0 0;
+            color: var(--error-color);
+            font-size: .875em;
+            line-height: 1.35;
+            white-space: normal;
+            box-sizing: border-box;
+        }
+
+        fray-error > fray-erroricon {
+            display: grid;
+            flex: 0 0 1.25em;
+            width: 1.25em;
+            height: 1.25em;
+            color: var(--error-contrast);
+            background: var(--error-color);
+            border: 1px solid var(--error-color);
+            border-radius: 50%;
+            box-sizing: border-box;
+            font-weight: 700;
+            line-height: 1;
+            place-items: center;
+        }
+
+        fray-error > fray-erroricon::before {
+            content: "!";
+        }
+
+        fray-error > fray-errortext {
+            display: block;
+            min-width: 0;
+            overflow-wrap: anywhere;
+        }
+
+        fray-error.fray-error-banner {
+            width: 100%;
+            padding: var(--space-xs) var(--space-sm);
+            margin: 0 0 var(--space-xs);
+            background: var(--error-bg-translucent, rgb(255 0 0 / .13));
+            border: 1px solid var(--error-color);
+            border-radius: var(--radius-md);
+        }
+
+        [data-fray-context="control"] fray-error {
+            position: absolute;
+            z-index: 1200;
+            inset-block-start: -.35em;
+            inset-inline-end: -.35em;
+            display: block;
+            width: 1.25em;
+            height: 1.25em;
+            margin: 0;
+            outline: none;
+        }
+
+        [data-fray-context="control"] fray-error > fray-errortext {
+            position: absolute;
+            z-index: 1;
+            inset-block-start: calc(100% + .25em);
+            inset-inline-end: 0;
+            visibility: hidden;
+            width: max-content;
+            max-width: min(22rem, 80vw);
+            padding: var(--space-xs) var(--space-sm);
+            color: var(--ui-color);
+            background: var(--error-bg-neutral, var(--application-background));
+            border: 1px solid var(--error-color);
+            border-radius: var(--radius-md);
+            box-shadow: var(--ui-shadow);
+            opacity: 0;
+            pointer-events: none;
+            transform: translateY(-.2em);
+            transition: opacity var(--motion-fast), transform var(--motion-fast), visibility 0s linear var(--motion-fast);
+        }
+
+        [data-fray-context="control"] fray-error:is(:hover, :focus, :focus-within) > fray-errortext {
+            visibility: visible;
+            opacity: 1;
+            transform: translateY(0);
+            transition-delay: 0s;
+        }
+
+        [data-fray-context="control"] fray-error:focus-visible > fray-erroricon {
+            outline: 2px solid transparent;
+            outline-offset: 1px;
+            box-shadow: var(--focus-ring);
+        }
+
+        @media (forced-colors: active) {
+            fray-error > fray-erroricon,
+            fray-error.fray-error-banner,
+            [data-fray-context="control"] fray-error > fray-errortext {
+                color: CanvasText;
+                background: Canvas;
+                border-color: Mark;
+                forced-color-adjust: auto;
+            }
+        }
+
+@keyframes fray-working-progress {
+            from { background-position: 0 0, 0 0; }
+            to { background-position: 2rem 0, 0 0; }
         }
 
 fray-categoryhidepanel,
@@ -553,6 +692,8 @@ fray-header {
 
 fray-checkbox {
             display: inline-flex;
+            position: relative;
+            flex-flow: row wrap;
             line-height: 1;
         }
 
@@ -631,6 +772,35 @@ fray-checkbox {
             filter: saturate(0.6);
         }
 
+        fray-checkbox > label > input[aria-busy="true"]:not([aria-invalid="true"]) + fray-checkshell {
+            background: var(--working-background-image), var(--checkbox-box-background,
+                var(--ui-input-bg, transparent));
+            background-repeat: repeat, no-repeat;
+            background-size: 2rem 2rem, 100% 100%;
+            animation: fray-working-progress .55s linear infinite;
+        }
+
+        fray-checkbox > label:has(> input[aria-invalid="true"]) {
+            color: var(--error-color);
+        }
+
+        fray-checkbox > label > input[aria-invalid="true"] + fray-checkshell {
+            border-color: var(--error-color);
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            fray-checkbox > label > input[aria-busy="true"] + fray-checkshell {
+                animation: none !important;
+            }
+        }
+
+        @media (forced-colors: active) {
+            fray-checkbox > label > input[aria-invalid="true"] + fray-checkshell {
+                outline: 2px solid Mark;
+                outline-offset: 1px;
+            }
+        }
+
 fray-checkbox > label > input[value="require"] + fray-checkshell {
             color: var(--palette-contrast-light);
             background: var(--palette-green);
@@ -654,6 +824,7 @@ fray-collapsibleoptiongroup {
             min-inline-size: 0;
             border: 0;
             width: 100%;
+            box-sizing: border-box;
         }
 
         fray-collapsibleoptiongroup > fieldset > legend {
@@ -675,8 +846,29 @@ fray-collapsibleoptiongroup {
             min-width: 0;
         }
 
-        fray-collapsibleoptiongroup > p[role="alert"] {
-            margin: 0.25em 0 0;
+        fray-collapsibleoptiongroup > fieldset[aria-busy="true"]:not([aria-invalid="true"]) {
+            background-image: var(--working-background-image);
+            background-repeat: repeat;
+            background-size: 2rem 2rem;
+            animation: fray-working-progress .55s linear infinite;
+        }
+
+        fray-collapsibleoptiongroup > fieldset[aria-invalid="true"] {
+            border: 1px solid var(--error-color);
+            border-radius: var(--radius-md);
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            fray-collapsibleoptiongroup > fieldset[aria-busy="true"] {
+                animation: none !important;
+            }
+        }
+
+        @media (forced-colors: active) {
+            fray-collapsibleoptiongroup > fieldset[aria-invalid="true"] {
+                outline: 2px solid Mark;
+                outline-offset: 1px;
+            }
         }
 
 fray-collapsibleoptiongroup > fieldset > legend > button.fray-collapse-toggle {

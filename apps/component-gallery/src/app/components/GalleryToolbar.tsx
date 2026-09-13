@@ -49,6 +49,10 @@ export class GalleryToolbar extends Component<GalleryToolbarProps> {
                     Read-only
                 </label>
                 <label>
+                    <input type="checkbox" bind:checked={model.componentBusy} />
+                    Busy
+                </label>
+                <label>
                     <input type="checkbox" bind:checked={model.componentErrorFlag} />
                     Error
                 </label>

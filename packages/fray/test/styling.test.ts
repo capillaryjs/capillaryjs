@@ -176,6 +176,44 @@ describe('style registry', () => {
         assert.match(stylesheet, /fray-checkbox > label > input \+ fray-checkshell,\s*fray-radiobutton > label > input \+ fray-checkshell\s*\{[^}]*box-shadow:\s*var\(--checkbox-box-shadow\)/)
     })
 
+    test('collects one semantic loading/error system across controls and data views', () => {
+        const runtime = createFrayRuntime()
+        for (const component of [
+            Button,
+            Textbox,
+            Dropdown,
+            Checkbox,
+            RadioGroup,
+            Toggle,
+            DatePicker,
+            TimePicker,
+            DateTimePicker,
+            OptionGroup,
+            ProgressBar,
+            ListView,
+            TreeView,
+            DataTable,
+        ]) runtime.registerStyles(component)
+        const stylesheet = runtime.styleRegistry.generateCSS()
+
+        assert.equal(stylesheet.match(/@keyframes fray-working-progress/g)?.length, 1)
+        assert.match(stylesheet, /fray-button > button\[aria-busy="true"\][^{]*\{[^}]*animation:\s*fray-working-progress/)
+        assert.match(stylesheet, /fray-textbox > input\[aria-busy="true"\][^{]*\{[^}]*background:\s*var\(--working-background-image\)/)
+        assert.match(stylesheet, /fray-dropdown > fray-selectshell:has\(> select\[aria-busy="true"\]/)
+        assert.match(stylesheet, /input\[aria-busy="true"\][^{]*\+ fray-checkshell\s*\{[^}]*animation:\s*fray-working-progress/)
+        assert.match(stylesheet, /fray-toggle > fray-options\[aria-busy="true"\][\s\S]*button\[role="radio"\][\s\S]*animation:\s*fray-working-progress/)
+        assert.match(stylesheet, /fray-progressbar:has\(> progress:indeterminate\) > fray-content::after[\s\S]*animation:\s*fray-working-progress/)
+        assert.match(stylesheet, /fray-datatable > table\[aria-busy="true"\][\s\S]*td::after[\s\S]*animation:\s*fray-working-progress/)
+        assert.match(stylesheet, /fray-listview > \[role="listbox"\]\[aria-busy="true"\][\s\S]*\[role="option"\]::after/)
+        assert.match(stylesheet, /fray-treeview > \[role="tree"\]\[aria-busy="true"\][\s\S]*\[role="treeitem"\]::after/)
+
+        assert.match(stylesheet, /fray-error > fray-erroricon\s*\{[^}]*background:\s*var\(--error-color\)/)
+        assert.match(stylesheet, /\[data-fray-context="control"\] fray-error > fray-errortext\s*\{[^}]*visibility:\s*hidden/)
+        assert.match(stylesheet, /\[aria-invalid="true"\][^{]*\{[^}]*border-color:\s*var\(--error-color\)/)
+        assert.match(stylesheet, /@media \(prefers-reduced-motion: reduce\)[\s\S]*animation:\s*none/)
+        assert.match(stylesheet, /@media \(forced-colors: active\)[\s\S]*(?:Mark|Highlight)/)
+    })
+
     test('collects Button CSS only through its fixed host', () => {
         const runtime = createFrayRuntime()
         runtime.registerStyles(Button)
@@ -272,8 +310,8 @@ describe('style registry', () => {
         const stylesheet = runtime.styleRegistry.generateCSS()
 
         assert.match(stylesheet, /fray-placeholder\s*\{[^}]*width:\s*5em[^}]*height:\s*1em[^}]*background:\s*#ccc/)
-        assert.match(stylesheet, /fray-placeholder::after\s*\{[^}]*animation:\s*fray-placeholder-progress 0\.55s linear infinite[^}]*background-image:\s*var\(--working-background-image\)/)
-        assert.match(stylesheet, /@keyframes fray-placeholder-progress\s*\{[\s\S]*background-position:\s*2rem 0/)
+        assert.match(stylesheet, /fray-placeholder::after\s*\{[^}]*animation:\s*fray-working-progress \.55s linear infinite[^}]*background-image:\s*var\(--working-background-image\)/)
+        assert.match(stylesheet, /@keyframes fray-working-progress\s*\{[\s\S]*background-position:\s*2rem 0/)
         assert.match(stylesheet, /@media \(prefers-reduced-motion: reduce\)\s*\{[\s\S]*fray-placeholder::after\s*\{[^}]*animation:\s*none/)
         assert.doesNotMatch(stylesheet, /(?:^|\n)placeholder\s*\{|data-part|data-state|fray-panel|fray-sidebar/)
     })
@@ -297,7 +335,7 @@ describe('style registry', () => {
         runtime.registerStyles(TreeView)
         const stylesheet = runtime.styleRegistry.generateCSS()
 
-        assert.match(stylesheet, /fray-treeview > \[role="tree"\]\s*\{[^}]*list-style:\s*none/)
+        assert.match(stylesheet, /fray-treeview > \[role="tree"\],[\s\S]*fray-treeview > ul\[aria-hidden="true"\]\s*\{[^}]*list-style:\s*none/)
         assert.match(stylesheet, /fray-treeview \[role="treeitem"\]:hover\s*\{[^}]*background:\s*var\(--button-background-hover\)/)
         assert.match(stylesheet, /fray-treeview \[role="treeitem"\]:focus-visible\s*\{[^}]*box-shadow:\s*var\(--focus-ring\)/)
         assert.match(stylesheet, /fray-treeview \[role="treeitem"\]\[aria-selected="true"\]\s*\{[^}]*color:\s*var\(--ui-select-text-color\)[^}]*background:\s*var\(--ui-select-bg\)/)
@@ -565,7 +603,7 @@ describe('style registry', () => {
         assert.match(stylesheet, /button\[role="radio"\]\[aria-checked="true"\]/)
         assert.match(stylesheet, /button\[role="radio"\]\[aria-checked="false"\]\s*\+\s*\[role="radio"\]\[aria-checked="false"\]::after/)
         assert.match(stylesheet, /button\[role="radio"\]:disabled\s*\{[^}]*cursor:\s*not-allowed/)
-        assert.doesNotMatch(stylesheet, /:has\(|fieldset|\.options|data-part|data-disabled|fray-panel|fray-sidebar|fray-dropdown/)
+        assert.doesNotMatch(stylesheet, /fieldset|\.options|data-part|data-disabled|fray-panel|fray-sidebar|fray-dropdown/)
     })
 
     test('collects DatePicker, TimePicker, and DateTimePicker structural CSS', () => {

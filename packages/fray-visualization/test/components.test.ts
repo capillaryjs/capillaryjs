@@ -18,6 +18,7 @@ import {
     createSplitSelection,
     staticCriterion,
 } from '../src/index.js'
+import type {CollapsibleOptionGroupProps} from '../src/index.js'
 
 interface Item {
     id: number
@@ -95,9 +96,10 @@ test('generated structural CSS uses fixed visualization hosts without theme sele
 })
 
 describe('visualization controls', () => {
-    test('CollapsibleOptionGroup preserves the parent-specific header region', () => {
-        new CollapsibleOptionGroup({
+    test('CollapsibleOptionGroup preserves its header region and inherited feedback', () => {
+        const group = new CollapsibleOptionGroup<CollapsibleOptionGroupProps>({
             label: 'Severity',
+            busy: true,
             children: [
                 h(OptionGroupHeaderEnd, null, h('small', null, '4 visible')),
                 h('p', null, 'Options'),
@@ -112,6 +114,11 @@ describe('visualization controls', () => {
             required('fray-collapsibleoptiongroup fieldset > div > p').textContent,
             'Options',
         )
+        assert.equal(required('fray-collapsibleoptiongroup fieldset')
+            .getAttribute('aria-busy'), 'true')
+        group.setProps({label: 'Severity', error: new Error('Options unavailable')})
+        assert.equal(required('fray-collapsibleoptiongroup fray-error[role="alert"]')
+            .textContent, 'Options unavailable')
         assert.throws(
             () => new CollapsibleOptionGroup({
                 label: 'Legacy',

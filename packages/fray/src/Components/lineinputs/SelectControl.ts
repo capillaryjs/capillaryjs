@@ -101,6 +101,33 @@ export abstract class SelectControl<
             box-shadow: var(--focus-ring);
         }
 
+        & > fray-selectshell:has(> select[aria-busy="true"]:not([aria-invalid="true"]))::after {
+            background: var(--working-background-image), var(--dropdown-underlay-background);
+            background-repeat: repeat, no-repeat;
+            background-size: 2rem 2rem, 100% 100%;
+            animation: fray-working-progress .55s linear infinite;
+        }
+
+        & > fray-selectshell > select[aria-busy="true"]:not([aria-invalid="true"]) {
+            background: var(--working-background-image), var(--dropdown-select-background);
+            background-repeat: repeat, no-repeat;
+            background-size: 2rem 2rem, 100% 100%;
+            animation: fray-working-progress .55s linear infinite;
+        }
+
+        & > fray-selectshell:has(> select[aria-invalid="true"])::before,
+        & > fray-selectshell:has(> select[aria-invalid="true"])::after,
+        & > fray-selectshell > select[aria-invalid="true"] {
+            border-color: var(--error-color);
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            & > fray-selectshell:has(> select[aria-busy="true"])::after,
+            & > fray-selectshell > select[aria-busy="true"] {
+                animation: none !important;
+            }
+        }
+
         @media (forced-colors: active) {
             & > fray-selectshell::before,
             & > fray-selectshell::after {
@@ -110,6 +137,11 @@ export abstract class SelectControl<
             & > fray-selectshell > select {
                 appearance: auto;
                 padding-inline-end: var(--space-sm);
+            }
+
+            & > fray-selectshell > select[aria-invalid="true"] {
+                outline: 2px solid Mark;
+                outline-offset: 1px;
             }
         }
     `

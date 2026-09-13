@@ -7,9 +7,10 @@ import {
     invoke,
 } from '../controlUtils.js'
 import type {ValueControlProps, ValueEmitter} from '../controlUtils.js'
+import {ErrorMessage} from '../status/statusPresentation.js'
 import {LabeledInputControl} from './LabeledInputControl.js'
 
-const textboxLiveProps = ['disabled', 'required', 'readOnly', 'error'] as const
+const textboxLiveProps = ['disabled', 'required', 'readOnly', 'busy', 'error'] as const
 
 export interface TextboxProps extends ValueControlProps<string>,
     LivePropContract<(typeof textboxLiveProps)[number]> {
@@ -21,6 +22,7 @@ export interface TextboxProps extends ValueControlProps<string>,
     disabled?: boolean
     required?: boolean
     readOnly?: boolean
+    busy?: boolean
     error?: unknown
     autoComplete?: string
     inputMode?: string
@@ -35,6 +37,7 @@ export interface TextboxProps extends ValueControlProps<string>,
 
 export class Textbox extends LabeledInputControl<TextboxProps> {
     static override liveProps = textboxLiveProps
+    static override dependencies = [ErrorMessage]
     readonly inputId: string
     readonly errorId: string
     readonly valueEmitter: ValueEmitter<string>
@@ -59,6 +62,7 @@ export class Textbox extends LabeledInputControl<TextboxProps> {
             disabled = false,
             required = false,
             readOnly = false,
+            busy = false,
             error = null,
             autoComplete,
             inputMode,
@@ -91,6 +95,7 @@ export class Textbox extends LabeledInputControl<TextboxProps> {
                 pattern={pattern}
                 ref={inputRef}
                 aria-label={label == null ? ariaLabel : null}
+                aria-busy={busy ? 'true' : null}
                 aria-invalid={error == null ? null : 'true'}
                 aria-describedby={error == null ? null : this.errorId}
                 onInput={(event: Event) => {
@@ -104,10 +109,7 @@ export class Textbox extends LabeledInputControl<TextboxProps> {
                     event,
                 )}
             />
-            {error == null ? null : <p
-                id={this.errorId}
-                role="alert"
-            >{String(error)}</p>}
+            {error == null ? null : <ErrorMessage id={this.errorId} error={error} />}
         </Host>
     }
 
@@ -156,8 +158,34 @@ export class Textbox extends LabeledInputControl<TextboxProps> {
             box-shadow: var(--focus-ring);
         }
 
-        & > [role="alert"] {
-            margin: 0;
+        & > input[aria-busy="true"]:not([aria-invalid="true"]) {
+            background: var(--working-background-image), var(--input-background);
+            background-repeat: repeat, no-repeat;
+            background-size: 2rem 2rem, 100% 100%;
+            animation: fray-working-progress .55s linear infinite;
+        }
+
+        & > input:disabled[aria-busy="true"]:not([aria-invalid="true"]) {
+            background: var(--working-background-image), var(--input-background-disabled);
+            background-repeat: repeat, no-repeat;
+            background-size: 2rem 2rem, 100% 100%;
+        }
+
+        & > input[aria-invalid="true"] {
+            border-color: var(--error-color);
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            & > input[aria-busy="true"] {
+                animation: none !important;
+            }
+        }
+
+        @media (forced-colors: active) {
+            & > input[aria-invalid="true"] {
+                outline: 2px solid Mark;
+                outline-offset: 1px;
+            }
         }
     `
 }

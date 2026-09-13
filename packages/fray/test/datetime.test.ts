@@ -248,9 +248,10 @@ describe('DatePicker', () => {
         assert.deepEqual(changes, ['2026-09-15'])
     })
 
-    test('live disabled, required, and error update without parent rerender', () => {
+    test('live disabled, required, busy, and error update without parent rerender', () => {
         const disabled = new Emitter(false)
         const required = new Emitter(false)
+        const busy = new Emitter(false)
         const error = new Emitter<unknown>(null)
         let ownerRenders = 0
 
@@ -262,6 +263,7 @@ describe('DatePicker', () => {
                     defaultValue: '2026-09-10',
                     disabled: live(disabled),
                     required: live(required),
+                    busy: live(busy),
                     error: live(error),
                 })
             }
@@ -277,11 +279,13 @@ describe('DatePicker', () => {
 
         disabled.set(true)
         required.set(true)
+        busy.set(true)
         error.set('Choose a date')
 
         assert.equal(ownerRenders, 1)
         assert.equal(input.disabled, true)
         assert.equal(input.required, true)
+        assert.equal(input.getAttribute('aria-busy'), 'true')
         assert.equal(input.getAttribute('aria-invalid'), 'true')
         assert.equal(requiredQuery<HTMLElement>('[role="alert"]', input.closest('fray-datepicker')!).textContent,
             'Choose a date')
@@ -294,12 +298,18 @@ describe('TimePicker', () => {
             label: 'Start time',
             step: 60,
             defaultValue: '10:00',
+            busy: true,
+            error: 'Time service delayed',
         }).attachTo(document.body)
 
         const host = requiredQuery<HTMLElement>('fray-timepicker')
         assert.equal(host.dataset.frayComponent, 'timepicker')
         const select = requiredQuery<HTMLSelectElement>('select', host)
         assert.equal(select.value, '10:00')
+        assert.equal(select.getAttribute('aria-busy'), 'true')
+        assert.equal(select.getAttribute('aria-invalid'), 'true')
+        assert.equal(requiredQuery('fray-error[role="alert"]', host).textContent,
+            'Time service delayed')
         assert.equal([...select.options].some((option) => option.value === '09:00'), true)
         assert.equal([...select.options].some((option) => option.value === '23:00'), true)
     })
@@ -346,6 +356,8 @@ describe('DateTimePicker', () => {
         DateTimePicker.new({
             label: 'Start',
             defaultValue: {date: '2026-09-10', time: '10:00'},
+            busy: true,
+            error: 'Start is unavailable',
         }).attachTo(document.body)
 
         const host = requiredQuery<HTMLElement>('fray-datetimepicker')
@@ -354,6 +366,12 @@ describe('DateTimePicker', () => {
         assert.equal(requiredQuery<HTMLLegendElement>('legend', fieldset).textContent, 'Start')
         assert.equal(requiredQuery<HTMLInputElement>('input', host).value, '2026-09-10')
         assert.equal(requiredQuery<HTMLSelectElement>('select', host).value, '10:00')
+        assert.equal(fieldset.getAttribute('aria-busy'), 'true')
+        assert.equal(fieldset.getAttribute('aria-invalid'), 'true')
+        assert.ok([...host.querySelectorAll('input, select')]
+            .every((control) => control.getAttribute('aria-busy') == null))
+        assert.equal(requiredQuery('fray-error[role="alert"]', host).textContent,
+            'Start is unavailable')
     })
 
     test('combines date and time into a single value emitter', () => {

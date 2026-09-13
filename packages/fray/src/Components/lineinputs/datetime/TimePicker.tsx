@@ -7,11 +7,12 @@ import {
     invoke,
 } from '../../controlUtils.js'
 import type {ValueControlProps, ValueEmitter} from '../../controlUtils.js'
+import {ErrorMessage} from '../../status/statusPresentation.js'
 import {SelectControl} from '../SelectControl.js'
 import type {TimeString} from './timeString.js'
 import {formatTime, isTimeString, parseTime, timeStepOptions} from './timeString.js'
 
-const timePickerLiveProps = ['disabled', 'required', 'error'] as const
+const timePickerLiveProps = ['disabled', 'required', 'busy', 'error'] as const
 
 export interface TimePickerProps extends ValueControlProps<TimeString | null>,
     LivePropContract<(typeof timePickerLiveProps)[number]> {
@@ -20,6 +21,7 @@ export interface TimePickerProps extends ValueControlProps<TimeString | null>,
     ariaLabel?: string
     disabled?: boolean
     required?: boolean
+    busy?: boolean
     error?: unknown
     min?: TimeString | undefined
     max?: TimeString | undefined
@@ -32,6 +34,7 @@ export interface TimePickerProps extends ValueControlProps<TimeString | null>,
 /** @experimental This component is experimental and may change in any release. */
 export class TimePicker extends SelectControl<TimePickerProps> {
     static override liveProps = timePickerLiveProps
+    static override dependencies = [ErrorMessage]
     readonly inputId: string
     readonly errorId: string
     readonly valueEmitter: ValueEmitter<TimeString | null>
@@ -127,6 +130,7 @@ export class TimePicker extends SelectControl<TimePickerProps> {
             placeholder = this.frayMessage('timePickerPlaceholder'),
             disabled = false,
             required = false,
+            busy = false,
             error = null,
         } = this.props
 
@@ -145,6 +149,7 @@ export class TimePicker extends SelectControl<TimePickerProps> {
                         disabled={disabled}
                         required={required}
                         aria-label={label == null ? ariaLabel : null}
+                        aria-busy={busy ? 'true' : null}
                         aria-invalid={error == null ? null : 'true'}
                         aria-describedby={error == null ? null : this.errorId}
                         onInput={(event: Event) => this.handleChange(event)}
@@ -171,11 +176,7 @@ export class TimePicker extends SelectControl<TimePickerProps> {
                         ))}
                     </select>
                 </fray-selectshell>
-                {error == null ? null : (
-                    <p id={this.errorId} role="alert">
-                        {String(error)}
-                    </p>
-                )}
+                {error == null ? null : <ErrorMessage id={this.errorId} error={error} />}
             </Host>
         )
     }

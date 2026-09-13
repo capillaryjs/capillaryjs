@@ -1,10 +1,12 @@
 import {Emitter, FetchState} from '@sylwellsoftware/glue'
 import type {ReadableEmitter} from '@sylwellsoftware/glue'
 
+import {Placeholder} from '../../Placeholder.js'
 import {Component, css, isVNode} from '../../component.js'
 import type {ComponentProps, FrayChild, Key} from '../../component.js'
 import {componentClass, invoke} from '../../controlUtils.js'
 import type {ValueEmitter} from '../../controlUtils.js'
+import {ErrorMessage} from '../../status/statusPresentation.js'
 import {TreeItem} from './treeitem.js'
 import type {TreeItemProps, TreeNode} from './treeitem.js'
 import {assertTreeNodes} from './treeModel.js'
@@ -12,6 +14,7 @@ import {assertTreeNodes} from './treeModel.js'
 export interface TreeViewProps<TValue = unknown> extends ComponentProps {
     nodes?: readonly TreeNode<TValue>[] | ReadableEmitter<readonly TreeNode<TValue>[], unknown>
     label: string
+    placeholderCount?: number
     selectedKeyEmitter?: ValueEmitter<Key | null>
     expandedKeysEmitter?: ValueEmitter<Key[]>
     renderItem?: (node: TreeNode<TValue>, depth: number) => FrayChild
@@ -110,10 +113,28 @@ export class TreeView<TValue = unknown> extends Component<TreeViewProps<TValue>>
         const Host = this.Host
         return <Host className={componentClass(this.props) || null}>
             {fetchState === FetchState.Error
-                ? <p role="alert">{errorMessage(sourceError, this.frayMessage('treeViewLoadError'))}</p>
+                ? <ErrorMessage
+                    className="fray-error-banner"
+                    error={sourceError}
+                    fallback={this.frayMessage('treeViewLoadError')}
+                />
                 : null}
             {isLoading && visible.length === 0
-                ? <p role="status">{this.frayMessage('treeViewLoading')}</p>
+                ? <>
+                    <p role="status">{this.frayMessage('treeViewLoading')}</p>
+                    <ul aria-hidden="true">
+                        {Array.from({length: this.props.placeholderCount ?? 5}, (_, index) => {
+                            const depth = [0, 1, 2, 1, 0][index % 5] ?? 0
+                            return <li
+                                key={`placeholder-${index}`}
+                                style={{'--tree-depth': depth}}
+                            >
+                                <fray-expander>•</fray-expander>
+                                <Placeholder width={42 + (index % 5) * 9} />
+                            </li>
+                        })}
+                    </ul>
+                </>
                 : null}
             {fetchState === FetchState.Ready && visible.length === 0
                 ? <p role="status">{this.frayMessage('treeViewEmpty')}</p>
@@ -177,20 +198,22 @@ export class TreeView<TValue = unknown> extends Component<TreeViewProps<TValue>>
         this.ownedExpandedEmitter?.dispose()
     }
 
-    static dependencies = [TreeItem]
+    static dependencies = [TreeItem, Placeholder, ErrorMessage]
 
     static override hostName = 'tree-view'
 
     static css = css`
         & {
             display: flex;
+            position: relative;
             flex-direction: column;
             min-width: 0;
             min-height: 0;
             overflow: auto;
         }
 
-        & > [role="tree"] {
+        & > [role="tree"],
+        & > ul[aria-hidden="true"] {
             display: grid;
             align-content: start;
             margin: 0;
@@ -198,8 +221,10 @@ export class TreeView<TValue = unknown> extends Component<TreeViewProps<TValue>>
             list-style: none;
         }
 
-        & [role="treeitem"] {
+        & [role="treeitem"],
+        & > ul[aria-hidden="true"] > li {
             display: flex;
+            position: relative;
             align-items: flex-start;
             gap: 0.35rem;
             min-width: 0;
@@ -207,6 +232,23 @@ export class TreeView<TValue = unknown> extends Component<TreeViewProps<TValue>>
             padding-inline-start: calc(0.5rem + var(--tree-depth) * 1.1rem);
             cursor: default;
             user-select: none;
+        }
+
+        & > ul[aria-hidden="true"] fray-placeholder {
+            align-self: center;
+            height: var(--ui-font-size);
+        }
+
+        & > [role="tree"][aria-busy="true"] > [role="treeitem"]::after {
+            content: "";
+            position: absolute;
+            z-index: 1;
+            inset: 0;
+            background-image: var(--working-background-image);
+            background-repeat: repeat;
+            background-size: 2rem 2rem;
+            animation: fray-working-progress .55s linear infinite;
+            pointer-events: none;
         }
 
         & [role="treeitem"]:hover {
@@ -246,10 +288,25 @@ export class TreeView<TValue = unknown> extends Component<TreeViewProps<TValue>>
             padding: var(--ui-padding, 0.75rem);
         }
 
+        &:has(> fray-error) {
+            outline: 1px solid var(--error-color);
+            outline-offset: -1px;
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            & > [role="tree"][aria-busy="true"] > [role="treeitem"]::after {
+                animation: none !important;
+            }
+        }
+
         @media (forced-colors: active) {
             & [role="treeitem"][aria-selected="true"] {
                 outline: 2px solid Highlight;
                 forced-color-adjust: auto;
+            }
+
+            &:has(> fray-error) {
+                outline: 2px solid Mark;
             }
         }
     `
@@ -366,11 +423,6 @@ export class TreeView<TValue = unknown> extends Component<TreeViewProps<TValue>>
             .startsWith(this.typeahead))
         if (match != null) this.focusRow(match.node.id)
     }
-}
-
-function errorMessage(error: unknown, fallback: string): string {
-    if (error instanceof Error) return error.message
-    return error == null ? fallback : String(error)
 }
 
 function extractDeclarativeNodes<TValue>(children: ComponentProps['children']): TreeNode<TValue>[] {

@@ -20,11 +20,11 @@ The header island carries the page navbar and a control toolbar below it:
 - **Theme / Colors** — `ThemePicker` and `ColorPicker` swap the loaded Fray
   theme and color stylesheets.
 - **Data** — a `Toggle` selecting the shared fetch state (`initial`, `ready`,
-  `loading`, `error`) applied to `GalleryModel.dataSource`, the derived
+  `loading`, `error`) applied to `GalleryModel.dataItems`, the shared
   emitter gallery pages bind data-aware components to. The error state raises
   a simulated load error.
 - **Component state** — checkboxes for `disabled`, `required`, `read-only`,
-  and `error` flags exposed on `GalleryModel` for gallery pages to apply to
+  `busy`, and `error` flags exposed on `GalleryModel` for gallery pages to apply to
   showcased controls.
 
 Both layout variants render the same island structure: a header island with
@@ -36,6 +36,7 @@ the status line.
 | Page | Content |
 | --- | --- |
 | Line inputs | Every line-input control across three island panels (checkboxes, basic inputs, date/time), each with a `PanelToolbar` so controls render in both panel and toolbar contexts. `OptionGroup` fieldsets hold one instance per intrinsic state and content variant; every flag-capable prop binds the shared toolbar emitters via `live()`, so toggling a header flag makes that state the uniform expectation across the page and themed outliers stand out. The sidebar offers section navigation and reports the shared data state. |
+| Data components | `DataTable`, `ListView`, and `TreeView` share the toolbar-controlled emitter to demonstrate initial skeletons, retained-row loading, ready rows, visible errors, and table retry. A separate panel keeps ready-but-empty examples visible for comparison. |
 
 Navigation uses the public router (`createBrowserRouter` +
 `createHashNavigation`), a `NavigationBar` of `RouteLink`s, and a `RouteOutlet`

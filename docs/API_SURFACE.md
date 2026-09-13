@@ -130,11 +130,23 @@ Notable public behavior:
 - Value controls expose `valueEmitter`; `defaultValue` initializes uncontrolled
   state. The old `value` form is an initial-value compatibility alias, not a
   continuously controlled prop.
-- `Button` busy state is presentational availability. Application commands and
-  their lifecycle stay in Glue/application code.
+- `busy` is live presentation state on actions, input/choice controls, date/time
+  controls, and `OptionGroup`; it does not disable inputs, while a busy
+  `Button` remains unavailable. Application commands and lifecycle stay in
+  Glue/application code.
+- Error-capable controls connect their native surface to a visible
+  `role="alert"` icon/message, with inline form and compact control-context
+  presentation. Error visuals take precedence over simultaneous busy state.
+- Emitter-backed `Dropdown.options` derives loading/error feedback from the
+  options snapshot. Value emitters remain value state and are not treated as
+  implicit request lifecycle.
 - List, tree, and table selection reconcile fresh objects by stable key.
 - `TreeView` provides controlled selection and expansion, keyboard navigation,
-  typeahead, and per-label class/style callbacks.
+  typeahead, per-label class/style callbacks, and configurable initial
+  placeholder rows.
+- `ListView`, `TreeView`, and `DataTable` use hidden placeholder rows for empty
+  initial loads, animate retained rows during refresh, and preserve visible
+  error feedback alongside stale values.
 - `DataTable` accepts exactly one of direct `data`, a caller-owned
   `dataSource`, or table-owned `rest` options.
 - Rich `Checkbox` and `TableColumn` labels accept a textual `ariaLabel` for

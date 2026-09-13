@@ -29,6 +29,7 @@ export interface FrayMessageOverrides {
     readonly dateTimePickerDateLabel?: string
     readonly dateTimePickerTimeLabel?: string
     readonly dialogCloseLabel?: string
+    readonly dropdownLoadError?: string
     readonly dropdownPlaceholder?: string
     readonly filterModeDenyLabel?: string
     readonly filterModeNeutralLabel?: string
@@ -105,6 +106,7 @@ const englishFrayMessages = Object.freeze({
     dateTimePickerDateLabel: 'Date',
     dateTimePickerTimeLabel: 'Time',
     dialogCloseLabel: 'Close',
+    dropdownLoadError: 'Unable to load options',
     dropdownPlaceholder: 'Select…',
     filterModeDenyLabel: 'deny',
     filterModeNeutralLabel: 'neutral',

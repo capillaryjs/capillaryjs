@@ -3,6 +3,7 @@ import type {ReadableEmitter} from '@sylwellsoftware/glue'
 import {Component, css} from '../component.js'
 import type {ComponentProps, FrayChild} from '../component.js'
 import {componentClass, controlId} from '../controlUtils.js'
+import {StatusPresentation} from './statusPresentation.js'
 
 export interface ProgressBarProps extends ComponentProps {
     id?: string | number | null
@@ -16,6 +17,7 @@ export interface ProgressBarProps extends ComponentProps {
 /** Labelled native progress indicator with determinate and indeterminate modes. */
 export class ProgressBar extends Component<ProgressBarProps> {
     static override liveProps: readonly string[] = []
+    static override dependencies = [StatusPresentation]
     readonly progressId: string
 
     constructor(props: ProgressBarProps) {
@@ -150,13 +152,14 @@ export class ProgressBar extends Component<ProgressBarProps> {
             background-image: var(--working-background-image);
             background-repeat: repeat;
             background-size: 2rem 2rem;
-            animation: fray-progressbar-indeterminate 0.55s linear infinite;
+            animation: fray-working-progress .55s linear infinite;
             opacity: .5;
         }
 
-        @keyframes fray-progressbar-indeterminate {
-            from { background-position: 0 0; }
-            to { background-position: 2rem 0; }
+        @media (prefers-reduced-motion: reduce) {
+            &:has(> progress:indeterminate) > fray-content::after {
+                animation: none !important;
+            }
         }
 
         @media (forced-colors: active) {

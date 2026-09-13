@@ -13,6 +13,7 @@ import {
     invoke,
 } from '../controlUtils.js'
 import type {ValueControlProps, ValueEmitter} from '../controlUtils.js'
+import {ErrorMessage} from '../status/statusPresentation.js'
 import {CheckableControl} from './CheckableControl.js'
 
 export type RadioOption<TValue extends Key = string> = readonly [
@@ -20,8 +21,8 @@ export type RadioOption<TValue extends Key = string> = readonly [
     label: FrayChild,
 ]
 
-const radioButtonLiveProps = ['checked', 'disabled', 'required', 'error'] as const
-const radioGroupLiveProps = ['disabled', 'required', 'error'] as const
+const radioButtonLiveProps = ['checked', 'disabled', 'required', 'busy', 'error'] as const
+const radioGroupLiveProps = ['disabled', 'required', 'busy', 'error'] as const
 
 export interface RadioButtonProps extends ComponentProps,
     LivePropContract<(typeof radioButtonLiveProps)[number]> {
@@ -32,6 +33,7 @@ export interface RadioButtonProps extends ComponentProps,
     checked?: boolean
     disabled?: boolean
     required?: boolean
+    busy?: boolean
     error?: unknown
     onChange?: (checked: boolean, event: Event) => void
 }
@@ -39,6 +41,7 @@ export interface RadioButtonProps extends ComponentProps,
 /** A native radio input with its associated label and visual control shell. */
 export class RadioButton extends CheckableControl<RadioButtonProps> {
     static override liveProps = radioButtonLiveProps
+    static override dependencies = [ErrorMessage]
     readonly inputId: string
     readonly errorId: string
 
@@ -54,6 +57,7 @@ export class RadioButton extends CheckableControl<RadioButtonProps> {
             checked = false,
             disabled = false,
             required = false,
+            busy = false,
             error = null,
         } = this.props
         const Host = this.Host
@@ -67,6 +71,7 @@ export class RadioButton extends CheckableControl<RadioButtonProps> {
                     checked={checked}
                     disabled={disabled}
                     required={required}
+                    aria-busy={busy ? 'true' : null}
                     aria-invalid={error == null ? null : 'true'}
                     aria-describedby={error == null ? null : this.errorId}
                     onChange={(event: Event) => invoke(this.props.onChange,
@@ -75,7 +80,7 @@ export class RadioButton extends CheckableControl<RadioButtonProps> {
                 <fray-checkshell aria-hidden="true" />
                 {label}
             </label>
-            {error == null ? null : <p id={this.errorId} role="alert">{String(error)}</p>}
+            {error == null ? null : <ErrorMessage id={this.errorId} error={error} />}
         </Host>
     }
 
@@ -109,6 +114,8 @@ export interface RadioGroupProps<TValue extends Key = string>
     disabled?: boolean
     /** Accepts a boolean or `live(booleanEmitter)` in JSX/`h()` templates. */
     required?: boolean
+    /** Loading presentation; does not disable the group. */
+    busy?: boolean
     /** Validation error; accepts an ordinary value or `live(errorEmitter)`. */
     error?: unknown
     onChange?: (value: TValue, event: Event | null) => void
@@ -117,7 +124,7 @@ export interface RadioGroupProps<TValue extends Key = string>
 /** A native-radio group that owns one selected option value. */
 export class RadioGroup<TValue extends Key = string>
     extends Component<RadioGroupProps<TValue>> {
-    static dependencies = [RadioButton]
+    static dependencies = [RadioButton, ErrorMessage]
     static override liveProps = radioGroupLiveProps
 
     readonly valueEmitter: ValueEmitter<TValue>
@@ -153,7 +160,14 @@ export class RadioGroup<TValue extends Key = string>
     }
 
     render(): FrayChild {
-        const {options = [], label, disabled = false, required = false, error = null} = this.props
+        const {
+            options = [],
+            label,
+            disabled = false,
+            required = false,
+            busy = false,
+            error = null,
+        } = this.props
         validateRadioOptions(options)
         const selectedValue = this.valueEmitter.get()
         const Host = this.Host
@@ -165,6 +179,7 @@ export class RadioGroup<TValue extends Key = string>
                 disabled={disabled}
                 aria-label={label == null ? this.props.ariaLabel : null}
                 aria-required={required ? 'true' : null}
+                aria-busy={busy ? 'true' : null}
                 aria-invalid={error == null ? null : 'true'}
                 aria-describedby={error == null ? null : this.errorId}
             >
@@ -178,12 +193,13 @@ export class RadioGroup<TValue extends Key = string>
                     checked={Object.is(selectedValue, value)}
                     disabled={disabled}
                     required={required}
+                    busy={busy && error == null}
                     onChange={(checked, event) => {
                         if (checked) this.selectOption(value, event)
                     }}
                 />)}
             </fieldset>
-            {error == null ? null : <p id={this.errorId} role="alert">{String(error)}</p>}
+            {error == null ? null : <ErrorMessage id={this.errorId} error={error} />}
         </Host>
     }
 
@@ -201,11 +217,30 @@ export class RadioGroup<TValue extends Key = string>
             user-select: none;
         }
 
+        & {
+            position: relative;
+        }
+
         & > fieldset > legend {
             flex: 0 0 100%;
             padding: 0;
             margin-bottom: .5em;
             border-bottom: 1px solid #aaa;
+        }
+
+        & > fieldset[aria-invalid="true"] fray-checkshell {
+            border-color: var(--error-color);
+        }
+
+        & > fieldset[aria-invalid="true"] fray-radiobutton > label {
+            color: var(--error-color);
+        }
+
+        @media (forced-colors: active) {
+            & > fieldset[aria-invalid="true"] {
+                outline: 2px solid Mark;
+                outline-offset: 1px;
+            }
         }
     `
 

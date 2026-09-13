@@ -20,6 +20,10 @@ export abstract class LabeledInputControl<
             user-select: none;
         }
 
+        &:has(> fray-error) {
+            flex-wrap: wrap;
+        }
+
         fray-groupbox > fray-content > fray-layout > & {
             align-self: stretch;
         }

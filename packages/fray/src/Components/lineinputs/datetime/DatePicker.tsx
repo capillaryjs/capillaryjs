@@ -7,6 +7,7 @@ import {
     invoke,
 } from '../../controlUtils.js'
 import type {ValueControlProps, ValueEmitter} from '../../controlUtils.js'
+import {ErrorMessage} from '../../status/statusPresentation.js'
 import {LabeledInputControl} from '../LabeledInputControl.js'
 import {Calendar} from './Calendar.js'
 import type {CivilDate} from './civilDate.js'
@@ -18,7 +19,7 @@ import {
     todayCivilDate,
 } from './civilDate.js'
 
-const datePickerLiveProps = ['disabled', 'required', 'readOnly', 'error'] as const
+const datePickerLiveProps = ['disabled', 'required', 'readOnly', 'busy', 'error'] as const
 
 export interface DatePickerProps extends ValueControlProps<CivilDate | null>,
     LivePropContract<(typeof datePickerLiveProps)[number]> {
@@ -28,6 +29,7 @@ export interface DatePickerProps extends ValueControlProps<CivilDate | null>,
     disabled?: boolean
     required?: boolean
     readOnly?: boolean
+    busy?: boolean
     error?: unknown
     min?: CivilDate | undefined
     max?: CivilDate | undefined
@@ -40,7 +42,7 @@ export interface DatePickerProps extends ValueControlProps<CivilDate | null>,
 /** @experimental This component is experimental and may change in any release. */
 export class DatePicker extends LabeledInputControl<DatePickerProps> {
     static override liveProps = datePickerLiveProps
-    static dependencies = [Calendar]
+    static dependencies = [Calendar, ErrorMessage]
     readonly inputId: string
     readonly errorId: string
     readonly popupId: string
@@ -235,6 +237,7 @@ export class DatePicker extends LabeledInputControl<DatePickerProps> {
             disabled = false,
             required = false,
             readOnly = false,
+            busy = false,
             error = null,
             inputRef,
             onInput,
@@ -269,6 +272,7 @@ export class DatePicker extends LabeledInputControl<DatePickerProps> {
                     required={required}
                     readOnly={readOnly}
                     aria-label={label == null ? ariaLabel : null}
+                    aria-busy={busy ? 'true' : null}
                     aria-invalid={error == null ? null : 'true'}
                     aria-describedby={error == null ? null : this.errorId}
                     aria-haspopup="dialog"
@@ -321,11 +325,7 @@ export class DatePicker extends LabeledInputControl<DatePickerProps> {
                         />
                     </dialog>
                 ) : null}
-                {error == null ? null : (
-                    <p id={this.errorId} role="alert">
-                        {String(error)}
-                    </p>
-                )}
+                {error == null ? null : <ErrorMessage id={this.errorId} error={error} />}
             </Host>
         )
     }
@@ -341,6 +341,10 @@ export class DatePicker extends LabeledInputControl<DatePickerProps> {
             position: relative;
             min-height: var(--control-min-height, 2rem);
             min-width: 0;
+        }
+
+        &:has(> fray-error) {
+            flex-wrap: wrap;
         }
 
         & > input {
@@ -412,8 +416,15 @@ export class DatePicker extends LabeledInputControl<DatePickerProps> {
             display: none;
         }
 
-        & > [role="alert"] {
-            margin: 0;
+        & > input[aria-busy="true"]:not([aria-invalid="true"]) {
+            background: var(--working-background-image), var(--input-background);
+            background-repeat: repeat, no-repeat;
+            background-size: 2rem 2rem, 100% 100%;
+            animation: fray-working-progress .55s linear infinite;
+        }
+
+        & > input[aria-invalid="true"] {
+            border-color: var(--error-color);
         }
 
         & > dialog .fray-calendar {
@@ -488,7 +499,18 @@ export class DatePicker extends LabeledInputControl<DatePickerProps> {
             cursor: not-allowed;
         }
 
+        @media (prefers-reduced-motion: reduce) {
+            & > input[aria-busy="true"] {
+                animation: none !important;
+            }
+        }
+
         @media (forced-colors: active) {
+            & > input[aria-invalid="true"] {
+                outline: 2px solid Mark;
+                outline-offset: 1px;
+            }
+
             & > dialog .fray-calendar table[role="grid"] td button[data-selected="true"] {
                 outline: 2px solid ButtonText;
             }

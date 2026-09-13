@@ -318,6 +318,32 @@ describe('stable data components', () => {
         assert.equal(requiredQuery<HTMLElement>('fray-label').textContent, 'Replacement')
     })
 
+    test('TreeView renders hidden placeholders, retained loading rows, and visible errors', () => {
+        const nodes = new Emitter<readonly TreeNode[], Error>([], {
+            fetchState: FetchState.Initial,
+        })
+        const tree = TreeView.new({nodes, label: 'Components', placeholderCount: 3})
+            .attachTo(document.body)
+
+        const placeholderList = requiredQuery('fray-treeview > ul[aria-hidden="true"]')
+        assert.equal(placeholderList.querySelectorAll('fray-placeholder').length, 3)
+        assert.equal(document.querySelector('[role="tree"]'), null)
+
+        nodes.setWithState([{id: 'a', label: 'Alpha'}], FetchState.Loading)
+        assert.equal(document.querySelector('fray-placeholder'), null)
+        assert.equal(requiredQuery('[role="tree"]').getAttribute('aria-busy'), 'true')
+        assert.equal(requiredQuery('[role="treeitem"]').textContent, '•Alpha')
+
+        nodes.setWithState(
+            [{id: 'a', label: 'Stale Alpha'}],
+            FetchState.Error,
+            new Error('Tree unavailable'),
+        )
+        assert.equal(requiredQuery('fray-error[role="alert"]').textContent, 'Tree unavailable')
+        assert.equal(requiredQuery('[role="treeitem"]').textContent, '•Stale Alpha')
+        tree.destroy()
+    })
+
     test('Dialog synchronizes native modality, cancel, and focus restoration', () => {
         const opener = document.createElement('button')
         opener.textContent = 'Open dialog'
@@ -411,6 +437,10 @@ describe('stable data components', () => {
         assert.equal(requiredQuery('[role="status"]').localName, 'p')
         assert.equal(requiredQuery('fray-listview').querySelector('div, [data-part]'), null)
         assert.equal(requiredQuery('fray-placeholder').parentElement?.localName, 'li')
+
+        items.setWithState([{id: 'retained'}], FetchState.Loading)
+        assert.equal(document.querySelector('fray-placeholder'), null)
+        assert.equal(requiredQuery('[role="listbox"]').getAttribute('aria-busy'), 'true')
 
         items.setWithState([], FetchState.Ready)
         assert.equal(document.querySelector('[role="listbox"]'), null)
@@ -546,6 +576,8 @@ describe('stable data components', () => {
         assert.match(requiredQuery('[role="status"]').textContent ?? '', /Loading rows/)
         assert.equal(document.querySelectorAll('fray-placeholder').length, 2)
         assert.equal(requiredQuery('fray-placeholder').dataset.frayComponent, 'placeholder')
+        assert.ok([...document.querySelectorAll('tbody tr')]
+            .every((row) => row.getAttribute('aria-hidden') === 'true'))
 
         source.setWithState([{id: 1, name: 'Partial Ada'}], FetchState.Loading)
         assert.match(requiredQuery('[role="status"]').textContent ?? '', /Loading rows/)
@@ -562,7 +594,9 @@ describe('stable data components', () => {
             new Error('Service unavailable'),
         )
         assert.match(requiredQuery('[role="alert"]').textContent ?? '', /Service unavailable/)
-        assert.equal(requiredQuery('[role="alert"]').localName, 'p')
+        assert.equal(requiredQuery('[role="alert"]').localName, 'fray-error')
+        assert.equal(requiredQuery('[role="alert"] fray-erroricon')
+            .getAttribute('aria-hidden'), 'true')
         assert.equal(requiredQuery('[role="alert"]').parentElement?.localName, 'fray-datatable')
         assert.equal(requiredQuery('button').parentElement?.localName, 'fray-datatable')
         assert.equal(requiredQuery('tbody').textContent, 'Stale Ada')
@@ -577,6 +611,22 @@ describe('stable data components', () => {
         table.destroy()
         assert.equal(source.subscriberCount, 0)
         dataSource.dispose()
+    })
+
+    test('unwraps an upstream local-data error for its visible message', () => {
+        const data = new Emitter<readonly {id: number; name: string}[], Error>([], {
+            fetchState: FetchState.Error,
+            error: new Error('Local data unavailable'),
+        })
+        const table = DataTable.new({
+            data,
+            columns: [{field: 'name', label: 'Name'}],
+        }).attachTo(document.body)
+
+        assert.equal(requiredQuery('fray-error[role="alert"]').textContent,
+            'Local data unavailable')
+        table.destroy()
+        assert.equal(data.subscriberCount, 0)
     })
 
     test('FilterPanel reports caller-owned filter state through native group content', async () => {
@@ -644,6 +694,7 @@ describe('stable data components', () => {
         const options = new Emitter<readonly FilterValue[], Error>([], {fetchState: FetchState.Initial})
         const panel = FilterPanel.new({options, label: 'Departments'}).attachTo(document.body)
         assert.equal(requiredQuery('[role="status"]').textContent, 'Loading filter options…')
+        assert.equal(requiredQuery('fray-filterpanel').getAttribute('aria-busy'), 'true')
 
         options.setWithState(['Ops'], FetchState.Loading)
         assert.equal(requiredQuery<HTMLElement>('fray-filterpanel').getAttribute('aria-busy'), 'true')

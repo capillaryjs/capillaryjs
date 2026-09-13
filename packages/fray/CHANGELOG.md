@@ -63,6 +63,19 @@ Versioning.
 
 ### Fixed
 
+- Loading and error presentation is now consistent across actions, line
+  inputs, choices, date/time controls, option groups, progress, and data
+  views. Loading uses the theme's animated working texture (with reduced-motion
+  and forced-colors fallbacks); errors use the semantic error color on the
+  relevant native surface plus an accessible icon/message. Form contexts show
+  the message inline, while compact control contexts reveal it from the icon
+  on hover or focus. `ListView`, `DataTable`, and `TreeView` now show
+  deterministic Bank2-style placeholders for empty initial loads and animate
+  retained rows during refresh; TreeView gains `placeholderCount`. The
+  `busy` live prop is available across input/choice controls and
+  `OptionGroup`, `Button` gains live `error`, and emitter-backed Dropdown
+  options derive busy/error feedback from their fetch snapshot.
+
 - `NavigationBar` now rejects meaningless `exact` matching on external
   destinations; the public item union exposes `exact` only for router-aware
   targets. Blank external hrefs are also rejected consistently.

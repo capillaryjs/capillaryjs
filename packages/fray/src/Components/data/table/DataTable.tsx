@@ -7,6 +7,7 @@ import type {ComponentProps, FrayChild} from '../../component.js'
 import {componentClass} from '../../controlUtils.js'
 import type {ValueEmitter} from '../../controlUtils.js'
 import type {CheckboxSymbol} from '../../lineinputs/checkbox/Checkbox.js'
+import {ErrorMessage} from '../../status/statusPresentation.js'
 import type {FilterModeValue} from '../../../util/filterMode.js'
 import {
     createSelectionHandler,
@@ -168,7 +169,11 @@ export class DataTable<TRow extends TableRow = TableRow>
         >
             {isLoading ? <p role="status">{this.frayMessage('dataTableLoading')}</p> : null}
             {status === FetchState.Error
-                ? <p role="alert">{errorMessage(error, this.frayMessage('dataTableLoadError'))}</p>
+                ? <ErrorMessage
+                    className="fray-error-banner"
+                    error={error}
+                    fallback={this.frayMessage('dataTableLoadError')}
+                />
                 : null}
             {status === FetchState.Error && typeof this.dataSource?.retry === 'function'
                 ? <button
@@ -235,7 +240,7 @@ export class DataTable<TRow extends TableRow = TableRow>
     private renderPlaceholders(): FrayChild[] {
         const count = this.props.placeholderCount ?? 5
         return Array.from({length: count}, (_, rowIndex) =>
-            <tr key={`placeholder-${rowIndex}`}>
+            <tr key={`placeholder-${rowIndex}`} aria-hidden="true">
                 {this.columns.map((column, columnIndex) =>
                     <td key={String(column.field)}>
                         <Placeholder
@@ -275,13 +280,14 @@ export class DataTable<TRow extends TableRow = TableRow>
         this.ownedFiltersEmitter?.dispose()
     }
 
-    static dependencies = [Placeholder, TableHeader]
+    static dependencies = [Placeholder, TableHeader, ErrorMessage]
 
     static override hostName = 'data-table'
 
     static css = css`
         & {
             display: block;
+            position: relative;
             overflow: auto;
         }
 
@@ -301,6 +307,7 @@ export class DataTable<TRow extends TableRow = TableRow>
 
         & th,
         & td {
+            position: relative;
             text-align: left;
             padding: 0 var(--ui-padding);
             font-weight: normal;
@@ -337,6 +344,39 @@ export class DataTable<TRow extends TableRow = TableRow>
         & tr td fray-placeholder {
             font-size: var(--ui-font-size);
             height: var(--ui-font-size);
+        }
+
+        & > table[aria-busy="true"] > tbody > tr[data-fray-selectable-row] > td::after {
+            content: "";
+            position: absolute;
+            z-index: 1;
+            inset: 0;
+            background-image: var(--working-background-image);
+            background-repeat: repeat;
+            background-size: 2rem 2rem;
+            animation: fray-working-progress .55s linear infinite;
+            pointer-events: none;
+        }
+
+        &:has(> fray-error) {
+            outline: 1px solid var(--error-color);
+            outline-offset: -1px;
+        }
+
+        &:has(> fray-error) > button {
+            border-color: var(--error-color);
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            & > table[aria-busy="true"] > tbody > tr[data-fray-selectable-row] > td::after {
+                animation: none !important;
+            }
+        }
+
+        @media (forced-colors: active) {
+            &:has(> fray-error) {
+                outline: 2px solid Mark;
+            }
         }
 
     `
@@ -417,9 +457,4 @@ function normalizeRowKey<TRow extends TableRow>(
 function renderCellValue(value: unknown): FrayChild {
     if (value == null || typeof value === 'string' || typeof value === 'number') return value
     return String(value)
-}
-
-function errorMessage(error: unknown, fallback: string): string {
-    if (error instanceof Error) return error.message
-    return error == null ? fallback : String(error)
 }

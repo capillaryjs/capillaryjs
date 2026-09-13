@@ -1,5 +1,6 @@
 import {Component, css} from './component.js'
 import type {ComponentProps} from './component.js'
+import {StatusPresentation} from './status/statusPresentation.js'
 
 export interface PlaceholderProps extends ComponentProps {
     width?: number | string
@@ -8,6 +9,7 @@ export interface PlaceholderProps extends ComponentProps {
 /** Deterministic loading placeholder for data components. */
 export class Placeholder extends Component<PlaceholderProps> {
     static override liveProps: readonly string[] = []
+    static override dependencies = [StatusPresentation]
     render() {
         const width = normalizeWidth(this.props.width ?? 65)
         const Host = this.Host
@@ -33,7 +35,7 @@ export class Placeholder extends Component<PlaceholderProps> {
             z-index: 1;
             inset: 0;
             margin: auto;
-            animation: fray-placeholder-progress 0.55s linear infinite;
+            animation: fray-working-progress .55s linear infinite;
             background-repeat: repeat;
             background-size: 2rem 2rem;
             background-image: var(--working-background-image);
@@ -43,14 +45,9 @@ export class Placeholder extends Component<PlaceholderProps> {
             pointer-events: none;
         }
 
-        @keyframes fray-placeholder-progress {
-            from { background-position: 0rem 0; }
-            to { background-position: 2rem 0; }
-        }
-
         @media (prefers-reduced-motion: reduce) {
             &::after {
-                animation: none;
+                animation: none !important;
             }
         }
     `

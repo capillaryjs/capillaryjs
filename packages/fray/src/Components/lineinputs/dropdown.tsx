@@ -1,4 +1,4 @@
-import {Emitter} from '@sylwellsoftware/glue'
+import {Emitter, FetchState} from '@sylwellsoftware/glue'
 import type {ReadableEmitter} from '@sylwellsoftware/glue'
 import type {FrayChild, LivePropContract} from '../component.js'
 import {
@@ -9,6 +9,7 @@ import {
     invoke,
 } from '../controlUtils.js'
 import type {ValueControlProps, ValueEmitter} from '../controlUtils.js'
+import {ErrorMessage} from '../status/statusPresentation.js'
 import {SelectControl} from './SelectControl.js'
 
 export type DropdownValue = string | number
@@ -19,7 +20,7 @@ export interface DropdownOption<TValue extends DropdownValue = string> {
     disabled?: boolean
 }
 
-const dropdownLiveProps = ['disabled', 'required', 'error'] as const
+const dropdownLiveProps = ['disabled', 'required', 'busy', 'error'] as const
 
 export interface DropdownProps<TValue extends DropdownValue = string>
     extends ValueControlProps<TValue>, LivePropContract<(typeof dropdownLiveProps)[number]> {
@@ -30,6 +31,7 @@ export interface DropdownProps<TValue extends DropdownValue = string>
     name?: string
     disabled?: boolean
     required?: boolean
+    busy?: boolean
     error?: unknown
     placeholder?: FrayChild
     ariaLabel?: string
@@ -39,6 +41,7 @@ export interface DropdownProps<TValue extends DropdownValue = string>
 export class Dropdown<TValue extends DropdownValue = string>
     extends SelectControl<DropdownProps<TValue>> {
     static override liveProps = dropdownLiveProps
+    static override dependencies = [ErrorMessage]
     readonly inputId: string
     readonly errorId: string
     readonly optionsEmitter: ReadableEmitter<readonly DropdownOption<TValue>[], unknown>
@@ -77,6 +80,7 @@ export class Dropdown<TValue extends DropdownValue = string>
             name,
             disabled = false,
             required = false,
+            busy = false,
             error = null,
             placeholder = this.frayMessage('dropdownPlaceholder'),
             ariaLabel,
@@ -84,6 +88,17 @@ export class Dropdown<TValue extends DropdownValue = string>
         const options = this.optionsEmitter.get() ?? []
         assertOptions<DropdownOption<TValue>>(options)
         const currentValue = this.valueEmitter.get()
+        const optionsState = this.optionsEmitter.getFetchState()
+        const sourceBusy = !this.ownsOptionsEmitter
+            && (optionsState === FetchState.Initial || optionsState === FetchState.Loading)
+        const hasSourceError = !this.ownsOptionsEmitter && optionsState === FetchState.Error
+        const sourceError = hasSourceError
+            ? this.optionsEmitter.getError()
+            : null
+        const displayedError = error ?? (hasSourceError
+            ? sourceError ?? this.frayMessage('dropdownLoadError')
+            : null)
+        const isBusy = busy || sourceBusy
 
         const Host = this.Host
         return <Host
@@ -98,8 +113,9 @@ export class Dropdown<TValue extends DropdownValue = string>
                     disabled={disabled}
                     required={required}
                     aria-label={label == null ? ariaLabel : null}
-                    aria-invalid={error == null ? null : 'true'}
-                    aria-describedby={error == null ? null : this.errorId}
+                    aria-busy={isBusy ? 'true' : null}
+                    aria-invalid={displayedError == null ? null : 'true'}
+                    aria-describedby={displayedError == null ? null : this.errorId}
                     onChange={(event: Event) => this.selectOption(event)}
                 >
                     {currentValue == null || currentValue === ''
@@ -118,10 +134,8 @@ export class Dropdown<TValue extends DropdownValue = string>
                     })}
                 </select>
             </fray-selectshell>
-            {error == null ? null : <p
-                id={this.errorId}
-                role="alert"
-            >{String(error)}</p>}
+            {displayedError == null ? null
+                : <ErrorMessage id={this.errorId} error={displayedError} />}
         </Host>
     }
 
@@ -166,6 +180,8 @@ function isReadableEmitter<TValue>(value: unknown): value is ReadableEmitter<TVa
         && (typeof value === 'object' || typeof value === 'function')
         && typeof Reflect.get(value, 'get') === 'function'
         && typeof Reflect.get(value, 'subscribe') === 'function'
+        && typeof Reflect.get(value, 'getFetchState') === 'function'
+        && typeof Reflect.get(value, 'getError') === 'function'
 }
 
 function eventValue(event: Event, purpose: string): string {

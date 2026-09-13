@@ -9,6 +9,7 @@ import type {
     CheckboxProps,
     CheckboxSymbol,
 } from '../../lineinputs/checkbox/Checkbox.js'
+import {ErrorMessage} from '../../status/statusPresentation.js'
 import {FilterMode} from '../../../util/filterMode.js'
 import type {FilterModeValue} from '../../../util/filterMode.js'
 
@@ -70,11 +71,15 @@ export class FilterPanel extends Component<FilterPanelProps> {
         const hostClass = componentClass(this.props) || null
         if (fetchState === FetchState.Error && values.length === 0) {
             return <Host className={hostClass}>
-                <p role="alert">{errorMessage(error, this.frayMessage('filterPanelLoadError'))}</p>
+                <ErrorMessage
+                    className="fray-error-banner"
+                    error={error}
+                    fallback={this.frayMessage('filterPanelLoadError')}
+                />
             </Host>
         }
         if (isLoading && values.length === 0) {
-            return <Host className={hostClass}>
+            return <Host className={hostClass} aria-busy="true">
                 <p role="status">{this.frayMessage('filterPanelLoading')}</p>
             </Host>
         }
@@ -86,7 +91,11 @@ export class FilterPanel extends Component<FilterPanelProps> {
             aria-busy={isLoading ? 'true' : null}
         >
             {fetchState === FetchState.Error
-                ? <p role="alert">{errorMessage(error, this.frayMessage('filterPanelLoadError'))}</p>
+                ? <ErrorMessage
+                    className="fray-error-banner"
+                    error={error}
+                    fallback={this.frayMessage('filterPanelLoadError')}
+                />
                 : null}
             {isLoading ? <p role="status">{this.frayMessage('filterPanelLoading')}</p> : null}
             {values.length === 0
@@ -140,7 +149,7 @@ export class FilterPanel extends Component<FilterPanelProps> {
         return emitter
     }
 
-    static dependencies = [Checkbox]
+    static dependencies = [Checkbox, ErrorMessage]
 
     static override hostName = 'filter-panel'
 
@@ -163,6 +172,28 @@ export class FilterPanel extends Component<FilterPanelProps> {
 
         & > p {
             margin: 0;
+        }
+
+        &[aria-busy="true"]::after {
+            content: "";
+            position: absolute;
+            z-index: 1;
+            inset: 0;
+            background-image: var(--working-background-image);
+            background-repeat: repeat;
+            background-size: 2rem 2rem;
+            animation: fray-working-progress .55s linear infinite;
+            pointer-events: none;
+        }
+
+        &:has(> fray-error) {
+            border-color: var(--error-color);
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            &[aria-busy="true"]::after {
+                animation: none !important;
+            }
         }
     `
 }
@@ -212,9 +243,4 @@ function isEmitterLike<TValue>(value: unknown): value is ReadableEmitter<TValue,
         && (typeof value === 'object' || typeof value === 'function')
         && typeof Reflect.get(value, 'get') === 'function'
         && typeof Reflect.get(value, 'subscribe') === 'function'
-}
-
-function errorMessage(error: unknown, fallback: string): string {
-    if (error instanceof Error) return error.message
-    return error == null ? fallback : String(error)
 }

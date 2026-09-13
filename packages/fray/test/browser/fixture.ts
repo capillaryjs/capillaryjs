@@ -1,4 +1,4 @@
-import {Emitter} from '@sylwellsoftware/glue'
+import {Emitter, FetchState} from '@sylwellsoftware/glue'
 import {
     Button,
     Checkbox,
@@ -14,6 +14,8 @@ import {
     FilterMode,
     Fragment,
     GroupBox,
+    Layout,
+    ListView,
     NavigationBar,
     Panel,
     ProgressBar,
@@ -41,7 +43,9 @@ import {
 } from '../../src/index.js'
 import {jsx} from '../../src/jsx-runtime.js'
 
-if (new URLSearchParams(location.search).get('fontScale') === '200') {
+const fixtureOptions = new URLSearchParams(location.search)
+
+if (fixtureOptions.get('fontScale') === '200') {
     document.documentElement.style.setProperty('--base-font-size', '28px')
     document.documentElement.style.setProperty('--ui-font-size', '28px')
 }
@@ -164,6 +168,8 @@ DateTimePicker.registerStyles()
 Dropdown.registerStyles()
 DescriptionList.registerStyles()
 GroupBox.registerStyles()
+Layout.registerStyles()
+ListView.registerStyles()
 Dialog.registerStyles()
 DataTable.registerStyles()
 Panel.registerStyles()
@@ -219,7 +225,7 @@ Sidebar.new({
 }).attachTo(requiredElement('#sidebar-root'))
 
 let destroyRouting = () => 0
-if (new URLSearchParams(location.search).get('routing') === 'true') {
+if (fixtureOptions.get('routing') === 'true') {
     const firstRoute = defineRoute('browser-first')
     const secondRoute = defineRoute('browser-second')
     const activeRoute = new Emitter('first')
@@ -333,6 +339,114 @@ DateTimePicker.new({
     maxDate: '2026-12-31',
     onChange: (next) => datetimeValue.set(next),
 }).attachTo(requiredElement('#datetime-root'))
+
+if (fixtureOptions.get('status') === 'true') {
+    interface StatusRow {
+        [field: string]: unknown
+        id: string
+        name: string
+        label: string
+    }
+
+    const statusRows: readonly StatusRow[] = [
+        {id: 'runtime', name: 'Runtime', label: 'Runtime'},
+        {id: 'controls', name: 'Controls', label: 'Controls'},
+    ]
+    const initialStatusRows = new Emitter<readonly StatusRow[], Error>([], {
+        fetchState: FetchState.Initial,
+    })
+    const retainedStatusRows = new Emitter<readonly StatusRow[], Error>(statusRows, {
+        fetchState: FetchState.Loading,
+    })
+    const errorStatusRows = new Emitter<readonly StatusRow[], Error>(statusRows, {
+        fetchState: FetchState.Error,
+        error: new Error('Status data unavailable'),
+    })
+
+    Panel.new({
+        id: 'status-form',
+        header: 'Status presentation',
+        context: 'form',
+        children: [
+            h('section', {className: 'busy-controls', 'aria-label': 'Busy controls'}, [
+                h(Button, {label: 'Busy action', busy: true}),
+                h(Textbox, {label: 'Busy text', busy: true}),
+                h(Dropdown, {
+                    label: 'Busy select',
+                    busy: true,
+                    options: [{value: 'one', label: 'One'}],
+                }),
+                h(Checkbox, {label: 'Busy check', busy: true}),
+                h(ProgressBar, {label: 'Busy progress', value: null}),
+            ]),
+            h('section', {className: 'error-controls', 'aria-label': 'Error controls'}, [
+                h(Button, {label: 'Failed action', error: 'Action failed'}),
+                h(Textbox, {label: 'Invalid text', error: 'Enter a valid value'}),
+                h(Dropdown, {
+                    label: 'Invalid select',
+                    error: 'Choose an available value',
+                    options: [{value: 'one', label: 'One'}],
+                }),
+                h(Checkbox, {label: 'Invalid check', error: 'Confirm this value'}),
+            ]),
+            h('section', {className: 'initial-data', 'aria-label': 'Initial data'}, [
+                h(DataTable, {
+                    data: initialStatusRows,
+                    columns: [{field: 'name', label: 'Name'}],
+                    placeholderCount: 2,
+                }),
+                h(ListView, {
+                    items: initialStatusRows,
+                    itemKey: 'id',
+                    label: 'Initial list',
+                    placeholderCount: 2,
+                }),
+                h(TreeView, {
+                    nodes: initialStatusRows,
+                    label: 'Initial tree',
+                    placeholderCount: 2,
+                }),
+            ]),
+            h('section', {className: 'retained-data', 'aria-label': 'Refreshing data'}, [
+                h(DataTable, {
+                    data: retainedStatusRows,
+                    columns: [{field: 'name', label: 'Name'}],
+                }),
+                h(ListView, {
+                    items: retainedStatusRows,
+                    itemKey: 'id',
+                    label: 'Refreshing list',
+                }),
+                h(TreeView, {
+                    nodes: retainedStatusRows,
+                    label: 'Refreshing tree',
+                }),
+            ]),
+            h('section', {className: 'error-data', 'aria-label': 'Failed data'}, [
+                h(DataTable, {
+                    data: errorStatusRows,
+                    columns: [{field: 'name', label: 'Name'}],
+                }),
+                h(ListView, {
+                    items: errorStatusRows,
+                    itemKey: 'id',
+                    label: 'Failed list',
+                }),
+                h(TreeView, {
+                    nodes: errorStatusRows,
+                    label: 'Failed tree',
+                }),
+            ]),
+        ],
+    }).attachTo(requiredElement('#status-root'))
+
+    Layout.new({
+        vertical: true,
+        context: 'control',
+        className: 'compact-error',
+        children: h(Textbox, {label: 'Compact invalid', error: 'Compact error details'}),
+    }).attachTo(requiredElement('#status-root'))
+}
 
 globalThis.frayTest = {
     setRevision(value) {

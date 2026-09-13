@@ -140,6 +140,18 @@ describe('action and text controls', () => {
         element.click()
         assert.equal(calls, 0)
 
+        button.setProps({
+            label: 'Refresh',
+            busy: true,
+            error: new Error('Refresh failed'),
+            onClick: () => calls += 1,
+        })
+        assert.equal(element.getAttribute('aria-invalid'), 'true')
+        assert.equal(element.getAttribute('aria-describedby'),
+            requiredQuery<HTMLElement>('fray-error[role="alert"]', host).id)
+        assert.equal(requiredQuery('fray-erroricon', host).getAttribute('aria-hidden'), 'true')
+        assert.equal(requiredQuery('fray-errortext', host).textContent, 'Refresh failed')
+
         button.setProps({label: 'Refresh', onClick: () => calls += 1})
         assert.equal(requiredQuery('button', host), element)
         assert.equal(element.disabled, false)
@@ -221,6 +233,7 @@ describe('action and text controls', () => {
         const disabled = new Emitter(false)
         const required = new Emitter(false)
         const readOnly = new Emitter(false)
+        const busy = new Emitter(false)
         const error = new Emitter<string | null>(null)
         class TextboxOwner extends Component {
             render() {
@@ -237,6 +250,7 @@ describe('action and text controls', () => {
                     disabled: live(disabled),
                     required: live(required),
                     readOnly: live(readOnly),
+                    busy: live(busy),
                     error: live(error),
                 })
             }
@@ -256,6 +270,9 @@ describe('action and text controls', () => {
         value.setWithState(value.get(), FetchState.Loading)
         assert.equal(input.value, 'A deliberately very long external Meridian search value')
         assert.equal(input.parentElement?.hasAttribute('data-loading'), false)
+
+        busy.set(true)
+        assert.equal(input.getAttribute('aria-busy'), 'true')
 
         disabled.set(true)
         required.set(true)
@@ -377,6 +394,34 @@ describe('choice controls', () => {
         assert.equal(alert.textContent, 'Choose a permitted risk focus')
     })
 
+    test('Dropdown derives busy and error feedback from a caller-owned options source', () => {
+        const options = new Emitter<readonly {value: string; label: string}[], Error>([], {
+            fetchState: FetchState.Initial,
+        })
+        Dropdown.new({label: 'Service', options}).attachTo(document.body)
+        const select = requiredQuery<HTMLSelectElement>('select')
+
+        assert.equal(select.getAttribute('aria-busy'), 'true')
+        assert.equal(select.getAttribute('aria-invalid'), null)
+
+        options.setWithState([{value: 'api', label: 'API'}], FetchState.Loading)
+        assert.equal(select.getAttribute('aria-busy'), 'true')
+        assert.equal(select.querySelectorAll('option[value="api"]').length, 1)
+
+        options.setWithState(
+            [{value: 'api', label: 'API'}],
+            FetchState.Error,
+            new Error('Options unavailable'),
+        )
+        assert.equal(select.getAttribute('aria-busy'), null)
+        assert.equal(select.getAttribute('aria-invalid'), 'true')
+        assert.equal(requiredQuery('fray-error[role="alert"]').textContent, 'Options unavailable')
+
+        options.setWithState([{value: 'api', label: 'API'}], FetchState.Error, null)
+        assert.equal(requiredQuery('fray-error[role="alert"]').textContent,
+            'Unable to load options')
+    })
+
     test('Toggle is a keyboard-operable radio group', () => {
         const value = new Emitter('a')
         const toggle = Toggle.new({
@@ -422,6 +467,7 @@ describe('choice controls', () => {
     test('Toggle follows live availability and validation state through native semantics', () => {
         const disabled = new Emitter(false)
         const required = new Emitter(false)
+        const busy = new Emitter(false)
         const error = new Emitter<unknown>(null)
         class ToggleOwner extends Component {
             render() {
@@ -430,6 +476,7 @@ describe('choice controls', () => {
                     options: [['all', 'All'], ['active', 'Active']],
                     disabled: live(disabled),
                     required: live(required),
+                    busy: live(busy),
                     error: live(error),
                 })
             }
@@ -445,8 +492,10 @@ describe('choice controls', () => {
 
         disabled.set(true)
         required.set(true)
+        busy.set(true)
         error.set('Choose a status')
         assert.equal(radiogroup.getAttribute('aria-required'), 'true')
+        assert.equal(radiogroup.getAttribute('aria-busy'), 'true')
         assert.equal(radiogroup.getAttribute('aria-invalid'), 'true')
         assert.equal(radios.every((radio) => radio.disabled), true)
         assert.equal(requiredQuery<HTMLElement>('fray-error[role="alert"]', host).textContent,
@@ -481,6 +530,7 @@ describe('choice controls', () => {
     test('RadioGroup binds only its declared live boolean props', () => {
         const disabled = new Emitter(false)
         const required = new Emitter(false)
+        const busy = new Emitter(false)
         const error = new Emitter<unknown>(null)
         let parentRenders = 0
 
@@ -492,6 +542,7 @@ describe('choice controls', () => {
                     options: [['list', 'List'], ['grid', 'Grid']],
                     disabled: live(disabled),
                     required: live(required),
+                    busy: live(busy),
                     error: live(error),
                 })
             }
@@ -511,6 +562,7 @@ describe('choice controls', () => {
 
         disabled.set(true)
         required.set(true)
+        busy.set(true)
         error.set('Choose a view')
 
         assert.equal(parentRenders, 1)
@@ -519,6 +571,7 @@ describe('choice controls', () => {
         assert.equal(host.hasAttribute('data-error'), false)
         assert.equal(fieldset.disabled, true)
         assert.equal(fieldset.getAttribute('aria-required'), 'true')
+        assert.equal(fieldset.getAttribute('aria-busy'), 'true')
         assert.equal(fieldset.getAttribute('aria-invalid'), 'true')
         const alert = requiredQuery<HTMLElement>('[role="alert"]')
         assert.equal(fieldset.getAttribute('aria-describedby'), alert.id)
@@ -528,6 +581,7 @@ describe('choice controls', () => {
         owner.destroy()
         assert.equal(disabled.subscriberCount, 0)
         assert.equal(required.subscriberCount, 0)
+        assert.equal(busy.subscriberCount, 0)
         assert.equal(error.subscriberCount, 0)
     })
 
@@ -628,6 +682,12 @@ describe('choice controls', () => {
         assert.equal(host.dataset.state, 'prefer')
         assert.equal(control.getAttribute('aria-label'), 'Basic: prefer')
         assert.match(control.closest('label')?.textContent ?? '', /Basic/)
+
+        basic.setProps({label: 'Basic', busy: true, error: 'Selection unavailable'})
+        assert.equal(control.getAttribute('aria-busy'), 'true')
+        assert.equal(control.getAttribute('aria-invalid'), 'true')
+        assert.equal(requiredQuery('fray-error[role="alert"]').textContent,
+            'Selection unavailable')
 
         basic.destroy()
         document.body.replaceChildren()
@@ -1035,6 +1095,8 @@ describe('layout controls', () => {
     test('OptionGroup uses a named marker for trailing legend content', () => {
         OptionGroup.new({
             label: 'Severity',
+            busy: true,
+            error: 'Select a severity',
             children: [
                 h(OptionGroupHeaderEnd, null, h('small', null, 'Required')),
                 h('p', null, 'Options'),
@@ -1044,6 +1106,10 @@ describe('layout controls', () => {
         const group = requiredQuery('fray-optiongroup')
         assert.equal(requiredQuery('legend', group).textContent, 'SeverityRequired')
         assert.equal(requiredQuery('fieldset > p', group).textContent, 'Options')
+        assert.equal(requiredQuery('fieldset', group).getAttribute('aria-busy'), 'true')
+        assert.equal(requiredQuery('fieldset', group).getAttribute('aria-invalid'), 'true')
+        assert.equal(requiredQuery('fray-error[role="alert"]', group).textContent,
+            'Select a severity')
         assert.throws(
             () => OptionGroup.new({label: 'Legacy', headerEnd: 'Required'} as never).mount(),
             /OptionGroupHeaderEnd/,

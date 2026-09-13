@@ -1,8 +1,45 @@
 import {DerivedEmitter, Emitter, FetchState} from '@sylwellsoftware/glue'
 import type {FetchStateValue} from '@sylwellsoftware/glue'
-import type {Key} from '@sylwellsoftware/fray'
+import {createQueryTableDataSource} from '@sylwellsoftware/fray'
+import type {Key, TableDataSource} from '@sylwellsoftware/fray'
 
 export type LayoutVariant = 'shell' | 'website'
+
+export interface GalleryDataItem {
+    [field: string]: unknown
+    id: string
+    name: string
+    label: string
+    team: string
+    status: string
+    children?: readonly GalleryDataItem[]
+}
+
+const galleryData = Object.freeze<readonly GalleryDataItem[]>([
+    {
+        id: 'runtime',
+        name: 'Runtime',
+        label: 'Runtime',
+        team: 'Platform',
+        status: 'Stable',
+        children: [
+            {id: 'rendering', name: 'Rendering', label: 'Rendering', team: 'Platform', status: 'Stable'},
+            {id: 'routing', name: 'Routing', label: 'Routing', team: 'Platform', status: 'Review'},
+        ],
+    },
+    {
+        id: 'controls',
+        name: 'Controls',
+        label: 'Controls',
+        team: 'Fray',
+        status: 'Active',
+        children: [
+            {id: 'inputs', name: 'Line inputs', label: 'Line inputs', team: 'Fray', status: 'Active'},
+            {id: 'data', name: 'Data views', label: 'Data views', team: 'Fray', status: 'Active'},
+        ],
+    },
+    {id: 'visuals', name: 'Visualization', label: 'Visualization', team: 'Fray', status: 'Stable'},
+])
 
 /**
  * Central reactive model for the component gallery shell. Gallery pages read
@@ -36,11 +73,13 @@ export class GalleryModel {
         owner: this,
         purpose: 'gallery data state',
     })
-    /**
-     * Shared data emitter whose fetch state mirrors `dataState`. Selecting the
-     * error state raises a simulated load error on the derived value.
-     */
-    readonly dataSource: DerivedEmitter<string, readonly [typeof this.dataState]>
+    /** Shared rows used by the data-component page, including retained refresh values. */
+    readonly dataItems = new Emitter<readonly GalleryDataItem[], Error>(galleryData, {
+        owner: this,
+        purpose: 'gallery data-component items',
+    })
+    readonly tableDataSource: TableDataSource<GalleryDataItem>
+    private readonly dataStateUnsubscribe: () => void
 
     // Component-state flags applied to showcased controls.
     readonly componentDisabled = new Emitter(false, {
@@ -55,6 +94,10 @@ export class GalleryModel {
         owner: this,
         purpose: 'component read-only state',
     })
+    readonly componentBusy = new Emitter(false, {
+        owner: this,
+        purpose: 'component busy state',
+    })
     readonly componentErrorFlag = new Emitter(false, {
         owner: this,
         purpose: 'component error flag',
@@ -64,25 +107,33 @@ export class GalleryModel {
     ]>
 
     constructor() {
-        this.dataSource = new DerivedEmitter(
-            [this.dataState] as const,
-            ([state]): string => {
-                if (state === FetchState.Error) {
-                    throw new Error('Simulated gallery data error')
-                }
-                return `Gallery data (${state})`
-            },
-            {
-                computeFetchState: (states) => states[0] ?? FetchState.Ready,
-                owner: this,
-                purpose: 'gallery data',
-            },
-        )
         this.componentError = new DerivedEmitter(
             [this.componentErrorFlag] as const,
             ([flag]): string | null => flag ? 'Validation failed' : null,
             {owner: this, purpose: 'component error'},
         )
+        this.dataStateUnsubscribe = this.dataState.subscribe(({value: state}) => {
+            if (state === FetchState.Initial) {
+                this.dataItems.setWithState([], FetchState.Initial)
+            } else if (state === FetchState.Loading) {
+                this.dataItems.setWithState(this.dataItems.get(), FetchState.Loading)
+            } else if (state === FetchState.Error) {
+                this.dataItems.setWithState(
+                    this.dataItems.get(),
+                    FetchState.Error,
+                    new Error('Simulated data service failure'),
+                )
+            } else {
+                this.dataItems.setWithState(galleryData, FetchState.Ready)
+            }
+        })
+        const retryableQuery = Object.assign(this.dataItems, {
+            retry: (cause?: unknown) => {
+                this.dataState.set(FetchState.Loading, cause)
+                queueMicrotask(() => this.dataState.set(FetchState.Ready, 'gallery retry complete'))
+            },
+        })
+        this.tableDataSource = createQueryTableDataSource({query: retryableQuery, owner: this})
     }
 
     dispose(): void {
@@ -93,13 +144,16 @@ export class GalleryModel {
             this.colorSelection,
             this.lastAction,
             this.dataState,
-            this.dataSource,
+            this.dataItems,
             this.componentDisabled,
             this.componentRequired,
             this.componentReadOnly,
+            this.componentBusy,
             this.componentErrorFlag,
             this.componentError,
         ]
+        this.dataStateUnsubscribe()
+        this.tableDataSource.dispose()
         for (const emitter of emitters) emitter.dispose()
     }
 }

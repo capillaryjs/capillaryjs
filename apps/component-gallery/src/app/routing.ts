@@ -10,4 +10,5 @@ export interface GalleryPageDefinition {
 /** Ordered gallery page registry shared by the navbar and the route outlet. */
 export const galleryPages: readonly GalleryPageDefinition[] = Object.freeze([
     {id: 'line-inputs', label: 'Line inputs', route: defineRoute('line-inputs')},
+    {id: 'data-components', label: 'Data components', route: defineRoute('data-components')},
 ])

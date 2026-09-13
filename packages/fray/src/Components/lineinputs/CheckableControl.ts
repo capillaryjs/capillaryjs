@@ -8,6 +8,8 @@ export abstract class CheckableControl<
     static override css = css`
         & {
             display: inline-flex;
+            position: relative;
+            flex-flow: row wrap;
             line-height: 1;
         }
 
@@ -84,6 +86,35 @@ export abstract class CheckableControl<
         & > label > input:disabled + fray-checkshell {
             opacity: 0.6;
             filter: saturate(0.6);
+        }
+
+        & > label > input[aria-busy="true"]:not([aria-invalid="true"]) + fray-checkshell {
+            background: var(--working-background-image), var(--checkbox-box-background,
+                var(--ui-input-bg, transparent));
+            background-repeat: repeat, no-repeat;
+            background-size: 2rem 2rem, 100% 100%;
+            animation: fray-working-progress .55s linear infinite;
+        }
+
+        & > label:has(> input[aria-invalid="true"]) {
+            color: var(--error-color);
+        }
+
+        & > label > input[aria-invalid="true"] + fray-checkshell {
+            border-color: var(--error-color);
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            & > label > input[aria-busy="true"] + fray-checkshell {
+                animation: none !important;
+            }
+        }
+
+        @media (forced-colors: active) {
+            & > label > input[aria-invalid="true"] + fray-checkshell {
+                outline: 2px solid Mark;
+                outline-offset: 1px;
+            }
         }
     `
 }

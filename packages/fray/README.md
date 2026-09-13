@@ -313,21 +313,34 @@ the tables below denotes that TypeScript type parameter.
 
 | Component | Purpose | Key props and state |
 | --- | --- | --- |
-| `Button` | Native button with optional pressed and busy state | `label`, `type`, `disabled`, `pressed`, `busy`, `busyLabel`, `onClick`; live: `disabled`, `pressed`, `busy` |
+| `Button` | Native button with optional pressed and busy state | `label`, `type`, `disabled`, `pressed`, `busy`, `busyLabel`, `error`, `onClick`; live: `disabled`, `pressed`, `busy`, `error` |
 | `Toolbar` | Named action group | `label`, `orientation` |
 | `Label` | Native label for rich or live text | `text`, `htmlFor`; live: `text` |
-| `Textbox` | Labelled native text input with validation | `label`, `valueEmitter`, `defaultValue`, `type`, `name`, `placeholder`, `disabled`, `required`, `readOnly`, `error`, native text constraints, `inputRef`, `onInput`, `onChange`; live: availability and `error` |
-| `Dropdown<T>` | Labelled native select | `options`, `label`, `valueEmitter`, `defaultValue`, `placeholder`, `disabled`, `required`, `error`, `onChange`; `options` may be static or a readable emitter |
-| `RadioButton` | Standalone native radio and label | `label`, `name`, `value`, `checked`, `disabled`, `required`, `error`, `onChange`; live: state, availability, `error` |
-| `RadioGroup<T>` | Named native-radio fieldset owning one value | `options` as `[value, label]` tuples, `label`, `valueEmitter`, `defaultValue`, `disabled`, `required`, `error`, `onChange`; options are ordinary render data |
-| `Toggle<T>` | ARIA radio group rendered as toggle buttons | `options` as `[value, label]` tuples, `label`, `valueEmitter`, `defaultValue`, `disabled`, `required`, `error`, `onChange` |
-| `Checkbox<T>` | Configurable keyboard-operable semantic state cycle | `symbols` as `[content, value]` tuples, `label`/`ariaLabel`, `valueEmitter`, `defaultValue`, `disabled`, `required`, `error`, `onChange` |
+| `Textbox` | Labelled native text input with validation | `label`, `valueEmitter`, `defaultValue`, `type`, `name`, `placeholder`, `disabled`, `required`, `readOnly`, `busy`, `error`, native text constraints, `inputRef`, `onInput`, `onChange`; live: availability, `busy`, and `error` |
+| `Dropdown<T>` | Labelled native select | `options`, `label`, `valueEmitter`, `defaultValue`, `placeholder`, `disabled`, `required`, `busy`, `error`, `onChange`; `options` may be static or a readable emitter whose fetch state supplies loading/error feedback |
+| `RadioButton` | Standalone native radio and label | `label`, `name`, `value`, `checked`, `disabled`, `required`, `busy`, `error`, `onChange`; live: state, availability, `busy`, `error` |
+| `RadioGroup<T>` | Named native-radio fieldset owning one value | `options` as `[value, label]` tuples, `label`, `valueEmitter`, `defaultValue`, `disabled`, `required`, `busy`, `error`, `onChange`; options are ordinary render data |
+| `Toggle<T>` | ARIA radio group rendered as toggle buttons | `options` as `[value, label]` tuples, `label`, `valueEmitter`, `defaultValue`, `disabled`, `required`, `busy`, `error`, `onChange` |
+| `Checkbox<T>` | Configurable keyboard-operable semantic state cycle | `symbols` as `[content, value]` tuples, `label`/`ariaLabel`, `valueEmitter`, `defaultValue`, `disabled`, `required`, `busy`, `error`, `onChange` |
 | `TriCheckbox` | Neutral/prefer/deny `FilterMode` cycle | Same public props as `Checkbox`, except fixed symbols |
 | `QuadCheckbox` | Neutral/prefer/require/deny `FilterMode` cycle | Same public props as `Checkbox`, except fixed symbols |
+| `DatePicker` (experimental) | Text date input with calendar dialog | value props, `label`/`ariaLabel`, `disabled`, `required`, `readOnly`, `busy`, `error`, date bounds/placeholders, input/change callbacks |
+| `TimePicker` (experimental) | Stepped native time select | value props, `label`/`ariaLabel`, `disabled`, `required`, `busy`, `error`, time bounds/step/placeholders, input/change callbacks |
+| `DateTimePicker` (experimental) | Combined date/time fieldset | combined value props, `label`/`ariaLabel`, `disabled`, `required`, `busy`, `error`, date/time bounds and callbacks |
 
 `FilterMode` exports `neutral`, `prefer`, `require`, and `deny` semantic values.
 Arrow keys move backward or forward through a multi-state checkbox; Space uses
 the native forward cycle.
+
+`busy` is presentational state: it sets native/ARIA busy semantics and paints
+the theme's moving working texture without disabling an input or choice.
+`Button` remains the exception: a busy action is unavailable until it settles.
+When `error` is also present, error presentation wins over the animation.
+Every error-bearing control describes its native surface with a visible,
+focusable `role="alert"` message. Form contexts render the full message inline;
+compact `context="control"` ancestors show an error icon whose message opens on
+hover, keyboard focus, or tap focus. Applications still own validation and the
+message text.
 
 ```tsx
 const view = new Emitter<'list' | 'grid'>('list')
@@ -349,7 +362,7 @@ const view = new Emitter<'list' | 'grid'>('list')
 | `FrayApp` | Fixed `fray-app` application shell and theme-text boundary | `sizing`: `embedded`/viewport axes; `layout`: `horizontal`/`vertical`; `landmark`: `main`/`none`; content or overridden `renderContent()` |
 | `Header` | Styled native heading surface | `level` (1–6), `headingId`, content |
 | `GroupBox` | Labelled bordered group with a vertical header | required `header`, content |
-| `OptionGroup` | Labelled native fieldset for related controls | `label`/`ariaLabel`, `OptionGroupHeaderEnd` and ordinary content children, validation props |
+| `OptionGroup` | Labelled native fieldset for related controls | `label`/`ariaLabel`, `OptionGroupHeaderEnd` and ordinary content children, `disabled`, `required`, `busy`, `error`; state props are live |
 | `OptionsBox` | GroupBox specialization arranging option groups | required `header`, `OptionGroup` content |
 | `Layout` | Presentation-only arrangement of arbitrary children | exactly one of `horizontal`/`vertical`; `allocation`, `scroll`, optional accessible-region configuration |
 | `Panel` | Optional labelled, themed region composed over a Layout body | `header`, `horizontal`/`vertical`, `allocation`, `scroll`, `disabled`; `PanelToolbar` and ordinary content children; live: `disabled` |
@@ -436,19 +449,27 @@ native link semantics.
 | `InfoPanel` | Bordered info panel with optional title and key-value fields | `title`, `label`, `InfoField` children |
 | `InfoField` | Native `dt`/`dd` key-value pair | required `label`, `value` or content |
 | `Placeholder` | Decorative loading placeholder | numeric `width`, clamped to 10–100 percent |
-| `ListView<T>` | Keyed single- or multi-select ARIA listbox | `items`, `itemKey`, `label`, `renderItem`, `multiSelect`, selected emitter |
+| `ListView<T>` | Keyed single- or multi-select ARIA listbox | `items`, `itemKey`, `label`, `placeholderCount`, `renderItem`, `multiSelect`, selected emitter |
 | `TreeItem<T>` | Declarative tree-node marker | `id`, `label`, `textValue`, `value`, nested `TreeItem` children |
-| `TreeView<T>` | Keyed single-select ARIA tree | `nodes` or declarative items, `label`, selected/expanded emitters, `renderItem`, per-label class/style callbacks, `onSelect` |
+| `TreeView<T>` | Keyed single-select ARIA tree | `nodes` or declarative items, `label`, `placeholderCount`, selected/expanded emitters, `renderItem`, per-label class/style callbacks, `onSelect` |
 | `FilterPanel` | Semantic filter-control fieldset | `options`, `filters`, `filterModes`, `defaultSemanticState`, `label`, `onChange` |
 | `TableHeaderCell` | Sort/filter header-cell control | column key/label plus sort/filter state callbacks |
 | `TableHeader` | Header row over public column definitions | `columns`, sort/filter emitters and callbacks |
-| `DataTable<T>` | Accessible local, caller-query, or REST-backed table | `columns`, one data input, `rowKey`, caption/messages, semantic filter options, single/multi selection |
+| `DataTable<T>` | Accessible local, caller-query, or REST-backed table | `columns`, one data input, `rowKey`, caption/messages, `placeholderCount`, semantic filter options, single/multi selection |
 
 `ListView`, `TreeView`, and `DataTable` reconcile selection by stable keys when
 fresh item objects arrive. Supply an explicit key for application data; index
 fallbacks are only safe for immutable ordering. `ListView.items` and
 `TreeView.nodes` accept static arrays or readable emitters and present loading,
 empty, and error states from the emitter snapshot.
+
+On an empty initial/loading snapshot, all three collection views render
+deterministic, `aria-hidden` placeholder rows; `placeholderCount` selects their
+count. When a loading snapshot retains rows, those real rows remain semantic
+and usable while the working texture animates over their background. Error
+snapshots retain any available rows, add a visible error banner and error edge,
+and stop the loading animation. A `DataTable` data source with `retry` also
+renders its localized retry action.
 
 Advanced compositions may use `BaseSelectionHandler`,
 `SingleSelectionHandler`, `MultiSelectionHandler`, and

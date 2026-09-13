@@ -263,6 +263,8 @@ export interface FrayHostElementTagNameMap {
     'fray-label': HTMLElement
     'fray-options': HTMLElement
     'fray-error': HTMLElement
+    'fray-erroricon': HTMLElement
+    'fray-errortext': HTMLElement
     'fray-toolbarcontent': HTMLElement
     'fray-primary': HTMLElement
     'fray-secondary': HTMLElement

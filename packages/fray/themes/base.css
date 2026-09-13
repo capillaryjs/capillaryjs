@@ -91,8 +91,8 @@
     --ui-shadow: none;
     --focus-ring: 0 0 0 1px var(--ui-accent-color-highlight);
     --focus-color: var(--ui-accent-color);
-    --error-color: #f00;
-    --error-contrast: #fcc;
+    --error-color: var(--palette-red, #b3261e);
+    --error-contrast: var(--palette-contrast-light, #fff);
     --success-color: #080;
 
     /* Layout components */

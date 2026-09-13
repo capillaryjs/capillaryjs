@@ -1,8 +1,9 @@
 import {Component, css} from '../component.js'
 import type {ComponentProps, FrayChild, LivePropContract} from '../component.js'
-import {componentClass, invoke} from '../controlUtils.js'
+import {componentClass, controlId, invoke} from '../controlUtils.js'
+import {ErrorMessage} from '../status/statusPresentation.js'
 
-const buttonLiveProps = ['disabled', 'pressed', 'busy'] as const
+const buttonLiveProps = ['disabled', 'pressed', 'busy', 'error'] as const
 
 export interface ButtonProps extends ComponentProps,
     LivePropContract<(typeof buttonLiveProps)[number]> {
@@ -12,6 +13,7 @@ export interface ButtonProps extends ComponentProps,
     pressed?: boolean
     busy?: boolean
     busyLabel?: FrayChild
+    error?: unknown
     id?: string
     name?: string
     value?: string | number
@@ -23,8 +25,12 @@ export interface ButtonProps extends ComponentProps,
 /** Native actionable button primitive. */
 export class Button extends Component<ButtonProps> {
     static override liveProps = buttonLiveProps
+    static override dependencies = [ErrorMessage]
+    readonly errorId: string
+
     constructor(props: ButtonProps = {}) {
         super(props)
+        this.errorId = `${controlId('button', props.id)}-error`
         if (props.onClick != null && typeof props.onClick !== 'function') {
             throw new TypeError('Button onClick must be a function')
         }
@@ -39,6 +45,7 @@ export class Button extends Component<ButtonProps> {
             pressed,
             busy = false,
             busyLabel,
+            error = null,
             id,
             name,
             value,
@@ -65,10 +72,13 @@ export class Button extends Component<ButtonProps> {
                 aria-label={ariaLabel}
                 aria-pressed={pressed == null ? null : String(Boolean(pressed))}
                 aria-busy={busy ? 'true' : null}
+                aria-invalid={error == null ? null : 'true'}
+                aria-describedby={error == null ? null : this.errorId}
                 onClick={(event: MouseEvent) => {
                     if (!unavailable) invoke(onClick, event)
                 }}
             >{content}</button>
+            {error == null ? null : <ErrorMessage id={this.errorId} error={error} />}
         </Host>
     }
 
@@ -90,6 +100,12 @@ export class Button extends Component<ButtonProps> {
             line-height: calc(var(--ui-font-size) + var(--ui-padding) + var(--ui-padding));
             user-select: none;
             white-space: nowrap;
+        }
+
+        & {
+            display: inline-flex;
+            position: relative;
+            flex-flow: row wrap;
         }
 
         & > button:hover:not(:disabled, [aria-disabled="true"]) {
@@ -115,6 +131,30 @@ export class Button extends Component<ButtonProps> {
             border: var(--button-border-disabled);
             cursor: not-allowed;
             pointer-events: none;
+        }
+
+        & > button[aria-busy="true"]:not([aria-invalid="true"]) {
+            background: var(--working-background-image), var(--button-background-disabled);
+            background-repeat: repeat, no-repeat;
+            background-size: 2rem 2rem, 100% 100%;
+            animation: fray-working-progress .55s linear infinite;
+        }
+
+        & > button[aria-invalid="true"] {
+            border-color: var(--error-color);
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            & > button[aria-busy="true"] {
+                animation: none !important;
+            }
+        }
+
+        @media (forced-colors: active) {
+            & > button[aria-invalid="true"] {
+                outline: 2px solid Mark;
+                outline-offset: 1px;
+            }
         }
     `
 }

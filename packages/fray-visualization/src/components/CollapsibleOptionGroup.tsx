@@ -10,7 +10,6 @@ export interface CollapsibleOptionGroupProps extends OptionGroupBaseProps {
 export class CollapsibleOptionGroup<
     TProps extends CollapsibleOptionGroupProps = CollapsibleOptionGroupProps,
 > extends OptionGroup<TProps> {
-    static override liveProps: readonly string[] = []
     readonly contentId: string
     private collapsed: boolean
 
@@ -46,6 +45,7 @@ export class CollapsibleOptionGroup<
             ariaLabel,
             disabled = false,
             required = false,
+            busy = false,
             error = null,
         } = this.props
         return <Host className={this.props.className ?? this.props.class ?? null}>
@@ -54,6 +54,7 @@ export class CollapsibleOptionGroup<
                 disabled={disabled}
                 aria-label={label == null ? ariaLabel : null}
                 aria-required={required ? 'true' : null}
+                aria-busy={busy ? 'true' : null}
                 aria-invalid={error == null ? null : 'true'}
                 aria-describedby={error == null ? null : this.errorId}
             >
@@ -74,10 +75,7 @@ export class CollapsibleOptionGroup<
                     {content}
                 </div>
             </fieldset>
-            {error == null ? null : <p
-                id={this.errorId}
-                role="alert"
-            >{String(error)}</p>}
+            {this.renderOptionGroupError(error)}
         </Host>
     }
 

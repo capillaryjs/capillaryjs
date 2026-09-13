@@ -9,6 +9,7 @@ import {
     invoke,
 } from '../../controlUtils.js'
 import type {ValueControlProps, ValueEmitter} from '../../controlUtils.js'
+import {ErrorMessage} from '../../status/statusPresentation.js'
 import {FilterMode} from '../../../util/filterMode.js'
 import type {FilterModeValue} from '../../../util/filterMode.js'
 
@@ -18,7 +19,7 @@ export type CheckboxSymbol<TValue extends CheckboxValue = FilterModeValue> = rea
     value: TValue,
 ]
 
-const checkboxLiveProps = ['disabled', 'required', 'error'] as const
+const checkboxLiveProps = ['disabled', 'required', 'busy', 'error'] as const
 
 export interface CheckboxProps<TValue extends CheckboxValue = FilterModeValue>
     extends ValueControlProps<TValue>, LivePropContract<(typeof checkboxLiveProps)[number]> {
@@ -30,6 +31,7 @@ export interface CheckboxProps<TValue extends CheckboxValue = FilterModeValue>
     ariaLabel?: string
     disabled?: boolean
     required?: boolean
+    busy?: boolean
     error?: unknown
     name?: string
     onChange?: (value: TValue, event: Event | null) => void
@@ -39,6 +41,7 @@ export interface CheckboxProps<TValue extends CheckboxValue = FilterModeValue>
 export class Checkbox<TValue extends CheckboxValue = FilterModeValue>
     extends CheckableControl<CheckboxProps<TValue>> {
     static override liveProps = checkboxLiveProps
+    static override dependencies = [ErrorMessage]
     static symbols: readonly CheckboxSymbol<FilterModeValue>[] = [
         ['☐', FilterMode.Neutral],
         ['✓', FilterMode.Prefer],
@@ -95,6 +98,7 @@ export class Checkbox<TValue extends CheckboxValue = FilterModeValue>
             ariaLabel,
             disabled = false,
             required = false,
+            busy = false,
             error = null,
         } = this.props
         const semanticState = this.valueEmitter.get()
@@ -123,6 +127,7 @@ export class Checkbox<TValue extends CheckboxValue = FilterModeValue>
                     required={required}
                     name={this.props.name}
                     value={String(semanticState)}
+                    aria-busy={busy ? 'true' : null}
                     aria-label={textLabel == null
                         ? null
                         : this.frayMessage('checkboxStateLabel')(textLabel, localizedStateName)}
@@ -152,7 +157,7 @@ export class Checkbox<TValue extends CheckboxValue = FilterModeValue>
                 <fray-checkshell aria-hidden="true">{shellSymbol}</fray-checkshell>
                 {label}
             </label>
-            {error == null ? null : <p id={this.errorId} role="alert">{String(error)}</p>}
+            {error == null ? null : <ErrorMessage id={this.errorId} error={error} />}
         </Host>
     }
 

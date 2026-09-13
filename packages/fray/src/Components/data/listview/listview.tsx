@@ -5,6 +5,7 @@ import {Placeholder} from '../../Placeholder.js'
 import {Component, css} from '../../component.js'
 import type {ComponentProps, FrayChild} from '../../component.js'
 import {componentClass} from '../../controlUtils.js'
+import {ErrorMessage} from '../../status/statusPresentation.js'
 import type {ValueEmitter} from '../../controlUtils.js'
 import {
     createSelectionHandler,
@@ -120,9 +121,11 @@ export class ListView<TItem = unknown> extends Component<ListViewProps<TItem>> {
             className={componentClass(this.props) || null}
         >
             {status === FetchState.Error
-                ? <p role="alert">
-                    {errorMessage(error, this.frayMessage('listViewLoadError'))}
-                </p>
+                ? <ErrorMessage
+                    className="fray-error-banner"
+                    error={error}
+                    fallback={this.frayMessage('listViewLoadError')}
+                />
                 : null}
             {isLoading && rows.length === 0
                 ? <>
@@ -190,13 +193,14 @@ export class ListView<TItem = unknown> extends Component<ListViewProps<TItem>> {
         this.ownedItemsEmitter?.dispose()
     }
 
-    static dependencies = [Placeholder]
+    static dependencies = [Placeholder, ErrorMessage]
 
     static override hostName = 'listview'
 
     static override css = css`
         & {
             display: flex;
+            position: relative;
             flex-direction: column;
             overflow-y: auto;
             height: 100%;
@@ -234,6 +238,19 @@ export class ListView<TItem = unknown> extends Component<ListViewProps<TItem>> {
             user-select: none;
         }
 
+        & > [role="listbox"][aria-busy="true"] > [role="option"]::after {
+            content: "";
+            position: absolute;
+            z-index: 1;
+            inset: 0;
+            background-image: var(--working-background-image);
+            background-repeat: repeat;
+            background-size: 2rem 2rem;
+            border-radius: inherit;
+            animation: fray-working-progress .55s linear infinite;
+            pointer-events: none;
+        }
+
         & > [role="listbox"] > [role="option"]:hover {
             background: var(--hover-bg-color, #f5f5f5);
         }
@@ -246,6 +263,23 @@ export class ListView<TItem = unknown> extends Component<ListViewProps<TItem>> {
         & > [role="alert"] {
             margin: 0;
             padding: var(--ui-padding);
+        }
+
+        &:has(> fray-error) {
+            border-color: var(--error-color);
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            & > [role="listbox"][aria-busy="true"] > [role="option"]::after {
+                animation: none !important;
+            }
+        }
+
+        @media (forced-colors: active) {
+            &:has(> fray-error) {
+                outline: 2px solid Mark;
+                outline-offset: -2px;
+            }
         }
     `
 }
@@ -287,9 +321,4 @@ function defaultItemLabel(item: unknown): FrayChild {
 
 function isRenderablePrimitive(value: unknown): value is string | number | null | undefined {
     return value == null || typeof value === 'string' || typeof value === 'number'
-}
-
-function errorMessage(error: unknown, fallback: string): string {
-    if (error instanceof Error) return error.message
-    return error == null ? fallback : String(error)
 }

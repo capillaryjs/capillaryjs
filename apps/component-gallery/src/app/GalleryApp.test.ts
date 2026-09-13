@@ -51,7 +51,7 @@ test('gallery shell mounts the line-inputs page with islands and toolbar', async
     const headerToggles = document.querySelectorAll('.gallery-controls fray-toggle')
     assert.equal(headerToggles.length, 2, 'layout and data-state toggles')
     const flagInputs = document.querySelectorAll('.gallery-flag-group input')
-    assert.equal(flagInputs.length, 4, 'component-state flags')
+    assert.equal(flagInputs.length, 5, 'component-state flags')
 
     // The line-inputs page renders its state matrix
     assert.ok(document.querySelector('#gallery-checkboxes'), 'checkbox panel')
@@ -142,10 +142,65 @@ test('toolbar toggles switch layout variant and shared data state', async () => 
     router.dispose()
 })
 
+test('data page demonstrates initial skeletons, retained loading, errors, retry, and empty states',
+    async () => {
+        const adapter = new MemoryNavigationAdapter('/data-components')
+        const router = createBrowserRouter({adapter})
+        const runtime = createFrayRuntime({router})
+        const app = runtime.mount(runtime.create(GalleryApp), document.body)
+        await waitUntil(() => router.transition.get().state === 'idle')
+
+        assert.ok(document.querySelector('#gallery-table fray-datatable'), 'table example')
+        assert.ok(document.querySelector('#gallery-collections fray-listview'), 'list example')
+        assert.ok(document.querySelector('#gallery-collections fray-treeview'), 'tree example')
+        assert.match(document.querySelector('#gallery-empty')?.textContent ?? '', /No components/)
+
+        toolbarOption('Initial').click()
+        assert.ok(document.querySelectorAll('#gallery-table fray-placeholder').length > 0,
+            'table placeholders')
+        assert.ok(document.querySelectorAll('#gallery-collections fray-placeholder').length > 0,
+            'collection placeholders')
+        assert.ok(document.querySelector('#gallery-collections fray-treeview ul[aria-hidden="true"]'),
+            'tree placeholder list')
+
+        toolbarOption('Ready').click()
+        assert.ok(document.querySelectorAll('#gallery-table tbody tr').length > 0,
+            'ready table rows')
+
+        toolbarOption('Loading').click()
+        assert.equal(document.querySelectorAll('#gallery-table tbody [aria-hidden="true"]').length, 0)
+        assert.equal(document.querySelector('#gallery-table table')?.getAttribute('aria-busy'), 'true')
+        assert.equal(document.querySelector('#gallery-collections [role="listbox"]')
+            ?.getAttribute('aria-busy'), 'true')
+        assert.equal(document.querySelector('#gallery-collections [role="tree"]')
+            ?.getAttribute('aria-busy'), 'true')
+
+        toolbarOption('Error').click()
+        assert.ok(document.querySelectorAll('#gallery-table fray-error[role="alert"]').length > 0)
+        assert.ok(document.querySelectorAll('#gallery-collections fray-error[role="alert"]').length >= 2)
+        const retry = [...document.querySelectorAll<HTMLButtonElement>('#gallery-table button')]
+            .find((button) => button.textContent === 'Retry')
+        assert.ok(retry, 'table retry action')
+        retry.click()
+        await waitUntil(() => document.querySelector('#gallery-table [role="alert"]') == null)
+        assert.equal(document.querySelector('#gallery-table table')?.getAttribute('aria-busy'), null)
+
+        app.destroy()
+        router.dispose()
+    })
+
 async function waitUntil(predicate: () => boolean): Promise<void> {
     for (let attempt = 0; attempt < 100; attempt += 1) {
         if (predicate()) return
         await new Promise<void>((resolve) => setImmediate(resolve))
     }
     throw new Error('Condition did not become true')
+}
+
+function toolbarOption(label: string): HTMLElement {
+    const option = [...document.querySelectorAll<HTMLElement>(
+        '.gallery-controls fray-toggle button[role="radio"]',
+    )].find((button) => button.textContent === label)
+    assert.ok(option, `${label} toolbar option`)
+    return option
 }

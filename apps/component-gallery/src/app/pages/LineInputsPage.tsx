@@ -54,7 +54,7 @@ const radioOptions = [
 export class LineInputsPage extends Component<GalleryPageProps> {
     render(): FrayChild {
         const model = this.props.model
-        const data = this.snapshot(model.dataSource)
+        const data = this.snapshot(model.dataItems)
         return <Layout horizontal allocation="flexible" className="gallery-page">
             <Sidebar island header="Sections" className="gallery-sidebar">
                 <nav class="gallery-section-nav" aria-label="Line input sections">
@@ -93,12 +93,14 @@ export class LineInputsPage extends Component<GalleryPageProps> {
     private flags(): {
         disabled: LiveBinding<boolean>
         required: LiveBinding<boolean>
+        busy: LiveBinding<boolean>
         error: LiveBinding<string | null>
     } {
         const model = this.props.model
         return {
             disabled: live(model.componentDisabled),
             required: live(model.componentRequired),
+            busy: live(model.componentBusy),
             error: live(model.componentError),
         }
     }
@@ -156,7 +158,10 @@ export class LineInputsPage extends Component<GalleryPageProps> {
                     <Textbox label="Name" placeholder="Text"
                         {...this.flags()} readOnly={live(model.componentReadOnly)} />
                     <Dropdown label="Choice" options={dropdownOptions} {...this.flags()} />
-                    <Button label="Action" disabled={live(model.componentDisabled)} />
+                    <Button label="Action"
+                        disabled={live(model.componentDisabled)}
+                        busy={live(model.componentBusy)}
+                        error={live(model.componentError)} />
                 </Toolbar>
             </PanelToolbar>
             <Layout horizontal className="gallery-group-row">
@@ -189,11 +194,17 @@ export class LineInputsPage extends Component<GalleryPageProps> {
                 </GroupBox>
                 <GroupBox header="Button">
                     <Layout vertical className="gallery-state-column">
-                        <Button label="Normal" disabled={live(model.componentDisabled)} />
+                        <Button label="Normal"
+                            disabled={live(model.componentDisabled)}
+                            busy={live(model.componentBusy)}
+                            error={live(model.componentError)} />
                         <Button label="Pressed" pressed
-                            disabled={live(model.componentDisabled)} />
+                            disabled={live(model.componentDisabled)}
+                            busy={live(model.componentBusy)}
+                            error={live(model.componentError)} />
                         <Button label="Busy" busy busyLabel="Working…"
-                            disabled={live(model.componentDisabled)} />
+                            disabled={live(model.componentDisabled)}
+                            error={live(model.componentError)} />
                     </Layout>
                 </GroupBox>
                 <GroupBox header="Progress">

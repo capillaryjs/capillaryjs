@@ -9,13 +9,14 @@ import {
     invoke,
 } from '../controlUtils.js'
 import type {ValueControlProps, ValueEmitter} from '../controlUtils.js'
+import {ErrorMessage} from '../status/statusPresentation.js'
 
 export type ToggleOption<TValue extends Key = string> = readonly [
     value: TValue,
     label: FrayChild,
 ]
 
-const toggleLiveProps = ['disabled', 'required', 'error'] as const
+const toggleLiveProps = ['disabled', 'required', 'busy', 'error'] as const
 
 export interface ToggleProps<TValue extends Key = string>
     extends ValueControlProps<TValue>, LivePropContract<(typeof toggleLiveProps)[number]> {
@@ -25,6 +26,7 @@ export interface ToggleProps<TValue extends Key = string>
     ariaLabel?: string
     disabled?: boolean
     required?: boolean
+    busy?: boolean
     error?: unknown
     onChange?: (value: TValue, event: Event | null) => void
 }
@@ -32,6 +34,7 @@ export interface ToggleProps<TValue extends Key = string>
 /** Mutually exclusive button group with radio-group semantics. */
 export class Toggle<TValue extends Key = string> extends LabeledInputControl<ToggleProps<TValue>> {
     static override liveProps = toggleLiveProps
+    static override dependencies = [ErrorMessage]
     readonly valueEmitter: ValueEmitter<TValue>
     readonly groupId: string
     readonly legendId: string
@@ -80,6 +83,7 @@ export class Toggle<TValue extends Key = string> extends LabeledInputControl<Tog
             label,
             disabled = false,
             required = false,
+            busy = false,
             error = null,
         } = this.props
         validateToggleOptions(options)
@@ -95,6 +99,7 @@ export class Toggle<TValue extends Key = string> extends LabeledInputControl<Tog
                 aria-label={label == null ? this.props.ariaLabel : null}
                 aria-labelledby={label == null ? null : this.legendId}
                 aria-required={required ? 'true' : null}
+                aria-busy={busy ? 'true' : null}
                 aria-invalid={error == null ? null : 'true'}
                 aria-describedby={error == null ? null : this.errorId}
             >{options.map(([value, optionLabel], index) => <button
@@ -108,10 +113,7 @@ export class Toggle<TValue extends Key = string> extends LabeledInputControl<Tog
                 onKeyDown={(event: KeyboardEvent) =>
                     this.handleKeyDown(event, index, options)}
             >{optionLabel}</button>)}</fray-options>
-            {error == null ? null : <fray-error
-                id={this.errorId}
-                role="alert"
-            >{String(error)}</fray-error>}
+            {error == null ? null : <ErrorMessage id={this.errorId} error={error} />}
         </Host>
     }
 
@@ -233,6 +235,25 @@ export class Toggle<TValue extends Key = string> extends LabeledInputControl<Tog
             cursor: not-allowed;
         }
 
+        & > fray-options[aria-busy="true"]:not([aria-invalid="true"])
+        > button[role="radio"] {
+            background: var(--working-background-image), var(--toggle-button-background);
+            background-repeat: repeat, no-repeat;
+            background-size: 2rem 2rem, 100% 100%;
+            animation: fray-working-progress .55s linear infinite;
+        }
+
+        & > fray-options[aria-busy="true"]:not([aria-invalid="true"])
+        > button[role="radio"][aria-checked="true"] {
+            background: var(--working-background-image), var(--toggle-button-background-checked);
+            background-repeat: repeat, no-repeat;
+            background-size: 2rem 2rem, 100% 100%;
+        }
+
+        & > fray-options[aria-invalid="true"] > button[role="radio"] {
+            border-color: var(--error-color);
+        }
+
         & > fray-options > button[role="radio"][aria-checked="false"]
         + [role="radio"][aria-checked="false"]::after {
             content: '';
@@ -241,6 +262,19 @@ export class Toggle<TValue extends Key = string> extends LabeledInputControl<Tog
             inline-size: 1px;
             inset-inline-start: -1px;
             background: var(--toggle-inactive-separator-background);
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            & > fray-options[aria-busy="true"] > button[role="radio"] {
+                animation: none !important;
+            }
+        }
+
+        @media (forced-colors: active) {
+            & > fray-options[aria-invalid="true"] {
+                outline: 2px solid Mark;
+                outline-offset: 1px;
+            }
         }
     `
 }
