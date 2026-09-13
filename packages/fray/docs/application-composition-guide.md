@@ -292,9 +292,10 @@ each group still owns its vertical field order.
 
 `Panel` and `Layout` accept `context="control" | "form"` to declare a
 presentation context for their descendants; the nearest marked ancestor
-wins. In a `form` context `GroupBox` drops its sidebar-weighted chrome —
-the border goes away and the section header lays out horizontally above its
-content — while the unmarked default keeps the control presentation.
+wins. In a `form` context `GroupBox` keeps its border but drops the
+sidebar-weighted header chrome — the section header becomes a plain
+text-colored label above the content — while the unmarked default keeps
+the control presentation.
 `OptionsBox` is the `GroupBox` specialization for sidebar panels of
 `OptionGroup`s. Prefer these components over anonymous wrappers: the
 fieldset, legend, and vertical rhythm are the contract a theme styles.

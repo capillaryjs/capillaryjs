@@ -472,7 +472,7 @@ describe('style registry', () => {
 
         assert.match(stylesheet, /fray-groupbox\s*\{[^}]*display:\s*flex[^}]*flex-flow:\s*var\(--fray-groupbox-flow, row nowrap\)[^}]*gap:\s*var\(--fray-groupbox-gap, 0 0\.35rem\)[^}]*border:\s*var\(--fray-groupbox-border, 1px solid var\(--ui-border-color\)\)/)
         assert.match(stylesheet, /fray-groupbox > fray-header\s*\{[^}]*place-items:\s*var\(--fray-groupbox-header-align, center\)[^}]*width:\s*var\(--fray-groupbox-header-width, 1\.7em\)[^}]*border-radius:\s*var\(--ui-border-radius\)/)
-        assert.match(stylesheet, /fray-groupbox > fray-header\s*\{[^}]*writing-mode:\s*var\(--fray-groupbox-header-writing, vertical-rl\)[^}]*transform:\s*var\(--fray-groupbox-header-transform, rotate\(180deg\)\)/)
+        assert.match(stylesheet, /fray-groupbox > fray-header\s*\{[^}]*color:\s*var\(--fray-groupbox-header-color, var\(--section-header-color\)\)[^}]*writing-mode:\s*var\(--fray-groupbox-header-writing, vertical-rl\)[^}]*transform:\s*var\(--fray-groupbox-header-transform, rotate\(180deg\)\)/)
         assert.match(stylesheet, /fray-header\s*\{[^}]*background:\s*var\(--section-header-background\)[^}]*box-shadow:\s*var\(--section-header-shadow\)/)
         assert.doesNotMatch(stylesheet, /fray-panel|fray-sidebar|fray-checkbox/)
     })
@@ -482,8 +482,8 @@ describe('style registry', () => {
         runtime.registerStyles(GroupBox)
         const stylesheet = runtime.styleRegistry.generateCSS()
 
-        assert.match(stylesheet, /\[data-fray-context='control'\]\s*\{[^}]*--fray-groupbox-flow:\s*row nowrap[^}]*--fray-groupbox-border:\s*1px solid var\(--ui-border-color\)[^}]*--fray-groupbox-header-writing:\s*vertical-rl/)
-        assert.match(stylesheet, /\[data-fray-context='form'\]\s*\{[^}]*--fray-groupbox-flow:\s*column nowrap[^}]*--fray-groupbox-border:\s*none[^}]*--fray-groupbox-header-background:\s*none[^}]*--fray-groupbox-header-writing:\s*horizontal-tb/)
+        assert.match(stylesheet, /\[data-fray-context='control'\]\s*\{[^}]*--fray-groupbox-flow:\s*row nowrap[^}]*--fray-groupbox-border:\s*1px solid var\(--ui-border-color\)[^}]*--fray-groupbox-header-color:\s*var\(--section-header-color\)[^}]*--fray-groupbox-header-writing:\s*vertical-rl/)
+        assert.match(stylesheet, /\[data-fray-context='form'\]\s*\{[^}]*--fray-groupbox-flow:\s*column nowrap[^}]*--fray-groupbox-border:\s*1px solid var\(--ui-border-color\)[^}]*--fray-groupbox-header-color:\s*var\(--text-color\)[^}]*--fray-groupbox-header-background:\s*none[^}]*--fray-groupbox-header-writing:\s*horizontal-tb/)
     })
 
     test('collects Header CSS without unrelated component rules', () => {
