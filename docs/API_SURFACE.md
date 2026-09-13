@@ -48,7 +48,8 @@ Important compatibility boundaries:
 - `retry` is an opt-in `RetryPolicy` on live queries, commands, and endpoint
   `query` defaults. Per-instance options override endpoint defaults; `null`
   disables an inherited default; absent everywhere means a single attempt.
-  Abort, dispose, and superseding requests cancel pending retry timers.
+  Abort, dispose, and superseding requests cancel pending retry timers. A
+  failing retry predicate, backoff function, or scheduler settles terminally.
 - Diagnostics observe causality but do not retain event history or owners.
 
 See the [Glue guide](../packages/glue/README.md) for full behavior and ownership

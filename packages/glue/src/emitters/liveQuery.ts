@@ -212,46 +212,57 @@ implements RefreshableLiveResult<TResult | undefined, unknown> {
         controller: AbortControllerLike,
         queryEvent: EventBubble<unknown> | null,
     ): Promise<TResult | undefined> {
-        for (let attempt = 1; ; attempt += 1) {
-            try {
-                const result = await this.handler.fetch(this.argumentValues, {
-                    signal: controller.signal,
-                    event: queryEvent,
-                })
-                if (!this.isCurrentRequest(requestId, controller)) return undefined
-                this.lastSuccessfulValue = result
-                this.hasSuccessfulValue = true
-                this.setSnapshot({
-                    value: result,
-                    fetchState: FetchState.Ready,
-                    error: null,
-                    cause: 'query succeeded',
-                    parentEvent: queryEvent,
-                })
-                return result
-            } catch (error: unknown) {
-                if (!this.isCurrentRequest(requestId, controller) || isAbortError(error)) {
-                    return undefined
-                }
-                const retry = this.retryPolicy
-                if (retry == null
-                    || attempt >= retry.maxAttempts
-                    || !retry.shouldRetry(error, attempt)) {
+        try {
+            for (let attempt = 1; ; attempt += 1) {
+                try {
+                    const result = await this.handler.fetch(this.argumentValues, {
+                        signal: controller.signal,
+                        event: queryEvent,
+                    })
+                    if (!this.isCurrentRequest(requestId, controller)) return undefined
+                    this.lastSuccessfulValue = result
+                    this.hasSuccessfulValue = true
                     this.setSnapshot({
-                        value: this.keepPreviousValue ? this.lastSuccessfulValue : undefined,
-                        fetchState: FetchState.Error,
-                        error,
-                        cause: 'query failed',
+                        value: result,
+                        fetchState: FetchState.Ready,
+                        error: null,
+                        cause: 'query succeeded',
                         parentEvent: queryEvent,
                     })
-                    return undefined
-                }
-                const delayMs = computeRetryDelay(retry, attempt, error)
-                this.createEvent('query retry', queryEvent, {attempt, delayMs, error})
-                if (!await this.waitRetryDelay(retry, delayMs, requestId, controller)) {
-                    return undefined
+                    return result
+                } catch (error: unknown) {
+                    if (!this.isCurrentRequest(requestId, controller)) return undefined
+                    const retry = this.retryPolicy
+                    if (isAbortError(error)
+                        || retry == null
+                        || attempt >= retry.maxAttempts
+                        || !retry.shouldRetry(error, attempt)) {
+                        this.setSnapshot({
+                            value: this.keepPreviousValue ? this.lastSuccessfulValue : undefined,
+                            fetchState: FetchState.Error,
+                            error,
+                            cause: 'query failed',
+                            parentEvent: queryEvent,
+                        })
+                        return undefined
+                    }
+                    const delayMs = computeRetryDelay(retry, attempt, error)
+                    this.createEvent('query retry', queryEvent, {attempt, delayMs, error})
+                    if (!await this.waitRetryDelay(retry, delayMs, requestId, controller)) {
+                        return undefined
+                    }
                 }
             }
+        } catch (error: unknown) {
+            if (!this.isCurrentRequest(requestId, controller)) return undefined
+            this.setSnapshot({
+                value: this.keepPreviousValue ? this.lastSuccessfulValue : undefined,
+                fetchState: FetchState.Error,
+                error,
+                cause: 'query retry infrastructure failed',
+                parentEvent: queryEvent,
+            })
+            return undefined
         }
     }
 

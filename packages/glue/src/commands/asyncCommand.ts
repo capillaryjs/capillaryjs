@@ -148,46 +148,57 @@ export class AsyncCommand<TArguments, TResult, TError = unknown>
         controller: AbortControllerLike,
         commandEvent: EventBubble<unknown> | null,
     ): Promise<TResult | undefined> {
-        for (let attempt = 1; ; attempt += 1) {
-            try {
-                const result = await this.execute(arguments_, {
-                    signal: controller.signal,
-                    event: commandEvent,
-                })
-                if (!this.isCurrentRequest(requestId, controller)) return undefined
-                this.lastSuccessfulValue = result
-                this.hasSuccessfulValue = true
-                this.setSnapshot({
-                    value: result,
-                    fetchState: FetchState.Ready,
-                    error: null,
-                    cause: 'command succeeded',
-                    parentEvent: commandEvent,
-                })
-                return result
-            } catch (error: unknown) {
-                if (!this.isCurrentRequest(requestId, controller) || isAbortError(error)) {
-                    return undefined
-                }
-                const retry = this.retryPolicy
-                if (retry == null
-                    || attempt >= retry.maxAttempts
-                    || !retry.shouldRetry(error, attempt)) {
+        try {
+            for (let attempt = 1; ; attempt += 1) {
+                try {
+                    const result = await this.execute(arguments_, {
+                        signal: controller.signal,
+                        event: commandEvent,
+                    })
+                    if (!this.isCurrentRequest(requestId, controller)) return undefined
+                    this.lastSuccessfulValue = result
+                    this.hasSuccessfulValue = true
                     this.setSnapshot({
-                        value: this.lastSuccessfulValue,
-                        fetchState: FetchState.Error,
-                        error: this.mapCommandError(error),
-                        cause: 'command failed',
+                        value: result,
+                        fetchState: FetchState.Ready,
+                        error: null,
+                        cause: 'command succeeded',
                         parentEvent: commandEvent,
                     })
-                    return undefined
-                }
-                const delayMs = computeRetryDelay(retry, attempt, error)
-                this.createEvent('command retry', commandEvent, {attempt, delayMs, error})
-                if (!await this.waitRetryDelay(retry, delayMs, requestId, controller)) {
-                    return undefined
+                    return result
+                } catch (error: unknown) {
+                    if (!this.isCurrentRequest(requestId, controller)) return undefined
+                    const retry = this.retryPolicy
+                    if (isAbortError(error)
+                        || retry == null
+                        || attempt >= retry.maxAttempts
+                        || !retry.shouldRetry(error, attempt)) {
+                        this.setSnapshot({
+                            value: this.lastSuccessfulValue,
+                            fetchState: FetchState.Error,
+                            error: this.mapCommandError(error),
+                            cause: 'command failed',
+                            parentEvent: commandEvent,
+                        })
+                        return undefined
+                    }
+                    const delayMs = computeRetryDelay(retry, attempt, error)
+                    this.createEvent('command retry', commandEvent, {attempt, delayMs, error})
+                    if (!await this.waitRetryDelay(retry, delayMs, requestId, controller)) {
+                        return undefined
+                    }
                 }
             }
+        } catch (error: unknown) {
+            if (!this.isCurrentRequest(requestId, controller)) return undefined
+            this.setSnapshot({
+                value: this.lastSuccessfulValue,
+                fetchState: FetchState.Error,
+                error: this.mapCommandError(error),
+                cause: 'command retry infrastructure failed',
+                parentEvent: commandEvent,
+            })
+            return undefined
         }
     }
 

@@ -13,7 +13,8 @@ Versioning.
   `backoff`, `maxDelayMs` cap, full `jitter`, a `shouldRetry` predicate, and an
   injectable `scheduler`. Per-instance options override endpoint defaults and
   `retry: null` disables an inherited policy; requests stay `Loading` across
-  attempts and abort/dispose cancels pending retry timers.
+  attempts and abort/dispose cancels pending retry timers. Retry policy or
+  scheduler failures settle as terminal errors rather than remaining loading.
 
 ## 0.9.1 - 2026-09-08
 

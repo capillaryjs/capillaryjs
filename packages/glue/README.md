@@ -286,7 +286,8 @@ const users = new LiveQuery({
 example to honor a `Retry-After` value carried on the error. Built-in backoff
 is capped by `maxDelayMs` (default 30s) and `jitter` applies full jitter to the
 computed delay (default on). `shouldRetry(error, attempt)` decides whether a
-failed attempt is retried; the default retries any non-abort error.
+failed attempt is retried; the default retries any non-abort error. Glue never
+retries an `AbortError` from a handler.
 
 A request stays in `FetchState.Loading` across attempts and settles `Error`
 only when attempts are exhausted or `shouldRetry` declines; each scheduled
@@ -294,6 +295,9 @@ retry emits a trace event. Abort, disposal, and superseding requests cancel
 the pending retry timer. Retrying a non-idempotent `AsyncCommand` executor can
 apply a mutation more than once — pair it with `shouldRetry`. Tests may inject
 a `scheduler` with the same `schedule`/`cancel` shape as `PollingScheduler`.
+If `shouldRetry`, custom `backoff`, or the injected scheduler throws, Glue
+treats that as a terminal retry-infrastructure error rather than leaving the
+operation in `Loading`; `AsyncCommand` applies its normal `mapError` function.
 
 The REST adapter accepts injected `fetch`, `baseUrl`, and `serialize` behavior.
 Its generic serializer omits `undefined` and empty arrays, encodes `null` as an

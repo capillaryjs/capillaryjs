@@ -258,6 +258,105 @@ describe('AsyncCommand', () => {
         command.dispose()
     })
 
+    test('replace cancels a pending retry and runs only the replacement command', async () => {
+        const fake = fakeScheduler()
+        const calls: string[] = []
+        const command = new AsyncCommand<string, string>({
+            concurrency: 'replace',
+            execute(value) {
+                calls.push(value)
+                return value === 'first'
+                    ? Promise.reject(new Error('flaky'))
+                    : Promise.resolve(`saved ${value}`)
+            },
+            retry: {
+                delayMs: 100,
+                backoff: 'fixed',
+                jitter: false,
+                scheduler: fake.scheduler,
+            },
+        })
+        const first = command.run('first')
+        await nextMicrotask()
+        assert.equal(fake.scheduled.length, 1)
+
+        const second = command.run('second')
+        assert.equal(fake.scheduled[0]?.cancelled, true)
+        assert.equal(command.isRunning.get(), true)
+        assert.equal(await first, undefined)
+        assert.equal(await second, 'saved second')
+        assert.deepEqual(calls, ['first', 'second'])
+        command.dispose()
+    })
+
+    test('does not retry an AbortError from an executor and maps it as terminal', async () => {
+        const fake = fakeScheduler()
+        const error = new Error('request aborted')
+        error.name = 'AbortError'
+        let calls = 0
+        const command = new AsyncCommand<void, string, string>({
+            execute() {
+                calls += 1
+                return Promise.reject(error)
+            },
+            mapError: (cause) => `mapped: ${(cause as Error).name}`,
+            retry: {scheduler: fake.scheduler},
+        })
+
+        assert.equal(await command.run(), undefined)
+        assert.equal(calls, 1)
+        assert.equal(fake.scheduled.length, 0)
+        assert.equal(command.getFetchState(), FetchState.Error)
+        assert.equal(command.getError(), 'mapped: AbortError')
+        command.dispose()
+    })
+
+    test('settles a retry-policy failure as a mapped terminal error', async () => {
+        const command = new AsyncCommand<void, string, string>({
+            execute: () => Promise.reject(new Error('transient')),
+            mapError: (cause) => `mapped: ${(cause as Error).message}`,
+            retry: {
+                shouldRetry() {
+                    throw new Error('predicate failed')
+                },
+                scheduler: fakeScheduler().scheduler,
+            },
+        })
+
+        assert.equal(await command.run(), undefined)
+        assert.equal(command.getFetchState(), FetchState.Error)
+        assert.equal(command.getError(), 'mapped: predicate failed')
+        assert.equal(command.isRunning.get(), false)
+        command.dispose()
+    })
+
+    test('disposing during command retry backoff cancels the timer and settles the run', async () => {
+        const fake = fakeScheduler()
+        let calls = 0
+        const command = new AsyncCommand<void, string>({
+            execute() {
+                calls += 1
+                return Promise.reject(new Error('flaky'))
+            },
+            retry: {
+                delayMs: 100,
+                backoff: 'fixed',
+                jitter: false,
+                scheduler: fake.scheduler,
+            },
+        })
+        const execution = command.run()
+        await nextMicrotask()
+        command.dispose()
+
+        assert.equal(fake.scheduled[0]?.cancelled, true)
+        assert.equal(await execution, undefined)
+        fake.run(0)
+        await nextMicrotask()
+        assert.equal(calls, 1)
+        assert.equal(command.isRunning.get(), false)
+    })
+
     test('settles to the mapped error after retry exhaustion', async () => {
         const fake = fakeScheduler()
         let calls = 0
