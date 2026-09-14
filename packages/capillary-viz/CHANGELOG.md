@@ -6,6 +6,8 @@ and Semantic Versioning.
 
 ## Unreleased
 
+## 1.0.0 - 2026-09-14
+
 ### Changed
 
 - Mark `BlockGraph` as a Capillary UI data surface so a labelled island Panel

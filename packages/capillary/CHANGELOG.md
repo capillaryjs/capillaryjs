@@ -6,6 +6,8 @@ Versioning.
 
 ## Unreleased
 
+## 1.0.0 - 2026-09-14
+
 ### Changed
 
 - No public Capillary API changes; synchronize the package version with the
