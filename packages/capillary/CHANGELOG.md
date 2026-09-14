@@ -6,6 +6,11 @@ Versioning.
 
 ## Unreleased
 
+### Changed
+
+- No public Capillary API changes; synchronize the package version with the
+  companion Capillary UI and Capillary Viz release.
+
 ## 1.0.0-alpha.1 - 2026-09-14
 
 ### Changed
