@@ -7,10 +7,13 @@ import {
     Layout,
     ListView,
     Panel,
+    PanelToolbar,
     Sidebar,
+    Toolbar,
     TreeView,
 } from '@capillaryjs/capillary-ui'
 
+import {galleryData} from '../model/GalleryModel.js'
 import type {GalleryDataItem, GalleryModel} from '../model/GalleryModel.js'
 
 export interface DataComponentsPageProps extends ComponentProps {
@@ -18,9 +21,24 @@ export interface DataComponentsPageProps extends ComponentProps {
 }
 
 const columns: readonly TableColumn<GalleryDataItem>[] = [
-    {field: 'name', label: 'Component', sortable: true},
-    {field: 'team', label: 'Owner', filterOptions: ['Platform', 'Capillary UI']},
-    {field: 'status', label: 'Status'},
+    {
+        field: 'name',
+        label: 'Component',
+        sortable: true,
+        filterOptions: galleryData.map(({name}) => name),
+    },
+    {
+        field: 'team',
+        label: 'Owner',
+        sortable: true,
+        filterOptions: ['Platform', 'Capillary UI'],
+    },
+    {
+        field: 'status',
+        label: 'Status',
+        sortable: true,
+        filterOptions: ['Stable', 'Review', 'Active'],
+    },
 ]
 
 /** Data-state gallery for skeleton refresh, empty, error, and retry presentation. */
@@ -44,16 +62,23 @@ export class DataComponentsPage extends Component<DataComponentsPageProps> {
                 <p class="gallery-data-guidance">
                     Initial and Loading replace data with placeholders, including during refresh.
                     Error shows an alert; tables, lists, and trees retain stale rows.
-                    The table offers retry.
+                    The table and list support multi-selection: Ctrl or Cmd toggles one row;
+                    Shift applies the anchor row's selected state to its inclusive range. The table
+                    offers retry.
                 </p>
             </Sidebar>
             <Layout vertical allocation="flexible" scroll className="gallery-main">
                 <Panel island header="DataTable" id="gallery-table" context="form">
+                    <PanelToolbar>
+                        <Toolbar label="Table actions">
+                            <Button label="Reset table view" onClick={() => model.resetTableState()} />
+                        </Toolbar>
+                    </PanelToolbar>
                     <DataTable<GalleryDataItem>
-                        caption="Framework components"
                         dataSource={model.tableDataSource}
                         columns={columns}
                         rowKey="id"
+                        multiSelect
                         placeholderCount={5}
                     />
                 </Panel>
@@ -63,7 +88,8 @@ export class DataComponentsPage extends Component<DataComponentsPageProps> {
                         <ListView
                             items={model.dataItems}
                             itemKey="id"
-                            label="Framework component list"
+                            label="Framework component list (multiple selection)"
+                            multiSelect
                             placeholderCount={5}
                             renderItem={(item) => `${item.name} — ${item.status}`}
                         />
@@ -97,7 +123,9 @@ export class DataComponentsPage extends Component<DataComponentsPageProps> {
         Layout,
         Sidebar,
         Panel,
+        PanelToolbar,
         Button,
+        Toolbar,
         DataTable,
         ListView,
         TreeView,

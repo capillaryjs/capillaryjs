@@ -152,13 +152,23 @@ Notable public behavior:
   retain visible error feedback alongside stale values.
 - `DataTable` accepts exactly one of direct `data`, a caller-owned
   `dataSource`, or table-owned `rest` options.
+- `DataTable`, `ListView`, and `TreeView` declare the static `dataSurface`
+  trait, which materializes as `data-cap-surface="data"` on their hosts. An
+  island Panel with a header and exactly one direct marked child removes its
+  body inset; other Panel bodies retain it. A DataTable in that composition
+  omits its own caption because the labelled Panel supplies the data-region
+  name.
 - Rich `Checkbox` and `TableColumn` labels accept a textual `ariaLabel` for
   Capillary UI-generated state, sort, and filter accessibility messages.
 - `Dialog` uses a native modal surface with focus containment and restoration.
-- `GroupBox` is a named group with a bordered body and vertical header.
-  Horizontal form groups use a soft `--groupbox-preferred-width` (15rem by
-  default), allow wider intrinsic content, and shrink fields to their floor
-  before wrapping. Vertical parents stretch groups without ancestor-wide caps.
+- `GroupBox` is a named group with a bordered body and vertical header by
+  default. Its optional `section` variant is a natural-height full-inline
+  section with a larger legend/top rule; its `column` variant is a
+  natural-sized inner group with normal-size, semi-bold heading text separated
+  slightly from its contents and sibling dividers in horizontal Layouts.
+  Both variants transpose their rule/divider and fill the relevant cross-axis
+  when the immediate Layout axis is reversed. GroupBox adds neither a synthetic preferred width nor an
+  artificial size floor; fields retain their own floor before wrapping.
 - `OptionGroup` renders a labelled `fieldset`/`legend` shell and accepts an
   `OptionGroupHeaderEnd` declarative region child.
 - `OptionsBox` extends `GroupBox` with a flex-column content area for `OptionGroup` children.

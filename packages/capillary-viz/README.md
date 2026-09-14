@@ -28,6 +28,10 @@ With dependency collection, declare `BlockGraph`, `CategoryHidePanel`,
 `SplitSelectionPanel`, or `LineGraph` in the owning component's
 `static dependencies` instead.
 
+`BlockGraph` declares Capillary UI's static `dataSurface` host trait. When it
+is the sole direct body child of a labelled island `Panel`, the Panel makes the
+data surface flush with its chrome.
+
 ## Ownership model
 
 Applications supply items, stable keys, domain predicates, labels, semantic

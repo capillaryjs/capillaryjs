@@ -283,6 +283,7 @@ export class DataTable<TRow extends TableRow = TableRow>
     static dependencies = [Placeholder, TableHeader, ErrorMessage]
 
     static override hostName = 'data-table'
+    static override dataSurface = 'data' as const
 
     static css = css`
         & {

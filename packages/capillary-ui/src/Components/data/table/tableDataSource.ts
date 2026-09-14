@@ -79,24 +79,35 @@ export function createLocalTableDataSource<TRow extends TableRow>(
             purpose: 'local table data',
         })
     const data = ownedData ?? options.data as ReadableEmitter<readonly TRow[], unknown>
-    const query = new DerivedEmitter(
-        [data, state.sortEmitter, state.filtersEmitter] as const,
-        ([rows, sort, filters]) => applyLocalTableState(rows, sort, filters),
-        {owner: options.owner, purpose: 'local table view'},
-    )
+    const query = createLocalTableView(data, state, options.owner)
     return new ManagedTableDataSource(query, state, () => {
         query.dispose()
         ownedData?.dispose()
     })
 }
 
-/** Package a caller-owned query with the sort/filter emitters that drive it. */
+/**
+ * Package a caller-owned query with a locally derived sort/filter view.
+ *
+ * The supplied query remains application-owned; this source owns only the
+ * derived view and its state emitters. This keeps query-shaped data on the
+ * same interaction path as direct local data.
+ */
 export function createQueryTableDataSource<TRow extends TableRow>(
     options: QueryTableDataSourceOptions<TRow>,
 ): TableDataSource<TRow> {
     assertTableQuery<TRow>(options.query)
     const state = createState(options)
-    return new ManagedTableDataSource(options.query, state)
+    const query = createLocalTableView(options.query, state, options.owner)
+    const retry = options.query.retry
+    return new ManagedTableDataSource(
+        query,
+        state,
+        () => query.dispose(),
+        retry == null
+            ? undefined
+            : (cause?: unknown) => options.query.retry?.call(options.query, cause),
+    )
 }
 
 /** Create a LiveQuery-backed source from an application-supplied handler. */
@@ -162,6 +173,12 @@ interface ManagedState {
     ownedFiltersEmitter: Emitter<TableFilters> | null
 }
 
+type LocalTableViewSources<TRow extends TableRow> = readonly [
+    ReadableEmitter<readonly TRow[] | undefined, unknown>,
+    ValueEmitter<TableSort | null>,
+    ValueEmitter<TableFilters>,
+]
+
 class ManagedTableDataSource<TRow extends TableRow> implements TableDataSource<TRow> {
     readonly sortEmitter: ValueEmitter<TableSort | null>
     readonly filtersEmitter: ValueEmitter<TableFilters>
@@ -172,10 +189,11 @@ class ManagedTableDataSource<TRow extends TableRow> implements TableDataSource<T
         readonly query: TableQueryInput<TRow>,
         private readonly state: ManagedState,
         private readonly disposeQuery: (() => void) | null = null,
+        retry: ((cause?: unknown) => unknown) | undefined = query.retry,
     ) {
         this.sortEmitter = state.sortEmitter
         this.filtersEmitter = state.filtersEmitter
-        if (query.retry != null) this.retry = (cause?: unknown) => query.retry?.(cause)
+        if (retry != null) this.retry = (cause?: unknown) => retry(cause)
     }
 
     dispose(): void {
@@ -185,6 +203,20 @@ class ManagedTableDataSource<TRow extends TableRow> implements TableDataSource<T
         this.state.ownedSortEmitter?.dispose()
         this.state.ownedFiltersEmitter?.dispose()
     }
+}
+
+function createLocalTableView<TRow extends TableRow>(
+    data: ReadableEmitter<readonly TRow[] | undefined, unknown>,
+    state: ManagedState,
+    owner: unknown,
+): DerivedEmitter<readonly TRow[] | undefined, LocalTableViewSources<TRow>> {
+    return new DerivedEmitter(
+        [data, state.sortEmitter, state.filtersEmitter] as const,
+        ([rows, sort, filters]): readonly TRow[] | undefined => rows == null
+            ? undefined
+            : applyLocalTableState(rows, sort, filters),
+        {owner, purpose: 'local table view'},
+    )
 }
 
 function createState(options: TableStateOptions): ManagedState {

@@ -145,7 +145,7 @@ extends Component<SplitSelectionPanelProps<TItem>> {
 
         & ol {
             display: grid;
-            gap: 0.25rem;
+            gap: .33rem;
             padding: 0;
             list-style: none;
         }
@@ -157,7 +157,7 @@ extends Component<SplitSelectionPanelProps<TItem>> {
             justify-content: space-between;
             gap: 0.35rem;
             min-width: 0;
-            padding: 0 .35rem;
+            padding: .15rem .35rem;
             border-radius: var(--ui-border-radius);
             box-shadow: var(--box-shadow);
         }

@@ -21,16 +21,16 @@ export class GalleryHeader extends Component<GalleryHeaderProps> {
         return <header class="gallery-masthead island">
             <Layout horizontal className="gallery-masthead-row">
                 <h1>Capillary UI component gallery</h1>
-                <NavigationBar
-                    label="Gallery pages"
-                    items={galleryPages.map((page) => ({
-                        id: page.id,
-                        label: page.label,
-                        to: routeTarget(page.route),
-                        exact: true,
-                    }))}
-                />
             </Layout>
+            <NavigationBar
+                label="Gallery pages"
+                items={galleryPages.map((page) => ({
+                    id: page.id,
+                    label: page.label,
+                    to: routeTarget(page.route),
+                    exact: true,
+                }))}
+            />
             <GalleryToolbar model={model} />
         </header>
     }

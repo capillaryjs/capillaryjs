@@ -27,6 +27,9 @@ export interface ComponentProps {
     [name: string]: unknown
 }
 
+/** Semantic surface a component host contributes to its parent composition. */
+export type CapillaryUiDataSurface = 'data' | null
+
 export type Ref<TNode extends Node = Node> =
     | ((value: TNode | null) => void)
     | {current: TNode | null}
@@ -437,6 +440,8 @@ export class Component<TProps extends ComponentProps = ComponentProps> {
         }
     `
     static hostName: string | null = null
+    /** Optional host-level data surface marker for parent composition. */
+    static dataSurface: CapillaryUiDataSurface = null
 
     static new<TConstructor extends ConcreteComponentConstructor>(
         this: TConstructor,
@@ -539,6 +544,9 @@ export class Component<TProps extends ComponentProps = ComponentProps> {
             ...hostProps,
             ...(className == null ? {} : {className}),
             'data-cap-component': hostName,
+            ...(componentType.dataSurface == null
+                ? {}
+                : {'data-cap-surface': componentType.dataSurface}),
         }, ...children)
     }
 

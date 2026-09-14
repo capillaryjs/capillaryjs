@@ -18,7 +18,7 @@ export class OptionsBox<TProps extends GroupBoxBaseProps = OptionsBoxProps>
             flex-direction: column;
             align-self: stretch;
             flex: 1 1 0;
-            gap: .5em;
+            gap: 1rem;
         }
 
         & > cap-content * > fieldset > legend {
@@ -30,8 +30,8 @@ export class OptionsBox<TProps extends GroupBoxBaseProps = OptionsBoxProps>
             color: var(--palette-neutral-950);
             gap: 0.5rem;
             width: 100%;
-            padding: 0 0 0.25em;
-            margin-bottom: 0.25em;
+            padding: 0 0 0.25rem;
+            margin-bottom: 0.25rem;
             border-bottom: 1px solid var(--ui-border-color);
             user-select: none;
         }
@@ -45,7 +45,7 @@ export class OptionsBox<TProps extends GroupBoxBaseProps = OptionsBoxProps>
             align-content: stretch;
             box-sizing: border-box;
             width: 100%;
-            gap: 0;
+            gap: .33rem;
             padding: .25em 0 .5em 0;
         }
     `

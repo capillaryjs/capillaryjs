@@ -475,7 +475,9 @@ describe('style registry', () => {
 
         assert.match(stylesheet, /cap-panel\s*\{[^}]*background:\s*var\(--panel-background\)/)
         assert.match(stylesheet, /cap-header\s*\{[^}]*padding:\s*\.25em/)
-        assert.match(stylesheet, /cap-panel > cap-layout\.panel-content/)
+        assert.match(stylesheet, /cap-panel > cap-layout\.panel-content\s*\{[^}]*padding:\s*var\(--panel-content-padding, var\(--panel-padding, 0\.75rem\)\)/)
+        assert.match(stylesheet, /cap-panel\.island:has\(> cap-header\) > cap-layout\.panel-content:has\(> \[data-cap-surface='data'\]:only-child\)\s*\{[^}]*--panel-content-padding:\s*0/)
+        assert.doesNotMatch(stylesheet, /cap-datatable|cap-listview|cap-treeview|cap-blockgraph/)
         assert.match(stylesheet, /cap-panel\[aria-disabled="true"\]\s*\{[^}]*opacity:\s*\.65/)
         assert.doesNotMatch(stylesheet, /cap-panel > header/)
         assert.doesNotMatch(stylesheet, /cap-sidebar|cap-dropdown|cap-checkbox|cap-textbox/)
@@ -493,19 +495,21 @@ describe('style registry', () => {
         assert.doesNotMatch(stylesheet, /cap-groupbox|cap-panel|cap-header|cap-checkbox/)
     })
 
-    test('collects OptionsBox with inherited GroupBox flex layout and flex content override', () => {
+    test('collects OptionsBox with inherited GroupBox flex layout and option rhythm', () => {
         const runtime = createCapillaryUiRuntime()
         runtime.registerStyles(OptionsBox)
         const stylesheet = runtime.styleRegistry.generateCSS()
 
         assert.match(stylesheet, /cap-optionsbox\s*\{[^}]*display:\s*flex[^}]*flex-flow:\s*var\(--cap-groupbox-flow, row nowrap\)[^}]*border:\s*var\(--cap-groupbox-border, 1px solid var\(--ui-border-color\)\)/)
         assert.match(stylesheet, /cap-optionsbox > cap-header\s*\{[^}]*place-items:\s*var\(--cap-groupbox-header-align, center\)[^}]*writing-mode:\s*var\(--cap-groupbox-header-writing, vertical-rl\)[^}]*transform:\s*var\(--cap-groupbox-header-transform, rotate\(180deg\)\)/)
-        assert.match(stylesheet, /cap-optionsbox > cap-content\s*\{[^}]*display:\s*flex[^}]*flex-direction:\s*column[^}]*gap:\s*\.5em/)
+        assert.match(stylesheet, /cap-optionsbox > cap-content\s*\{[^}]*display:\s*flex[^}]*flex-direction:\s*column[^}]*gap:\s*1rem/)
+        assert.match(stylesheet, /cap-optionsbox > cap-content \* > fieldset > legend\s*\{[^}]*padding:\s*0 0 0\.25rem[^}]*margin-bottom:\s*0\.25rem/)
+        assert.match(stylesheet, /cap-optionsbox > cap-content \* > fieldset\s*\{[^}]*display:\s*flex[^}]*flex-flow:\s*column[^}]*gap:\s*\.33rem/)
         assert.match(stylesheet, /cap-header\s*\{[^}]*background:\s*var\(--section-header-background\)/)
         assert.doesNotMatch(stylesheet, /cap-panel|cap-sidebar|cap-checkbox/)
     })
 
-    test('collects GroupBox border and vertical Header treatment', () => {
+    test('collects GroupBox default, section, and column structural treatment', () => {
         const runtime = createCapillaryUiRuntime()
         runtime.registerStyles(GroupBox)
         const stylesheet = runtime.styleRegistry.generateCSS()
@@ -513,6 +517,16 @@ describe('style registry', () => {
         assert.match(stylesheet, /cap-groupbox\s*\{[^}]*display:\s*flex[^}]*flex-flow:\s*var\(--cap-groupbox-flow, row nowrap\)[^}]*gap:\s*var\(--cap-groupbox-gap, 0 0\.35rem\)[^}]*border:\s*var\(--cap-groupbox-border, 1px solid var\(--ui-border-color\)\)/)
         assert.match(stylesheet, /cap-groupbox > cap-header\s*\{[^}]*place-items:\s*var\(--cap-groupbox-header-align, center\)[^}]*width:\s*var\(--cap-groupbox-header-width, 1\.7em\)[^}]*border-radius:\s*var\(--ui-border-radius\)/)
         assert.match(stylesheet, /cap-groupbox > cap-header\s*\{[^}]*color:\s*var\(--cap-groupbox-header-color, var\(--section-header-color\)\)[^}]*writing-mode:\s*var\(--cap-groupbox-header-writing, vertical-rl\)[^}]*transform:\s*var\(--cap-groupbox-header-transform, rotate\(180deg\)\)/)
+        assert.match(stylesheet, /cap-groupbox\.cap-groupbox-section\s*\{[^}]*display:\s*grid[^}]*grid-template-columns:\s*max-content minmax\(0, 1fr\)[^}]*grid-template-rows:\s*max-content minmax\(max-content, 1fr\)[^}]*border:\s*0/)
+        assert.match(stylesheet, /cap-groupbox\.cap-groupbox-section::before\s*\{[^}]*border-block-start:\s*1px solid var\(--ui-border-color\)/)
+        assert.match(stylesheet, /cap-groupbox\.cap-groupbox-section > cap-header\s*\{[^}]*font-size:\s*var\(--groupbox-section-font-size, 1\.2em\)[^}]*font-weight:\s*600/)
+        assert.match(stylesheet, /cap-layout-horizontal > cap-groupbox\.cap-groupbox-section::before\s*\{[^}]*grid-column:\s*1[^}]*grid-row:\s*2[^}]*border-inline-end:\s*1px solid var\(--ui-border-color\)/)
+        assert.match(stylesheet, /cap-groupbox\.cap-groupbox-column\s*\{[^}]*gap:\s*0[^}]*border:\s*0[^}]*flex:\s*0 1 auto/)
+        assert.match(stylesheet, /cap-groupbox\.cap-groupbox-column > cap-header[\s\S]*?margin-block-end:\s*0\.75rem[\s\S]*?font-size:\s*var\(--ui-font-size\)[\s\S]*?font-weight:\s*600/)
+        assert.match(stylesheet, /cap-layout-horizontal > cap-groupbox\.cap-groupbox-column,[\s\S]*?cap-layout-vertical > cap-groupbox\.cap-groupbox-column\s*\{[^}]*align-self:\s*stretch/)
+        assert.match(stylesheet, /cap-layout-horizontal > cap-groupbox\.cap-groupbox-column \+ cap-groupbox\.cap-groupbox-column\s*\{[^}]*border-inline-start:\s*1px solid var\(--ui-border-color\)/)
+        assert.match(stylesheet, /cap-layout-vertical > cap-groupbox\.cap-groupbox-column \+ cap-groupbox\.cap-groupbox-column\s*\{[^}]*border-block-start:\s*1px solid var\(--ui-border-color\)/)
+        assert.doesNotMatch(stylesheet, /groupbox-preferred-width|cap-groupbox-grow-preference/)
         assert.match(stylesheet, /cap-header\s*\{[^}]*background:\s*var\(--section-header-background\)[^}]*box-shadow:\s*var\(--section-header-shadow\)/)
         assert.doesNotMatch(stylesheet, /cap-panel|cap-sidebar|cap-checkbox/)
     })
@@ -543,12 +557,11 @@ describe('style registry', () => {
         runtime.registerStyles(Sidebar)
         const stylesheet = runtime.styleRegistry.generateCSS()
 
-        assert.match(stylesheet, /cap-sidebar\s*\{[^}]*display:\s*flex/)
-        assert.match(stylesheet, /cap-sidebar > aside\s*\{[^}]*flex:\s*1 1 auto/)
-        assert.match(stylesheet, /cap-sidebar > aside > cap-header,[\s\S]*cap-sidebar > aside > cap-toolbarcontent/)
-        assert.match(stylesheet, /cap-sidebar > aside > cap-content\s*\{[^}]*flex:\s*1[^}]*overflow:\s*auto/)
+        assert.match(stylesheet, /cap-sidebar\s*\{[^}]*display:\s*flex[^}]*flex-direction:\s*column[^}]*overflow:\s*hidden/)
+        assert.match(stylesheet, /cap-sidebar > cap-header,[\s\S]*cap-sidebar > cap-toolbarcontent/)
+        assert.match(stylesheet, /cap-sidebar > cap-content\s*\{[^}]*flex:\s*1[^}]*overflow:\s*auto/)
         assert.match(stylesheet, /cap-header\s*\{[^}]*padding:\s*\.25em/)
-        assert.doesNotMatch(stylesheet, /(?:^|\n)aside\s*\{/)
+        assert.doesNotMatch(stylesheet, /cap-sidebar > aside/)
         assert.doesNotMatch(stylesheet, /cap-panel|cap-dropdown|cap-checkbox|cap-textbox/)
     })
 

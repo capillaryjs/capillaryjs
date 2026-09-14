@@ -197,6 +197,7 @@ export class ListView<TItem = unknown> extends Component<ListViewProps<TItem>> {
     static dependencies = [Placeholder, ErrorMessage]
 
     static override hostName = 'listview'
+    static override dataSurface = 'data' as const
 
     static override css = css`
         & {

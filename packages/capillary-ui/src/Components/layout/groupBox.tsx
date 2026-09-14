@@ -1,10 +1,15 @@
 import {Component, css} from '../component.js'
 import type {ComponentDependency, ComponentProps, CapillaryUiChild} from '../component.js'
-import {componentClass, controlId} from '../controlUtils.js'
+import {classNames, componentClass, controlId} from '../controlUtils.js'
 import {Header} from './header.js'
+
+/** Structural role of a GroupBox within a nested form section. */
+export type GroupBoxVariant = 'section' | 'column'
 
 export interface GroupBoxBaseProps extends ComponentProps {
     id?: string | number | null
+    /** Optional structural section or column presentation. */
+    variant?: GroupBoxVariant
 }
 
 export interface GroupBoxProps extends GroupBoxBaseProps {
@@ -32,10 +37,11 @@ export class GroupBox<
 
     protected renderGroupBox(header: CapillaryUiChild, content: CapillaryUiChild): CapillaryUiChild {
         const Host = this.Host
+        const variantClass = groupBoxVariantClass(this.props.variant)
         return <Host
             id={this.panelId}
             role="group"
-            className={componentClass(this.props) || null}
+            className={classNames(componentClass(this.props), variantClass) || null}
             aria-labelledby={this.headerId}
         >
             <Header
@@ -122,8 +128,6 @@ export class GroupBox<
             --cap-groupbox-header-transform: rotate(180deg);
             --cap-groupbox-content-margin: .25em;
             --cap-groupbox-flex: 0 1 auto;
-            --cap-groupbox-grow-preference: 0;
-            --cap-groupbox-inline-chrome: 0px;
             --cap-groupbox-padding-top: .125rem;
             --cap-groupbox-header-position: static;
             --cap-groupbox-header-inset: auto;
@@ -143,9 +147,7 @@ export class GroupBox<
             --cap-groupbox-header-writing: horizontal-tb;
             --cap-groupbox-header-transform: none;
             --cap-groupbox-content-margin: 0;
-            --cap-groupbox-flex: 1 1 min-content;
-            --cap-groupbox-grow-preference: 1;
-            --cap-groupbox-inline-chrome: calc(1rem + 2px);
+            --cap-groupbox-flex: 0 1 auto;
             --cap-groupbox-padding-top: 1em;
             --cap-groupbox-header-position: absolute;
             --cap-groupbox-header-inset: calc(0px - var(--ui-font-size) / 2);
@@ -156,24 +158,152 @@ export class GroupBox<
             min-inline-size: min-content;
         }
 
-        /* Restore shrinkable fields before distributing decorative spare room
-           to short groups. The intrinsic ceiling still freezes each group at
-           its preferred content size; floors still determine line wrapping. */
-        .cap-layout-horizontal > &:has(input:not([type='checkbox'], [type='radio'], [type='hidden']), select, textarea) {
-            flex-grow: calc(var(--cap-groupbox-grow-preference, 0) * 10000);
+        &.cap-groupbox-section {
+            display: grid;
+            grid-template-columns: max-content minmax(0, 1fr);
+            grid-template-rows: max-content minmax(max-content, 1fr);
+            align-self: stretch;
+            align-items: start;
+            gap: 0;
+            padding: 0;
+            padding-top: 0;
+            border: 0;
+            border-radius: 0;
+            min-inline-size: 0;
+            max-inline-size: none;
+            flex: 0 0 auto;
         }
 
-        /* An empty grid contributes zero to min-content and the soft preference
-           to max-content. Real content may exceed it. No row height or runtime
-           measurement is involved; field floors determine wrapping. */
-        .cap-layout-horizontal > & > cap-content::after {
+        &.cap-groupbox-section::before {
             content: "";
-            display: grid;
-            grid-template-columns: minmax(0, max(0px, calc(
-                (var(--groupbox-preferred-width, 15rem) - var(--cap-groupbox-inline-chrome, 0px))
-                * var(--cap-groupbox-grow-preference, 0)
-            )));
-            block-size: 0;
+            grid-column: 2;
+            grid-row: 1;
+            align-self: center;
+            border-block-start: 1px solid var(--ui-border-color);
+        }
+
+        &.cap-groupbox-section > cap-header {
+            position: static;
+            grid-column: 1;
+            grid-row: 1;
+            display: block;
+            width: auto;
+            min-width: 0;
+            min-height: 0;
+            padding: 0 0.5rem 0 0;
+            border-radius: 0;
+            color: var(--text-color);
+            background: transparent;
+            box-shadow: none;
+            writing-mode: horizontal-tb;
+            transform: none;
+            font-size: var(--groupbox-section-font-size, 1.2em);
+            font-weight: 600;
+        }
+
+        &.cap-groupbox-section > cap-content {
+            grid-column: 1 / -1;
+            grid-row: 2;
+            margin-left: 0;
+            padding-block: 0.75rem;
+            min-width: 0;
+        }
+
+        .cap-layout-horizontal > &.cap-groupbox-section {
+            grid-template-columns: max-content minmax(0, 1fr);
+            grid-template-rows: max-content minmax(max-content, 1fr);
+        }
+
+        .cap-layout-horizontal > &.cap-groupbox-section::before {
+            grid-column: 1;
+            grid-row: 2;
+            justify-self: stretch;
+            align-self: stretch;
+            border-block-start: 0;
+            border-inline-end: 1px solid var(--ui-border-color);
+        }
+
+        .cap-layout-horizontal > &.cap-groupbox-section > cap-header {
+            padding: 0 0.5rem 0.5rem 0;
+        }
+
+        .cap-layout-horizontal > &.cap-groupbox-section > cap-content {
+            grid-column: 2;
+            grid-row: 1 / -1;
+            padding-block: 0;
+            padding-inline: 0.75rem;
+            min-block-size: 0;
+        }
+
+        &.cap-groupbox-column {
+            gap: 0;
+            padding: 0 1rem;
+            padding-top: 0;
+            border: 0;
+            border-radius: 0;
+            flex: 0 1 auto;
+        }
+
+        &.cap-groupbox-column > cap-header {
+            position: static;
+            display: block;
+            width: auto;
+            min-width: 0;
+            min-height: 0;
+            padding: 0;
+            margin-block-end: 0.75rem;
+            border-radius: 0;
+            color: var(--text-color);
+            background: transparent;
+            box-shadow: none;
+            writing-mode: horizontal-tb;
+            transform: none;
+            font-size: var(--ui-font-size);
+            font-weight: 600;
+        }
+
+        &.cap-groupbox-column > cap-content {
+            margin-left: 0;
+        }
+
+        .cap-layout-horizontal > &.cap-groupbox-column,
+        .cap-layout-vertical > &.cap-groupbox-column {
+            align-self: stretch;
+        }
+
+        .cap-layout-horizontal > &.cap-groupbox-column + &.cap-groupbox-column {
+            border-inline-start: 1px solid var(--ui-border-color);
+        }
+
+        .cap-layout-horizontal > &.cap-groupbox-column:first-child {
+            padding-inline-start: 0;
+        }
+
+        .cap-layout-horizontal > &.cap-groupbox-column:last-child {
+            padding-inline-end: 0;
+        }
+
+        .cap-layout-vertical > &.cap-groupbox-column {
+            padding-inline: 0;
+            padding-block: 1rem;
+        }
+
+        .cap-layout-vertical > &.cap-groupbox-column + &.cap-groupbox-column {
+            border-block-start: 1px solid var(--ui-border-color);
+        }
+
+        .cap-layout-vertical > &.cap-groupbox-column:first-child {
+            padding-block-start: 0;
+        }
+
+        .cap-layout-vertical > &.cap-groupbox-column:last-child {
+            padding-block-end: 0;
         }
     `
+}
+
+function groupBoxVariantClass(variant: GroupBoxVariant | undefined): string | undefined {
+    if (variant == null) return undefined
+    if (variant === 'section' || variant === 'column') return `cap-groupbox-${variant}`
+    throw new TypeError('GroupBox variant must be section or column')
 }

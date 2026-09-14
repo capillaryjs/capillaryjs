@@ -17,7 +17,6 @@ body {
 .gallery-masthead {
     display: flex;
     flex-direction: column;
-    gap: 0.5rem;
 }
 
 .gallery-masthead-row {
@@ -106,16 +105,17 @@ body {
     padding: 0 0.75rem 0.75rem;
 }
 
-/* GroupBox columns flow side by side and wrap within the panel body. */
-.gallery-sections {
-    gap: 1.5rem;
+/* The Panel body is the vertical section stack. A section GroupBox occupies
+   one natural row and its body owns the horizontal control-group row. */
+.gallery-section {
+    flex: 0 0 auto;
+    scroll-margin-block: 1rem;
 }
 
 .gallery-group-row {
     flex-wrap: wrap;
-    align-items: flex-start;
-    gap: 1rem 2rem;
-    scroll-margin-block: 1rem;
+    align-items: stretch;
+    gap: 1rem 0;
 }
 
 /* Each group stacks its control variants vertically. */

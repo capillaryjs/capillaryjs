@@ -69,6 +69,7 @@ export type {
     ComponentDependency,
     ComponentProps,
     CapillaryUiChild,
+    CapillaryUiDataSurface,
     CapillaryUiElementTagNameMap,
     CapillaryUiHostElementTagNameMap,
     FunctionComponent,

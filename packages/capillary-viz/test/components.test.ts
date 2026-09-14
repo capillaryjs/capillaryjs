@@ -82,7 +82,7 @@ test('generated structural CSS uses fixed visualization hosts without theme sele
     ), 'utf8')
     assert.match(css, /cap-categoryhidepanel/)
     assert.match(css, /cap-splitselectionpanel/)
-    assert.match(css, /cap-splitselectionpanel li\s*\{[^}]*display:\s*flex[^}]*flex-flow:\s*row nowrap[^}]*justify-content:\s*space-between[^}]*padding:\s*0 \.35rem[^}]*box-shadow:\s*var\(--box-shadow\)/)
+    assert.match(css, /cap-splitselectionpanel li\s*\{[^}]*display:\s*flex[^}]*flex-flow:\s*row nowrap[^}]*justify-content:\s*space-between[^}]*padding:\s*\.15rem \.35rem[^}]*box-shadow:\s*var\(--box-shadow\)/)
     assert.match(css, /cap-splitselectionpanel cap-draghandle\s*\{[^}]*height:\s*\.9rem[^}]*min-height:\s*\.9rem/)
     assert.match(css, /cap-blockgraph/)
     assert.match(css, /cap-linegraph/)
@@ -296,6 +296,7 @@ describe('BlockGraph', () => {
         graph.mount(document.body)
 
         assert.equal(required('cap-blockgraph').getAttribute('data-cap-component'), 'block-graph')
+        assert.equal(required('cap-blockgraph').getAttribute('data-cap-surface'), 'data')
         assert.ok(required('cap-scroller'))
         const blocks = [...document.querySelectorAll<HTMLElement>('[role="treeitem"]')]
         assert.equal(blocks.length, 2)

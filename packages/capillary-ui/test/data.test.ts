@@ -76,6 +76,9 @@ test('refresh skeletons bypass renderers and preserve collection selections and 
         renderItem: (node) => { renders++; return node.label },
     }).attachTo(document.body)
     const rendered = renders
+    assert.equal(requiredQuery<HTMLElement>('cap-datatable').dataset.capSurface, 'data')
+    assert.equal(requiredQuery<HTMLElement>('cap-listview').dataset.capSurface, 'data')
+    assert.equal(requiredQuery<HTMLElement>('cap-treeview').dataset.capSurface, 'data')
     for (const state of [FetchState.Loading, FetchState.Initial]) {
         items.setWithState(values, state)
         assert.equal(renders, rendered, 'no application renderer sees loading dummy rows')
@@ -125,8 +128,8 @@ describe('selection handlers', () => {
         assert.equal(selected.get(), items[1])
     })
 
-    test('supports command toggles, shift ranges, arrows, and space', () => {
-        const items = [{id: 1}, {id: 2}, {id: 3}]
+    test('uses the anchor selection state for Shift ranges, plus command toggles and keys', () => {
+        const items = [{id: 1}, {id: 2}, {id: 3}, {id: 4}, {id: 5}]
         const handler = createSelectionHandler({
             multiSelect: true,
             getItems: () => items,
@@ -137,21 +140,29 @@ describe('selection handlers', () => {
         try {
             requiredAt(rows, 0).dispatchEvent(new MouseEvent('click', {bubbles: true}))
             requiredAt(rows, 2).dispatchEvent(
-                new MouseEvent('click', {bubbles: true, shiftKey: true}),
-            )
-            assert.deepEqual(handler.getSelectedItems(), items)
-
-            requiredAt(rows, 1).dispatchEvent(
                 new MouseEvent('click', {bubbles: true, ctrlKey: true}),
             )
-            assert.deepEqual(handler.getSelectedItems(), [items[0], items[2]])
+            requiredAt(rows, 4).dispatchEvent(
+                new MouseEvent('click', {bubbles: true, shiftKey: true}),
+            )
+            assert.deepEqual(handler.getSelectedItems(), [items[0], items[2], items[3], items[4]])
+
+            requiredAt(rows, 2).dispatchEvent(
+                new MouseEvent('click', {bubbles: true, ctrlKey: true}),
+            )
+            assert.deepEqual(handler.getSelectedItems(), [items[0], items[3], items[4]])
+
+            requiredAt(rows, 4).dispatchEvent(
+                new MouseEvent('click', {bubbles: true, shiftKey: true}),
+            )
+            assert.deepEqual(handler.getSelectedItems(), [items[0]])
 
             requiredAt(rows, 0).dispatchEvent(new KeyboardEvent('keydown', {key: 'ArrowDown'}))
             assert.equal(document.activeElement, requiredAt(rows, 1))
             requiredAt(rows, 1).dispatchEvent(new KeyboardEvent('keydown', {key: ' '}))
             assert.deepEqual(
                 new Set(handler.getSelectedItems().map(({id}) => id)),
-                new Set(items.map(({id}) => id)),
+                new Set([items[0]!.id, items[1]!.id]),
             )
         } finally {
             handler.destroy()
@@ -554,6 +565,105 @@ describe('stable data components', () => {
         table.destroy()
     })
 
+    test('DataTable and ListView support command toggles and anchor-directed multi-row ranges', () => {
+        const rows = [
+            {id: 'a', name: 'Alpha'},
+            {id: 'b', name: 'Beta'},
+            {id: 'c', name: 'Gamma'},
+            {id: 'd', name: 'Delta'},
+            {id: 'e', name: 'Epsilon'},
+        ]
+        const selectRange = (
+            getRows: () => HTMLElement[],
+            getSelected: () => readonly {id: string}[],
+        ) => {
+            requiredAt(getRows(), 0).dispatchEvent(new MouseEvent('click', {bubbles: true}))
+            requiredAt(getRows(), 2).dispatchEvent(
+                new MouseEvent('click', {bubbles: true, ctrlKey: true}),
+            )
+            requiredAt(getRows(), 4).dispatchEvent(
+                new MouseEvent('click', {bubbles: true, shiftKey: true}),
+            )
+            assert.deepEqual(getSelected().map(({id}) => id), ['a', 'c', 'd', 'e'])
+
+            requiredAt(getRows(), 2).dispatchEvent(
+                new MouseEvent('click', {bubbles: true, ctrlKey: true}),
+            )
+            requiredAt(getRows(), 4).dispatchEvent(
+                new MouseEvent('click', {bubbles: true, shiftKey: true}),
+            )
+            assert.deepEqual(getSelected().map(({id}) => id), ['a'])
+        }
+
+        const table = new DataTable<(typeof rows)[number]>({
+            data: rows,
+            rowKey: 'id',
+            multiSelect: true,
+            columns: [{field: 'name', label: 'Name'}],
+        }).attachTo(document.body)
+        selectRange(
+            () => [...document.querySelectorAll<HTMLElement>('cap-datatable tbody [data-cap-selectable-row]')],
+            () => table.getSelectedRows(),
+        )
+        table.destroy()
+
+        const list = new ListView<(typeof rows)[number]>({
+            items: rows,
+            itemKey: 'id',
+            label: 'People',
+            multiSelect: true,
+        }).attachTo(document.body)
+        assert.equal(requiredQuery('[role="listbox"]').getAttribute('aria-multiselectable'), 'true')
+        selectRange(
+            () => [...document.querySelectorAll<HTMLElement>('cap-listview [data-cap-selectable-row]')],
+            () => list.getSelectedItems(),
+        )
+        list.destroy()
+    })
+
+    test('DataTable query sources derive sort/filter state and retain retry', () => {
+        const rows = [
+            {id: 1, name: 'Beta', department: 'Ops'},
+            {id: 2, name: 'Alpha', department: 'R&D'},
+            {id: 3, name: 'Gamma', department: 'Ops'},
+        ]
+        let retries = 0
+        const query = Object.assign(new Emitter<readonly (typeof rows)[number][]>(rows), {
+            retry: () => retries += 1,
+        })
+        const dataSource = createQueryTableDataSource({query})
+        const table = DataTable.new({
+            dataSource,
+            columns: [
+                {field: 'name', label: 'Name', sortable: true, filterOptions: ['Alpha', 'Beta', 'Gamma']},
+                {field: 'department', label: 'Department', sortable: true, filterOptions: ['Ops', 'R&D']},
+            ],
+        }).attachTo(document.body)
+
+        requiredQuery<HTMLButtonElement>('button[aria-label="Sort Name"]').click()
+        assert.deepEqual(
+            [...document.querySelectorAll<HTMLTableRowElement>('tbody tr')]
+                .map((row) => requiredAt(row.cells, 0).textContent),
+            ['Alpha', 'Beta', 'Gamma'],
+        )
+        dataSource.filtersEmitter.set({department: [['Ops', FilterMode.Require]]})
+        assert.deepEqual(
+            [...document.querySelectorAll<HTMLTableRowElement>('tbody tr')]
+                .map((row) => requiredAt(row.cells, 0).textContent),
+            ['Beta', 'Gamma'],
+        )
+        query.setWithState(rows, FetchState.Error, new Error('Query failed'))
+        const retry = [...document.querySelectorAll<HTMLButtonElement>('button')]
+            .find((button) => button.textContent === 'Retry')
+        assert.ok(retry)
+        retry.click()
+        assert.equal(retries, 1)
+
+        table.destroy()
+        dataSource.dispose()
+        query.dispose()
+    })
+
     test('rejects legacy table query props with migration guidance', () => {
         assert.throws(() => new DataTable({
             mode: 'local',
@@ -655,8 +765,9 @@ describe('stable data components', () => {
         assert.doesNotMatch(document.body.textContent ?? '', /No people/)
 
         table.destroy()
-        assert.equal(source.subscriberCount, 0)
+        assert.equal(source.subscriberCount, 1, 'caller still owns the derived query source')
         dataSource.dispose()
+        assert.equal(source.subscriberCount, 0)
     })
 
     test('unwraps an upstream local-data error for its visible message', () => {

@@ -16,7 +16,7 @@ export interface GalleryDataItem {
     children?: readonly GalleryDataItem[]
 }
 
-const galleryData = Object.freeze<readonly GalleryDataItem[]>([
+export const galleryData = Object.freeze<readonly GalleryDataItem[]>([
     {
         id: 'runtime',
         name: 'Runtime',
@@ -40,6 +40,14 @@ const galleryData = Object.freeze<readonly GalleryDataItem[]>([
         ],
     },
     {id: 'visuals', name: 'Visualization', label: 'Visualization', team: 'Capillary UI', status: 'Stable'},
+    {id: 'forms', name: 'Forms', label: 'Forms', team: 'Capillary UI', status: 'Review'},
+    {id: 'navigation', name: 'Navigation', label: 'Navigation', team: 'Platform', status: 'Stable'},
+    {id: 'data-services', name: 'Data services', label: 'Data services', team: 'Platform', status: 'Active'},
+    {id: 'themes', name: 'Themes', label: 'Themes', team: 'Capillary UI', status: 'Review'},
+    {id: 'diagnostics', name: 'Diagnostics', label: 'Diagnostics', team: 'Platform', status: 'Active'},
+    {id: 'charts', name: 'Charts', label: 'Charts', team: 'Capillary UI', status: 'Stable'},
+    {id: 'localization', name: 'Localization', label: 'Localization', team: 'Capillary UI', status: 'Review'},
+    {id: 'commands', name: 'Commands', label: 'Commands', team: 'Platform', status: 'Active'},
 ])
 
 /**
@@ -166,6 +174,11 @@ export class GalleryModel {
             },
         })
         this.tableDataSource = createQueryTableDataSource({query: retryableQuery, owner: this})
+    }
+
+    resetTableState(): void {
+        this.tableDataSource.sortEmitter.set(null, 'gallery table state reset')
+        this.tableDataSource.filtersEmitter.set({}, 'gallery table state reset')
     }
 
     dispose(): void {

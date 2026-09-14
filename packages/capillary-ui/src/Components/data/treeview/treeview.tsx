@@ -202,6 +202,7 @@ export class TreeView<TValue = unknown> extends Component<TreeViewProps<TValue>>
     static dependencies = [TreeItem, Placeholder, ErrorMessage]
 
     static override hostName = 'tree-view'
+    static override dataSurface = 'data' as const
 
     static css = css`
         & {

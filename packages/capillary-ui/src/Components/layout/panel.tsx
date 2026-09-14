@@ -118,8 +118,12 @@ export class Panel extends Component<PanelProps> {
             flex: 1 1 auto;
             min-width: 0;
             min-height: 0;
-            padding: var(--panel-padding, 0.75rem);
-            gap: var(--spacing-medium, 1rem);
+            padding: var(--panel-content-padding, var(--panel-padding, 0.75rem));
+            gap: var(--spacing-small, 1rem);
+        }
+
+        &.island:has(> cap-header) > cap-layout.panel-content:has(> [data-cap-surface='data']:only-child) {
+            --panel-content-padding: 0;
         }
 
         &[aria-disabled="true"] {

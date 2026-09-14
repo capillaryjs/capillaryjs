@@ -126,7 +126,7 @@ extends OptionsBox<CategoryHidePanelProps<TItem>> {
             align-items: center;
             gap: 0.45rem;
             min-width: 0;
-            max-height: 1em;
+
         }
 
         & cap-categoryswatch {

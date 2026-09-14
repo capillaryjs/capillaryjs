@@ -72,6 +72,17 @@ test('gallery shell mounts the line-inputs page with islands and toolbar', async
 
     // Rows share one form-context panel; the sidebar explicitly uses control context.
     for (const id of ['#gallery-checkboxes', '#gallery-basic-inputs', '#gallery-date-time']) {
+        assert.equal(document.querySelector(id)?.tagName, 'CAP-GROUPBOX', `${id} section groupbox`)
+        assert.ok(document.querySelector(id)?.classList.contains('cap-groupbox-section'),
+            `${id} section variant`)
+        assert.ok(
+            document.querySelector(`${id} > cap-content > cap-layout.gallery-group-row`),
+            `${id} horizontal inner group row`,
+        )
+        assert.ok(
+            document.querySelector(`${id} cap-layout.gallery-group-row > cap-groupbox.cap-groupbox-column`),
+            `${id} column variant`,
+        )
         assert.equal(
             document.querySelector(id)?.closest('cap-panel')?.getAttribute('data-cap-context'),
             'form',
@@ -179,6 +190,21 @@ test('data page demonstrates initial and refresh skeletons, errors, retry, and e
         toolbarOption('Ready').click()
         assert.ok(document.querySelectorAll('#gallery-table tbody tr').length > 0,
             'ready table rows')
+        assert.equal(document.querySelectorAll('#gallery-table button.sort').length, 3,
+            'every gallery table column can sort')
+        assert.equal(document.querySelectorAll('#gallery-table button.filter').length, 3,
+            'every gallery table column can filter')
+        assert.equal(document.querySelectorAll('#gallery-table > cap-toolbar[role="toolbar"]').length, 1,
+            'table panel toolbar')
+        document.querySelector<HTMLButtonElement>('#gallery-table button.sort')?.click()
+        assert.equal(document.querySelector<HTMLTableRowElement>('#gallery-table tbody tr')
+            ?.cells.item(0)?.textContent, 'Charts', 'query source sorting changes rendered rows')
+        const reset = [...document.querySelectorAll<HTMLButtonElement>('#gallery-table button')]
+            .find((button) => button.textContent === 'Reset table view')
+        assert.ok(reset, 'table reset action')
+        reset.click()
+        assert.equal(document.querySelector<HTMLTableRowElement>('#gallery-table tbody tr')
+            ?.cells.item(0)?.textContent, 'Runtime', 'toolbar resets derived table state')
 
         toolbarOption('Loading').click()
         assert.equal(document.querySelectorAll('#gallery-table tbody > tr[aria-hidden="true"]').length, 5)
@@ -206,6 +232,22 @@ test('data page demonstrates initial and refresh skeletons, errors, retry, and e
         app.destroy()
         router.dispose()
     })
+
+test('data gallery exposes multi-row examples with enough rows to exercise a range', async () => {
+    const adapter = new MemoryNavigationAdapter('/data-components')
+    const router = createBrowserRouter({adapter})
+    const runtime = createCapillaryUiRuntime({router})
+    const app = runtime.mount(runtime.create(GalleryApp), document.body)
+    await waitUntil(() => router.transition.get().state === 'idle')
+    assert.ok(document.querySelectorAll('#gallery-table tbody [data-cap-selectable-row]').length >= 10)
+    const listbox = document.querySelector('#gallery-collections [role="listbox"]')
+    assert.equal(listbox?.getAttribute('aria-multiselectable'), 'true')
+    assert.ok(document.querySelectorAll('#gallery-collections cap-listview [data-cap-selectable-row]')
+        .length >= 10)
+
+    app.destroy()
+    router.dispose()
+})
 
 async function waitUntil(predicate: () => boolean): Promise<void> {
     for (let attempt = 0; attempt < 100; attempt += 1) {

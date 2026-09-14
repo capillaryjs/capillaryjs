@@ -8,13 +8,20 @@ Versioning.
 
 ### Fixed
 
+- Make multi-row `DataTable` and `ListView` Shift selection apply the anchor
+  row's selected state across the range while retaining rows selected outside it.
+- Make caller-supplied query table sources derive their displayed rows from
+  the same sort and filter emitters as direct data, while retaining their
+  query retry action.
+- Render Sidebar's complementary landmark on its component host, removing the
+  redundant inner `aside` wrapper while retaining fixed header/toolbar and
+  scrolling content behavior.
 - Replace retained table/list/tree rows with noninteractive skeletons during
   Initial and Loading states, without mutating cached emitter values or keyed
   selections. Keep loading placeholders visible in forced-colors mode.
-- Replace ancestor-wide GroupBox caps with intrinsic, shrink-before-wrap
-  sizing and a soft `--groupbox-preferred-width` of 15rem. Vertical groups
-  stretch within their parent; long labels and date/time fields may grow
-  horizontal form groups beyond that preference.
+- Let GroupBoxes size naturally from their content rather than an inherited or
+  synthetic preferred width. Fields retain their input floor, shrink before
+  wrapping, and their owning region scrolls only below the combined minimum.
 - Restore the base theme's `--island-margin` default to `1rem` so island
   surfaces keep their intended separation, and remove Shiny's stale
   `cap-header:has(+ cap-toolbar)` shadow override together with its
@@ -23,9 +30,23 @@ Versioning.
   default textbox, dropdown, toggle, and button bodies at 12px UI text, with
   compact checkbox/radio rows. Remove Shiny's label/select text offsets and
   prevent toggle border/selection changes from shifting segment text.
+- Refine Shiny's input depth, toolbar/table-header chrome, navigation-to-toolbar
+  seam, and loading BlockGraph treatment without moving structural layout
+  policy into the theme.
 
 ### Changed
 
+- Add a static `dataSurface` component trait and generated
+  `data-cap-surface="data"` host marker. Island Panels with a header now make
+  a sole direct data surface flush with their chrome while retaining normal
+  insets for all other bodies; an embedded DataTable uses the Panel label
+  instead of a duplicate caption.
+- Add explicit natural-size GroupBox `section` and `column` variants for
+  nested form layout. Section groups render a larger legend on a top rule;
+  sibling column groups render normal-size, semi-bold UI-font headings with a
+  small content gap and an axis-local divider. Both variants transpose their
+  rule/divider and fill their relevant cross-axis when their immediate Layout
+  direction is reversed. Remove the synthetic 15rem GroupBox growth preference.
 - Rebuilt the experimental `DatePicker`, `TimePicker`, and `DateTimePicker` on
   the native `<input type="date">`, `<input type="time">`, and
   `<input type="datetime-local">` elements behind a shared `TemporalInput`

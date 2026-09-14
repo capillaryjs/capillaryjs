@@ -6,6 +6,13 @@ and Semantic Versioning.
 
 ## Unreleased
 
+### Changed
+
+- Mark `BlockGraph` as a Capillary UI data surface so a labelled island Panel
+  can compose it flush with its chrome when it is the sole direct body child.
+- Align CategoryHidePanel and SplitSelectionPanel spacing with the refined
+  GroupBox form rhythm, including the generated visualization structural CSS.
+
 ### Fixed
 
 - Replace loading BlockGraph content with a deterministic skeleton mosaic,

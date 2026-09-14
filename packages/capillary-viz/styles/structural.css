@@ -574,8 +574,6 @@ cap-groupbox {
             --cap-groupbox-header-transform: rotate(180deg);
             --cap-groupbox-content-margin: .25em;
             --cap-groupbox-flex: 0 1 auto;
-            --cap-groupbox-grow-preference: 0;
-            --cap-groupbox-inline-chrome: 0px;
             --cap-groupbox-padding-top: .125rem;
             --cap-groupbox-header-position: static;
             --cap-groupbox-header-inset: auto;
@@ -595,9 +593,7 @@ cap-groupbox {
             --cap-groupbox-header-writing: horizontal-tb;
             --cap-groupbox-header-transform: none;
             --cap-groupbox-content-margin: 0;
-            --cap-groupbox-flex: 1 1 min-content;
-            --cap-groupbox-grow-preference: 1;
-            --cap-groupbox-inline-chrome: calc(1rem + 2px);
+            --cap-groupbox-flex: 0 1 auto;
             --cap-groupbox-padding-top: 1em;
             --cap-groupbox-header-position: absolute;
             --cap-groupbox-header-inset: calc(0px - var(--ui-font-size) / 2);
@@ -609,32 +605,166 @@ cap-groupbox {
             min-inline-size: min-content;
         }
 
-        /* Restore shrinkable fields before distributing decorative spare room
-           to short groups. The intrinsic ceiling still freezes each group at
-           its preferred content size; floors still determine line wrapping. */
-        .cap-layout-horizontal > cap-categoryhidepanel:has(input:not([type='checkbox'], [type='radio'], [type='hidden']), select, textarea),
-        /* Restore shrinkable fields before distributing decorative spare room
-           to short groups. The intrinsic ceiling still freezes each group at
-           its preferred content size; floors still determine line wrapping. */
-        .cap-layout-horizontal > cap-groupbox:has(input:not([type='checkbox'], [type='radio'], [type='hidden']), select, textarea) {
-            flex-grow: calc(var(--cap-groupbox-grow-preference, 0) * 10000);
+        cap-categoryhidepanel.cap-groupbox-section,
+        cap-groupbox.cap-groupbox-section {
+            display: grid;
+            grid-template-columns: max-content minmax(0, 1fr);
+            grid-template-rows: max-content minmax(max-content, 1fr);
+            align-self: stretch;
+            align-items: start;
+            gap: 0;
+            padding: 0;
+            padding-top: 0;
+            border: 0;
+            border-radius: 0;
+            min-inline-size: 0;
+            max-inline-size: none;
+            flex: 0 0 auto;
         }
 
-        /* An empty grid contributes zero to min-content and the soft preference
-           to max-content. Real content may exceed it. No row height or runtime
-           measurement is involved; field floors determine wrapping. */
-        .cap-layout-horizontal > cap-categoryhidepanel > cap-content::after,
-        /* An empty grid contributes zero to min-content and the soft preference
-           to max-content. Real content may exceed it. No row height or runtime
-           measurement is involved; field floors determine wrapping. */
-        .cap-layout-horizontal > cap-groupbox > cap-content::after {
+        cap-categoryhidepanel.cap-groupbox-section::before,
+        cap-groupbox.cap-groupbox-section::before {
             content: "";
-            display: grid;
-            grid-template-columns: minmax(0, max(0px, calc(
-                (var(--groupbox-preferred-width, 15rem) - var(--cap-groupbox-inline-chrome, 0px))
-                * var(--cap-groupbox-grow-preference, 0)
-            )));
-            block-size: 0;
+            grid-column: 2;
+            grid-row: 1;
+            align-self: center;
+            border-block-start: 1px solid var(--ui-border-color);
+        }
+
+        cap-categoryhidepanel.cap-groupbox-section > cap-header,
+        cap-groupbox.cap-groupbox-section > cap-header {
+            position: static;
+            grid-column: 1;
+            grid-row: 1;
+            display: block;
+            width: auto;
+            min-width: 0;
+            min-height: 0;
+            padding: 0 0.5rem 0 0;
+            border-radius: 0;
+            color: var(--text-color);
+            background: transparent;
+            box-shadow: none;
+            writing-mode: horizontal-tb;
+            transform: none;
+            font-size: var(--groupbox-section-font-size, 1.2em);
+            font-weight: 600;
+        }
+
+        cap-categoryhidepanel.cap-groupbox-section > cap-content,
+        cap-groupbox.cap-groupbox-section > cap-content {
+            grid-column: 1 / -1;
+            grid-row: 2;
+            margin-left: 0;
+            padding-block: 0.75rem;
+            min-width: 0;
+        }
+
+        .cap-layout-horizontal > cap-categoryhidepanel.cap-groupbox-section,
+        .cap-layout-horizontal > cap-groupbox.cap-groupbox-section {
+            grid-template-columns: max-content minmax(0, 1fr);
+            grid-template-rows: max-content minmax(max-content, 1fr);
+        }
+
+        .cap-layout-horizontal > cap-categoryhidepanel.cap-groupbox-section::before,
+        .cap-layout-horizontal > cap-groupbox.cap-groupbox-section::before {
+            grid-column: 1;
+            grid-row: 2;
+            justify-self: stretch;
+            align-self: stretch;
+            border-block-start: 0;
+            border-inline-end: 1px solid var(--ui-border-color);
+        }
+
+        .cap-layout-horizontal > cap-categoryhidepanel.cap-groupbox-section > cap-header,
+        .cap-layout-horizontal > cap-groupbox.cap-groupbox-section > cap-header {
+            padding: 0 0.5rem 0.5rem 0;
+        }
+
+        .cap-layout-horizontal > cap-categoryhidepanel.cap-groupbox-section > cap-content,
+        .cap-layout-horizontal > cap-groupbox.cap-groupbox-section > cap-content {
+            grid-column: 2;
+            grid-row: 1 / -1;
+            padding-block: 0;
+            padding-inline: 0.75rem;
+            min-block-size: 0;
+        }
+
+        cap-categoryhidepanel.cap-groupbox-column,
+        cap-groupbox.cap-groupbox-column {
+            gap: 0;
+            padding: 0 1rem;
+            padding-top: 0;
+            border: 0;
+            border-radius: 0;
+            flex: 0 1 auto;
+        }
+
+        cap-categoryhidepanel.cap-groupbox-column > cap-header,
+        cap-groupbox.cap-groupbox-column > cap-header {
+            position: static;
+            display: block;
+            width: auto;
+            min-width: 0;
+            min-height: 0;
+            padding: 0;
+            margin-block-end: 0.75rem;
+            border-radius: 0;
+            color: var(--text-color);
+            background: transparent;
+            box-shadow: none;
+            writing-mode: horizontal-tb;
+            transform: none;
+            font-size: var(--ui-font-size);
+            font-weight: 600;
+        }
+
+        cap-categoryhidepanel.cap-groupbox-column > cap-content,
+        cap-groupbox.cap-groupbox-column > cap-content {
+            margin-left: 0;
+        }
+
+        .cap-layout-horizontal > cap-categoryhidepanel.cap-groupbox-column,
+        .cap-layout-horizontal > cap-groupbox.cap-groupbox-column,
+        .cap-layout-vertical > cap-categoryhidepanel.cap-groupbox-column,
+        .cap-layout-vertical > cap-groupbox.cap-groupbox-column {
+            align-self: stretch;
+        }
+
+        .cap-layout-horizontal > cap-categoryhidepanel.cap-groupbox-column + cap-categoryhidepanel.cap-groupbox-column,
+        .cap-layout-horizontal > cap-groupbox.cap-groupbox-column + cap-groupbox.cap-groupbox-column {
+            border-inline-start: 1px solid var(--ui-border-color);
+        }
+
+        .cap-layout-horizontal > cap-categoryhidepanel.cap-groupbox-column:first-child,
+        .cap-layout-horizontal > cap-groupbox.cap-groupbox-column:first-child {
+            padding-inline-start: 0;
+        }
+
+        .cap-layout-horizontal > cap-categoryhidepanel.cap-groupbox-column:last-child,
+        .cap-layout-horizontal > cap-groupbox.cap-groupbox-column:last-child {
+            padding-inline-end: 0;
+        }
+
+        .cap-layout-vertical > cap-categoryhidepanel.cap-groupbox-column,
+        .cap-layout-vertical > cap-groupbox.cap-groupbox-column {
+            padding-inline: 0;
+            padding-block: 1rem;
+        }
+
+        .cap-layout-vertical > cap-categoryhidepanel.cap-groupbox-column + cap-categoryhidepanel.cap-groupbox-column,
+        .cap-layout-vertical > cap-groupbox.cap-groupbox-column + cap-groupbox.cap-groupbox-column {
+            border-block-start: 1px solid var(--ui-border-color);
+        }
+
+        .cap-layout-vertical > cap-categoryhidepanel.cap-groupbox-column:first-child,
+        .cap-layout-vertical > cap-groupbox.cap-groupbox-column:first-child {
+            padding-block-start: 0;
+        }
+
+        .cap-layout-vertical > cap-categoryhidepanel.cap-groupbox-column:last-child,
+        .cap-layout-vertical > cap-groupbox.cap-groupbox-column:last-child {
+            padding-block-end: 0;
         }
 
 cap-categoryhidepanel > cap-content {
@@ -642,7 +772,7 @@ cap-categoryhidepanel > cap-content {
             flex-direction: column;
             align-self: stretch;
             flex: 1 1 0;
-            gap: .5em;
+            gap: 1rem;
         }
 
         cap-categoryhidepanel > cap-content * > fieldset > legend {
@@ -654,8 +784,8 @@ cap-categoryhidepanel > cap-content {
             color: var(--palette-neutral-950);
             gap: 0.5rem;
             width: 100%;
-            padding: 0 0 0.25em;
-            margin-bottom: 0.25em;
+            padding: 0 0 0.25rem;
+            margin-bottom: 0.25rem;
             border-bottom: 1px solid var(--ui-border-color);
             user-select: none;
         }
@@ -669,7 +799,7 @@ cap-categoryhidepanel > cap-content {
             align-content: stretch;
             box-sizing: border-box;
             width: 100%;
-            gap: 0;
+            gap: .33rem;
             padding: .25em 0 .5em 0;
         }
 
@@ -718,7 +848,7 @@ cap-categoryhidepanel {
             align-items: center;
             gap: 0.45rem;
             min-width: 0;
-            max-height: 1em;
+
         }
 
         cap-categoryhidepanel cap-categoryswatch {
@@ -750,6 +880,7 @@ cap-categoryhidepanel {
 cap-header {
             display: block;
             color: var(--section-header-color);
+            font-size: var(--section-header-font-size);
             border-radius: var(--ui-border-radius) var(--ui-border-radius) 0 0;
             padding: .25em;
             background: var(--section-header-background);
@@ -1127,7 +1258,7 @@ cap-splitselectionpanel {
 
         cap-splitselectionpanel ol {
             display: grid;
-            gap: 0.25rem;
+            gap: .33rem;
             padding: 0;
             list-style: none;
         }
@@ -1139,7 +1270,7 @@ cap-splitselectionpanel {
             justify-content: space-between;
             gap: 0.35rem;
             min-width: 0;
-            padding: 0 .35rem;
+            padding: .15rem .35rem;
             border-radius: var(--ui-border-radius);
             box-shadow: var(--box-shadow);
         }

@@ -54,6 +54,7 @@ export class BaseSelectionHandler<TItem = unknown> {
     private readonly rowCleanups: Array<() => void> = []
     protected activeIndex = 0
     protected anchorIndex: number | null = null
+    protected anchorSelected: boolean | null = null
     private dragStartIndex: number | null = null
     private dragOriginEvent: MouseEvent | null = null
     private dragMoved = false
@@ -285,6 +286,7 @@ export class SingleSelectionHandler<TItem = unknown> extends BaseSelectionHandle
         const item = this.getItems()[index]
         if (item === undefined) return
         this.anchorIndex = index
+        this.anchorSelected = true
         this.setSelectedItems([item], 'single selection changed')
     }
 
@@ -307,10 +309,18 @@ export class MultiSelectionHandler<TItem = unknown> extends BaseSelectionHandler
         if (event.shiftKey && this.anchorIndex != null) {
             const first = Math.min(this.anchorIndex, index)
             const last = Math.max(this.anchorIndex, index)
-            const range = items.slice(first, last + 1)
-            const next = isCommandPressed(event)
-                ? mergeByKey(this.getSelectedItems(), range, this.getKey)
-                : [...range]
+            const anchor = items[this.anchorIndex]
+            const selected = anchor !== undefined && this.anchorSelected == null
+                ? isSelectedByKey(this.getSelectedItems(), anchor, this.anchorIndex, this.getKey)
+                : this.anchorSelected === true
+            const next = applyRangeSelection(
+                items,
+                this.getSelectedItems(),
+                first,
+                last,
+                selected,
+                this.getKey,
+            )
             this.setSelectedItems(next, 'range selection changed')
             return
         }
@@ -325,11 +335,13 @@ export class MultiSelectionHandler<TItem = unknown> extends BaseSelectionHandler
                     !Object.is(this.getKey(candidate, candidateIndex), key))
                 : [...selected, item]
             this.anchorIndex = index
+            this.anchorSelected = !exists
             this.setSelectedItems(next, 'multi selection toggled')
             return
         }
 
         this.anchorIndex = index
+        this.anchorSelected = true
         this.setSelectedItems([item], 'multi selection changed')
     }
 
@@ -354,6 +366,7 @@ export class MultiSelectionHandler<TItem = unknown> extends BaseSelectionHandler
             ? mergeByKey(this.getSelectedItems(), range, this.getKey)
             : [...range]
         this.anchorIndex = startIndex
+        this.anchorSelected = true
         this.setSelectedItems(next, 'drag selection changed')
     }
 }
@@ -438,4 +451,34 @@ function mergeByKey<TItem>(
         }
     }
     return result
+}
+
+function isSelectedByKey<TItem>(
+    selected: readonly TItem[],
+    item: TItem,
+    index: number,
+    getKey: ItemKeyGetter<TItem>,
+): boolean {
+    const key = getKey(item, index)
+    return selected.some((candidate, candidateIndex) =>
+        Object.is(getKey(candidate, candidateIndex), key))
+}
+
+function applyRangeSelection<TItem>(
+    items: readonly TItem[],
+    selected: readonly TItem[],
+    first: number,
+    last: number,
+    shouldSelect: boolean,
+    getKey: ItemKeyGetter<TItem>,
+): TItem[] {
+    const rangeKeys = new Set(items
+        .slice(first, last + 1)
+        .map((item, index) => getKey(item, first + index)))
+    const selectedKeys = new Set(selected.map((item, index) => getKey(item, index)))
+    for (const key of rangeKeys) {
+        if (shouldSelect) selectedKeys.add(key)
+        else selectedKeys.delete(key)
+    }
+    return items.filter((item, index) => selectedKeys.has(getKey(item, index)))
 }

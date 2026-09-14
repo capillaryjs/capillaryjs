@@ -112,6 +112,7 @@ describe('action and text controls', () => {
         assert.equal(element.type, 'button')
         assert.equal(host.dataset.capComponent, 'button')
         assert.equal(host.hasAttribute('data-cap'), true)
+        assert.equal(host.hasAttribute('data-cap-surface'), false)
         assert.equal(host.hasAttribute('class'), false)
         assert.equal(element.hasAttribute('data-cap-component'), false)
         assert.equal(element.textContent, 'Save')
@@ -1030,6 +1031,27 @@ describe('layout controls', () => {
         assert.equal(group.querySelector('div'), null)
     })
 
+    test('GroupBox exposes explicit section and column structural variants', () => {
+        GroupBox.new({
+            variant: 'section',
+            header: 'Basic inputs',
+            children: h(GroupBox, {
+                variant: 'column',
+                header: 'Textbox',
+                children: 'Name',
+            }),
+        }).attachTo(document.body)
+
+        const section = requiredQuery<HTMLElement>('cap-groupbox.cap-groupbox-section')
+        const column = requiredQuery<HTMLElement>('cap-groupbox.cap-groupbox-column', section)
+        assert.equal(requiredQuery('h2', section).textContent, 'Basic inputs')
+        assert.equal(requiredQuery('h2', column).textContent, 'Textbox')
+        assert.throws(
+            () => GroupBox.new({variant: 'boxed' as never, header: 'Invalid'}).mount(),
+            /variant must be section or column/,
+        )
+    })
+
     test('Panel uses a labelled component host and explicit orientation', () => {
         Panel.new({
             header: 'Profile',
@@ -1209,7 +1231,7 @@ describe('layout controls', () => {
         assert.equal(panel.getAttribute('aria-disabled'), 'true')
     })
 
-    test('Sidebar labels a native aside and separates fixed controls from content', () => {
+    test('Sidebar labels its complementary host and separates fixed controls from content', () => {
         Sidebar.new({
             id: 'change-requests',
             header: 'Change requests',
@@ -1222,21 +1244,21 @@ describe('layout controls', () => {
         }).attachTo(document.body)
 
         const sidebar = requiredQuery<HTMLElement>('cap-sidebar')
-        const region = requiredQuery<HTMLElement>('aside', sidebar)
         const heading = requiredQuery<HTMLElement>('h2', sidebar)
-        const toolbar = requiredQuery<HTMLElement>('cap-toolbarcontent', region)
-        const content = requiredQuery<HTMLElement>('cap-content', region)
-        assert.equal(region.id, 'change-requests')
-        assert.equal(region.getAttribute('aria-labelledby'), heading.id)
-        assert.equal(region.hasAttribute('aria-label'), false)
+        const toolbar = requiredQuery<HTMLElement>('cap-toolbarcontent', sidebar)
+        const content = requiredQuery<HTMLElement>('cap-content', sidebar)
+        assert.equal(sidebar.id, 'change-requests')
+        assert.equal(sidebar.getAttribute('role'), 'complementary')
+        assert.equal(sidebar.getAttribute('aria-labelledby'), heading.id)
+        assert.equal(sidebar.hasAttribute('aria-label'), false)
         assert.equal(requiredQuery('[role="toolbar"]', toolbar).textContent, 'Refresh')
         assert.equal(content.textContent, 'First request')
         assert.equal(content.tabIndex, 0)
-        assert.equal(sidebar.children[0], region)
-        assert.equal(region.children[0], heading.parentElement)
-        assert.equal(region.children[1], toolbar)
-        assert.equal(region.children[2], content)
+        assert.equal(sidebar.children[0], heading.parentElement)
+        assert.equal(sidebar.children[1], toolbar)
+        assert.equal(sidebar.children[2], content)
         assert.equal(sidebar.querySelector('div'), null)
+        assert.equal(sidebar.querySelector('aside'), null)
     })
 
     test('Sidebar uses ariaLabel when no visible header exists', () => {
@@ -1246,10 +1268,9 @@ describe('layout controls', () => {
         }).attachTo(document.body)
 
         const sidebar = requiredQuery<HTMLElement>('cap-sidebar')
-        const region = requiredQuery<HTMLElement>('aside', sidebar)
-        assert.equal(region.getAttribute('aria-label'), 'Saved views')
-        assert.equal(region.hasAttribute('aria-labelledby'), false)
-        assert.equal(region.querySelector('cap-header'), null)
+        assert.equal(sidebar.getAttribute('aria-label'), 'Saved views')
+        assert.equal(sidebar.hasAttribute('aria-labelledby'), false)
+        assert.equal(sidebar.querySelector('cap-header'), null)
         assert.throws(
             () => Sidebar.new({toolbar: 'Legacy toolbar'} as never).mount(),
             /SidebarToolbar/,

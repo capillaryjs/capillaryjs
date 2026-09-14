@@ -101,6 +101,7 @@ export class BlockGraph<TItem = unknown> extends Component<BlockGraphProps<TItem
     }
 
     static override hostName = 'block-graph'
+    static dataSurface = 'data' as const
     static override dependencies = [Button, Placeholder]
 
     static css = css`

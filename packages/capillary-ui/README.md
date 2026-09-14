@@ -361,12 +361,12 @@ const view = new Emitter<'list' | 'grid'>('list')
 | --- | --- | --- |
 | `CapillaryUiApp` | Fixed `cap-app` application shell and theme-text boundary | `sizing`: `embedded`/viewport axes; `layout`: `horizontal`/`vertical`; `landmark`: `main`/`none`; content or overridden `renderContent()` |
 | `Header` | Styled native heading surface | `level` (1–6), `headingId`, content |
-| `GroupBox` | Labelled bordered group with a vertical header | required `header`, content |
+| `GroupBox` | Labelled group; defaults to a bordered vertical-header group and may be a section or column | required `header`, content; optional `variant`: `section` or `column` |
 | `OptionGroup` | Labelled native fieldset for related controls | `label`/`ariaLabel`, `OptionGroupHeaderEnd` and ordinary content children, `disabled`, `required`, `busy`, `error`; state props are live |
 | `OptionsBox` | GroupBox specialization arranging option groups | required `header`, `OptionGroup` content |
 | `Layout` | Presentation-only arrangement of arbitrary children | exactly one of `horizontal`/`vertical`; `allocation`, `scroll`, optional accessible-region configuration |
 | `Panel` | Optional labelled, themed region composed over a Layout body | `header`, `horizontal`/`vertical`, `allocation`, `scroll`, `disabled`; `PanelToolbar` and ordinary content children; live: `disabled` |
-| `Sidebar` | Labelled `aside` with fixed header/toolbar and scrolling content | `header`, `ariaLabel`; `SidebarToolbar` and ordinary content children |
+| `Sidebar` | Labelled complementary region with fixed header/toolbar and scrolling content | `header`, `ariaLabel`; `SidebarToolbar` and ordinary content children |
 | `SplitView` | Resizable two-pane layout | required `SplitPrimary` and `SplitSecondary` Layout panes; `horizontal`/`vertical`, `allocation`, initial/minimum sizes, separator label, `onResize` |
 | `NavigationBar` | Labelled native navigation list over router-aware or external anchors | required `label`, `items`; route items accept `exact`; external items use `{kind: 'external', href}` plus disabled/link options |
 | `Tab` | Declarative tab definition consumed by `TabPanel` | `id`, `label`, `disabled`, optional literal `route`, content |
@@ -463,6 +463,12 @@ fallbacks are only safe for immutable ordering. `ListView.items` and
 `TreeView.nodes` accept static arrays or readable emitters and present loading,
 empty, and error states from the emitter snapshot.
 
+`DataTable` and `ListView` default to a single selected row; pass
+`multiSelect={true}` with an optional `selectedItemsEmitter` for multi-row
+selection. In that mode Ctrl (or Cmd) toggles an individual row. Shift applies
+the anchor row's selected or unselected state to every row in the inclusive
+range while retaining selections outside that range.
+
 On every initial/loading snapshot, all three collection views render
 deterministic, `aria-hidden` placeholder rows; `placeholderCount` selects their
 count. Cached rows remain in the emitter but are not rendered or selectable
@@ -493,7 +499,9 @@ expander needs a reusable presentation trait such as `colored`.
 For reusable sources, use `createLocalTableDataSource`,
 `createQueryTableDataSource`, `createHandlerTableDataSource`, or
 `createRestTableDataSource`. Sources expose `query`, `sortEmitter`,
-`filtersEmitter`, optional `retry`, and `dispose()`.
+`filtersEmitter`, optional `retry`, and `dispose()`. Both direct data and
+query-shaped sources pass their rows through an emitter-derived local table
+view, so their sort and filter state always changes the rendered rows.
 
 `TableColumn` definitions own display and local comparison/filter functions.
 When a column's visible `label` is rich content, supply its textual
@@ -753,15 +761,34 @@ minimum-width/shrinking behavior. Field and button inline padding is 5px;
 toggle segments use 6px. General `--space-xs`/`--space-sm` no longer determine
 these line controls' padding.
 
-Horizontal form `GroupBox` children grow toward `--groupbox-preferred-width`
-(default `15rem`, border-box), or beyond it when preferred child widths need
-more room. This is a soft growth preference, not a hard maximum. Intrinsic
-label/body tracks distinguish preferred field widths from the configurable
-`--input-min-width` floor (default `6rem`). In wrapping rows, fields shrink
-before groups wrap. Field-bearing groups receive available width before short
-groups consume decorative spare space. Below a group's label/field/chrome minimum, the owning
-region must scroll. Vertical layouts stretch groups to their available width.
-Neither distant layout ancestors nor group content height impose a 15rem cap.
+Horizontal form `GroupBox` children use their natural content size: GroupBox
+does not contribute a synthetic preferred width or an artificial size floor.
+Intrinsic label/body tracks distinguish preferred field widths from the
+configurable `--input-min-width` floor (default `6rem`). In wrapping rows,
+fields shrink to that floor before groups wrap; below the combined child
+minimum, the owning region must scroll. Vertical layouts stretch only across
+their available inline axis and do not add height.
+
+`variant="section"` is a natural-height, full-inline section: its larger
+legend occupies the left end of a top rule and its body follows below without
+a surrounding box. `variant="column"` is a natural-sized inner group with a
+normal-size, semi-bold UI-font heading separated slightly from its contents.
+Adjacent column variants in a horizontal `Layout`
+are separated only by an inline divider and share the row's full block size.
+In the transposed nesting, a horizontal outer Layout rotates a section's rule
+to its inline edge, while vertically adjacent inner groups use block dividers
+and share the Layout's full inline size. These variants express nested form
+structure on either axis; themes provide their border color and other chrome.
+
+### Island data surfaces
+
+`DataTable`, `ListView`, and `TreeView` declare the static `dataSurface` host
+trait, which emits `data-cap-surface="data"`. An island `Panel` with a header
+and exactly one direct data-surface body child removes only its body inset, so
+the panel chrome sits flush to the data surface. Other panel bodies retain
+their normal inset. In this composition, omit a `DataTable` `caption`: the
+labelled Panel header supplies the surrounding data-region name. Application
+data-surface components can opt in by declaring the same static trait.
 
 Checkbox variants and RadioButton retain compact 1.2em label rows with 1em
 squares/circles. They center within stretched horizontal hosts without making

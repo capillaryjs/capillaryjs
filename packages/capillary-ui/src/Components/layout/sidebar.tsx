@@ -16,7 +16,7 @@ export interface SidebarProps extends ComponentProps, CapillaryUiLayoutParticipa
     ariaLabel?: string
 }
 
-/** Labelled side region whose content owns vertical scrolling. */
+/** Labelled complementary region whose content owns vertical scrolling. */
 export class Sidebar extends Component<SidebarProps> {
     static override liveProps: readonly string[] = []
     readonly sidebarId: string
@@ -48,16 +48,16 @@ export class Sidebar extends Component<SidebarProps> {
                 headingId={this.headerId}
             >{header}</Header>
 
-        return <Host className={layoutParticipantClass(this.props) || null}>
-            <aside
-                id={this.sidebarId}
-                aria-label={header == null ? ariaLabel : null}
-                aria-labelledby={header == null ? null : this.headerId}
-            >
-                {title}
-                {regions.toolbar == null ? null : <cap-toolbarcontent>{regions.toolbar}</cap-toolbarcontent>}
-                <cap-content tabIndex={0}>{content}</cap-content>
-            </aside>
+        return <Host
+            id={this.sidebarId}
+            role="complementary"
+            aria-label={header == null ? ariaLabel : null}
+            aria-labelledby={header == null ? null : this.headerId}
+            className={layoutParticipantClass(this.props) || null}
+        >
+            {title}
+            {regions.toolbar == null ? null : <cap-toolbarcontent>{regions.toolbar}</cap-toolbarcontent>}
+            <cap-content tabIndex={0}>{content}</cap-content>
         </Host>
     }
 
@@ -67,30 +67,24 @@ export class Sidebar extends Component<SidebarProps> {
     static css = css`
         & {
             display: flex;
-            min-width: 0;
-            min-height: 0;
-        }
-
-        & > aside {
-            display: flex;
-            flex: 1 1 auto;
             flex-direction: column;
             min-width: 0;
             min-height: 0;
+            flex: 1 1 auto;
             overflow: hidden;
         }
 
-        & > aside > cap-header,
-        & > aside > cap-toolbarcontent {
+        & > cap-header,
+        & > cap-toolbarcontent {
             flex: none;
         }
 
-        & > aside > cap-toolbarcontent {
+        & > cap-toolbarcontent {
             min-width: 0;
             overflow-x: auto;
         }
 
-        & > aside > cap-content {
+        & > cap-content {
             flex: 1;
             min-height: 0;
             overflow: auto;

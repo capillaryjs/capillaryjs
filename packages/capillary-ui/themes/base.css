@@ -137,6 +137,7 @@
     --section-header-color: var(--header-color);
     --section-header-border: var(--header-border);
     --section-header-shadow: var(--header-shadow);
+    --section-header-font-size: 1rem;
 
     --toolbar-background: var(--palette-neutral-100);
     --toolbar-color: var(--palette-neutral-950);
