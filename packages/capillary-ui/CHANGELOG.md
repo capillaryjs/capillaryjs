@@ -8,6 +8,10 @@ Versioning.
 
 ### Fixed
 
+- Restore the base theme's `--island-margin` default to `1rem` so island
+  surfaces keep their intended separation, and remove Shiny's stale
+  `cap-header:has(+ cap-toolbar)` shadow override together with its
+  `--section-header-with-toolbar-shadow` variable.
 - Normalize line-control sizing and text centering in structural CSS: 24px
   default textbox, dropdown, toggle, and button bodies at 12px UI text, with
   compact checkbox/radio rows. Remove Shiny's label/select text offsets and

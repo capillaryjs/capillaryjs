@@ -103,7 +103,7 @@
     --panel-radius: var(--radius-md);
 
     /* Explicit island modifier; non-island themes keep its layout neutral. */
-    --island-margin: 0;
+    --island-margin: 1rem;
     --island-padding: 0;
     --island-background: var(--panel-background);
     --island-border: var(--panel-border);
