@@ -12,6 +12,7 @@ import {basename, dirname, isAbsolute, join, relative, resolve} from 'node:path'
 import {fileURLToPath} from 'node:url'
 
 import {archiveSha256, npmTarStreamSha256} from './artifact-checks.mjs'
+import {changelogHasRelease} from './release-metadata.mjs'
 
 const workspaceRoot = resolve(fileURLToPath(new URL('..', import.meta.url)))
 const artifactRoot = join(workspaceRoot, '.artifacts', 'release')
@@ -253,6 +254,9 @@ function validateTarball(definition, tarball, tarFiles, expectedVersion) {
     )
     assert(manifest.publishConfig?.access === 'public', `${definition.name} access drifted`)
     assert(manifest.type === 'module', `${definition.name} must remain ESM-only`)
+    const changelog = readTarFile(tarball, 'package/CHANGELOG.md')
+    assert(changelogHasRelease(changelog, expectedVersion),
+        `${definition.name} tarball changelog has no ${expectedVersion} release`)
     assert(manifest.engines?.node === '>=22', `${definition.name} packed Node engine drifted`)
     assertNoLocalDependencyRanges(manifest, definition.name)
     validateExportTargets(manifest, tarFiles, definition.name)

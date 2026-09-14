@@ -11,6 +11,13 @@ Choose an exact release plan containing only the packages being released.
 Dependencies must remain compatible: Capillary precedes Capillary UI, which precedes Capillary UI
 Visualization.
 
+Every selected package must have a real changeout in its own `CHANGELOG.md`:
+the `Unreleased` section needs one of the standard categories (`Added`,
+`Changed`, `Fixed`, or `Removed`) and a non-empty bullet. The release tooling
+filters package choices and rejects plans that do not meet this requirement.
+An already prepared recovery candidate is the only exception; its notes have
+already been promoted under the target version.
+
 For each selected package:
 
 - choose the exact version and distribution tag (`next` for a prerelease;
@@ -39,6 +46,8 @@ Review:
 
 - `.artifacts/release/package-artifacts.json`;
 - every selected tarball inventory and digest;
+- the promoted changelog entry inside every selected tarball (not only in the
+  source checkout);
 - the exact version/tag plan;
 - the complete source diff.
 
