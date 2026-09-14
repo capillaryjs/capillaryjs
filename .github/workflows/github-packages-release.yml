@@ -1,0 +1,62 @@
+name: Mirror verified packages to GitHub Packages
+run-name: Mirror verified npm release to GitHub Packages
+
+on:
+  workflow_dispatch:
+    inputs:
+      candidate_sha:
+        description: Verified public commit containing the release artifacts
+        required: true
+        type: string
+      workflow_run_id:
+        description: Successful staging workflow whose retained artifacts are being mirrored
+        required: true
+        type: string
+
+permissions:
+  contents: read
+  actions: read
+  packages: write
+
+concurrency:
+  group: github-packages-release-${{ inputs.candidate_sha }}
+  cancel-in-progress: false
+
+jobs:
+  mirror:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Check out the verified commit
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ inputs.candidate_sha }}
+
+      - name: Set up Node and GitHub Packages registry
+        uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          registry-url: https://npm.pkg.github.com
+          package-manager-cache: false
+
+      - name: Download exact verified tarballs
+        uses: actions/download-artifact@v7
+        with:
+          name: npm-release-${{ inputs.workflow_run_id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: capillaryjs/capillaryjs
+          run-id: ${{ inputs.workflow_run_id }}
+          path: .artifacts/release
+
+      - name: Publish verified packages to GitHub Packages
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          for tarball in .artifacts/release/packages/*.tgz; do
+            npm publish "$tarball" \
+              --registry=https://npm.pkg.github.com \
+              --access public \
+              --ignore-scripts
+          done

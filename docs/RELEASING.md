@@ -88,6 +88,15 @@ dependant: Capillary, then Capillary UI, then Capillary Viz.
 After each promotion, verify the exact public version, distribution tag,
 provenance link, and a clean exact-version install.
 
+After the ReleaseTool verifies the final npm package, it automatically
+dispatches `.github/workflows/github-packages-release.yml` with the same
+verified tarballs. That workflow mirrors the packages to GitHub Packages using
+the repository `GITHUB_TOKEN` and `packages: write`; it does not rebuild or
+republish from the working tree. GitHub creates a new npm package privately by
+default, so configure the package visibility once in GitHub if a public mirror
+is desired. A mirror failure does not alter the already verified npm release;
+rerun the mirror workflow after correcting its GitHub Packages permissions.
+
 ## Failure and recovery
 
 - If verification fails, fix the source or test and create a new candidate.
