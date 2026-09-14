@@ -2,7 +2,7 @@
   "type": "module",
   "name": "@capillaryjs/capillary-viz",
   "private": false,
-  "version": "0.12.0",
+  "version": "1.0.0-alpha.1",
   "description": "Reactive analytical controls, block mosaics, and history charts for Capillary UI applications.",
   "license": "Apache-2.0",
   "author": {
@@ -60,8 +60,8 @@
     "watch": "vite build --watch"
   },
   "peerDependencies": {
-    "@capillaryjs/capillary-ui": "^1.4.0",
-    "@capillaryjs/capillary": "^0.10.0"
+    "@capillaryjs/capillary-ui": "^1.0.0-alpha.1",
+    "@capillaryjs/capillary": "^1.0.0-alpha.1"
   },
   "devDependencies": {
     "@capillaryjs/capillary-ui": "workspace:^",

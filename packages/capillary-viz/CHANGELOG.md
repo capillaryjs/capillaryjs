@@ -6,6 +6,8 @@ and Semantic Versioning.
 
 ## Unreleased
 
+## 1.0.0-alpha.1 - 2026-09-14
+
 ### Changed
 
 - Renamed the package from `@sylwellsoftware/fray-visualization` to
