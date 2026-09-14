@@ -121,16 +121,16 @@ export class Textbox extends LabeledInputControl<TextboxProps> {
             flex-flow: row nowrap;
             align-items: center;
             justify-content: center;
-            min-height: var(--control-min-height, 2rem);
             min-width: 0;
-            line-height: normal;
         }
 
         & > input {
-            min-height: var(--control-min-height, 2rem);
+            min-height: var(--control-min-height, 2em);
             width: var(--input-width, 15rem);
             max-width: 100%;
             min-width: var(--input-min-width, 6rem);
+            margin: 0;
+            padding: 0 5px;
             color: var(--input-color);
             background: var(--input-background);
             border: var(--input-border);
@@ -138,6 +138,7 @@ export class Textbox extends LabeledInputControl<TextboxProps> {
             box-shadow: var(--input-shadow);
             box-sizing: border-box;
             font: inherit;
+            appearance: none;
             pointer-events: all;
             user-select: text;
             white-space: nowrap;

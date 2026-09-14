@@ -738,6 +738,26 @@ variable hierarchy. `findCapillaryUiStylesheetOption`, `replaceCapillaryUiStyles
 `setCapillaryUiAppearance`, and `getCapillaryUiAppearance` support application-controlled
 runtime selection.
 
+### Line-control sizing
+
+Textbox, Dropdown, Toggle, and Button use `--control-min-height: 2em` by
+default: a 24px border-box minimum at the default 12px `--ui-font-size`.
+This minimum is independent of general UI padding and the text line height.
+Their labels and native controls inherit the font family and share a unitless
+1.2 text line height. Larger content can increase the minimum-sized body.
+Textbox and Dropdown retain their `--input-width: 15em` default and existing
+minimum-width/shrinking behavior. Field and button inline padding is 5px;
+toggle segments use 6px. General `--space-xs`/`--space-sm` no longer determine
+these line controls' padding.
+
+Checkbox variants and RadioButton retain compact 1.2em label rows with 1em
+squares/circles. They center within stretched horizontal hosts without making
+vertical lists as tall as text fields. Date/time controls consume the same
+shared sizing rules. Themes may deliberately override the minimum (Java does),
+but Shiny uses the structural defaults and adds chrome without text offsets.
+Shadows do not participate in centering. Toggle borders and selected overlap
+are painted independently of segment layout, so selection does not move text.
+
 ### Root sizing and typography
 
 `CapillaryUiApp` is block-level and always applies `--application-background`,

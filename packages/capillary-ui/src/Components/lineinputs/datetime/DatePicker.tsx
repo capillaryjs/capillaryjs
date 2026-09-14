@@ -339,16 +339,17 @@ export class DatePicker extends LabeledInputControl<DatePickerProps> {
             align-items: center;
             gap: 0.5em;
             position: relative;
-            min-height: var(--control-min-height, 2rem);
+            min-height: var(--control-min-height, 2em);
             min-width: 0;
         }
 
         & > input {
-            min-height: var(--control-min-height, 2rem);
+            min-height: var(--control-min-height, 2em);
             width: var(--input-width, 10rem);
             max-width: 100%;
             min-width: var(--input-min-width, 6rem);
-            padding: var(--space-xs) var(--space-sm);
+            margin: 0;
+            padding: 0 5px;
             color: var(--input-color);
             background: var(--input-background);
             border: var(--input-border);
@@ -356,6 +357,7 @@ export class DatePicker extends LabeledInputControl<DatePickerProps> {
             box-shadow: var(--input-shadow);
             box-sizing: border-box;
             font: inherit;
+            appearance: none;
             user-select: text;
             cursor: text;
         }
@@ -375,9 +377,14 @@ export class DatePicker extends LabeledInputControl<DatePickerProps> {
         }
 
         & > button {
-            min-height: var(--control-min-height, 2rem);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            box-sizing: border-box;
+            min-height: var(--control-min-height, 2em);
             min-width: 2rem;
-            padding: var(--space-xs) var(--space-sm);
+            margin: 0;
+            padding: 0 5px;
             color: var(--button-color);
             background: var(--button-background);
             border: var(--button-border);

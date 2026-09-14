@@ -16,7 +16,7 @@ export abstract class SelectControl<
             flex-flow: row nowrap;
             position: relative;
             isolation: isolate;
-            min-height: var(--control-min-height, 2rem);
+            min-height: var(--control-min-height, 2em);
             min-width: 0;
             box-sizing: border-box;
             margin-left: auto;
@@ -25,11 +25,12 @@ export abstract class SelectControl<
         & > cap-selectshell > select {
             position: relative;
             z-index: 1;
-            min-height: var(--control-min-height, 2rem);
+            min-height: var(--control-min-height, 2em);
             width: var(--input-width, 15rem);
             max-width: 100%;
             min-width: var(--input-min-width, 6rem);
-            padding: var(--space-xs) var(--space-sm);
+            margin: 0;
+            padding: 0 5px;
             padding-inline-end: var(--dropdown-padding-inline-end);
             color: var(--input-color);
             background: var(--dropdown-select-background);

@@ -264,6 +264,13 @@ Presentation loads as base variables, structural CSS, color anchors, then
 theme overrides. Applications can collect structural CSS from declared root
 dependencies instead of loading the complete artifact.
 
+Line controls use a `--control-min-height` default of `2em` (24px at 12px UI
+text), independent of general padding and text line height. Component CSS
+centers bodies and text; checkboxes/radio buttons keep compact 1.2em label
+rows and 1em painted controls. Field/button inline padding is 5px and toggle
+padding is 6px. Shiny retains the structural geometry; themes can explicitly
+override the minimum. Existing props and sizing variable names are unchanged.
+
 `NavigationBar` consumes its own `--navigation-bar-*` container and
 `--navigation-link-*` item variables. These defaults are text-link navigation,
 not aliases of the generic `--button-*` action family.

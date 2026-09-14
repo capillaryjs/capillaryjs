@@ -10,24 +10,24 @@ export abstract class CheckableControl<
             display: inline-flex;
             position: relative;
             flex-flow: row wrap;
-            line-height: 1;
+            align-items: center;
+            align-content: center;
+            font-family: inherit;
+            font-size: var(--ui-font-size);
+            line-height: 1.2;
         }
 
         & > label {
             display: flex;
             flex-flow: row nowrap;
             position: relative;
-            line-height: calc(var(--ui-font-size) + var(--ui-padding) + var(--ui-padding));
-            font-size: var(--ui-font-size);
-            height: calc(var(--ui-font-size) + var(--ui-padding-h) + var(--ui-padding-h));
+            min-height: 1.2em;
+            margin: 0;
             color: var(--ui-text-color);
             border-radius: var(--ui-border-radius);
             box-sizing: border-box;
             align-items: center;
             gap: .3em;
-            align-content: center;
-            justify-content: center;
-            justify-items: center;
             cursor: pointer;
             user-select: none;
         }
@@ -59,7 +59,7 @@ export abstract class CheckableControl<
             flex: 0 0 1em;
             box-sizing: border-box;
             text-align: center;
-            line-height: 120%;
+            line-height: 1;
             color: var(--input-color, var(--ui-text-color, currentColor));
             background: var(--checkbox-box-background, var(--ui-input-bg, transparent));
             border: var(--checkbox-box-border, var(--cbx-o-border, 1px solid currentColor));

@@ -622,7 +622,7 @@ describe('style registry', () => {
 
         assert.match(stylesheet, /cap-timepicker\s*\{[^}]*display:\s*flex/)
         assert.match(stylesheet, /cap-timepicker > cap-selectshell\s*\{/)
-        assert.match(stylesheet, /cap-timepicker > cap-selectshell > select\s*\{[^}]*min-height:\s*var\(--control-min-height, 2rem\)/)
+        assert.match(stylesheet, /cap-timepicker > cap-selectshell > select\s*\{[^}]*min-height:\s*var\(--control-min-height, 2em\)/)
 
         assert.match(stylesheet, /cap-datetimepicker\s*\{[^}]*display:\s*block/)
         assert.match(stylesheet, /cap-datetimepicker > fieldset\s*\{[^}]*display:\s*flex/)

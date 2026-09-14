@@ -73,7 +73,7 @@
     --font-family: Helvetica, sans-serif;
     --font-size: 12px;
     --line-height: normal;
-    --control-min-height: calc(var(--ui-font-size) + var(--ui-padding) + var(--ui-padding));
+    --control-min-height: 2em;
     --space-xs: 0px;
     --space-sm: 6px;
     --space-md: 1rem;
@@ -323,7 +323,7 @@
     --icon-filter-active: var(--icon-filter);
     --icon-filter-overlay: brightness(1) opacity(.25) hue-rotate(var(--icon-filter-hue)) saturate(.7);
     --tooltip-background: #ffa;
-    --dd-btn-width: 1.5em;
+    --dd-btn-width: 1.7em;
     --panel-bg: var(--panel-background);
     --panel-padding: var(--space-md);
     --toolbar-bg: var(--toolbar-background);

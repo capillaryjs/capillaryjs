@@ -152,7 +152,7 @@ export class Toggle<TValue extends Key = string> extends LabeledInputControl<Tog
 
     static override css = css`
         & {
-            min-height: var(--control-min-height, 2rem);
+            min-height: var(--control-min-height, 2em);
             display: flex;
             position: relative;
             flex-flow: row nowrap;
@@ -170,7 +170,7 @@ export class Toggle<TValue extends Key = string> extends LabeledInputControl<Tog
 
         & > cap-options {
             display: flex;
-            min-height: var(--control-min-height, 2rem);
+            min-height: var(--control-min-height, 2em);
             border-radius: var(--radius-md);
             box-shadow: var(--toggle-group-shadow);
             box-sizing: border-box;
@@ -180,63 +180,98 @@ export class Toggle<TValue extends Key = string> extends LabeledInputControl<Tog
         }
 
         & > cap-options > button[role="radio"] {
-            min-height: var(--control-min-height, 2rem);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-height: var(--control-min-height, 2em);
+            min-width: 2em;
+            margin: 0;
+            padding: 0 6px;
             position: relative;
-            font-family: inherit;
-            font-size: var(--ui-font-size);
+            isolation: isolate;
+            font: inherit;
             color: var(--button-color);
-            background: var(--toggle-button-background);
+            background: transparent;
             user-select: none;
             white-space: nowrap;
             box-sizing: border-box;
-            border: var(--button-border);
-            border-left: none;
-            border-right: none;
+            border: 0;
             border-radius: 0;
-            box-shadow: var(--toggle-button-shadow);
             cursor: default;
         }
 
-        & > cap-options > button[role="radio"]:hover:not(:disabled)[aria-checked="false"] {
+        /* Chrome may overlap adjacent segments, but never moves their text. */
+        & > cap-options > button[role="radio"]::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            z-index: -1;
+            pointer-events: none;
+            box-sizing: border-box;
+            background: var(--toggle-button-background);
+            border: var(--button-border);
+            border-left: none;
+            border-right: none;
+            border-radius: inherit;
+            box-shadow: var(--toggle-button-shadow);
+        }
+
+        & > cap-options > button[role="radio"]:hover:not(:disabled)[aria-checked="false"]::before {
             background: var(--button-background-hover);
         }
 
         & > cap-options > button[role="radio"]:first-of-type {
             border-radius: var(--radius-md) 0 0 var(--radius-md);
+        }
+
+        & > cap-options > button[role="radio"]:first-of-type::before {
             border: var(--button-border);
             border-right: none;
         }
 
         & > cap-options > button[role="radio"]:last-of-type {
             border-radius: 0 var(--radius-md) var(--radius-md) 0;
+        }
+
+        & > cap-options > button[role="radio"]:only-of-type {
+            border-radius: var(--radius-md);
+        }
+
+        & > cap-options > button[role="radio"]:last-of-type::before {
             border: var(--button-border);
             border-left: none;
         }
 
         & > cap-options > button[role="radio"][aria-checked="false"]
-        + [role="radio"][aria-checked="false"] {
+        + [role="radio"][aria-checked="false"]::before {
             border-inline-start: var(--button-border);
             border-inline-start-color: var(--toggle-inactive-shared-border-color);
         }
 
         & > cap-options > button[role="radio"][aria-checked="true"] {
             color: var(--selection-color);
+            z-index: var(--toggle-button-selected-z-index);
+        }
+
+        & > cap-options > button[role="radio"][aria-checked="true"]::before {
             background: var(--toggle-button-background-checked);
             border: var(--toggle-button-border-checked);
             box-shadow: none;
-            margin-inline: var(--toggle-button-selected-inline-overlap);
-            z-index: var(--toggle-button-selected-z-index);
+            inset-inline: var(--toggle-button-selected-inline-overlap);
         }
 
         & > cap-options > button[role="radio"]:disabled {
             color: var(--input-color-disabled);
-            background: var(--button-background-disabled);
-            border: var(--button-border-disabled);
             cursor: not-allowed;
         }
 
+        & > cap-options > button[role="radio"]:disabled::before {
+            background: var(--button-background-disabled);
+            border: var(--button-border-disabled);
+        }
+
         & > cap-options[aria-busy="true"]:not([aria-invalid="true"])
-        > button[role="radio"] {
+        > button[role="radio"]::before {
             background: var(--working-background-image), var(--toggle-button-background);
             background-repeat: repeat, no-repeat;
             background-size: 2rem 2rem, 100% 100%;
@@ -244,13 +279,13 @@ export class Toggle<TValue extends Key = string> extends LabeledInputControl<Tog
         }
 
         & > cap-options[aria-busy="true"]:not([aria-invalid="true"])
-        > button[role="radio"][aria-checked="true"] {
+        > button[role="radio"][aria-checked="true"]::before {
             background: var(--working-background-image), var(--toggle-button-background-checked);
             background-repeat: repeat, no-repeat;
             background-size: 2rem 2rem, 100% 100%;
         }
 
-        & > cap-options[aria-invalid="true"] > button[role="radio"] {
+        & > cap-options[aria-invalid="true"] > button[role="radio"]::before {
             border-color: var(--error-color);
         }
 
@@ -265,7 +300,7 @@ export class Toggle<TValue extends Key = string> extends LabeledInputControl<Tog
         }
 
         @media (prefers-reduced-motion: reduce) {
-            & > cap-options[aria-busy="true"] > button[role="radio"] {
+            & > cap-options[aria-busy="true"] > button[role="radio"]::before {
                 animation: none !important;
             }
         }

@@ -86,8 +86,12 @@ export class Button extends Component<ButtonProps> {
 
     static override css = css`
         & > button {
-            min-height: var(--control-min-height, 2rem);
-            padding: var(--space-xs) var(--space-sm);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-height: var(--control-min-height, 2em);
+            margin: 0;
+            padding: 0 5px;
             color: var(--button-color);
             background: var(--button-background);
             border: var(--button-border);
@@ -95,9 +99,7 @@ export class Button extends Component<ButtonProps> {
             box-shadow: var(--button-shadow);
             box-sizing: border-box;
             cursor: default;
-            font-family: inherit;
-            font-size: var(--ui-font-size);
-            line-height: calc(var(--ui-font-size) + var(--ui-padding) + var(--ui-padding));
+            font: inherit;
             user-select: none;
             white-space: nowrap;
         }
@@ -106,6 +108,11 @@ export class Button extends Component<ButtonProps> {
             display: inline-flex;
             position: relative;
             flex-flow: row wrap;
+            align-items: center;
+            align-content: center;
+            font-family: inherit;
+            font-size: var(--ui-font-size);
+            line-height: 1.2;
         }
 
         & > button:hover:not(:disabled, [aria-disabled="true"]) {
@@ -128,7 +135,7 @@ export class Button extends Component<ButtonProps> {
         & > button[aria-disabled="true"] {
             color: var(--input-color-disabled);
             background: var(--button-background-disabled);
-            border: var(--button-border-disabled);
+            border-color: var(--button-border-disabled);
             cursor: not-allowed;
             pointer-events: none;
         }

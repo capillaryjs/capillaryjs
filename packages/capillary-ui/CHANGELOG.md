@@ -6,6 +6,20 @@ Versioning.
 
 ## Unreleased
 
+### Fixed
+
+- Normalize line-control sizing and text centering in structural CSS: 24px
+  default textbox, dropdown, toggle, and button bodies at 12px UI text, with
+  compact checkbox/radio rows. Remove Shiny's label/select text offsets and
+  prevent toggle border/selection changes from shifting segment text.
+
+### Changed
+
+- `--control-min-height` defaults to `2em` independently of general UI padding.
+  Fields/buttons use 5px inline padding, toggles 6px, and the dropdown trigger
+  uses `--dd-btn-width: 1.7em`. Line-control padding no longer consumes generic
+  `--space-xs`/`--space-sm` spacing tokens.
+
 ## 1.0.0-alpha.1 - 2026-09-14
 
 ### Changed

@@ -12,10 +12,11 @@ export abstract class LabeledInputControl<
             position: relative;
             align-items: center;
             gap: .5em;
-            min-height: var(--control-min-height, 2rem);
+            min-height: var(--control-min-height, 2em);
             color: var(--ui-text-color);
+            font-family: inherit;
             font-size: var(--ui-font-size);
-            line-height: normal;
+            line-height: 1.2;
             box-sizing: border-box;
             user-select: none;
         }
