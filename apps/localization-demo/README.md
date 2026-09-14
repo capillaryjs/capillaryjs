@@ -28,13 +28,5 @@ pnpm --filter @sylwellsoftware/localization-demo build
 pnpm --filter @sylwellsoftware/localization-demo preview    # http://127.0.0.1:4175
 ```
 
-From the outer repository root:
-
-```bash
-./gradlew localizationDemoDev
-./gradlew localizationDemoBuild
-./gradlew localizationDemoPreview
-```
-
 The app is included in the framework root `typecheck`, `test`, and `build`
-scripts, so `pnpm verify` and `./gradlew frameworkCheck` cover it.
+scripts, so `pnpm verify` covers it.

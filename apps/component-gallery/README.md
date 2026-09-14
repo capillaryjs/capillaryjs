@@ -57,16 +57,8 @@ pnpm --filter @sylwellsoftware/component-gallery build
 pnpm --filter @sylwellsoftware/component-gallery preview    # http://127.0.0.1:4174
 ```
 
-From the outer repository root, the same entry points are available as Gradle
-tasks:
-
-```bash
-./gradlew componentGalleryDev       # dev server at http://127.0.0.1:3002
-./gradlew componentGalleryBuild     # typecheck + vite build
-./gradlew componentGalleryPreview   # build + preview at http://127.0.0.1:4174
-```
-
 The app is also included in the framework root `typecheck`, `test`, and
-`build` scripts, so `pnpm verify` (and `./gradlew frameworkCheck`) covers it.
+`pnpm verify` covers the app through the framework root `typecheck`, `test`,
+and `build` scripts.
 
 The demo runs entirely on local reactive state; there is no backend.

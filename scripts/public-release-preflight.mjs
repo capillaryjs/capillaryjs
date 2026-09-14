@@ -55,15 +55,15 @@ assert(dummyServer.private === true, 'dummy server must not be publishable')
 assert(dummyServer.name === '@sylwellsoftware/dummy-server', 'dummy server name mismatch')
 
 if (gitSucceeds('rev-parse', '--verify', 'HEAD')) {
-    assert(git('show', '-s', '--format=%an', 'HEAD') === 'Sylwell Software', 'commit author name mismatch')
+    assert(git('show', '-s', '--format=%an', 'HEAD') === 'Capillary JS', 'commit author name mismatch')
     assert(
-        git('show', '-s', '--format=%ae', 'HEAD') === 'github@sylwellsoftware.com',
+        git('show', '-s', '--format=%ae', 'HEAD') === 'capillary-js@users.noreply.github.com',
         'commit author email mismatch',
     )
 } else {
-    assert(git('config', '--local', 'user.name') === 'Sylwell Software', 'local Git user.name mismatch')
+    assert(git('config', '--local', 'user.name') === 'Capillary JS', 'local Git user.name mismatch')
     assert(
-        git('config', '--local', 'user.email') === 'github@sylwellsoftware.com',
+        git('config', '--local', 'user.email') === 'capillary-js@users.noreply.github.com',
         'local Git user.email mismatch',
     )
 }

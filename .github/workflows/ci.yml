@@ -22,12 +22,6 @@ jobs:
         with:
           node-version: 22
 
-      - name: Set up Java
-        uses: actions/setup-java@v5
-        with:
-          distribution: temurin
-          java-version: 21
-
       - name: Enable pinned pnpm
         run: |
           corepack enable
@@ -39,11 +33,11 @@ jobs:
       - name: Install pinned browser engines
         run: corepack pnpm exec playwright install --with-deps
 
-      - name: Exercise Gradle normal verification entry point
-        run: ./gradlew publicCheck
+      - name: Run workspace verification
+        run: corepack pnpm verify
 
-      - name: Exercise Gradle release entry point
-        run: ./gradlew publicReleasePreflight
+      - name: Run release preflight
+        run: corepack pnpm verify:release
 
       - name: Retain failed browser diagnostics
         if: failure()

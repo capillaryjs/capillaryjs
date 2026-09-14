@@ -31,12 +31,6 @@ jobs:
           node-version: 24
           package-manager-cache: false
 
-      - name: Set up Java
-        uses: actions/setup-java@v5
-        with:
-          distribution: temurin
-          java-version: 21
-
       - name: Enable pinned pnpm
         run: |
           corepack enable
@@ -49,7 +43,7 @@ jobs:
         run: corepack pnpm exec playwright install --with-deps
 
       - name: Verify source and deterministic release artifacts
-        run: ./gradlew publicReleasePreflight
+        run: corepack pnpm verify:release
 
       - name: Validate release plan and registry availability
         env:
