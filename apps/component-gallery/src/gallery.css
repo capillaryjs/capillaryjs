@@ -34,7 +34,7 @@ body {
     white-space: nowrap;
 }
 
-.gallery-masthead-row > nav {
+.gallery-masthead-row > cap-navigation-bar {
     flex: 1 1 auto;
     min-width: 0;
 }
@@ -43,19 +43,13 @@ body {
     row-gap: 0.5rem;
 }
 
-.gallery-controls .gallery-flag-group {
+/* The flag OptionGroup's fieldset lays its Checkbox hosts out in a wrapping
+   row; each Checkbox owns its own label and check-shell styling. */
+.gallery-controls .gallery-flag-group > fieldset {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
     gap: 0.35rem 0.9rem;
-    user-select: none;
-}
-
-.gallery-controls .gallery-flag-group > label {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.3rem;
-    white-space: nowrap;
 }
 
 .gallery-footer {

@@ -1,6 +1,6 @@
 import {Component, routeTarget} from '@capillaryjs/capillary-ui'
 import type {ComponentProps, CapillaryUiChild} from '@capillaryjs/capillary-ui'
-import {NavigationBar} from '@capillaryjs/capillary-ui'
+import {Layout, NavigationBar} from '@capillaryjs/capillary-ui'
 
 import type {GalleryModel} from '../model/GalleryModel.js'
 import {galleryPages} from '../routing.js'
@@ -19,7 +19,7 @@ export class GalleryHeader extends Component<GalleryHeaderProps> {
     render(): CapillaryUiChild {
         const model = this.props.model
         return <header class="gallery-masthead island">
-            <div class="gallery-masthead-row">
+            <Layout horizontal className="gallery-masthead-row">
                 <h1>Capillary UI component gallery</h1>
                 <NavigationBar
                     label="Gallery pages"
@@ -30,10 +30,10 @@ export class GalleryHeader extends Component<GalleryHeaderProps> {
                         exact: true,
                     }))}
                 />
-            </div>
+            </Layout>
             <GalleryToolbar model={model} />
         </header>
     }
 
-    static dependencies = [NavigationBar, GalleryToolbar]
+    static dependencies = [Layout, NavigationBar, GalleryToolbar]
 }

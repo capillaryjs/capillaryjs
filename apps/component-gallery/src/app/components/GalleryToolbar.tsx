@@ -1,7 +1,24 @@
 import {FetchState} from '@capillaryjs/capillary'
-import {Component} from '@capillaryjs/capillary-ui'
-import type {ComponentProps, CapillaryUiChild} from '@capillaryjs/capillary-ui'
-import {ColorPicker, ThemePicker, Toggle, Toolbar} from '@capillaryjs/capillary-ui'
+import type {
+    Emitter,
+    EmitterNotification,
+    FetchStateValue,
+    SubscribeOptions,
+} from '@capillaryjs/capillary'
+import {Component, FilterMode} from '@capillaryjs/capillary-ui'
+import type {
+    ComponentProps,
+    CapillaryUiChild,
+    FilterModeValue,
+} from '@capillaryjs/capillary-ui'
+import {
+    Checkbox,
+    ColorPicker,
+    OptionGroup,
+    ThemePicker,
+    Toggle,
+    Toolbar,
+} from '@capillaryjs/capillary-ui'
 
 import type {GalleryModel} from '../model/GalleryModel.js'
 
@@ -35,30 +52,50 @@ export class GalleryToolbar extends Component<GalleryToolbarProps> {
                     [FetchState.Error, 'Error'],
                 ]}
             />
-            <div class="gallery-flag-group" role="group" aria-label="Component state">
-                <label>
-                    <input type="checkbox" bind:checked={model.componentDisabled} />
-                    Disabled
-                </label>
-                <label>
-                    <input type="checkbox" bind:checked={model.componentRequired} />
-                    Required
-                </label>
-                <label>
-                    <input type="checkbox" bind:checked={model.componentReadOnly} />
-                    Read-only
-                </label>
-                <label>
-                    <input type="checkbox" bind:checked={model.componentBusyFlag} />
-                    Busy override
-                </label>
-                <label>
-                    <input type="checkbox" bind:checked={model.componentErrorFlag} />
-                    Validation error
-                </label>
-            </div>
+            <OptionGroup ariaLabel="Component state" className="gallery-flag-group">
+                <Checkbox label="Disabled"
+                    valueEmitter={flagCheckboxState(model.componentDisabled)} />
+                <Checkbox label="Required"
+                    valueEmitter={flagCheckboxState(model.componentRequired)} />
+                <Checkbox label="Read-only"
+                    valueEmitter={flagCheckboxState(model.componentReadOnly)} />
+                <Checkbox label="Busy override"
+                    valueEmitter={flagCheckboxState(model.componentBusyFlag)} />
+                <Checkbox label="Validation error"
+                    valueEmitter={flagCheckboxState(model.componentErrorFlag)} />
+            </OptionGroup>
         </Toolbar>
     }
 
-    static dependencies = [Toolbar, Toggle, ThemePicker, ColorPicker]
+    static dependencies = [Toolbar, Toggle, ThemePicker, ColorPicker, OptionGroup, Checkbox]
+}
+
+/**
+ * Live two-way view of a boolean flag emitter as the FilterMode value a
+ * Checkbox cycles: Prefer/Require map to set, Neutral/Deny to clear.
+ */
+function flagCheckboxState(flag: Emitter<boolean>) {
+    const toState = (value: boolean): FilterModeValue =>
+        value ? FilterMode.Prefer : FilterMode.Neutral
+    return {
+        get: () => toState(flag.get()),
+        getError: () => flag.getError(),
+        getFetchState(): FetchStateValue {
+            return flag.getFetchState()
+        },
+        subscribe(
+            listener: (notification: EmitterNotification<FilterModeValue, unknown>) => void,
+            options?: SubscribeOptions,
+        ): () => void {
+            return flag.subscribe(
+                (notification) => listener({
+                    ...notification,
+                    value: toState(notification.value),
+                }),
+                options,
+            )
+        },
+        set: (value: FilterModeValue, cause?: unknown): boolean =>
+            flag.set(value === FilterMode.Prefer || value === FilterMode.Require, cause),
+    }
 }
