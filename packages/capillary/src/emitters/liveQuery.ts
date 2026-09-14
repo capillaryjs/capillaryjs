@@ -1,11 +1,16 @@
 import {EventBubble} from '../debugging/eventBubble.js'
 import {FetchState} from '../enums/fetchState.js'
 import type {QueryHandlerLike, QueryRequestOptions, QueryValues} from '../queryhandling/queryHandler.js'
+import {isReplacementArgument} from '../queryhandling/replaceArg.js'
 import {computeRetryDelay, isAbortError, resolveRetryPolicy} from '../retryPolicy.js'
 import type {ResolvedRetryPolicy, RetryPolicy} from '../retryPolicy.js'
 import {BaseEmitter} from './baseEmitter.js'
 import type {EmitterValue, ReadableEmitter} from './baseEmitter.js'
-import type {RefreshableLiveResult} from './liveResult.js'
+import type {
+    LiveQueryRefreshOptions,
+    LiveQueryRetention,
+    RefreshableLiveResult,
+} from './liveResult.js'
 
 export type QueryArgumentEmitters = Record<string, ReadableEmitter<unknown, unknown>>
 
@@ -75,6 +80,9 @@ implements RefreshableLiveResult<TResult | undefined, unknown> {
     private readonly execution: LiveQueryExecution | null
     private lastSuccessfulValue: TResult | undefined
     private hasSuccessfulValue = false
+    private hasVisibleResult = false
+    private lastRequestRetention: LiveQueryRetention = 'retain'
+    private replacementPending = false
     private automaticTriggersInitialized = false
     private activated: boolean
     private argumentUnsubscribers: Array<() => void> = []
@@ -165,14 +173,21 @@ implements RefreshableLiveResult<TResult | undefined, unknown> {
         return request
     }
 
-    refresh(eventOrCause: EventBubble<unknown> | unknown = 'refresh'): Promise<TResult | undefined> {
+    refresh(
+        eventOrCause: EventBubble<unknown> | unknown = 'refresh',
+        options: LiveQueryRefreshOptions = {},
+    ): Promise<TResult | undefined> {
         if (this.isDisposed) return Promise.resolve(undefined)
         if (!this.activated) return this.activate(eventOrCause)
-        return this.executeRequest(eventOrCause)
+        return this.executeRequest(
+            eventOrCause,
+            normalizeRetention(options.retention ?? (this.replacementPending ? 'replace' : undefined)),
+        )
     }
 
     private executeRequest(
         eventOrCause: EventBubble<unknown> | unknown,
+        retention: LiveQueryRetention = 'retain',
     ): Promise<TResult | undefined> {
 
         const requestId = ++this.requestId
@@ -181,10 +196,12 @@ implements RefreshableLiveResult<TResult | undefined, unknown> {
         const controller = createAbortController()
         this.abortController = controller
         const parentEvent = eventOrCause instanceof EventBubble ? eventOrCause : null
+        const retainPreviousValue = this.keepPreviousValue && retention === 'retain'
+        this.lastRequestRetention = retention
+        this.replacementPending = retention === 'replace'
+        this.hasVisibleResult = retainPreviousValue && this.hasSuccessfulValue
         const cause = parentEvent ? 'query arguments changed' : eventOrCause
-        const loadingValue = this.keepPreviousValue
-            ? this.lastSuccessfulValue
-            : undefined
+        const loadingValue = this.hasVisibleResult ? this.lastSuccessfulValue : undefined
         this.setSnapshot({
             value: loadingValue,
             fetchState: FetchState.Loading,
@@ -195,7 +212,12 @@ implements RefreshableLiveResult<TResult | undefined, unknown> {
         const queryEvent = this.createEvent('query fetch', parentEvent, this.argumentValues)
 
         const request = Promise.resolve()
-            .then(() => this.runAttempts(requestId, controller, queryEvent))
+            .then(() => this.runAttempts(
+                requestId,
+                controller,
+                queryEvent,
+                retainPreviousValue,
+            ))
             .finally(() => {
                 if (this.isCurrentRequest(requestId, controller)) {
                     this.abortController = null
@@ -211,6 +233,7 @@ implements RefreshableLiveResult<TResult | undefined, unknown> {
         requestId: number,
         controller: AbortControllerLike,
         queryEvent: EventBubble<unknown> | null,
+        retainPreviousValue: boolean,
     ): Promise<TResult | undefined> {
         try {
             for (let attempt = 1; ; attempt += 1) {
@@ -222,6 +245,8 @@ implements RefreshableLiveResult<TResult | undefined, unknown> {
                     if (!this.isCurrentRequest(requestId, controller)) return undefined
                     this.lastSuccessfulValue = result
                     this.hasSuccessfulValue = true
+                    this.hasVisibleResult = true
+                    this.replacementPending = false
                     this.setSnapshot({
                         value: result,
                         fetchState: FetchState.Ready,
@@ -238,12 +263,13 @@ implements RefreshableLiveResult<TResult | undefined, unknown> {
                         || attempt >= retry.maxAttempts
                         || !retry.shouldRetry(error, attempt)) {
                         this.setSnapshot({
-                            value: this.keepPreviousValue ? this.lastSuccessfulValue : undefined,
+                            value: retainPreviousValue ? this.lastSuccessfulValue : undefined,
                             fetchState: FetchState.Error,
                             error,
                             cause: 'query failed',
                             parentEvent: queryEvent,
                         })
+                        this.hasVisibleResult = retainPreviousValue && this.hasSuccessfulValue
                         return undefined
                     }
                     const delayMs = computeRetryDelay(retry, attempt, error)
@@ -256,12 +282,13 @@ implements RefreshableLiveResult<TResult | undefined, unknown> {
         } catch (error: unknown) {
             if (!this.isCurrentRequest(requestId, controller)) return undefined
             this.setSnapshot({
-                value: this.keepPreviousValue ? this.lastSuccessfulValue : undefined,
+                value: retainPreviousValue ? this.lastSuccessfulValue : undefined,
                 fetchState: FetchState.Error,
                 error,
                 cause: 'query retry infrastructure failed',
                 parentEvent: queryEvent,
             })
+            this.hasVisibleResult = retainPreviousValue && this.hasSuccessfulValue
             return undefined
         }
     }
@@ -296,8 +323,13 @@ implements RefreshableLiveResult<TResult | undefined, unknown> {
         wait?.cancel()
     }
 
-    retry(eventOrCause: EventBubble<unknown> | unknown = 'retry'): Promise<TResult | undefined> {
-        return this.refresh(eventOrCause)
+    retry(
+        eventOrCause: EventBubble<unknown> | unknown = 'retry',
+        options?: LiveQueryRefreshOptions,
+    ): Promise<TResult | undefined> {
+        return this.refresh(eventOrCause, {
+            retention: options?.retention ?? this.lastRequestRetention,
+        })
     }
 
     abort(eventOrCause: EventBubble<unknown> | unknown = 'query aborted'): void {
@@ -307,6 +339,7 @@ implements RefreshableLiveResult<TResult | undefined, unknown> {
         this.abortController = null
         this._activeRequest = null
         this.cancelRetryWait()
+        this.replacementPending = false
         const parentEvent = eventOrCause instanceof EventBubble ? eventOrCause : null
         this.setSnapshot({
             value: this.hasSuccessfulValue ? this.lastSuccessfulValue : undefined,
@@ -337,7 +370,11 @@ implements RefreshableLiveResult<TResult | undefined, unknown> {
         this.automaticTriggersInitialized = true
         this.argumentUnsubscribers = Object.values(this.args).map((argument) =>
             argument.subscribe(({event}) => {
-                void this.refresh(event)
+                void this.refresh(event, {
+                    retention: isReplacementArgument(argument) || this.replacementPending
+                        ? 'replace'
+                        : 'retain',
+                })
             }, {emitCurrent: false}),
         )
         if (this.polling != null) this.initializePolling(this.polling)
@@ -477,6 +514,12 @@ function assertNamedArgs(args: unknown): asserts args is QueryArgumentEmitters {
             throw new TypeError(`LiveQuery argument ${name} must be an emitter`)
         }
     }
+}
+
+function normalizeRetention(value: LiveQueryRetention | undefined): LiveQueryRetention {
+    if (value === undefined) return 'retain'
+    if (value === 'retain' || value === 'replace') return value
+    throw new TypeError('LiveQuery refresh retention must be retain or replace')
 }
 
 function createAbortController(): AbortControllerLike {

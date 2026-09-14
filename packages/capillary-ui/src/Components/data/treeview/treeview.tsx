@@ -12,7 +12,7 @@ import type {TreeItemProps, TreeNode} from './treeitem.js'
 import {assertTreeNodes} from './treeModel.js'
 
 export interface TreeViewProps<TValue = unknown> extends ComponentProps {
-    nodes?: readonly TreeNode<TValue>[] | ReadableEmitter<readonly TreeNode<TValue>[], unknown>
+    nodes?: readonly TreeNode<TValue>[] | ReadableEmitter<readonly TreeNode<TValue>[] | undefined, unknown>
     label: string
     placeholderCount?: number
     selectedKeyEmitter?: ValueEmitter<Key | null>
@@ -39,7 +39,7 @@ interface VisibleNode<TValue> {
 /** Single-select ARIA tree with controlled expansion and selection. */
 export class TreeView<TValue = unknown> extends Component<TreeViewProps<TValue>> {
     static override liveProps: readonly string[] = []
-    readonly nodesEmitter: ReadableEmitter<readonly TreeNode<TValue>[], unknown>
+    readonly nodesEmitter: ReadableEmitter<readonly TreeNode<TValue>[] | undefined, unknown>
     readonly selectedKeyEmitter: ValueEmitter<Key | null>
     readonly expandedKeysEmitter: ValueEmitter<Key[]>
     private readonly ownedNodesEmitter: Emitter<readonly TreeNode<TValue>[]> | null
@@ -51,7 +51,7 @@ export class TreeView<TValue = unknown> extends Component<TreeViewProps<TValue>>
 
     constructor(props: TreeViewProps<TValue>) {
         super(props)
-        if (isReadableEmitter<readonly TreeNode<TValue>[]>(props.nodes)) {
+        if (isReadableEmitter<readonly TreeNode<TValue>[] | undefined>(props.nodes)) {
             this.nodesEmitter = props.nodes
             this.ownedNodesEmitter = null
         } else {
@@ -73,9 +73,9 @@ export class TreeView<TValue = unknown> extends Component<TreeViewProps<TValue>>
     }
 
     initialize(): void {
-        this.reconcile(this.nodesEmitter.get())
+        this.reconcile(this.nodesEmitter.get() ?? [])
         this.watch(this.nodesEmitter, this.selectedKeyEmitter, this.expandedKeysEmitter)
-        this.onCleanup(this.nodesEmitter.subscribe(({value}) => this.reconcile(value), {
+        this.onCleanup(this.nodesEmitter.subscribe(({value}) => this.reconcile(value ?? []), {
             emitCurrent: false,
         }))
     }
@@ -96,11 +96,14 @@ export class TreeView<TValue = unknown> extends Component<TreeViewProps<TValue>>
     }
 
     render(): CapillaryUiChild {
-        const nodes = this.nodesEmitter.get()
+        const result = this.nodesEmitter.get()
+        const nodes = result ?? []
         assertTreeNodes(nodes)
         const fetchState = this.nodesEmitter.getFetchState()
         const sourceError = this.nodesEmitter.getError()
         const isLoading = fetchState === FetchState.Initial || fetchState === FetchState.Loading
+        const replacesContent = fetchState === FetchState.Initial
+            || (fetchState === FetchState.Loading && result === undefined)
         const expanded = new Set(this.expandedKeysEmitter.get())
         const visible = flattenVisible(nodes, expanded)
         const selected = this.selectedKeyEmitter.get()
@@ -120,7 +123,7 @@ export class TreeView<TValue = unknown> extends Component<TreeViewProps<TValue>>
                     fallback={this.capillaryUiMessage('treeViewLoadError')}
                 />
                 : null}
-            {isLoading
+            {replacesContent
                 ? <>
                     <p role="status">{this.capillaryUiMessage('treeViewLoading')}</p>
                     <ul aria-hidden="true">
@@ -140,7 +143,7 @@ export class TreeView<TValue = unknown> extends Component<TreeViewProps<TValue>>
             {fetchState === FetchState.Ready && visible.length === 0
                 ? <p role="status">{this.capillaryUiMessage('treeViewEmpty')}</p>
                 : null}
-            {!isLoading && visible.length > 0
+            {!replacesContent && visible.length > 0
                 ? <ul
                     role="tree"
                     aria-label={this.props.label}
@@ -208,9 +211,11 @@ export class TreeView<TValue = unknown> extends Component<TreeViewProps<TValue>>
         & {
             display: flex;
             position: relative;
+            flex: 1 1 auto;
             flex-direction: column;
-            min-width: 0;
-            min-height: 0;
+            min-inline-size: 0;
+            min-block-size: 0;
+            max-block-size: 100%;
             overflow: auto;
         }
 
@@ -379,7 +384,7 @@ export class TreeView<TValue = unknown> extends Component<TreeViewProps<TValue>>
         for (const row of rows) {
             const index = Number(row.dataset.index)
             const visible = flattenVisible(
-                this.nodesEmitter.get(),
+                this.nodesEmitter.get() ?? [],
                 new Set(this.expandedKeysEmitter.get()),
             )
             const matches = Object.is(visible[index]?.node.id, key)

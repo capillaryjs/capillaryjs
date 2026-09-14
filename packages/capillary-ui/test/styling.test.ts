@@ -327,6 +327,7 @@ describe('style registry', () => {
         assert.match(stylesheet, /cap-listview > \[role="listbox"\],\s*cap-listview > ul\[aria-hidden="true"\]\s*\{[^}]*list-style:\s*none/)
         assert.match(stylesheet, /cap-listview > \[role="listbox"\] > \[role="option"\],[^{]*\{[^}]*line-height:\s*calc\(var\(--ui-font-size\)/)
         assert.match(stylesheet, /cap-listview > \[role="listbox"\] > \[role="option"\]:hover\s*\{[^}]*background:\s*var\(--hover-bg-color, #f5f5f5\)/)
+        assert.match(stylesheet, /cap-listview\s*\{[^}]*flex:\s*1 1 auto[^}]*min-block-size:\s*0[^}]*max-block-size:\s*100%[^}]*overflow:\s*auto/)
         assert.match(stylesheet, /cap-listview > \[role="listbox"\] > \[role="option"\]\[aria-selected="true"\]\s*\{[^}]*background:\s*var\(--selected-bg-color, #e0e7ff\)/)
         assert.match(stylesheet, /cap-placeholder::after/)
         assert.doesNotMatch(stylesheet, /cap-list-view|data-part|(?:^|\n)div\s*\{|cap-panel|cap-sidebar/)
@@ -337,6 +338,7 @@ describe('style registry', () => {
         runtime.registerStyles(TreeView)
         const stylesheet = runtime.styleRegistry.generateCSS()
 
+        assert.match(stylesheet, /cap-treeview\s*\{[^}]*flex:\s*1 1 auto[^}]*min-block-size:\s*0[^}]*max-block-size:\s*100%[^}]*overflow:\s*auto/)
         assert.match(stylesheet, /cap-treeview > \[role="tree"\],[\s\S]*cap-treeview > ul\[aria-hidden="true"\]\s*\{[^}]*list-style:\s*none/)
         assert.match(stylesheet, /cap-treeview \[role="treeitem"\]:hover\s*\{[^}]*background:\s*var\(--button-background-hover\)/)
         assert.match(stylesheet, /cap-treeview \[role="treeitem"\]:focus-visible\s*\{[^}]*box-shadow:\s*var\(--focus-ring\)/)
@@ -362,9 +364,10 @@ describe('style registry', () => {
         runtime.registerStyles(DataTable)
         const stylesheet = runtime.styleRegistry.generateCSS()
 
-        assert.match(stylesheet, /cap-datatable\s*\{[^}]*display:\s*block[^}]*overflow:\s*auto/)
+        assert.match(stylesheet, /cap-datatable\s*\{[^}]*display:\s*block[^}]*flex:\s*1 1 auto[^}]*min-block-size:\s*0[^}]*max-block-size:\s*100%[^}]*overflow:\s*auto/)
         assert.match(stylesheet, /cap-datatable > table > thead\s*\{[^}]*color:\s*var\(--table-header-color\)[^}]*background:\s*var\(--ui-gradient\)/)
-        assert.match(stylesheet, /cap-datatable > table > thead > tr > th\[aria-sort\]\s*\{[^}]*position:\s*relative/)
+        assert.match(stylesheet, /cap-datatable > table > thead > tr > th\s*\{[^}]*position:\s*sticky[^}]*inset-block-start:\s*0[^}]*background:\s*var\(--ui-gradient\)/)
+        assert.match(stylesheet, /cap-datatable > table > thead > tr > th\[aria-sort\]\s*\{[^}]*position:\s*sticky[^}]*inset-block-start:\s*0/)
         assert.match(stylesheet, /button\.sort > span\.sortindicator\s*\{[^}]*right:\s*20px[^}]*text-align:\s*center/)
         assert.match(stylesheet, /button\.filter\s*\{[^}]*right:\s*2px[^}]*opacity:\s*0\.5/)
         assert.match(stylesheet, /cap-datatable > table > tbody > tr\[aria-selected="true"\] > td\s*\{[^}]*background:\s*var\(--ui-select-bg\)/)

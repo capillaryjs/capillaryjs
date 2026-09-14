@@ -233,11 +233,30 @@ should choose a named policy.
 `refresh()` and `retry()` return the active request promise. A newer request
 aborts and supersedes the older request, and stale results cannot overwrite
 current state. `abort()` cancels without disposing; `dispose()` aborts the
-active request and releases argument/polling subscriptions.
+active request and releases argument/polling subscriptions. They retain a prior
+successful result by default. For a transition that changes the conceptual
+dataset, explicitly clear it while loading:
+
+```ts
+query.refresh('project changed', {retention: 'replace'})
+```
+
+`retry()` inherits the failed request's retention policy unless its options
+explicitly override it.
+
+Argument-triggered refreshes also retain by default. Mark an argument that
+identifies a different conceptual dataset with `replaceArg()`:
+
+```ts
+const projects = new LiveQuery({
+    handler,
+    args: {projectId: replaceArg(projectId), sort, filters},
+})
+```
 
 By default the last successful value remains visible while refreshing and after
-a refresh error. Set `keepPreviousValue: false` to clear it while loading or in
-error state.
+a refresh error. `retention: 'replace'` clears it for one explicit transition;
+set `keepPreviousValue: false` to clear it for every refresh and error state.
 
 Polling is opt-in and waits one full interval before the first poll:
 

@@ -459,20 +459,28 @@ fallbacks are only safe for immutable ordering. `ListView.items` and
 `TreeView.nodes` accept static arrays or readable emitters and present loading,
 empty, and error states from the emitter snapshot.
 
+These collection views are their own scroll owners when a bounded layout
+constrains them: they shrink before their parent must overflow, then scroll in
+both axes as needed. Place them directly in a bounded `Layout`, `Panel`, or
+SplitView pane; a parent may still opt into scrolling for its unrelated
+content. `DataTable` keeps every header cell sticky at the top of its own
+scrollport, including sortable and filterable headers.
+
 `DataTable` and `ListView` default to a single selected row; pass
 `multiSelect={true}` with an optional `selectedItemsEmitter` for multi-row
 selection. In that mode Ctrl (or Cmd) toggles an individual row. Shift applies
 the anchor row's selected or unselected state to every row in the inclusive
 range while retaining selections outside that range.
 
-On every initial/loading snapshot, all three collection views render
-deterministic, `aria-hidden` placeholder rows; `placeholderCount` selects their
-count. Cached rows remain in the emitter but are not rendered or selectable
-while the placeholder texture animates. Application renderers never receive
-dummy values, and refreshes preserve valid keyed selections and expansions. Error
-snapshots retain any available rows, add an error edge and overlay detail icon,
-and stop the loading animation. A `DataTable` data source with `retry` also
-renders its localized retry action.
+On an initial snapshot, or a loading snapshot with no result, all three
+collection views render deterministic, `aria-hidden` placeholder rows;
+`placeholderCount` selects their count. A loading snapshot with retained rows
+keeps those rows in place and marks the collection busy, avoiding flicker during
+sort and filter refinements. Application renderers never receive dummy values,
+and refreshes preserve valid keyed selections and expansions. Error snapshots
+retain any available rows, add an error edge and overlay detail icon, and stop
+the loading animation. A `DataTable` data source with `retry` also renders its
+localized retry action.
 
 Advanced compositions may use `BaseSelectionHandler`,
 `SingleSelectionHandler`, `MultiSelectionHandler`, and
@@ -853,6 +861,12 @@ The allocation traits are structural and independently composable:
 - `cap-size-flexible` shares remaining main-axis space and supplies zero
   logical minimums so nested content can shrink;
 - `cap-scroll` makes a bounded node the explicit overflow owner.
+
+`DataTable`, `ListView`, and `TreeView` are a component-specific exception to
+the otherwise explicit scroll-owner rule: each becomes the scroll owner when a
+bounded flex parent constrains it. This prevents a collection's rows from
+pushing its layout container into overflow. It does not make arbitrary sibling
+content scrollable or select scrolling for application-owned native elements.
 
 `Header`, `Layout`, `NavigationBar`, `Panel`, `Sidebar`, `SplitView`, and
 `Toolbar` accept

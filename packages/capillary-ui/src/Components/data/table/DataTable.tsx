@@ -155,11 +155,14 @@ export class DataTable<TRow extends TableRow = TableRow>
     }
 
     render(): CapillaryUiChild {
-        const rows = this.query?.get() ?? []
+        const result = this.query?.get()
+        const rows = result ?? []
         if (!Array.isArray(rows)) throw new TypeError('DataTable query value must be an array')
         const status = this.query?.getFetchState() ?? FetchState.Initial
         const error = this.query?.getError()
         const isLoading = status === FetchState.Initial || status === FetchState.Loading
+        const replacesContent = status === FetchState.Initial
+            || (status === FetchState.Loading && result === undefined)
         const selectedKeys = new Set(
             this.selectedItemsEmitter.get().map((item, index) => this.rowKey(item, index)),
         )
@@ -167,7 +170,7 @@ export class DataTable<TRow extends TableRow = TableRow>
         return <Host
             className={componentClass(this.props) || null}
         >
-            {isLoading ? <p role="status">{this.capillaryUiMessage('dataTableLoading')}</p> : null}
+            {replacesContent ? <p role="status">{this.capillaryUiMessage('dataTableLoading')}</p> : null}
             {status === FetchState.Error
                 ? <ErrorMessage
                     className="cap-error-banner"
@@ -199,7 +202,7 @@ export class DataTable<TRow extends TableRow = TableRow>
                         : {onFilterChange: this.props.onFilterChange})}
                 />
                 <tbody>
-                    {isLoading
+                    {replacesContent
                         ? this.renderPlaceholders()
                         : rows.length > 0
                             ? rows.map((row, index) =>
@@ -289,6 +292,10 @@ export class DataTable<TRow extends TableRow = TableRow>
         & {
             display: block;
             position: relative;
+            flex: 1 1 auto;
+            min-inline-size: 0;
+            min-block-size: 0;
+            max-block-size: 100%;
             overflow: auto;
         }
 

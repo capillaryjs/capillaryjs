@@ -2,10 +2,12 @@ import {
     DerivedEmitter,
     Emitter,
     LiveQuery,
+    replaceArg,
     RestEndpoint,
 } from '@capillaryjs/capillary'
 import type {
     LiveQueryExecution,
+    LiveQueryRefreshOptions,
     QueryHandlerLike,
     RetryPolicy,
 } from '@capillaryjs/capillary'
@@ -40,6 +42,10 @@ const query = new LiveQuery<Result, {term: Emitter<string>}>({
     retry: retryPolicy,
 })
 query.get()?.id.toUpperCase()
+const replacement: LiveQueryRefreshOptions = {retention: 'replace'}
+void query.refresh('project changed', replacement)
+const project = replaceArg(new Emitter('project-a'))
+new LiveQuery({handler: {fetch: ({project: id}: {project: string}) => ({id})}, args: {project}})
 const execution: LiveQueryExecution = 'deferred'
 const deferredQuery = new LiveQuery<Result, {term: Emitter<string>}>({
     handler,

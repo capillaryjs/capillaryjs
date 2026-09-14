@@ -60,8 +60,9 @@ export class DataComponentsPage extends Component<DataComponentsPageProps> {
                     {snapshot.error == null ? '' : ` — ${String(snapshot.error)}`}
                 </p>
                 <p class="gallery-data-guidance">
-                    Initial and Loading replace data with placeholders, including during refresh.
-                    Error shows an alert; tables, lists, and trees retain stale rows.
+                    Initial loading replaces data with placeholders. Background loading keeps table,
+                    list, and tree rows visible while marking them busy. Error shows an alert while
+                    retaining available rows.
                     The table and list support multi-selection: Ctrl or Cmd toggles one row;
                     Shift applies the anchor row's selected state to its inclusive range. The table
                     offers retry.

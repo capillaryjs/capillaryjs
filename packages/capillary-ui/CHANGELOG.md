@@ -6,7 +6,17 @@ Versioning.
 
 ## Unreleased
 
+### Changed
+
+- Make DataTable, ListView, and TreeView shrink and own overflow before a
+  bounded flex layout container must scroll. DataTable header cells now remain
+  sticky within the table's scrollport.
+
 ### Fixed
+
+- Keep retained table, list, and tree rows visible and busy during background
+  loading. Placeholders now represent initial loads and explicit result
+  replacement only.
 
 - Make multi-row `DataTable` and `ListView` Shift selection apply the anchor
   row's selected state across the range while retaining rows selected outside it.
@@ -16,9 +26,6 @@ Versioning.
 - Render Sidebar's complementary landmark on its component host, removing the
   redundant inner `aside` wrapper while retaining fixed header/toolbar and
   scrolling content behavior.
-- Replace retained table/list/tree rows with noninteractive skeletons during
-  Initial and Loading states, without mutating cached emitter values or keyed
-  selections. Keep loading placeholders visible in forced-colors mode.
 - Let GroupBoxes size naturally from their content rather than an inherited or
   synthetic preferred width. Fields retain their input floor, shrink before
   wrapping, and their owning region scrolls only below the combined minimum.

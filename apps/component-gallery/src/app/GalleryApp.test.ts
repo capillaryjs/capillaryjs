@@ -165,7 +165,7 @@ test('toolbar toggles switch layout variant and shared data state', async () => 
     router.dispose()
 })
 
-test('data page demonstrates initial and refresh skeletons, errors, retry, and empty states',
+test('data page demonstrates initial skeletons, retained refreshes, errors, retry, and empty states',
     async () => {
         const adapter = new MemoryNavigationAdapter('/data-components')
         const router = createBrowserRouter({adapter})
@@ -207,7 +207,10 @@ test('data page demonstrates initial and refresh skeletons, errors, retry, and e
             ?.cells.item(0)?.textContent, 'Runtime', 'toolbar resets derived table state')
 
         toolbarOption('Loading').click()
-        assert.equal(document.querySelectorAll('#gallery-table tbody > tr[aria-hidden="true"]').length, 5)
+        assert.equal(document.querySelectorAll('#gallery-table tbody > tr[aria-hidden="true"]').length, 0)
+        assert.ok(document.querySelectorAll('#gallery-table tbody [data-cap-selectable-row]').length > 0)
+        assert.ok(document.querySelectorAll('#gallery-collections [role="option"]').length > 0)
+        assert.ok(document.querySelectorAll('#gallery-collections [role="treeitem"]').length > 0)
         assert.equal(document.querySelector('#gallery-table table')?.getAttribute('aria-busy'), 'true')
         assert.equal(document.querySelector('#gallery-collections cap-listview')
             ?.getAttribute('aria-busy'), 'true')
@@ -216,8 +219,7 @@ test('data page demonstrates initial and refresh skeletons, errors, retry, and e
         assert.equal(document.querySelector('#gallery-blockgraph cap-blockgraph')
             ?.getAttribute('aria-busy'), 'true')
         assert.ok(document.querySelector('#gallery-blockgraph cap-blockskeleton cap-placeholder'))
-        assert.doesNotMatch(document.querySelector('.gallery-main')?.textContent ?? '',
-            /Runtime|Visualization|Platform|3 items/)
+        assert.match(document.querySelector('.gallery-main')?.textContent ?? '', /Runtime/)
 
         toolbarOption('Error').click()
         assert.ok(document.querySelectorAll('#gallery-table cap-error[role="alert"]').length > 0)

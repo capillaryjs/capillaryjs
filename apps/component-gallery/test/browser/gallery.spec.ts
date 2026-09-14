@@ -43,6 +43,24 @@ for (const variant of ['App shell', 'Website']) {
     })
 }
 
+test('Website variant grows the document and scrolls the page, not an inner region', async ({page}) => {
+    // A short viewport guarantees the line-inputs content overflows the page.
+    await page.setViewportSize({width: 1400, height: 600})
+    await page.getByRole('radio', {name: 'Website', exact: true}).click()
+
+    const metrics = await page.evaluate(() => {
+        const visiblePage = [...document.querySelectorAll<HTMLElement>('.gallery-page')]
+            .find((element) => element.offsetParent !== null)
+        const main = visiblePage?.querySelector<HTMLElement>('.gallery-main')
+        return {
+            documentScrolls: document.documentElement.scrollHeight > window.innerHeight,
+            mainInternalScroll: main == null ? null : main.scrollHeight > main.clientHeight + 1,
+        }
+    })
+    expect(metrics.documentScrolls).toBe(true)
+    expect(metrics.mainInternalScroll).toBe(false)
+})
+
 test('section rules and natural columns retain usable control floors', async ({page}) => {
     await page.setViewportSize({width: 2000, height: 1100})
     const section = page.locator('#gallery-basic-inputs')
@@ -224,19 +242,37 @@ test('labelled island Panels make one data surface flush without a duplicate tab
     await expect(page.locator('#gallery-table')).toHaveAttribute('aria-labelledby')
 })
 
-test('all four data controls replace cached values with accessible refresh skeletons', async ({page}, testInfo) => {
+test('data collections retain rows during refresh while initial loads use skeletons', async ({page}, testInfo) => {
     await page.goto('/#/data-components')
     const main = page.locator('.gallery-main')
     await expect(main.getByRole('treeitem').first()).toBeVisible()
+    const collections = ['#gallery-table cap-datatable', '#gallery-collections cap-listview',
+        '#gallery-collections cap-treeview']
+    const blockGraph = '#gallery-blockgraph cap-blockgraph'
     for (const state of ['Loading', 'Ready', 'Initial', 'Ready', 'Loading']) {
         await page.locator('.gallery-controls').getByRole('radio', {name: state, exact: true}).click()
-        for (const selector of ['#gallery-table cap-datatable', '#gallery-collections cap-listview',
-            '#gallery-collections cap-treeview', '#gallery-blockgraph cap-blockgraph']) {
-            const control = page.locator(selector)
-            if (state === 'Ready') {
-                await expect(control.locator('cap-placeholder')).toHaveCount(0)
-                continue
+        if (state === 'Ready') {
+            for (const selector of [...collections, blockGraph]) {
+                await expect(page.locator(selector).locator('cap-placeholder')).toHaveCount(0)
             }
+            continue
+        }
+        if (state === 'Loading') {
+            for (const selector of collections) {
+                const control = page.locator(selector)
+                const busyTarget = selector.includes('cap-datatable')
+                    ? control.locator('table')
+                    : control
+                await expect(busyTarget).toHaveAttribute('aria-busy', 'true')
+                await expect(control.locator('cap-placeholder')).toHaveCount(0)
+                await expect(control.locator('[data-cap-selectable-row], [role="treeitem"], [role="option"]'))
+                    .not.toHaveCount(0)
+            }
+            await expect(page.locator(blockGraph).locator('cap-placeholder').first()).toBeVisible()
+            continue
+        }
+        for (const selector of [...collections, blockGraph]) {
+            const control = page.locator(selector)
             await expect(control.locator('cap-placeholder').first()).toBeVisible()
             await expect(control.locator('[data-cap-selectable-row], [role="treeitem"], [role="option"]'))
                 .toHaveCount(0)

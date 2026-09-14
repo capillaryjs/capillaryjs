@@ -34,7 +34,12 @@ export type {
     QueryArgumentEmitters,
     QueryArgumentValues,
 } from './emitters/liveQuery.js'
-export type {LiveResult, RefreshableLiveResult} from './emitters/liveResult.js'
+export type {
+    LiveQueryRefreshOptions,
+    LiveQueryRetention,
+    LiveResult,
+    RefreshableLiveResult,
+} from './emitters/liveResult.js'
 
 export {combineFetchStates, FetchState, FetchStateValues} from './enums/fetchState.js'
 export type {FetchStateValue} from './enums/fetchState.js'
@@ -48,6 +53,7 @@ export type {
 } from './retryPolicy.js'
 
 export {QueryArg} from './queryhandling/queryArg.js'
+export {isReplacementArgument, replaceArg} from './queryhandling/replaceArg.js'
 export {QueryHandler} from './queryhandling/queryHandler.js'
 export type {
     AbortSignalLike,

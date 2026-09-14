@@ -47,7 +47,7 @@ test('busy controls animate their painted surface without disabling inputs', asy
     }
 })
 
-test('data components replace initial and retained loading data with hidden skeletons', async ({page}) => {
+test('data components replace initial data but retain rows during background loading', async ({page}) => {
     const root = page.locator('#status-root')
     const initial = root.locator('.initial-data')
     await expect(initial.locator('cap-datatable tbody > tr[aria-hidden="true"]'))
@@ -63,12 +63,9 @@ test('data components replace initial and retained loading data with hidden skel
     await expect(retained.locator('cap-treeview'))
         .toHaveAttribute('aria-busy', 'true')
 
-    await expect(retained.locator('[data-cap-selectable-row], [role="treeitem"]')).toHaveCount(0)
-    for (const selector of ['cap-datatable', 'cap-listview', 'cap-treeview']) {
-        const animationName = await retained.locator(`${selector} cap-placeholder`).first().evaluate((element) =>
-            getComputedStyle(element, '::after').animationName)
-        expect(animationName, selector).toContain('cap-working-progress')
-    }
+    await expect(retained.locator('[data-cap-selectable-row]')).toHaveCount(4)
+    await expect(retained.getByRole('treeitem')).toHaveCount(2)
+    await expect(retained.locator('cap-placeholder')).toHaveCount(0)
 
     const failed = root.locator('.error-data')
     await expect(failed.getByRole('alert')).toHaveCount(3)

@@ -340,6 +340,41 @@ DateTimePicker.new({
     max: '2026-12-31T23:59',
 }).attachTo(requiredElement('#datetime-root'))
 
+interface ScrollPriorityRow {
+    [field: string]: unknown
+    id: string
+    label: string
+    name: string
+}
+
+const scrollPriorityRows: readonly ScrollPriorityRow[] = Array.from({length: 40}, (_, index) => ({
+    id: `row-${index + 1}`,
+    label: `Row ${index + 1}`,
+    name: `Record ${index + 1}`,
+}))
+
+Layout.new({
+    id: 'data-scroll-priority',
+    vertical: true,
+    scroll: true,
+    children: [
+        h(DataTable, {
+            data: scrollPriorityRows,
+            rowKey: 'id',
+            columns: [{field: 'name', label: 'Name'}],
+        }),
+        h(ListView, {
+            items: scrollPriorityRows,
+            itemKey: 'id',
+            label: 'Scrollable records',
+        }),
+        h(TreeView, {
+            nodes: scrollPriorityRows,
+            label: 'Scrollable hierarchy',
+        }),
+    ],
+}).attachTo(requiredElement('#data-scroll-priority-root'))
+
 if (fixtureOptions.get('status') === 'true') {
     interface StatusRow {
         [field: string]: unknown

@@ -20,7 +20,7 @@ package root.
 | --- | --- | --- |
 | Reactive values | `BaseEmitter`, `Emitter`, `DerivedEmitter` | readable emitter, notification, snapshot update, source/value inference, mapping and option types |
 | Fetch state | `FetchState`, `FetchStateValues`, `combineFetchStates` | `FetchStateValue` |
-| Live queries | `QueryArg`, `LiveQuery` | argument, `LiveQueryExecution`, polling, scheduler, retry, `LiveResult`, and `RefreshableLiveResult` contracts |
+| Live queries | `QueryArg`, `replaceArg`, `LiveQuery` | argument, `LiveQueryExecution`, polling, scheduler, retry, retention, `LiveResult`, and `RefreshableLiveResult` contracts |
 | Retrieval | `QueryHandler`, `RestQueryHandler` | handler, request, Fetch/URL/response, serializer, parser, and REST option contracts |
 | Endpoints | `QueryEndpoint`, `RestEndpoint`, `DerivedEndpoint`, `DerivedLiveResult`, `queryEndpoint`, `restEndpoint`, `derivedEndpoint` | declaration and open-result option types |
 | Commands | `AsyncCommand`, `AsyncCommandConcurrencyError` | executor, context, concurrency, retry, and option types |
@@ -38,6 +38,10 @@ Important compatibility boundaries:
 - `LiveQuery` decides when to execute and protects latest-result ownership. Its
   handler decides how retrieval, authentication, wire serialization, and
   response validation work.
+- `LiveQuery.refresh()` and `retry()` retain a successful result by default.
+  Their `LiveQueryRefreshOptions` may specify `retention: 'replace'` for an
+  explicit conceptual dataset transition; retry inherits the failed request's
+  policy unless overridden.
 - The `LiveQuery` `execution` option is `immediate`, one-way `deferred` activation, or
   permanently `explicit`; `activate()` is idempotent and subscriptions never
   imply activation. Historical `autoFetch: false` still skips only the
@@ -145,11 +149,10 @@ Notable public behavior:
 - `TreeView` provides controlled selection and expansion, keyboard navigation,
   typeahead, per-label class/style callbacks, and configurable loading
   placeholder rows.
-- `ListView`, `TreeView`, and `DataTable` replace displayed data with hidden
-  placeholder rows for every Initial/Loading snapshot, including refreshes
-  with cached values. Emitters and valid keyed selections are preserved;
-  application row renderers are not called for skeletons. Error snapshots
-  retain visible error feedback alongside stale values.
+- `ListView`, `TreeView`, and `DataTable` show hidden placeholder rows for an
+  initial or result-less loading snapshot. Retained refresh rows remain visible
+  and busy; application row renderers are not called for skeletons. Error
+  snapshots retain visible error feedback alongside stale values.
 - `DataTable` accepts exactly one of direct `data`, a caller-owned
   `dataSource`, or table-owned `rest` options.
 - `DataTable`, `ListView`, and `TreeView` declare the static `dataSurface`
@@ -158,6 +161,9 @@ Notable public behavior:
   body inset; other Panel bodies retain it. A DataTable in that composition
   omits its own caption because the labelled Panel supplies the data-region
   name.
+- `DataTable`, `ListView`, and `TreeView` shrink and own overflow inside a
+  bounded flex layout before that layout must scroll. DataTable header cells
+  remain sticky within its local scrollport.
 - Rich `Checkbox` and `TableColumn` labels accept a textual `ariaLabel` for
   Capillary UI-generated state, sort, and filter accessibility messages.
 - `Dialog` uses a native modal surface with focus containment and restoration.
@@ -302,6 +308,8 @@ available and apply the same canvas, color, and typography values.
 only distributes an existing bound; flexible allocation does not imply
 overflow. Existing component and filled-island overflow remain compatibility
 defaults, while an explicit inner scroll owner determines actual scroll range.
+Collection data-surface components own their local overflow when constrained;
+this component contract does not change generic trait behavior.
 
 The `Layout` component maps required `horizontal` or `vertical` modifiers to
 the direction traits. Panel uses Layout for its body. SplitView requires its

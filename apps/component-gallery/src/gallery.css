@@ -139,8 +139,10 @@ body {
     margin-inline: auto;
 }
 
-/* The embedded root has no definite height, so the flexible page region would
-   resolve to zero; give it a floor and let the document scroll instead. */
+/* The embedded root has no definite height, so a flexible (flex-basis: 0) page
+   region would resolve to zero; make it content-sized with a floor and let the
+   document scroll instead. */
 .gallery-website .gallery-page {
+    flex: 0 0 auto;
     min-block-size: 34rem;
 }

@@ -6,6 +6,12 @@ Versioning.
 
 ## Unreleased
 
+### Added
+
+- Added an explicit `LiveQuery` refresh/retry retention policy. Refreshes retain
+  a successful result by default; `{retention: 'replace'}` clears it for a
+  conceptual dataset transition, and retries inherit the failed request policy.
+
 ## 1.0.0 - 2026-09-14
 
 ### Changed

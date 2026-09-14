@@ -18,7 +18,7 @@ import type {
 } from '../selectionhandler.js'
 
 interface ListViewCommonProps<TItem> extends ComponentProps {
-    items?: readonly TItem[] | ReadableEmitter<readonly TItem[], unknown>
+    items?: readonly TItem[] | ReadableEmitter<readonly TItem[] | undefined, unknown>
     itemKey?: string | ItemKeyGetter<TItem>
     label?: string
     placeholderCount?: number
@@ -41,8 +41,8 @@ export type ListViewProps<TItem = unknown> = ListViewCommonProps<TItem> & (
 /** Accessible listbox with stable-key selection. */
 export class ListView<TItem = unknown> extends Component<ListViewProps<TItem>> {
     static override liveProps: readonly string[] = []
-    readonly itemsEmitter: ReadableEmitter<readonly TItem[], unknown>
-    readonly items$: ReadableEmitter<readonly TItem[], unknown>
+    readonly itemsEmitter: ReadableEmitter<readonly TItem[] | undefined, unknown>
+    readonly items$: ReadableEmitter<readonly TItem[] | undefined, unknown>
     readonly selectedItemsEmitter: ValueEmitter<TItem[]>
     readonly selectedItems$: ValueEmitter<TItem[]>
     readonly selectedItemEmitter: ValueEmitter<TItem | null> | null
@@ -53,7 +53,7 @@ export class ListView<TItem = unknown> extends Component<ListViewProps<TItem>> {
 
     constructor(props: ListViewProps<TItem> = {}) {
         super(props)
-        if (isReadableEmitter<readonly TItem[]>(props.items)) {
+        if (isReadableEmitter<readonly TItem[] | undefined>(props.items)) {
             this.itemsEmitter = props.items
             this.ownedItemsEmitter = null
         } else {
@@ -72,7 +72,7 @@ export class ListView<TItem = unknown> extends Component<ListViewProps<TItem>> {
                 ...(props.selectedItemsEmitter == null
                     ? {}
                     : {selectedItemsEmitter: props.selectedItemsEmitter}),
-                getItems: () => this.itemsEmitter.get(),
+                getItems: () => this.itemsEmitter.get() ?? [],
                 getKey: this.getItemKey,
             })
             : createSelectionHandler({
@@ -80,7 +80,7 @@ export class ListView<TItem = unknown> extends Component<ListViewProps<TItem>> {
                 ...(props.selectedItemEmitter == null
                     ? {}
                     : {selectedItemEmitter: props.selectedItemEmitter}),
-                getItems: () => this.itemsEmitter.get(),
+                getItems: () => this.itemsEmitter.get() ?? [],
                 getKey: this.getItemKey,
             })
         this.selectedItemsEmitter = this.selectionHandler.selectedItemsEmitter
@@ -108,11 +108,16 @@ export class ListView<TItem = unknown> extends Component<ListViewProps<TItem>> {
     }
 
     render(): CapillaryUiChild {
-        const rows = this.itemsEmitter.get()
-        if (!Array.isArray(rows)) throw new TypeError('ListView items must be an array')
+        const result = this.itemsEmitter.get()
+        if (result !== undefined && !Array.isArray(result)) {
+            throw new TypeError('ListView items must be an array')
+        }
+        const rows = result ?? []
         const status = this.itemsEmitter.getFetchState()
         const error = this.itemsEmitter.getError()
         const isLoading = status === FetchState.Initial || status === FetchState.Loading
+        const replacesContent = status === FetchState.Initial
+            || (status === FetchState.Loading && result === undefined)
         const selectedKeys = new Set(this.selectedItemsEmitter.get()
             .map((item, index) => this.getItemKey(item, index)))
 
@@ -128,7 +133,7 @@ export class ListView<TItem = unknown> extends Component<ListViewProps<TItem>> {
                     fallback={this.capillaryUiMessage('listViewLoadError')}
                 />
                 : null}
-            {isLoading
+            {replacesContent
                 ? <>
                     <p role="status">{this.capillaryUiMessage('listViewLoading')}</p>
                     <ul aria-hidden="true">
@@ -142,7 +147,7 @@ export class ListView<TItem = unknown> extends Component<ListViewProps<TItem>> {
             {status === FetchState.Ready && rows.length === 0
                 ? <p role="status">{this.capillaryUiMessage('listViewEmpty')}</p>
                 : null}
-            {!isLoading && rows.length > 0
+            {!replacesContent && rows.length > 0
                 ? <ul
                     role="listbox"
                     aria-label={this.props.label ?? this.capillaryUiMessage('listViewLabel')}
@@ -203,9 +208,12 @@ export class ListView<TItem = unknown> extends Component<ListViewProps<TItem>> {
         & {
             display: flex;
             position: relative;
+            flex: 1 1 auto;
             flex-direction: column;
-            overflow-y: auto;
-            height: 100%;
+            min-inline-size: 0;
+            min-block-size: 0;
+            max-block-size: 100%;
+            overflow: auto;
             padding: var(--ui-padding-v) var(--ui-padding-h);
             color: var(--ui-text-color);
             background: var(--ui-input-bg);

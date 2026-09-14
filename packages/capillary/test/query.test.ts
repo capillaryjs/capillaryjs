@@ -7,6 +7,7 @@ import {
     FetchState,
     LiveQuery,
     QueryArg,
+    replaceArg,
     RestQueryHandler,
 } from '../src/index.js'
 import type {
@@ -14,6 +15,7 @@ import type {
     EmitterNotification,
     JsonResponseLike,
     QueryRequestOptions,
+    ReadableEmitter,
 } from '../src/index.js'
 
 describe('QueryArg', () => {
@@ -72,6 +74,86 @@ describe('LiveQuery', () => {
         requests[1]?.request.resolve(['new result'])
         await query._activeRequest
         assert.deepEqual(query.get(), ['new result'])
+    })
+
+    test('explicit replacement clears a retained result until the new request settles', async () => {
+        const requests: Deferred<string>[] = []
+        const handler = {
+            fetch() {
+                const request = deferred<string>()
+                requests.push(request)
+                return request.promise
+            },
+        }
+        const query = new LiveQuery<string>({handler})
+
+        await nextMicrotask()
+        requests[0]?.resolve('first result')
+        await query._activeRequest
+        assert.equal(query.get(), 'first result')
+
+        void query.refresh('project changed', {retention: 'replace'})
+        assert.equal(query.getFetchState(), FetchState.Loading)
+        assert.equal(query.get(), undefined)
+
+        await nextMicrotask()
+        const failure = new Error('project unavailable')
+        requests[1]?.reject(failure)
+        await query._activeRequest
+        assert.equal(query.getFetchState(), FetchState.Error)
+        assert.equal(query.get(), undefined)
+        assert.equal(query.getError(), failure)
+
+        void query.retry('project retry')
+        assert.equal(query.getFetchState(), FetchState.Loading)
+        assert.equal(query.get(), undefined)
+        await nextMicrotask()
+        requests[2]?.resolve('second result')
+        await query._activeRequest
+        assert.equal(query.get(), 'second result')
+    })
+
+    test('replacement arguments clear retained data when they trigger a query', async () => {
+        type Arguments = {project: string, sort: string}
+        const requests: Array<{args: Arguments, request: Deferred<string>}> = []
+        const handler = {
+            fetch(args: Arguments) {
+                const request = deferred<string>()
+                requests.push({args, request})
+                return request.promise
+            },
+        }
+        const project = new Emitter('alpha')
+        const sort = new Emitter('name')
+        const query = new LiveQuery<string, {
+            project: ReadableEmitter<string>
+            sort: Emitter<string>
+        }>({
+            handler,
+            args: {project: replaceArg(project), sort},
+        })
+
+        await nextMicrotask()
+        requests[0]?.request.resolve('Alpha projects')
+        await query._activeRequest
+
+        sort.set('updated')
+        assert.equal(query.getFetchState(), FetchState.Loading)
+        assert.equal(query.get(), 'Alpha projects')
+        await nextMicrotask()
+        requests[1]?.request.resolve('Sorted alpha projects')
+        await query._activeRequest
+
+        project.set('beta')
+        assert.equal(query.getFetchState(), FetchState.Loading)
+        assert.equal(query.get(), undefined)
+        sort.set('name')
+        assert.equal(query.getFetchState(), FetchState.Loading)
+        assert.equal(query.get(), undefined, 'a concurrent refinement cannot restore replaced data')
+        await nextMicrotask()
+        requests.at(-1)?.request.resolve('Beta projects')
+        await query._activeRequest
+        assert.equal(query.get(), 'Beta projects')
     })
 
     test('aborts an older request and ignores out-of-order results', async () => {

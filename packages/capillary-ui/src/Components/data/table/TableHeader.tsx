@@ -59,6 +59,10 @@ export class TableHeader<TRow extends TableRow = TableRow>
         }
 
         cap-datatable > table > thead > tr > th {
+            position: sticky;
+            inset-block-start: 0;
+            z-index: 2;
+            background: var(--ui-gradient);
             border: 2px groove #fff7;
             border-left: none;
         }

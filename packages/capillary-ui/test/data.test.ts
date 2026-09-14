@@ -57,7 +57,7 @@ afterEach(() => {
 
 after(() => window.close())
 
-test('refresh skeletons bypass renderers and preserve collection selections and expansions', () => {
+test('initial skeletons bypass renderers while refreshes retain collection content', () => {
     const values = [{id: 'a', name: 'Cached row', label: 'Cached row',
         children: [{id: 'child', label: 'Cached child'}]}]
     const items = new Emitter(values)
@@ -79,16 +79,21 @@ test('refresh skeletons bypass renderers and preserve collection selections and 
     assert.equal(requiredQuery<HTMLElement>('cap-datatable').dataset.capSurface, 'data')
     assert.equal(requiredQuery<HTMLElement>('cap-listview').dataset.capSurface, 'data')
     assert.equal(requiredQuery<HTMLElement>('cap-treeview').dataset.capSurface, 'data')
-    for (const state of [FetchState.Loading, FetchState.Initial]) {
-        items.setWithState(values, state)
-        assert.equal(renders, rendered, 'no application renderer sees loading dummy rows')
-        assert.doesNotMatch(document.body.textContent ?? '', /Cached row|Cached child/)
-        assert.equal(document.querySelector('[data-cap-selectable-row], [role="treeitem"]'), null)
-        assert.equal(document.querySelectorAll('cap-placeholder').length, 15)
-        assert.equal(selected.get(), values[0])
-        assert.equal(selectedKey.get(), 'child')
-        assert.deepEqual(expanded.get(), ['a'])
-    }
+    items.setWithState(values, FetchState.Loading)
+    assert.ok(renders > rendered, 'retained rows are rendered during a refresh')
+    assert.match(document.body.textContent ?? '', /Cached row/)
+    assert.match(document.body.textContent ?? '', /Cached child/)
+    assert.equal(document.querySelectorAll('cap-placeholder').length, 0)
+    assert.equal(selected.get(), values[0])
+    assert.equal(selectedKey.get(), 'child')
+    assert.deepEqual(expanded.get(), ['a'])
+
+    const refreshedRenders = renders
+    items.setWithState(values, FetchState.Initial)
+    assert.equal(renders, refreshedRenders, 'initial loading does not invoke application renderers')
+    assert.doesNotMatch(document.body.textContent ?? '', /Cached row|Cached child/)
+    assert.equal(document.querySelector('[data-cap-selectable-row], [role="treeitem"]'), null)
+    assert.equal(document.querySelectorAll('cap-placeholder').length, 15)
     items.setWithState(values, FetchState.Ready)
     assert.equal(document.querySelectorAll('[aria-selected="true"]').length, 3)
     assert.equal(document.querySelector('[aria-busy="true"]'), null)
@@ -372,7 +377,7 @@ describe('stable data components', () => {
         assert.equal(requiredQuery<HTMLElement>('cap-label').textContent, 'Replacement')
     })
 
-    test('TreeView replaces retained loading rows with hidden placeholders and shows errors', () => {
+    test('TreeView keeps retained rows visible during loading and shows errors', () => {
         const nodes = new Emitter<readonly TreeNode[], Error>([], {
             fetchState: FetchState.Initial,
         })
@@ -384,10 +389,9 @@ describe('stable data components', () => {
         assert.equal(document.querySelector('[role="tree"]'), null)
 
         nodes.setWithState([{id: 'a', label: 'Alpha'}], FetchState.Loading)
-        assert.equal(document.querySelectorAll('cap-placeholder').length, 3)
+        assert.equal(document.querySelectorAll('cap-placeholder').length, 0)
         assert.equal(requiredQuery('cap-treeview').getAttribute('aria-busy'), 'true')
-        assert.equal(document.querySelector('[role="treeitem"]'), null)
-        assert.doesNotMatch(document.body.textContent ?? '', /Alpha/)
+        assert.equal(requiredQuery('[role="treeitem"]').textContent, '•Alpha')
 
         nodes.setWithState(
             [{id: 'a', label: 'Stale Alpha'}],
@@ -494,10 +498,9 @@ describe('stable data components', () => {
         assert.equal(requiredQuery('cap-placeholder').parentElement?.localName, 'li')
 
         items.setWithState([{id: 'retained'}], FetchState.Loading)
-        assert.equal(document.querySelectorAll('cap-placeholder').length, 5)
+        assert.equal(document.querySelectorAll('cap-placeholder').length, 0)
         assert.equal(requiredQuery('cap-listview').getAttribute('aria-busy'), 'true')
-        assert.equal(document.querySelector('[role="listbox"]'), null)
-        assert.doesNotMatch(document.body.textContent ?? '', /retained/)
+        assert.equal(document.querySelectorAll('[role="option"]').length, 1)
 
         items.setWithState([], FetchState.Ready)
         assert.equal(document.querySelector('[role="listbox"]'), null)
@@ -736,9 +739,9 @@ describe('stable data components', () => {
             .every((row) => row.getAttribute('aria-hidden') === 'true'))
 
         source.setWithState([{id: 1, name: 'Partial Ada'}], FetchState.Loading)
-        assert.match(requiredQuery('[role="status"]').textContent ?? '', /Loading rows/)
-        assert.equal(document.querySelectorAll('cap-placeholder').length, 2)
-        assert.equal(requiredQuery('tbody').textContent, '')
+        assert.equal(document.querySelector('[role="status"]'), null)
+        assert.equal(document.querySelectorAll('cap-placeholder').length, 0)
+        assert.equal(requiredQuery('tbody').textContent, 'Partial Ada')
 
         source.setWithState([], FetchState.Ready)
         assert.equal(document.querySelector('[role="status"]'), null)

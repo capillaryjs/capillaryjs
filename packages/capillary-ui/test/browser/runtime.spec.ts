@@ -95,6 +95,47 @@ test('Sidebar keeps its labelled header and toolbar outside the scrolling conten
         expect(headerOffsetTop).toBe(before.headerOffsetTop)
     })
 
+test('data surfaces own constrained scrolling and the table header stays fixed', async ({page}) => {
+    const root = page.locator('#data-scroll-priority')
+    await expect(root).toBeVisible()
+
+    const metrics = await root.evaluate((element) => {
+        const [table, list, tree] = [...element.children] as HTMLElement[]
+        const header = table?.querySelector<HTMLElement>('thead > tr > th')
+        if (table == null || list == null || tree == null || header == null) {
+            throw new Error('Missing constrained data surfaces')
+        }
+
+        table.scrollTop = 48
+        list.scrollTop = 48
+        tree.scrollTop = 48
+
+        const rootBounds = element.getBoundingClientRect()
+        const headerBounds = header.getBoundingClientRect()
+        return {
+            rootClientHeight: element.clientHeight,
+            rootScrollHeight: element.scrollHeight,
+            rootScrollTop: element.scrollTop,
+            surfaces: [table, list, tree].map((surface) => ({
+                clientHeight: surface.clientHeight,
+                scrollHeight: surface.scrollHeight,
+                scrollTop: surface.scrollTop,
+            })),
+            headerOffsetTop: headerBounds.top - table.getBoundingClientRect().top,
+            headerWithinRoot: headerBounds.top >= rootBounds.top,
+        }
+    })
+
+    expect(metrics.rootScrollHeight).toBeLessThanOrEqual(metrics.rootClientHeight + 1)
+    expect(metrics.rootScrollTop).toBe(0)
+    for (const surface of metrics.surfaces) {
+        expect(surface.scrollHeight).toBeGreaterThan(surface.clientHeight)
+        expect(surface.scrollTop).toBeGreaterThan(0)
+    }
+    expect(metrics.headerOffsetTop).toBeLessThanOrEqual(1)
+    expect(metrics.headerWithinRoot).toBe(true)
+})
+
 test('record-view primitives retain semantics, keyboard behavior, and dialog focus',
     async ({page}) => {
         const root = page.locator('#record-primitives-root')

@@ -149,7 +149,8 @@ export class TableHeaderCell extends Component<TableHeaderCellProps> {
 
     static override css = css`
         cap-datatable > table > thead > tr > th[aria-sort] {
-            position: relative;
+            position: sticky;
+            inset-block-start: 0;
             padding-right: 24px;
             user-select: var(--noselect-user-select);
             cursor: var(--noselect-cursor);

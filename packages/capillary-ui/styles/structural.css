@@ -666,6 +666,10 @@ cap-dropdown {
 cap-datatable {
             display: block;
             position: relative;
+            flex: 1 1 auto;
+            min-inline-size: 0;
+            min-block-size: 0;
+            max-block-size: 100%;
             overflow: auto;
         }
 
@@ -788,6 +792,10 @@ cap-datatable > table > thead {
         }
 
         cap-datatable > table > thead > tr > th {
+            position: sticky;
+            inset-block-start: 0;
+            z-index: 2;
+            background: var(--ui-gradient);
             border: 2px groove #fff7;
             border-left: none;
         }
@@ -797,7 +805,8 @@ cap-datatable > table > thead {
         }
 
 cap-datatable > table > thead > tr > th[aria-sort] {
-            position: relative;
+            position: sticky;
+            inset-block-start: 0;
             padding-right: 24px;
             user-select: var(--noselect-user-select);
             cursor: var(--noselect-cursor);
@@ -1404,9 +1413,12 @@ cap-infopanel {
 cap-listview {
             display: flex;
             position: relative;
+            flex: 1 1 auto;
             flex-direction: column;
-            overflow-y: auto;
-            height: 100%;
+            min-inline-size: 0;
+            min-block-size: 0;
+            max-block-size: 100%;
+            overflow: auto;
             padding: var(--ui-padding-v) var(--ui-padding-h);
             color: var(--ui-text-color);
             background: var(--ui-input-bg);
@@ -2325,9 +2337,11 @@ cap-toolbar {
 cap-treeview {
             display: flex;
             position: relative;
+            flex: 1 1 auto;
             flex-direction: column;
-            min-width: 0;
-            min-height: 0;
+            min-inline-size: 0;
+            min-block-size: 0;
+            max-block-size: 100%;
             overflow: auto;
         }
 
