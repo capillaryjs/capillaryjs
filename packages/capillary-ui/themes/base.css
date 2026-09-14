@@ -305,6 +305,7 @@
     --ui-table-bg-color: var(--ui-primary-bg-color);
     --ui-table-bg-color2: var(--ui-medium-bg-color);
     --input-width: 15em;
+    --groupbox-preferred-width: 15rem;
     --button-border-disabled: #777;
     --error-text-color-light: #fcc;
     --error-text-color-dark: #800;

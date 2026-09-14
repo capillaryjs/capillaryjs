@@ -143,17 +143,22 @@ Notable public behavior:
   implicit request lifecycle.
 - List, tree, and table selection reconcile fresh objects by stable key.
 - `TreeView` provides controlled selection and expansion, keyboard navigation,
-  typeahead, per-label class/style callbacks, and configurable initial
+  typeahead, per-label class/style callbacks, and configurable loading
   placeholder rows.
-- `ListView`, `TreeView`, and `DataTable` use hidden placeholder rows for empty
-  initial loads, animate retained rows during refresh, and preserve visible
-  error feedback alongside stale values.
+- `ListView`, `TreeView`, and `DataTable` replace displayed data with hidden
+  placeholder rows for every Initial/Loading snapshot, including refreshes
+  with cached values. Emitters and valid keyed selections are preserved;
+  application row renderers are not called for skeletons. Error snapshots
+  retain visible error feedback alongside stale values.
 - `DataTable` accepts exactly one of direct `data`, a caller-owned
   `dataSource`, or table-owned `rest` options.
 - Rich `Checkbox` and `TableColumn` labels accept a textual `ariaLabel` for
   Capillary UI-generated state, sort, and filter accessibility messages.
 - `Dialog` uses a native modal surface with focus containment and restoration.
 - `GroupBox` is a named group with a bordered body and vertical header.
+  Horizontal form groups use a soft `--groupbox-preferred-width` (15rem by
+  default), allow wider intrinsic content, and shrink fields to their floor
+  before wrapping. Vertical parents stretch groups without ancestor-wide caps.
 - `OptionGroup` renders a labelled `fieldset`/`legend` shell and accepts an
   `OptionGroupHeaderEnd` declarative region child.
 - `OptionsBox` extends `GroupBox` with a flex-column content area for `OptionGroup` children.

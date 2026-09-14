@@ -203,9 +203,8 @@ describe('style registry', () => {
         assert.match(stylesheet, /input\[aria-busy="true"\][^{]*\+ cap-checkshell\s*\{[^}]*animation:\s*cap-working-progress/)
         assert.match(stylesheet, /cap-toggle > cap-options\[aria-busy="true"\][\s\S]*button\[role="radio"\][\s\S]*animation:\s*cap-working-progress/)
         assert.match(stylesheet, /cap-progressbar:has\(> progress:indeterminate\) > cap-content::after[\s\S]*animation:\s*cap-working-progress/)
-        assert.match(stylesheet, /cap-datatable > table\[aria-busy="true"\][\s\S]*td::after[\s\S]*animation:\s*cap-working-progress/)
-        assert.match(stylesheet, /cap-listview > \[role="listbox"\]\[aria-busy="true"\][\s\S]*\[role="option"\]::after/)
-        assert.match(stylesheet, /cap-treeview > \[role="tree"\]\[aria-busy="true"\][\s\S]*\[role="treeitem"\]::after/)
+        assert.match(stylesheet, /cap-placeholder::after[\s\S]*animation:\s*cap-working-progress/)
+        assert.doesNotMatch(stylesheet, /td::after|\[role="option"\]::after|\[role="treeitem"\]::after/)
 
         assert.match(stylesheet, /cap-error\s*\{[^}]*position:\s*absolute/)
         assert.match(stylesheet, /cap-error > cap-erroricon\s*\{[^}]*background:\s*var\(--error-color\)/)
@@ -326,7 +325,7 @@ describe('style registry', () => {
 
         assert.match(stylesheet, /cap-listview\s*\{[^}]*background:\s*var\(--ui-input-bg\)[^}]*pointer-events:\s*all[^}]*white-space:\s*nowrap/)
         assert.match(stylesheet, /cap-listview > \[role="listbox"\],\s*cap-listview > ul\[aria-hidden="true"\]\s*\{[^}]*list-style:\s*none/)
-        assert.match(stylesheet, /cap-listview > \[role="listbox"\] > \[role="option"\]\s*\{[^}]*line-height:\s*calc\(var\(--ui-font-size\)/)
+        assert.match(stylesheet, /cap-listview > \[role="listbox"\] > \[role="option"\],[^{]*\{[^}]*line-height:\s*calc\(var\(--ui-font-size\)/)
         assert.match(stylesheet, /cap-listview > \[role="listbox"\] > \[role="option"\]:hover\s*\{[^}]*background:\s*var\(--hover-bg-color, #f5f5f5\)/)
         assert.match(stylesheet, /cap-listview > \[role="listbox"\] > \[role="option"\]\[aria-selected="true"\]\s*\{[^}]*background:\s*var\(--selected-bg-color, #e0e7ff\)/)
         assert.match(stylesheet, /cap-placeholder::after/)
@@ -524,7 +523,7 @@ describe('style registry', () => {
         const stylesheet = runtime.styleRegistry.generateCSS()
 
         assert.match(stylesheet, /\[data-cap-context='control'\]\s*\{[^}]*--cap-groupbox-flow:\s*row nowrap[^}]*--cap-groupbox-border:\s*1px solid var\(--ui-border-color\)[^}]*--cap-groupbox-header-color:\s*var\(--section-header-color\)[^}]*--cap-groupbox-header-writing:\s*vertical-rl/)
-        assert.match(stylesheet, /\[data-cap-context='form'\]\s*\{[^}]*--cap-groupbox-flow:\s*column nowrap[^}]*--cap-groupbox-border:\s*1px solid var\(--ui-border-color\)[^}]*--cap-groupbox-header-color:\s*var\(--text-color\)[^}]*--cap-groupbox-header-background:\s*none[^}]*--cap-groupbox-header-writing:\s*horizontal-tb/)
+        assert.match(stylesheet, /\[data-cap-context='form'\]\s*\{[^}]*--cap-groupbox-flow:\s*column nowrap[^}]*--cap-groupbox-border:\s*1px solid var\(--ui-border-color\)[^}]*--cap-groupbox-header-color:\s*var\(--text-color\)[^}]*--cap-groupbox-header-background:\s*var\(--panel-background\)[^}]*--cap-groupbox-header-writing:\s*horizontal-tb/)
     })
 
     test('collects Header CSS without unrelated component rules', () => {
@@ -616,7 +615,7 @@ describe('style registry', () => {
         runtime.registerStyles(DateTimePicker)
         const stylesheet = runtime.styleRegistry.generateCSS()
 
-        assert.match(stylesheet, /cap-datepicker\s*\{[^}]*display:\s*flex/)
+        assert.match(stylesheet, /cap-datepicker\s*\{[^}]*display:\s*grid/)
         assert.match(stylesheet, /cap-datepicker > input\s*\{[^}]*cursor:\s*text/)
         assert.match(stylesheet, /cap-datepicker > dialog\s*\{[^}]*position:/)
 

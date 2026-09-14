@@ -44,3 +44,12 @@ jobs:
 
       - name: Exercise Gradle release entry point
         run: ./gradlew publicReleasePreflight
+
+      - name: Retain failed browser diagnostics
+        if: failure()
+        uses: actions/upload-artifact@v6
+        with:
+          name: browser-failure-diagnostics
+          path: test-results/
+          if-no-files-found: ignore
+          retention-days: 7

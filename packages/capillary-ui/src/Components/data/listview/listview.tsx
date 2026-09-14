@@ -119,6 +119,7 @@ export class ListView<TItem = unknown> extends Component<ListViewProps<TItem>> {
         const Host = this.Host
         return <Host
             className={componentClass(this.props) || null}
+            aria-busy={isLoading ? 'true' : null}
         >
             {status === FetchState.Error
                 ? <ErrorMessage
@@ -127,7 +128,7 @@ export class ListView<TItem = unknown> extends Component<ListViewProps<TItem>> {
                     fallback={this.capillaryUiMessage('listViewLoadError')}
                 />
                 : null}
-            {isLoading && rows.length === 0
+            {isLoading
                 ? <>
                     <p role="status">{this.capillaryUiMessage('listViewLoading')}</p>
                     <ul aria-hidden="true">
@@ -141,7 +142,7 @@ export class ListView<TItem = unknown> extends Component<ListViewProps<TItem>> {
             {status === FetchState.Ready && rows.length === 0
                 ? <p role="status">{this.capillaryUiMessage('listViewEmpty')}</p>
                 : null}
-            {rows.length > 0
+            {!isLoading && rows.length > 0
                 ? <ul
                     role="listbox"
                     aria-label={this.props.label ?? this.capillaryUiMessage('listViewLabel')}
@@ -225,7 +226,8 @@ export class ListView<TItem = unknown> extends Component<ListViewProps<TItem>> {
             list-style: none;
         }
 
-        & > [role="listbox"] > [role="option"] {
+        & > [role="listbox"] > [role="option"],
+        & > ul[aria-hidden="true"] > li {
             display: flex;
             flex-flow: row nowrap;
             position: relative;
@@ -236,19 +238,11 @@ export class ListView<TItem = unknown> extends Component<ListViewProps<TItem>> {
             border-radius: var(--ui-border-radius);
             box-sizing: border-box;
             user-select: none;
+            align-items: center;
         }
 
-        & > [role="listbox"][aria-busy="true"] > [role="option"]::after {
-            content: "";
-            position: absolute;
-            z-index: 1;
-            inset: 0;
-            background-image: var(--working-background-image);
-            background-repeat: repeat;
-            background-size: 2rem 2rem;
-            border-radius: inherit;
-            animation: cap-working-progress .55s linear infinite;
-            pointer-events: none;
+        & > ul[aria-hidden="true"] cap-placeholder {
+            font-size: var(--ui-font-size);
         }
 
         & > [role="listbox"] > [role="option"]:hover {
@@ -266,12 +260,6 @@ export class ListView<TItem = unknown> extends Component<ListViewProps<TItem>> {
 
         &:has(> cap-error) {
             border-color: var(--error-color);
-        }
-
-        @media (prefers-reduced-motion: reduce) {
-            & > [role="listbox"][aria-busy="true"] > [role="option"]::after {
-                animation: none !important;
-            }
         }
 
         @media (forced-colors: active) {

@@ -8,10 +8,10 @@ test.beforeEach(async ({page}) => {
 
 // A line control inside a GroupBox nested in a horizontal Layout must shrink
 // below its 15rem default when the container is too narrow, down to its
-// min-width floor. Regression test for the groupbox min-width:0 shrink chain.
+// min-width floor. Below the label + field + chrome minimum the region scrolls.
 test('line control shrinks below 15rem inside a narrow groupbox', async ({page}) => {
     await page.evaluate(() => { document.body.innerHTML = `
-        <div class="probe-row cap-layout-horizontal" style="width:180px">
+        <div class="probe-row cap-layout-horizontal" style="width:200px;overflow:auto">
             <cap-groupbox>
                 <cap-header>Name</cap-header>
                 <cap-content>
@@ -34,8 +34,11 @@ test('line control shrinks below 15rem inside a narrow groupbox', async ({page})
         }
     })
 
-    // Container is 180px; the 15rem (240px) default must shrink to fit.
-    expect(m.groupbox).toBeLessThanOrEqual(180)
+    // 200px accommodates the native font, label, field floor and vertical header.
+    expect(m.groupbox).toBeLessThanOrEqual(200)
     expect(m.input).toBeLessThan(240)
     expect(m.input).toBeGreaterThanOrEqual(96) // min-width floor (6rem)
+    await page.locator('.probe-row').evaluate((e) => { (e as HTMLElement).style.width = '120px' })
+    expect(await page.locator('input').evaluate((e) => e.getBoundingClientRect().width)).toBeGreaterThanOrEqual(96)
+    expect(await page.locator('.probe-row').evaluate((e) => e.scrollWidth > e.clientWidth)).toBe(true)
 })

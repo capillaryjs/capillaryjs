@@ -37,14 +37,17 @@ the status line.
 
 | Page | Content |
 | --- | --- |
-| Line inputs | Every line-input control across three island panels (checkboxes, basic inputs, date/time), each with a `PanelToolbar` so controls render in both panel and toolbar contexts. `OptionGroup` fieldsets hold one instance per intrinsic state and content variant; every flag-capable prop binds the shared toolbar emitters via `live()`, so toggling a header flag makes that state the uniform expectation across the page and themed outliers stand out. The sidebar offers section navigation and reports the shared data state. |
-| Data components | `DataTable`, `ListView`, and `TreeView` share the toolbar-controlled emitter to demonstrate initial skeletons, retained-row loading, ready rows, visible errors, and table retry. A separate panel keeps ready-but-empty examples visible for comparison. |
+| Line inputs | One island and one combined `PanelToolbar`, with three section rows (checkboxes, basic inputs, date/time). Each row contains vertical `GroupBox` columns of intrinsic states and content variants. Shared `live()` flags apply throughout. Groups grow toward a soft 15rem preference, accommodate wider content, and shrink fields before wrapping. The sidebar offers section navigation, an evenly inset Filters group, and shared data state. |
+| Data components | `DataTable`, `ListView`, `TreeView`, and `BlockGraph` share the toolbar-controlled emitter. Initial and Loading render skeletons instead of cached values; Ready shows data. Error and table retry remain distinct. BlockGraph groups by team and status; its models are owned and disposed by `GalleryModel`. A separate panel keeps ready-but-empty table/list/tree examples visible. |
 
 Navigation uses the public router (`createBrowserRouter` +
 `createHashNavigation`), a `NavigationBar` of `RouteLink`s, and a `RouteOutlet`
 that mounts page content lazily.
 
 ## Commands
+
+The public workspace's `pnpm test:browser` includes this gallery in Chromium,
+Firefox, and WebKit, covering both layout variants and refresh transitions.
 
 ```bash
 pnpm --filter @sylwellsoftware/component-gallery dev        # http://127.0.0.1:3002

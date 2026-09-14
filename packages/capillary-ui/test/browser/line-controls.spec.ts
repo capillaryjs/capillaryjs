@@ -29,15 +29,33 @@ for (const theme of ['base', 'minimal', 'shiny', 'java']) {
                     const controls = Array.from(root.querySelectorAll(selector))
                     const labels = Array.from(root.querySelectorAll('[data-text]'))
                     const nativeSelects = Array.from(root.querySelectorAll('select'))
+                    const inputLines: {actual: number, expected: number}[] = []
                     const fonts = [...controls, ...labels, ...nativeSelects].map((e) => {
                         const s = getComputedStyle(e)
-                        return [s.fontFamily, s.fontSize, s.lineHeight]
+                        let lineHeight = s.lineHeight
+                        if (e instanceof HTMLInputElement) {
+                            // Gecko clamps a single-line input to the platform font's
+                            // native minimum (16px for Linux Helvetica fallback). Check
+                            // that minimum independently; the authored line is inherited.
+                            const probe = document.createElement('input')
+                            probe.style.cssText = 'position:absolute;visibility:hidden;appearance:none'
+                            probe.style.font = s.font
+                            probe.style.lineHeight = '0px'
+                            document.body.append(probe)
+                            const minimum = parseFloat(getComputedStyle(probe).lineHeight)
+                            probe.remove()
+                            lineHeight = getComputedStyle(e.parentElement!).lineHeight
+                            inputLines.push({actual: parseFloat(s.lineHeight),
+                                expected: Math.max(minimum, parseFloat(lineHeight))})
+                        }
+                        return {element: e.tagName, family: s.fontFamily, size: s.fontSize, lineHeight}
                     })
                     return {
                         heights: controls.map((e) => e.getBoundingClientRect().height),
                         centers: [...controls, ...labels, ...root.querySelectorAll('cap-checkshell')]
                             .map(center),
                         fonts,
+                        inputLines,
                         padding: [...root.querySelectorAll('cap-textbox input'), ...nativeSelects]
                             .map((e) => {
                                 const s = getComputedStyle(e)
@@ -48,7 +66,10 @@ for (const theme of ['base', 'minimal', 'shiny', 'java']) {
                 for (const actual of metrics.heights) expect(actual, id).toBeCloseTo(height, 0)
                 expect(Math.max(...metrics.centers) - Math.min(...metrics.centers), id)
                     .toBeLessThanOrEqual(1)
-                expect(new Set(metrics.fonts.map((font) => JSON.stringify(font))).size, id).toBe(1)
+                expect(new Set(metrics.fonts.map(({family, size, lineHeight}) =>
+                    JSON.stringify([family, size, lineHeight]))).size,
+                `${id}: ${JSON.stringify(metrics.fonts)}`).toBe(1)
+                for (const {actual, expected} of metrics.inputLines) expect(actual, id).toBeCloseTo(expected, 1)
                 for (const [top, bottom] of metrics.padding) expect(top, id).toBe(bottom)
             }
             for (const selector of ['#toolbar cap-textbox input', '#toolbar cap-selectshell']) {

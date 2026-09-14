@@ -107,10 +107,15 @@ body {
 }
 
 /* GroupBox columns flow side by side and wrap within the panel body. */
+.gallery-sections {
+    gap: 1.5rem;
+}
+
 .gallery-group-row {
     flex-wrap: wrap;
     align-items: flex-start;
     gap: 1rem 2rem;
+    scroll-margin-block: 1rem;
 }
 
 /* Each group stacks its control variants vertically. */

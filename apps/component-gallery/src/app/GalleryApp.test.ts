@@ -63,19 +63,17 @@ test('gallery shell mounts the line-inputs page with islands and toolbar', async
     assert.ok(document.querySelector('cap-timepicker'), 'time picker')
     assert.ok(document.querySelector('cap-datetimepicker'), 'datetime picker')
     assert.ok(document.querySelector('cap-progressbar'), 'progress bar')
-    assert.ok(
-        document.querySelectorAll('cap-panel cap-toolbar').length >= 3,
-        'panel toolbars',
-    )
+    assert.equal(document.querySelectorAll('cap-panel').length, 1, 'one content island')
+    assert.equal(document.querySelectorAll('cap-panel cap-toolbar').length, 1, 'one panel toolbar')
     assert.ok(
         document.querySelector('.gallery-data-state')?.textContent?.includes('ready'),
         'data-state readout',
     )
 
-    // Panels declare form context; the sidebar demo group declares control
+    // Rows share one form-context panel; the sidebar explicitly uses control context.
     for (const id of ['#gallery-checkboxes', '#gallery-basic-inputs', '#gallery-date-time']) {
         assert.equal(
-            document.querySelector(id)?.getAttribute('data-cap-context'),
+            document.querySelector(id)?.closest('cap-panel')?.getAttribute('data-cap-context'),
             'form',
             `${id} form context`,
         )
@@ -156,7 +154,7 @@ test('toolbar toggles switch layout variant and shared data state', async () => 
     router.dispose()
 })
 
-test('data page demonstrates initial skeletons, retained loading, errors, retry, and empty states',
+test('data page demonstrates initial and refresh skeletons, errors, retry, and empty states',
     async () => {
         const adapter = new MemoryNavigationAdapter('/data-components')
         const router = createBrowserRouter({adapter})
@@ -167,6 +165,7 @@ test('data page demonstrates initial skeletons, retained loading, errors, retry,
         assert.ok(document.querySelector('#gallery-table cap-datatable'), 'table example')
         assert.ok(document.querySelector('#gallery-collections cap-listview'), 'list example')
         assert.ok(document.querySelector('#gallery-collections cap-treeview'), 'tree example')
+        assert.ok(document.querySelector('#gallery-blockgraph cap-blockgraph'), 'block graph example')
         assert.match(document.querySelector('#gallery-empty')?.textContent ?? '', /No components/)
 
         toolbarOption('Initial').click()
@@ -182,12 +181,17 @@ test('data page demonstrates initial skeletons, retained loading, errors, retry,
             'ready table rows')
 
         toolbarOption('Loading').click()
-        assert.equal(document.querySelectorAll('#gallery-table tbody [aria-hidden="true"]').length, 0)
+        assert.equal(document.querySelectorAll('#gallery-table tbody > tr[aria-hidden="true"]').length, 5)
         assert.equal(document.querySelector('#gallery-table table')?.getAttribute('aria-busy'), 'true')
-        assert.equal(document.querySelector('#gallery-collections [role="listbox"]')
+        assert.equal(document.querySelector('#gallery-collections cap-listview')
             ?.getAttribute('aria-busy'), 'true')
-        assert.equal(document.querySelector('#gallery-collections [role="tree"]')
+        assert.equal(document.querySelector('#gallery-collections cap-treeview')
             ?.getAttribute('aria-busy'), 'true')
+        assert.equal(document.querySelector('#gallery-blockgraph cap-blockgraph')
+            ?.getAttribute('aria-busy'), 'true')
+        assert.ok(document.querySelector('#gallery-blockgraph cap-blockskeleton cap-placeholder'))
+        assert.doesNotMatch(document.querySelector('.gallery-main')?.textContent ?? '',
+            /Runtime|Visualization|Platform|3 items/)
 
         toolbarOption('Error').click()
         assert.ok(document.querySelectorAll('#gallery-table cap-error[role="alert"]').length > 0)

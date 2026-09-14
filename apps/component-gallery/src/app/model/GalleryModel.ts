@@ -2,6 +2,7 @@ import {DerivedEmitter, Emitter, FetchState} from '@capillaryjs/capillary'
 import type {FetchStateValue} from '@capillaryjs/capillary'
 import {createQueryTableDataSource} from '@capillaryjs/capillary-ui'
 import type {Key, TableDataSource} from '@capillaryjs/capillary-ui'
+import {createBlockSelection, createSplitSelection, staticCriterion} from '@capillaryjs/capillary-viz'
 
 export type LayoutVariant = 'shell' | 'website'
 
@@ -79,6 +80,19 @@ export class GalleryModel {
         purpose: 'gallery data-component items',
     })
     readonly tableDataSource: TableDataSource<GalleryDataItem>
+    readonly blockCriteria = (['team', 'status'] as const).map((field) =>
+        staticCriterion<GalleryDataItem>({
+            key: field,
+            label: field === 'team' ? 'Team' : 'Status',
+            categories: [...new Set(galleryData.map((item) => item[field]))].map((value) => ({
+                key: value,
+                label: value,
+                predicate: (item: GalleryDataItem) => item[field] === value,
+                colors: ['var(--colored-dark)', 'var(--colored-base)', 'var(--colored-light)'],
+            })),
+        }))
+    readonly blockSplits = createSplitSelection(this.blockCriteria)
+    readonly blockSelection = createBlockSelection(this.dataItems, this.blockSplits.activeSplits$)
     private readonly dataStateUnsubscribe: () => void
 
     // Component-state flags applied to showcased controls.
@@ -173,6 +187,9 @@ export class GalleryModel {
         ]
         this.dataStateUnsubscribe()
         this.tableDataSource.dispose()
+        this.blockSelection.dispose()
+        this.blockSplits.dispose()
+        for (const criterion of this.blockCriteria) criterion.dispose()
         for (const emitter of emitters) emitter.dispose()
     }
 }

@@ -1,5 +1,5 @@
 import {FetchState} from '@capillaryjs/capillary'
-import {Button, Component, css} from '@capillaryjs/capillary-ui'
+import {Button, Component, Placeholder, css} from '@capillaryjs/capillary-ui'
 import type {ComponentProps, CapillaryUiChild} from '@capillaryjs/capillary-ui'
 
 import type {BlockNode, BlockPath} from '../block.js'
@@ -30,6 +30,8 @@ export class BlockGraph<TItem = unknown> extends Component<BlockGraphProps<TItem
             emptyMessage = 'No items are available.',
         } = this.props
         const layoutSnapshot = this.snapshot(model.layout$)
+        const isLoading = layoutSnapshot.fetchState === FetchState.Initial
+            || layoutSnapshot.fetchState === FetchState.Loading
         const selectedPath = this.read(model.selectedPath$)
         const layout = layoutSnapshot.value
         const selected = findBlock(layout.root, selectedPath)
@@ -41,32 +43,41 @@ export class BlockGraph<TItem = unknown> extends Component<BlockGraphProps<TItem
         return <Host
             className={(this.props.className ?? this.props.class ?? '') || null}
             aria-label={label}
-            aria-busy={layoutSnapshot.fetchState !== FetchState.Ready ? 'true' : null}
+            aria-busy={isLoading ? 'true' : null}
         >
             <header>
                 <cap-summary>
                     <h2>{label}</h2>
-                    <p>{description} {layout.root.count} items.</p>
-                    <output>
-                        <strong>Selection:</strong>{' '}
-                        {selected == null ? 'None' : selected.path.length === 0
-                            ? selected.label
-                            : selected.path.map((segment, index) => {
-                                const path = selected.path.slice(0, index + 1)
-                                return findBlock(layout.root, path)?.label ?? segment.categoryKey
-                            }).join(' → ')}
-                    </output>
+                    <p>{description} {isLoading ? null : `${layout.root.count} items.`}</p>
+                    {isLoading
+                        ? <Placeholder width={45} />
+                        : <output>
+                            <strong>Selection:</strong>{' '}
+                            {selected == null ? 'None' : selected.path.length === 0
+                                ? selected.label
+                                : selected.path.map((segment, index) => {
+                                    const path = selected.path.slice(0, index + 1)
+                                    return findBlock(layout.root, path)?.label ?? segment.categoryKey
+                                }).join(' → ')}
+                        </output>}
                 </cap-summary>
                 <Button
                     label="Clear selection"
-                    disabled={selectedPath == null}
+                    disabled={isLoading || selectedPath == null}
                     onClick={() => model.clear()}
                 />
             </header>
             {layoutSnapshot.fetchState === FetchState.Error
                 ? <p role="alert">The block graph could not be calculated.</p>
-                : layoutSnapshot.fetchState !== FetchState.Ready
-                    ? <p role="status" aria-live="polite">Loading block graph…</p>
+                : isLoading
+                    ? <>
+                        <p role="status" aria-live="polite">Loading block graph…</p>
+                        <cap-blockskeleton aria-hidden="true">
+                            {[0, 1, 2].map((column) => <cap-blockskeletoncolumn key={column}>
+                                {[0, 1].map((row) => <Placeholder key={row} width={100} />)}
+                            </cap-blockskeletoncolumn>)}
+                        </cap-blockskeleton>
+                    </>
                     : !layout.valid
                         ? this.renderPartitionError(layout.issues)
                         : layout.root.count === 0
@@ -90,7 +101,7 @@ export class BlockGraph<TItem = unknown> extends Component<BlockGraphProps<TItem
     }
 
     static override hostName = 'block-graph'
-    static override dependencies = [Button]
+    static override dependencies = [Button, Placeholder]
 
     static css = css`
         & {
@@ -127,6 +138,33 @@ export class BlockGraph<TItem = unknown> extends Component<BlockGraphProps<TItem
             min-width: 0;
             min-height: 20rem;
             overflow: auto;
+        }
+
+        & > cap-blockskeleton {
+            display: flex;
+            flex: 1;
+            gap: var(--viz-space, 0.7rem);
+            min-block-size: 24rem;
+        }
+
+        & cap-blockskeletoncolumn {
+            display: flex;
+            flex: 1;
+            flex-direction: column;
+            gap: var(--viz-space, 0.7rem);
+        }
+
+        & cap-blockskeletoncolumn:nth-child(2) {
+            flex: 2;
+        }
+
+        & cap-blockskeletoncolumn > cap-placeholder {
+            flex: 1;
+            block-size: auto;
+        }
+
+        & cap-blockskeletoncolumn:nth-child(odd) > cap-placeholder:first-child {
+            flex: 2;
         }
 
         & cap-blocks,

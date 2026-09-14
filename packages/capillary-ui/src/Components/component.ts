@@ -279,6 +279,8 @@ export interface CapillaryUiHostElementTagNameMap {
     'cap-summary': HTMLElement
     'cap-scroller': HTMLElement
     'cap-blocks': HTMLElement
+    'cap-blockskeleton': HTMLElement
+    'cap-blockskeletoncolumn': HTMLElement
     'cap-blocklabel': HTMLElement
     'cap-blockname': HTMLElement
     'cap-blockgroup': HTMLElement

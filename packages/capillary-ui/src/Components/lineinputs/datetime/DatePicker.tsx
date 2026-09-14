@@ -334,13 +334,17 @@ export class DatePicker extends LabeledInputControl<DatePickerProps> {
 
     static override css = css`
         & {
-            display: flex;
-            flex-flow: row nowrap;
+            display: grid;
+            grid-template-columns: minmax(var(--input-min-width, 6rem), 1fr) max-content;
             align-items: center;
             gap: 0.5em;
             position: relative;
             min-height: var(--control-min-height, 2em);
             min-width: 0;
+        }
+
+        &:has(> label) {
+            grid-template-columns: max-content minmax(var(--input-min-width, 6rem), 1fr) max-content;
         }
 
         & > input {

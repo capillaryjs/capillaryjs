@@ -515,7 +515,14 @@ cap-toggle {
 
 cap-dropdown,
 cap-timepicker {
+            display: grid;
+            grid-template-columns: minmax(var(--input-min-width, 6rem), 1fr);
             min-width: 0;
+        }
+
+        cap-dropdown:has(> label),
+        cap-timepicker:has(> label) {
+            grid-template-columns: max-content minmax(var(--input-min-width, 6rem), 1fr);
         }
 
         cap-dropdown > cap-selectshell,
@@ -525,7 +532,9 @@ cap-timepicker {
             position: relative;
             isolation: isolate;
             min-height: var(--control-min-height, 2em);
-            min-width: 0;
+            width: var(--input-width, 15rem);
+            max-width: 100%;
+            min-width: var(--input-min-width, 6rem);
             box-sizing: border-box;
             margin-left: auto;
         }
@@ -733,18 +742,6 @@ cap-datatable {
             height: var(--ui-font-size);
         }
 
-        cap-datatable > table[aria-busy="true"] > tbody > tr[data-cap-selectable-row] > td::after {
-            content: "";
-            position: absolute;
-            z-index: 1;
-            inset: 0;
-            background-image: var(--working-background-image);
-            background-repeat: repeat;
-            background-size: 2rem 2rem;
-            animation: cap-working-progress .55s linear infinite;
-            pointer-events: none;
-        }
-
         cap-datatable:has(> cap-error) {
             outline: 1px solid var(--error-color);
             outline-offset: -1px;
@@ -752,12 +749,6 @@ cap-datatable {
 
         cap-datatable:has(> cap-error) > button {
             border-color: var(--error-color);
-        }
-
-        @media (prefers-reduced-motion: reduce) {
-            cap-datatable > table[aria-busy="true"] > tbody > tr[data-cap-selectable-row] > td::after {
-                animation: none !important;
-            }
         }
 
         @media (forced-colors: active) {
@@ -795,6 +786,17 @@ cap-placeholder {
         @media (prefers-reduced-motion: reduce) {
             cap-placeholder::after {
                 animation: none !important;
+            }
+        }
+
+        @media (forced-colors: active) {
+            cap-placeholder {
+                background: CanvasText;
+                forced-color-adjust: none;
+            }
+
+            cap-placeholder::after {
+                display: none;
             }
         }
 
@@ -910,13 +912,17 @@ cap-filterpanel {
         }
 
 cap-datepicker {
-            display: flex;
-            flex-flow: row nowrap;
+            display: grid;
+            grid-template-columns: minmax(var(--input-min-width, 6rem), 1fr) max-content;
             align-items: center;
             gap: 0.5em;
             position: relative;
             min-height: var(--control-min-height, 2em);
             min-width: 0;
+        }
+
+        cap-datepicker:has(> label) {
+            grid-template-columns: max-content minmax(var(--input-min-width, 6rem), 1fr) max-content;
         }
 
         cap-datepicker > input {
@@ -1242,15 +1248,20 @@ cap-optionsbox {
             box-sizing: border-box;
             gap: var(--cap-groupbox-gap, 0 0.35rem);
             padding: var(--cap-groupbox-padding, 0.125rem 0.35rem 0.125rem 0.125rem);
+            padding-top: var(--cap-groupbox-padding-top, .125rem);
             border: var(--cap-groupbox-border, 1px solid var(--ui-border-color));
             border-radius: var(--ui-border-radius);
             position: relative;
             min-width: 0;
             min-height: 0;
+            flex: var(--cap-groupbox-flex, 0 1 auto);
         }
 
         cap-groupbox > cap-header,
         cap-optionsbox > cap-header {
+            position: var(--cap-groupbox-header-position, static);
+            left: var(--cap-groupbox-header-inset, auto);
+            top: var(--cap-groupbox-header-inset, auto);
             display: grid;
             place-items: var(--cap-groupbox-header-align, center);
             box-sizing: border-box;
@@ -1274,12 +1285,11 @@ cap-optionsbox {
             min-width: 0;
             min-height: 0;
             margin-left: var(--cap-groupbox-content-margin, .25em);
+            flex: 1 1 auto;
         }
 
-        .cap-layout-horizontal cap-groupbox > cap-content > cap-layout,
-        .cap-layout-horizontal cap-optionsbox > cap-content > cap-layout,
-        .cap-layout-vertical cap-groupbox > cap-content > cap-layout,
-        .cap-layout-vertical cap-optionsbox > cap-content > cap-layout {
+        cap-groupbox > cap-content > cap-layout,
+        cap-optionsbox > cap-content > cap-layout {
             gap: .5rem;
             justify-content: flex-start;
             align-content: flex-start;
@@ -1305,6 +1315,12 @@ cap-optionsbox {
             --cap-groupbox-header-writing: vertical-rl;
             --cap-groupbox-header-transform: rotate(180deg);
             --cap-groupbox-content-margin: .25em;
+            --cap-groupbox-flex: 0 1 auto;
+            --cap-groupbox-grow-preference: 0;
+            --cap-groupbox-inline-chrome: 0px;
+            --cap-groupbox-padding-top: .125rem;
+            --cap-groupbox-header-position: static;
+            --cap-groupbox-header-inset: auto;
         }
 
         [data-cap-context='form'] {
@@ -1314,40 +1330,53 @@ cap-optionsbox {
             --cap-groupbox-border: 1px solid var(--ui-border-color);
             --cap-groupbox-header-align: center start;
             --cap-groupbox-header-width: auto;
-            --cap-groupbox-header-padding: 0;
+            --cap-groupbox-header-padding: 2px 5px;
             --cap-groupbox-header-color: var(--text-color);
-            --cap-groupbox-header-background: none;
+            --cap-groupbox-header-background: var(--panel-background);
             --cap-groupbox-header-shadow: none;
             --cap-groupbox-header-writing: horizontal-tb;
             --cap-groupbox-header-transform: none;
             --cap-groupbox-content-margin: 0;
+            --cap-groupbox-flex: 1 1 min-content;
+            --cap-groupbox-grow-preference: 1;
+            --cap-groupbox-inline-chrome: calc(1rem + 2px);
+            --cap-groupbox-padding-top: 1em;
+            --cap-groupbox-header-position: absolute;
+            --cap-groupbox-header-inset: calc(0px - var(--ui-font-size) / 2);
         }
 
-        [data-cap-context='form'] cap-groupbox,
-        [data-cap-context='form'] cap-optionsbox {
-            flex: 1 1 auto;
-            align-self: stretch;
-            padding-top: 1em;
+        .cap-layout-horizontal > cap-groupbox,
+        .cap-layout-horizontal > cap-optionsbox {
+            max-inline-size: max-content;
+            min-inline-size: min-content;
         }
 
-        .cap-layout-horizontal cap-groupbox,
-        .cap-layout-horizontal cap-optionsbox {
-            max-width: 15rem;
-            min-width: 0;
+        /* Restore shrinkable fields before distributing decorative spare room
+           to short groups. The intrinsic ceiling still freezes each group at
+           its preferred content size; floors still determine line wrapping. */
+        .cap-layout-horizontal > cap-groupbox:has(input:not([type='checkbox'], [type='radio'], [type='hidden']), select, textarea),
+        /* Restore shrinkable fields before distributing decorative spare room
+           to short groups. The intrinsic ceiling still freezes each group at
+           its preferred content size; floors still determine line wrapping. */
+        .cap-layout-horizontal > cap-optionsbox:has(input:not([type='checkbox'], [type='radio'], [type='hidden']), select, textarea) {
+            flex-grow: calc(var(--cap-groupbox-grow-preference, 0) * 10000);
         }
 
-        .cap-layout-vertical  cap-groupbox,
-        .cap-layout-vertical  cap-optionsbox {
-            max-height: 15rem;
-            min-height: 0;
-        }
-
-        [data-cap-context='form'] cap-groupbox > cap-header {
-            position: absolute;
-            left: calc(0px - var(--ui-font-size) / 2);
-            top: calc(0px - var(--ui-font-size) / 2);
-            background: var(--panel-background);
-            padding: 2px 5px;
+        /* An empty grid contributes zero to min-content and the soft preference
+           to max-content. Real content may exceed it. No row height or runtime
+           measurement is involved; field floors determine wrapping. */
+        .cap-layout-horizontal > cap-groupbox > cap-content::after,
+        /* An empty grid contributes zero to min-content and the soft preference
+           to max-content. Real content may exceed it. No row height or runtime
+           measurement is involved; field floors determine wrapping. */
+        .cap-layout-horizontal > cap-optionsbox > cap-content::after {
+            content: "";
+            display: grid;
+            grid-template-columns: minmax(0, max(0px, calc(
+                (var(--groupbox-preferred-width, 15rem) - var(--cap-groupbox-inline-chrome, 0px))
+                * var(--cap-groupbox-grow-preference, 0)
+            )));
+            block-size: 0;
         }
 
 cap-header {
@@ -1427,7 +1456,8 @@ cap-listview {
             list-style: none;
         }
 
-        cap-listview > [role="listbox"] > [role="option"] {
+        cap-listview > [role="listbox"] > [role="option"],
+        cap-listview > ul[aria-hidden="true"] > li {
             display: flex;
             flex-flow: row nowrap;
             position: relative;
@@ -1438,19 +1468,11 @@ cap-listview {
             border-radius: var(--ui-border-radius);
             box-sizing: border-box;
             user-select: none;
+            align-items: center;
         }
 
-        cap-listview > [role="listbox"][aria-busy="true"] > [role="option"]::after {
-            content: "";
-            position: absolute;
-            z-index: 1;
-            inset: 0;
-            background-image: var(--working-background-image);
-            background-repeat: repeat;
-            background-size: 2rem 2rem;
-            border-radius: inherit;
-            animation: cap-working-progress .55s linear infinite;
-            pointer-events: none;
+        cap-listview > ul[aria-hidden="true"] cap-placeholder {
+            font-size: var(--ui-font-size);
         }
 
         cap-listview > [role="listbox"] > [role="option"]:hover {
@@ -1468,12 +1490,6 @@ cap-listview {
 
         cap-listview:has(> cap-error) {
             border-color: var(--error-color);
-        }
-
-        @media (prefers-reduced-motion: reduce) {
-            cap-listview > [role="listbox"][aria-busy="true"] > [role="option"]::after {
-                animation: none !important;
-            }
         }
 
         @media (forced-colors: active) {
@@ -2078,11 +2094,14 @@ cap-tabpanel {
         }
 
 cap-textbox {
-            display: flex;
-            flex-flow: row nowrap;
+            display: grid;
+            grid-template-columns: minmax(var(--input-min-width, 6rem), 1fr);
             align-items: center;
-            justify-content: center;
             min-width: 0;
+        }
+
+        cap-textbox:has(> label) {
+            grid-template-columns: max-content minmax(var(--input-min-width, 6rem), 1fr);
         }
 
         cap-textbox > input {
@@ -2369,18 +2388,6 @@ cap-treeview {
             height: var(--ui-font-size);
         }
 
-        cap-treeview > [role="tree"][aria-busy="true"] > [role="treeitem"]::after {
-            content: "";
-            position: absolute;
-            z-index: 1;
-            inset: 0;
-            background-image: var(--working-background-image);
-            background-repeat: repeat;
-            background-size: 2rem 2rem;
-            animation: cap-working-progress .55s linear infinite;
-            pointer-events: none;
-        }
-
         cap-treeview [role="treeitem"]:hover {
             background: var(--button-background-hover);
         }
@@ -2420,12 +2427,6 @@ cap-treeview {
         cap-treeview:has(> cap-error) {
             outline: 1px solid var(--error-color);
             outline-offset: -1px;
-        }
-
-        @media (prefers-reduced-motion: reduce) {
-            cap-treeview > [role="tree"][aria-busy="true"] > [role="treeitem"]::after {
-                animation: none !important;
-            }
         }
 
         @media (forced-colors: active) {

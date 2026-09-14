@@ -111,7 +111,8 @@ export class TreeView<TValue = unknown> extends Component<TreeViewProps<TValue>>
         this.focusedKey = active?.node.id ?? null
 
         const Host = this.Host
-        return <Host className={componentClass(this.props) || null}>
+        return <Host className={componentClass(this.props) || null}
+            aria-busy={isLoading ? 'true' : null}>
             {fetchState === FetchState.Error
                 ? <ErrorMessage
                     className="cap-error-banner"
@@ -119,7 +120,7 @@ export class TreeView<TValue = unknown> extends Component<TreeViewProps<TValue>>
                     fallback={this.capillaryUiMessage('treeViewLoadError')}
                 />
                 : null}
-            {isLoading && visible.length === 0
+            {isLoading
                 ? <>
                     <p role="status">{this.capillaryUiMessage('treeViewLoading')}</p>
                     <ul aria-hidden="true">
@@ -139,7 +140,7 @@ export class TreeView<TValue = unknown> extends Component<TreeViewProps<TValue>>
             {fetchState === FetchState.Ready && visible.length === 0
                 ? <p role="status">{this.capillaryUiMessage('treeViewEmpty')}</p>
                 : null}
-            {visible.length > 0
+            {!isLoading && visible.length > 0
                 ? <ul
                     role="tree"
                     aria-label={this.props.label}
@@ -239,18 +240,6 @@ export class TreeView<TValue = unknown> extends Component<TreeViewProps<TValue>>
             height: var(--ui-font-size);
         }
 
-        & > [role="tree"][aria-busy="true"] > [role="treeitem"]::after {
-            content: "";
-            position: absolute;
-            z-index: 1;
-            inset: 0;
-            background-image: var(--working-background-image);
-            background-repeat: repeat;
-            background-size: 2rem 2rem;
-            animation: cap-working-progress .55s linear infinite;
-            pointer-events: none;
-        }
-
         & [role="treeitem"]:hover {
             background: var(--button-background-hover);
         }
@@ -290,12 +279,6 @@ export class TreeView<TValue = unknown> extends Component<TreeViewProps<TValue>>
         &:has(> cap-error) {
             outline: 1px solid var(--error-color);
             outline-offset: -1px;
-        }
-
-        @media (prefers-reduced-motion: reduce) {
-            & > [role="tree"][aria-busy="true"] > [role="treeitem"]::after {
-                animation: none !important;
-            }
         }
 
         @media (forced-colors: active) {

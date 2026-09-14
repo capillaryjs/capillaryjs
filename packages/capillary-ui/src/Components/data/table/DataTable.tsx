@@ -199,11 +199,11 @@ export class DataTable<TRow extends TableRow = TableRow>
                         : {onFilterChange: this.props.onFilterChange})}
                 />
                 <tbody>
-                    {rows.length > 0
-                        ? rows.map((row, index) =>
-                            this.renderRow(row, index, selectedKeys))
-                        : isLoading
-                            ? this.renderPlaceholders()
+                    {isLoading
+                        ? this.renderPlaceholders()
+                        : rows.length > 0
+                            ? rows.map((row, index) =>
+                                this.renderRow(row, index, selectedKeys))
                             : status === FetchState.Error
                                 ? null
                                 : <tr key="empty">
@@ -346,18 +346,6 @@ export class DataTable<TRow extends TableRow = TableRow>
             height: var(--ui-font-size);
         }
 
-        & > table[aria-busy="true"] > tbody > tr[data-cap-selectable-row] > td::after {
-            content: "";
-            position: absolute;
-            z-index: 1;
-            inset: 0;
-            background-image: var(--working-background-image);
-            background-repeat: repeat;
-            background-size: 2rem 2rem;
-            animation: cap-working-progress .55s linear infinite;
-            pointer-events: none;
-        }
-
         &:has(> cap-error) {
             outline: 1px solid var(--error-color);
             outline-offset: -1px;
@@ -365,12 +353,6 @@ export class DataTable<TRow extends TableRow = TableRow>
 
         &:has(> cap-error) > button {
             border-color: var(--error-color);
-        }
-
-        @media (prefers-reduced-motion: reduce) {
-            & > table[aria-busy="true"] > tbody > tr[data-cap-selectable-row] > td::after {
-                animation: none !important;
-            }
         }
 
         @media (forced-colors: active) {

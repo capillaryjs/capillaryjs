@@ -227,6 +227,12 @@ the new position. Preset buttons expose their active state with
 `BlockGraph<T>` renders a nested proportional mosaic from a
 `BlockSelectionModel`.
 
+Initial and Loading snapshots render a deterministic, decorative skeleton
+mosaic instead of cached blocks, counts, or selection labels. The caller's
+model and selection remain intact. Skeletons are hidden from assistive
+technology, the graph exposes a loading status, and Clear selection is
+unavailable until loading ends. Error and ready-empty states remain distinct.
+
 | Prop | Meaning |
 | --- | --- |
 | `model` | Required caller-owned block selection model |

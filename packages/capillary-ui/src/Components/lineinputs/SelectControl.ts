@@ -8,7 +8,13 @@ export abstract class SelectControl<
 > extends LabeledInputControl<TProps> {
     static override css = css`
         & {
+            display: grid;
+            grid-template-columns: minmax(var(--input-min-width, 6rem), 1fr);
             min-width: 0;
+        }
+
+        &:has(> label) {
+            grid-template-columns: max-content minmax(var(--input-min-width, 6rem), 1fr);
         }
 
         & > cap-selectshell {
@@ -17,7 +23,9 @@ export abstract class SelectControl<
             position: relative;
             isolation: isolate;
             min-height: var(--control-min-height, 2em);
-            min-width: 0;
+            width: var(--input-width, 15rem);
+            max-width: 100%;
+            min-width: var(--input-min-width, 6rem);
             box-sizing: border-box;
             margin-left: auto;
         }

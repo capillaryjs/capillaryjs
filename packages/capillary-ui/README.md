@@ -463,10 +463,11 @@ fallbacks are only safe for immutable ordering. `ListView.items` and
 `TreeView.nodes` accept static arrays or readable emitters and present loading,
 empty, and error states from the emitter snapshot.
 
-On an empty initial/loading snapshot, all three collection views render
+On every initial/loading snapshot, all three collection views render
 deterministic, `aria-hidden` placeholder rows; `placeholderCount` selects their
-count. When a loading snapshot retains rows, those real rows remain semantic
-and usable while the working texture animates over their background. Error
+count. Cached rows remain in the emitter but are not rendered or selectable
+while the placeholder texture animates. Application renderers never receive
+dummy values, and refreshes preserve valid keyed selections and expansions. Error
 snapshots retain any available rows, add an error edge and overlay detail icon,
 and stop the loading animation. A `DataTable` data source with `retry` also
 renders its localized retry action.
@@ -744,11 +745,23 @@ Textbox, Dropdown, Toggle, and Button use `--control-min-height: 2em` by
 default: a 24px border-box minimum at the default 12px `--ui-font-size`.
 This minimum is independent of general UI padding and the text line height.
 Their labels and native controls inherit the font family and share a unitless
-1.2 text line height. Larger content can increase the minimum-sized body.
+1.2 authored text line height. Native single-line inputs may clamp the used
+line-height to platform font metrics (notably Firefox on Linux); their bodies
+and text remain centered. Larger content can increase the minimum-sized body.
 Textbox and Dropdown retain their `--input-width: 15em` default and existing
 minimum-width/shrinking behavior. Field and button inline padding is 5px;
 toggle segments use 6px. General `--space-xs`/`--space-sm` no longer determine
 these line controls' padding.
+
+Horizontal form `GroupBox` children grow toward `--groupbox-preferred-width`
+(default `15rem`, border-box), or beyond it when preferred child widths need
+more room. This is a soft growth preference, not a hard maximum. Intrinsic
+label/body tracks distinguish preferred field widths from the configurable
+`--input-min-width` floor (default `6rem`). In wrapping rows, fields shrink
+before groups wrap. Field-bearing groups receive available width before short
+groups consume decorative spare space. Below a group's label/field/chrome minimum, the owning
+region must scroll. Vertical layouts stretch groups to their available width.
+Neither distant layout ancestors nor group content height impose a 15rem cap.
 
 Checkbox variants and RadioButton retain compact 1.2em label rows with 1em
 squares/circles. They center within stretched horizontal hosts without making

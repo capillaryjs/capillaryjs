@@ -8,6 +8,13 @@ Versioning.
 
 ### Fixed
 
+- Replace retained table/list/tree rows with noninteractive skeletons during
+  Initial and Loading states, without mutating cached emitter values or keyed
+  selections. Keep loading placeholders visible in forced-colors mode.
+- Replace ancestor-wide GroupBox caps with intrinsic, shrink-before-wrap
+  sizing and a soft `--groupbox-preferred-width` of 15rem. Vertical groups
+  stretch within their parent; long labels and date/time fields may grow
+  horizontal form groups beyond that preference.
 - Restore the base theme's `--island-margin` default to `1rem` so island
   surfaces keep their intended separation, and remove Shiny's stale
   `cap-header:has(+ cap-toolbar)` shadow override together with its
@@ -19,6 +26,8 @@ Versioning.
 
 ### Changed
 
+- Verify native input font metrics independently of authored line-height to
+  account for Firefox's platform-specific single-line minimum on Linux.
 - `--control-min-height` defaults to `2em` independently of general UI padding.
   Fields/buttons use 5px inline padding, toggles 6px, and the dropdown trigger
   uses `--dd-btn-width: 1.7em`. Line-control padding no longer consumes generic

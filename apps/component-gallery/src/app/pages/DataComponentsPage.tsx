@@ -1,4 +1,5 @@
 import {Component} from '@capillaryjs/capillary-ui'
+import {BlockGraph} from '@capillaryjs/capillary-viz'
 import type {ComponentProps, CapillaryUiChild, TableColumn} from '@capillaryjs/capillary-ui'
 import {
     Button,
@@ -22,7 +23,7 @@ const columns: readonly TableColumn<GalleryDataItem>[] = [
     {field: 'status', label: 'Status'},
 ]
 
-/** Data-state gallery for skeleton, retained refresh, empty, error, and retry presentation. */
+/** Data-state gallery for skeleton refresh, empty, error, and retry presentation. */
 export class DataComponentsPage extends Component<DataComponentsPageProps> {
     render(): CapillaryUiChild {
         const model = this.props.model
@@ -33,6 +34,7 @@ export class DataComponentsPage extends Component<DataComponentsPageProps> {
                     <Button label="Table" onClick={() => scrollToSection('gallery-table')} />
                     <Button label="List and tree"
                         onClick={() => scrollToSection('gallery-collections')} />
+                    <Button label="Block graph" onClick={() => scrollToSection('gallery-blockgraph')} />
                     <Button label="Empty" onClick={() => scrollToSection('gallery-empty')} />
                 </nav>
                 <p class="gallery-data-state" role="status">
@@ -40,8 +42,9 @@ export class DataComponentsPage extends Component<DataComponentsPageProps> {
                     {snapshot.error == null ? '' : ` — ${String(snapshot.error)}`}
                 </p>
                 <p class="gallery-data-guidance">
-                    Initial uses Bank2-style placeholders. Loading keeps rows and animates them;
-                    Error keeps stale rows, adds a visible alert, and offers table retry.
+                    Initial and Loading replace data with placeholders, including during refresh.
+                    Error shows an alert; tables, lists, and trees retain stale rows.
+                    The table offers retry.
                 </p>
             </Sidebar>
             <Layout vertical allocation="flexible" scroll className="gallery-main">
@@ -71,6 +74,9 @@ export class DataComponentsPage extends Component<DataComponentsPageProps> {
                         />
                     </Layout>
                 </Panel>
+                <Panel island header="BlockGraph" id="gallery-blockgraph" context="form">
+                    <BlockGraph model={model.blockSelection} label="Framework component blocks" />
+                </Panel>
                 <Panel island header="Ready but empty" id="gallery-empty" context="form">
                     <Layout horizontal className="gallery-data-grid">
                         <DataTable<GalleryDataItem>
@@ -95,6 +101,7 @@ export class DataComponentsPage extends Component<DataComponentsPageProps> {
         DataTable,
         ListView,
         TreeView,
+        BlockGraph,
     ]
 }
 

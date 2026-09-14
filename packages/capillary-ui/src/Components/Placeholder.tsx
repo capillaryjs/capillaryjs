@@ -50,6 +50,17 @@ export class Placeholder extends Component<PlaceholderProps> {
                 animation: none !important;
             }
         }
+
+        @media (forced-colors: active) {
+            & {
+                background: CanvasText;
+                forced-color-adjust: none;
+            }
+
+            &::after {
+                display: none;
+            }
+        }
     `
 }
 

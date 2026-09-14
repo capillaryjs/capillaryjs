@@ -82,9 +82,30 @@ export class LineInputsPage extends Component<GalleryPageProps> {
                 </p>
             </Sidebar>
             <Layout vertical allocation="flexible" scroll className="gallery-main">
-                {this.renderCheckboxPanel()}
-                {this.renderBasicPanel()}
-                {this.renderDateTimePanel()}
+                <Panel island header="Line inputs" id="gallery-line-inputs" context="form">
+                    <PanelToolbar>
+                        <Toolbar label="Line input toolbar">
+                            <Checkbox label="Checkbox" {...this.flags()} />
+                            <TriCheckbox label="Tri" {...this.flags()} />
+                            <QuadCheckbox label="Quad" {...this.flags()} />
+                            <Textbox label="Name" placeholder="Text"
+                                {...this.flags()} readOnly={live(model.componentReadOnly)} />
+                            <Dropdown label="Choice" options={dropdownOptions} {...this.flags()} />
+                            <Button label="Action"
+                                disabled={live(model.componentDisabled)}
+                                busy={live(model.componentBusy)}
+                                error={live(model.componentError)} />
+                            <DatePicker label="Date"
+                                {...this.flags()} readOnly={live(model.componentReadOnly)} />
+                            <TimePicker label="Time" {...this.flags()} />
+                        </Toolbar>
+                    </PanelToolbar>
+                    <Layout vertical className="gallery-sections">
+                        {this.renderCheckboxRow()}
+                        {this.renderBasicRow()}
+                        {this.renderDateTimeRow()}
+                    </Layout>
+                </Panel>
             </Layout>
         </Layout>
     }
@@ -105,159 +126,125 @@ export class LineInputsPage extends Component<GalleryPageProps> {
         }
     }
 
-    private renderCheckboxPanel(): CapillaryUiChild {
-        return <Panel island header="Checkboxes" id="gallery-checkboxes"
-            context="form">
-            <PanelToolbar>
-                <Toolbar label="Checkbox toolbar">
-                    <Checkbox label="Checkbox" {...this.flags()} />
-                    <TriCheckbox label="Tri" {...this.flags()} />
-                    <QuadCheckbox label="Quad" {...this.flags()} />
-                </Toolbar>
-            </PanelToolbar>
-            <Layout horizontal className="gallery-group-row">
-                <GroupBox header="Checkbox">
-                    <Layout vertical className="gallery-state-column">
-                        <Checkbox label="Unchecked" {...this.flags()} />
-                        <Checkbox label="Checked"
-                            initialSemanticState={FilterMode.Prefer} {...this.flags()} />
-                    </Layout>
-                </GroupBox>
-                <GroupBox header="TriCheckbox">
-                    <Layout vertical className="gallery-state-column">
-                        <TriCheckbox label="Deny"
-                            initialSemanticState={FilterMode.Deny} {...this.flags()} />
-                        <TriCheckbox label="Neutral"
-                            initialSemanticState={FilterMode.Neutral} {...this.flags()} />
-                        <TriCheckbox label="Prefer"
-                            initialSemanticState={FilterMode.Prefer} {...this.flags()} />
-                    </Layout>
-                </GroupBox>
-                <GroupBox header="QuadCheckbox">
-                    <Layout vertical className="gallery-state-column">
-                        <QuadCheckbox label="Deny"
-                            initialSemanticState={FilterMode.Deny} {...this.flags()} />
-                        <QuadCheckbox label="Neutral"
-                            initialSemanticState={FilterMode.Neutral} {...this.flags()} />
-                        <QuadCheckbox label="Prefer"
-                            initialSemanticState={FilterMode.Prefer} {...this.flags()} />
-                        <QuadCheckbox label="Require"
-                            initialSemanticState={FilterMode.Require} {...this.flags()} />
-                    </Layout>
-                </GroupBox>
-            </Layout>
-        </Panel>
+    private renderCheckboxRow(): CapillaryUiChild {
+        return <Layout horizontal id="gallery-checkboxes" className="gallery-group-row">
+            <GroupBox header="Checkbox">
+                <Layout vertical className="gallery-state-column">
+                    <Checkbox label="Unchecked" {...this.flags()} />
+                    <Checkbox label="Checked"
+                        initialSemanticState={FilterMode.Prefer} {...this.flags()} />
+                </Layout>
+            </GroupBox>
+            <GroupBox header="TriCheckbox">
+                <Layout vertical className="gallery-state-column">
+                    <TriCheckbox label="Deny"
+                        initialSemanticState={FilterMode.Deny} {...this.flags()} />
+                    <TriCheckbox label="Neutral"
+                        initialSemanticState={FilterMode.Neutral} {...this.flags()} />
+                    <TriCheckbox label="Prefer"
+                        initialSemanticState={FilterMode.Prefer} {...this.flags()} />
+                </Layout>
+            </GroupBox>
+            <GroupBox header="QuadCheckbox">
+                <Layout vertical className="gallery-state-column">
+                    <QuadCheckbox label="Deny"
+                        initialSemanticState={FilterMode.Deny} {...this.flags()} />
+                    <QuadCheckbox label="Neutral"
+                        initialSemanticState={FilterMode.Neutral} {...this.flags()} />
+                    <QuadCheckbox label="Prefer"
+                        initialSemanticState={FilterMode.Prefer} {...this.flags()} />
+                    <QuadCheckbox label="Require"
+                        initialSemanticState={FilterMode.Require} {...this.flags()} />
+                </Layout>
+            </GroupBox>
+        </Layout>
     }
 
-    private renderBasicPanel(): CapillaryUiChild {
+    private renderBasicRow(): CapillaryUiChild {
         const model = this.props.model
-        return <Panel island header="Basic inputs" id="gallery-basic-inputs"
-            context="form">
-            <PanelToolbar>
-                <Toolbar label="Basic input toolbar">
-                    <Textbox label="Name" placeholder="Text"
+        return <Layout horizontal id="gallery-basic-inputs" className="gallery-group-row">
+            <GroupBox header="Textbox">
+                <Layout vertical className="gallery-state-column">
+                    <Textbox label="Empty" placeholder="Placeholder"
                         {...this.flags()} readOnly={live(model.componentReadOnly)} />
-                    <Dropdown label="Choice" options={dropdownOptions} {...this.flags()} />
-                    <Button label="Action"
+                    <Textbox label="Filled" defaultValue="Ada Lovelace"
+                        {...this.flags()} readOnly={live(model.componentReadOnly)} />
+                    <Textbox label="Long value"
+                        defaultValue="A value long enough to overflow the available inline space"
+                        {...this.flags()} readOnly={live(model.componentReadOnly)} />
+                </Layout>
+            </GroupBox>
+            <GroupBox header="Dropdown">
+                <Layout vertical className="gallery-state-column">
+                    <Dropdown label="Choice" options={dropdownOptions}
+                        {...this.flags()} />
+                </Layout>
+            </GroupBox>
+            <GroupBox header="Toggle">
+                <Layout vertical className="gallery-state-column">
+                    <Toggle label="View" options={toggleOptions} {...this.flags()} />
+                </Layout>
+            </GroupBox>
+            <GroupBox header="RadioGroup">
+                <Layout vertical className="gallery-state-column">
+                    <RadioGroup label="Size" options={radioOptions} {...this.flags()} />
+                </Layout>
+            </GroupBox>
+            <GroupBox header="Button">
+                <Layout vertical className="gallery-state-column">
+                    <Button label="Normal"
                         disabled={live(model.componentDisabled)}
                         busy={live(model.componentBusy)}
                         error={live(model.componentError)} />
-                </Toolbar>
-            </PanelToolbar>
-            <Layout horizontal className="gallery-group-row">
-                <GroupBox header="Textbox">
-                    <Layout vertical className="gallery-state-column">
-                        <Textbox label="Empty" placeholder="Placeholder"
-                            {...this.flags()} readOnly={live(model.componentReadOnly)} />
-                        <Textbox label="Filled" defaultValue="Ada Lovelace"
-                            {...this.flags()} readOnly={live(model.componentReadOnly)} />
-                        <Textbox label="Long value"
-                            defaultValue="A value long enough to overflow the available inline space"
-                            {...this.flags()} readOnly={live(model.componentReadOnly)} />
-                    </Layout>
-                </GroupBox>
-                <GroupBox header="Dropdown">
-                    <Layout vertical className="gallery-state-column">
-                        <Dropdown label="Choice" options={dropdownOptions}
-                            {...this.flags()} />
-                    </Layout>
-                </GroupBox>
-                <GroupBox header="Toggle">
-                    <Layout vertical className="gallery-state-column">
-                        <Toggle label="View" options={toggleOptions} {...this.flags()} />
-                    </Layout>
-                </GroupBox>
-                <GroupBox header="RadioGroup">
-                    <Layout vertical className="gallery-state-column">
-                        <RadioGroup label="Size" options={radioOptions} {...this.flags()} />
-                    </Layout>
-                </GroupBox>
-                <GroupBox header="Button">
-                    <Layout vertical className="gallery-state-column">
-                        <Button label="Normal"
-                            disabled={live(model.componentDisabled)}
-                            busy={live(model.componentBusy)}
-                            error={live(model.componentError)} />
-                        <Button label="Pressed" pressed
-                            disabled={live(model.componentDisabled)}
-                            busy={live(model.componentBusy)}
-                            error={live(model.componentError)} />
-                        <Button label="Busy" busy busyLabel="Working…"
-                            disabled={live(model.componentDisabled)}
-                            error={live(model.componentError)} />
-                    </Layout>
-                </GroupBox>
-                <GroupBox header="Progress">
-                    <Layout vertical className="gallery-state-column">
-                        <ProgressBar label="Empty" value={0} />
-                        <ProgressBar label="Partial" value={40} />
-                        <ProgressBar label="Complete" value={100} />
-                        <ProgressBar label="Indeterminate" value={null} />
-                    </Layout>
-                </GroupBox>
-            </Layout>
-        </Panel>
+                    <Button label="Pressed" pressed
+                        disabled={live(model.componentDisabled)}
+                        busy={live(model.componentBusy)}
+                        error={live(model.componentError)} />
+                    <Button label="Busy" busy busyLabel="Working…"
+                        disabled={live(model.componentDisabled)}
+                        error={live(model.componentError)} />
+                </Layout>
+            </GroupBox>
+            <GroupBox header="Progress">
+                <Layout vertical className="gallery-state-column">
+                    <ProgressBar label="Empty" value={0} />
+                    <ProgressBar label="Partial" value={40} />
+                    <ProgressBar label="Complete" value={100} />
+                    <ProgressBar label="Indeterminate" value={null} />
+                </Layout>
+            </GroupBox>
+        </Layout>
     }
 
-    private renderDateTimePanel(): CapillaryUiChild {
+    private renderDateTimeRow(): CapillaryUiChild {
         const model = this.props.model
-        return <Panel island header="Date and time" id="gallery-date-time"
-            context="form">
-            <PanelToolbar>
-                <Toolbar label="Date and time toolbar">
-                    <DatePicker label="Date"
-                        {...this.flags()} readOnly={live(model.componentReadOnly)} />
-                    <TimePicker label="Time" {...this.flags()} />
-                </Toolbar>
-            </PanelToolbar>
-            <Layout horizontal className="gallery-group-row">
-                <GroupBox header="DatePicker">
-                    <Layout vertical className="gallery-state-column">
-                        <DatePicker label="Empty"
-                            {...this.flags()}
-                            readOnly={live(model.componentReadOnly)} />
-                        <DatePicker label="Filled" defaultValue="2026-09-13"
-                            {...this.flags()}
-                            readOnly={live(model.componentReadOnly)} />
-                    </Layout>
-                </GroupBox>
-                <GroupBox header="TimePicker">
-                    <Layout vertical className="gallery-state-column">
-                        <TimePicker label="Empty" {...this.flags()} />
-                        <TimePicker label="Filled" defaultValue="14:30"
-                            {...this.flags()} />
-                    </Layout>
-                </GroupBox>
-                <GroupBox header="DateTimePicker">
-                    <Layout vertical className="gallery-state-column">
-                        <DateTimePicker label="Empty" {...this.flags()} />
-                        <DateTimePicker label="Filled"
-                            defaultValue={{date: '2026-09-13', time: '14:30'}}
-                            {...this.flags()} />
-                    </Layout>
-                </GroupBox>
-            </Layout>
-        </Panel>
+        return <Layout horizontal id="gallery-date-time" className="gallery-group-row">
+            <GroupBox header="DatePicker">
+                <Layout vertical className="gallery-state-column">
+                    <DatePicker label="Empty"
+                        {...this.flags()}
+                        readOnly={live(model.componentReadOnly)} />
+                    <DatePicker label="Filled" defaultValue="2026-09-13"
+                        {...this.flags()}
+                        readOnly={live(model.componentReadOnly)} />
+                </Layout>
+            </GroupBox>
+            <GroupBox header="TimePicker">
+                <Layout vertical className="gallery-state-column">
+                    <TimePicker label="Empty" {...this.flags()} />
+                    <TimePicker label="Filled" defaultValue="14:30"
+                        {...this.flags()} />
+                </Layout>
+            </GroupBox>
+            <GroupBox header="DateTimePicker">
+                <Layout vertical className="gallery-state-column">
+                    <DateTimePicker label="Empty" {...this.flags()} />
+                    <DateTimePicker label="Filled"
+                        defaultValue={{date: '2026-09-13', time: '14:30'}}
+                        {...this.flags()} />
+                </Layout>
+            </GroupBox>
+        </Layout>
     }
 
     static dependencies = [

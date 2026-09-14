@@ -117,11 +117,14 @@ export class Textbox extends LabeledInputControl<TextboxProps> {
 
     static override css = css`
         & {
-            display: flex;
-            flex-flow: row nowrap;
+            display: grid;
+            grid-template-columns: minmax(var(--input-min-width, 6rem), 1fr);
             align-items: center;
-            justify-content: center;
             min-width: 0;
+        }
+
+        &:has(> label) {
+            grid-template-columns: max-content minmax(var(--input-min-width, 6rem), 1fr);
         }
 
         & > input {

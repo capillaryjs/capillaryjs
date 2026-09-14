@@ -57,14 +57,19 @@ export class GroupBox<
             box-sizing: border-box;
             gap: var(--cap-groupbox-gap, 0 0.35rem);
             padding: var(--cap-groupbox-padding, 0.125rem 0.35rem 0.125rem 0.125rem);
+            padding-top: var(--cap-groupbox-padding-top, .125rem);
             border: var(--cap-groupbox-border, 1px solid var(--ui-border-color));
             border-radius: var(--ui-border-radius);
             position: relative;
             min-width: 0;
             min-height: 0;
+            flex: var(--cap-groupbox-flex, 0 1 auto);
         }
 
         & > cap-header {
+            position: var(--cap-groupbox-header-position, static);
+            left: var(--cap-groupbox-header-inset, auto);
+            top: var(--cap-groupbox-header-inset, auto);
             display: grid;
             place-items: var(--cap-groupbox-header-align, center);
             box-sizing: border-box;
@@ -87,10 +92,10 @@ export class GroupBox<
             min-width: 0;
             min-height: 0;
             margin-left: var(--cap-groupbox-content-margin, .25em);
+            flex: 1 1 auto;
         }
 
-        .cap-layout-horizontal & > cap-content > cap-layout,
-        .cap-layout-vertical & > cap-content > cap-layout {
+        & > cap-content > cap-layout {
             gap: .5rem;
             justify-content: flex-start;
             align-content: flex-start;
@@ -116,6 +121,12 @@ export class GroupBox<
             --cap-groupbox-header-writing: vertical-rl;
             --cap-groupbox-header-transform: rotate(180deg);
             --cap-groupbox-content-margin: .25em;
+            --cap-groupbox-flex: 0 1 auto;
+            --cap-groupbox-grow-preference: 0;
+            --cap-groupbox-inline-chrome: 0px;
+            --cap-groupbox-padding-top: .125rem;
+            --cap-groupbox-header-position: static;
+            --cap-groupbox-header-inset: auto;
         }
 
         [data-cap-context='form'] {
@@ -125,37 +136,44 @@ export class GroupBox<
             --cap-groupbox-border: 1px solid var(--ui-border-color);
             --cap-groupbox-header-align: center start;
             --cap-groupbox-header-width: auto;
-            --cap-groupbox-header-padding: 0;
+            --cap-groupbox-header-padding: 2px 5px;
             --cap-groupbox-header-color: var(--text-color);
-            --cap-groupbox-header-background: none;
+            --cap-groupbox-header-background: var(--panel-background);
             --cap-groupbox-header-shadow: none;
             --cap-groupbox-header-writing: horizontal-tb;
             --cap-groupbox-header-transform: none;
             --cap-groupbox-content-margin: 0;
+            --cap-groupbox-flex: 1 1 min-content;
+            --cap-groupbox-grow-preference: 1;
+            --cap-groupbox-inline-chrome: calc(1rem + 2px);
+            --cap-groupbox-padding-top: 1em;
+            --cap-groupbox-header-position: absolute;
+            --cap-groupbox-header-inset: calc(0px - var(--ui-font-size) / 2);
         }
 
-        [data-cap-context='form'] & {
-            flex: 1 1 auto;
-            align-self: stretch;
-            padding-top: 1em;
+        .cap-layout-horizontal > & {
+            max-inline-size: max-content;
+            min-inline-size: min-content;
         }
 
-        .cap-layout-horizontal & {
-            max-width: 15rem;
-            min-width: 0;
+        /* Restore shrinkable fields before distributing decorative spare room
+           to short groups. The intrinsic ceiling still freezes each group at
+           its preferred content size; floors still determine line wrapping. */
+        .cap-layout-horizontal > &:has(input:not([type='checkbox'], [type='radio'], [type='hidden']), select, textarea) {
+            flex-grow: calc(var(--cap-groupbox-grow-preference, 0) * 10000);
         }
 
-        .cap-layout-vertical  & {
-            max-height: 15rem;
-            min-height: 0;
-        }
-
-        [data-cap-context='form'] cap-groupbox > cap-header {
-            position: absolute;
-            left: calc(0px - var(--ui-font-size) / 2);
-            top: calc(0px - var(--ui-font-size) / 2);
-            background: var(--panel-background);
-            padding: 2px 5px;
+        /* An empty grid contributes zero to min-content and the soft preference
+           to max-content. Real content may exceed it. No row height or runtime
+           measurement is involved; field floors determine wrapping. */
+        .cap-layout-horizontal > & > cap-content::after {
+            content: "";
+            display: grid;
+            grid-template-columns: minmax(0, max(0px, calc(
+                (var(--groupbox-preferred-width, 15rem) - var(--cap-groupbox-inline-chrome, 0px))
+                * var(--cap-groupbox-grow-preference, 0)
+            )));
+            block-size: 0;
         }
     `
 }

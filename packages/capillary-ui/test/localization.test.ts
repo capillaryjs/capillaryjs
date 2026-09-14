@@ -197,7 +197,7 @@ describe('Capillary UI runtime localization', () => {
         assert.equal(requiredQuery('[role="status"]').textContent, 'Ingen træelementer')
     })
 
-    test('falls back to English while loading and retains populated tree rows on refresh', () => {
+    test('falls back to English for both initial and refresh loading status', () => {
         const nodes = new Emitter<readonly {id: string; label: string}[]>([])
         nodes.setWithState([], FetchState.Loading)
         const runtime = createCapillaryUiRuntime()
@@ -212,9 +212,9 @@ describe('Capillary UI runtime localization', () => {
         assert.equal(tree.getAttribute('aria-busy'), null)
 
         nodes.setWithState(populated, FetchState.Loading)
-        assert.equal(requiredQuery('[role="tree"]'), tree)
-        assert.equal(tree.getAttribute('aria-busy'), 'true')
-        assert.equal(document.querySelector('[role="status"]'), null)
+        assert.equal(document.querySelector('[role="tree"]'), null)
+        assert.equal(requiredQuery('cap-treeview').getAttribute('aria-busy'), 'true')
+        assert.equal(requiredQuery('[role="status"]').textContent, 'Loading tree items…')
     })
 
     test('localizes parameterized accessibility messages without coercing rich labels', () => {

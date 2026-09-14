@@ -6,6 +6,12 @@ and Semantic Versioning.
 
 ## Unreleased
 
+### Fixed
+
+- Replace loading BlockGraph content with a deterministic skeleton mosaic,
+  hiding cached counts and selection labels without clearing model state.
+  Error states no longer incorrectly report that the graph is busy.
+
 ## 1.0.0-alpha.1 - 2026-09-14
 
 ### Changed

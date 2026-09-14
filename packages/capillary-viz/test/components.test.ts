@@ -333,6 +333,41 @@ describe('BlockGraph', () => {
         items.dispose()
     })
 
+    test('hides cached labels and counts with loading skeletons without losing selection', () => {
+        const items = new Emitter<readonly Item[], Error>(itemsValue)
+        const state = stateCriterion()
+        const splits = createSplitSelection([state])
+        const selection = createBlockSelection(items, splits.activeSplits$)
+        const graph = new BlockGraph({model: selection})
+        graph.mount(document.body)
+        required<HTMLElement>('[role="treeitem"]').click()
+        const path = selection.selectedPath$.get()
+        assert.ok(path)
+        for (const fetchState of [FetchState.Loading, FetchState.Initial]) {
+            items.setWithState(itemsValue, fetchState)
+            assert.equal(required('cap-blockgraph').getAttribute('aria-busy'), 'true')
+            assert.equal(document.querySelectorAll('cap-blockskeleton cap-placeholder').length, 6)
+            assert.equal(document.querySelector('[role="treeitem"], output'), null)
+            assert.doesNotMatch(document.body.textContent ?? '', /Open|Closed|3 items/)
+            assert.equal(required<HTMLButtonElement>('button').disabled, true)
+            assert.deepEqual(selection.selectedPath$.get(), path)
+        }
+        items.setWithState(itemsValue, FetchState.Ready)
+        assert.equal(document.querySelector('cap-placeholder'), null)
+        assert.ok(document.querySelector('[role="treeitem"][aria-selected="true"]'))
+        items.setWithState(itemsValue, FetchState.Error, new Error('Unavailable'))
+        assert.ok(document.querySelector('[role="alert"]'))
+        assert.equal(required('cap-blockgraph').getAttribute('aria-busy'), null)
+        items.setWithState([], FetchState.Ready)
+        assert.match(required('[role="status"]').textContent ?? '', /No items/)
+        graph.destroy()
+        selection.dispose()
+        splits.dispose()
+        state.dispose()
+        assert.equal(items.subscriberCount, 0)
+        items.dispose()
+    })
+
     test('shows loading and explicit invalid-partition states', () => {
         const items = new Emitter<readonly Item[]>(itemsValue)
         const overlapping = staticCriterion<Item>({
