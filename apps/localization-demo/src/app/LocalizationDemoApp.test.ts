@@ -50,20 +50,11 @@ test('language toggle remounts app and Capillary UI text in one selected languag
     assert.match(target.textContent ?? '', /Ingen elementer/)
     assert.match(target.textContent ?? '', /Sortér Opgavenavn/)
 
-    const openCalendar = target.querySelector<HTMLButtonElement>(
-        'cap-datepicker button[aria-label="Åbn kalender"]',
+    const dateInput = target.querySelector<HTMLInputElement>(
+        'cap-datepicker input[type="date"]',
     )
-    assert.ok(openCalendar)
-    openCalendar.click()
-    await waitUntil(() => target.querySelector('.cap-calendar') != null)
-    assert.match(
-        target.querySelector('.cap-calendar [role="heading"]')?.textContent ?? '',
-        /september 2026/i,
-    )
-    assert.equal(
-        target.querySelector('.cap-calendar table')?.getAttribute('aria-label'),
-        'Vælg en dato',
-    )
+    assert.ok(dateInput)
+    assert.equal(dateInput.value, '2026-09-15')
 
     const openDialog = [...target.querySelectorAll<HTMLButtonElement>('button')]
         .find((button) => button.textContent === 'Åbn dialog')

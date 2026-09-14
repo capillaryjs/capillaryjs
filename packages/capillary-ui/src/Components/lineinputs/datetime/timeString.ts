@@ -1,7 +1,9 @@
-const TIME_PATTERN = /^(\d{2}):(\d{2})$/
+const TIME_PATTERN = /^(\d{2}):(\d{2})(?::(\d{2})(?:\.(\d{1,3}))?)?$/
 
 /**
- * A wall-clock time in `HH:mm` form.
+ * A wall-clock time in `HH:mm` form, with optional `:ss` seconds and `.sss`
+ * milliseconds — the value format produced by the native
+ * `<input type="time">` element.
  * @experimental This type is experimental and may change in any release.
  */
 export type TimeString = string
@@ -10,6 +12,8 @@ export type TimeString = string
 export interface TimeParts {
     readonly hours: number
     readonly minutes: number
+    readonly seconds?: number
+    readonly milliseconds?: number
 }
 
 /** @experimental This function is experimental and may change in any release. */
@@ -25,18 +29,32 @@ export function parseTime(value: TimeString | string | null | undefined): TimePa
     if (match == null) return null
     const hours = Number(match[1])
     const minutes = Number(match[2])
-    if (hours < 0 || hours > 23 || minutes < 0 || minutes > 59) return null
-    return {hours, minutes}
+    const seconds = match[3] == null ? 0 : Number(match[3])
+    const milliseconds = match[4] == null ? 0 : Number(match[4].padEnd(3, '0'))
+    if (hours > 23 || minutes > 59 || seconds > 59) return null
+    return {hours, minutes, seconds, milliseconds}
 }
 
 /** @experimental This function is experimental and may change in any release. */
 export function formatTime(parts: TimeParts): TimeString {
-    if (parts.hours < 0 || parts.hours > 23 || parts.minutes < 0 || parts.minutes > 59) {
+    const seconds = parts.seconds ?? 0
+    const milliseconds = parts.milliseconds ?? 0
+    if (
+        !Number.isInteger(parts.hours) || parts.hours < 0 || parts.hours > 23
+        || !Number.isInteger(parts.minutes) || parts.minutes < 0 || parts.minutes > 59
+        || !Number.isInteger(seconds) || seconds < 0 || seconds > 59
+        || !Number.isInteger(milliseconds) || milliseconds < 0 || milliseconds > 999
+    ) {
         throw new TypeError(`Invalid time parts: ${JSON.stringify(parts)}`)
     }
     const hours = String(parts.hours).padStart(2, '0')
     const minutes = String(parts.minutes).padStart(2, '0')
-    return `${hours}:${minutes}` as TimeString
+    let value = `${hours}:${minutes}`
+    if (seconds !== 0 || milliseconds !== 0) {
+        value += `:${String(seconds).padStart(2, '0')}`
+        if (milliseconds !== 0) value += `.${String(milliseconds).padStart(3, '0')}`
+    }
+    return value as TimeString
 }
 
 /** @experimental This function is experimental and may change in any release. */

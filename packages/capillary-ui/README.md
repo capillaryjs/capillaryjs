@@ -324,9 +324,9 @@ the tables below denotes that TypeScript type parameter.
 | `Checkbox<T>` | Configurable keyboard-operable semantic state cycle | `symbols` as `[content, value]` tuples, `label`/`ariaLabel`, `valueEmitter`, `defaultValue`, `disabled`, `required`, `busy`, `error`, `onChange` |
 | `TriCheckbox` | Neutral/prefer/deny `FilterMode` cycle | Same public props as `Checkbox`, except fixed symbols |
 | `QuadCheckbox` | Neutral/prefer/require/deny `FilterMode` cycle | Same public props as `Checkbox`, except fixed symbols |
-| `DatePicker` (experimental) | Text date input with calendar dialog | value props, `label`/`ariaLabel`, `disabled`, `required`, `readOnly`, `busy`, `error`, date bounds/placeholders, input/change callbacks |
-| `TimePicker` (experimental) | Stepped native time select | value props, `label`/`ariaLabel`, `disabled`, `required`, `busy`, `error`, time bounds/step/placeholders, input/change callbacks |
-| `DateTimePicker` (experimental) | Combined date/time fieldset | combined value props, `label`/`ariaLabel`, `disabled`, `required`, `busy`, `error`, date/time bounds and callbacks |
+| `DatePicker` (experimental) | Native `<input type="date">` | `CivilDate` value props, `label`/`ariaLabel`, `name`, `autoComplete`, `disabled`, `required`, `readOnly`, `busy`, `error`, `min`/`max`/`step`, `inputRef`, input/change callbacks |
+| `TimePicker` (experimental) | Native `<input type="time">` | `TimeString` value props, `label`/`ariaLabel`, `name`, `autoComplete`, `disabled`, `required`, `readOnly`, `busy`, `error`, `min`/`max`/`step`, `inputRef`, input/change callbacks |
+| `DateTimePicker` (experimental) | Native `<input type="datetime-local">` | `LocalDateTime` value props, `label`/`ariaLabel`, `name`, `autoComplete`, `disabled`, `required`, `readOnly`, `busy`, `error`, `min`/`max`/`step`, `inputRef`, input/change callbacks |
 
 `FilterMode` exports `neutral`, `prefer`, `require`, and `deny` semantic values.
 Arrow keys move backward or forward through a multi-state checkbox; Space uses

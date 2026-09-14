@@ -478,8 +478,9 @@ cap-tricheckbox > label > input[value="require"] + cap-checkshell {
 
 cap-dropdown,
 cap-datepicker,
-cap-timepicker,
+cap-datetimepicker,
 cap-textbox,
+cap-timepicker,
 cap-toggle {
             display: flex;
             flex-flow: row nowrap;
@@ -497,36 +498,35 @@ cap-toggle {
 
         cap-groupbox > cap-content > cap-layout > cap-dropdown,
         cap-groupbox > cap-content > cap-layout > cap-datepicker,
-        cap-groupbox > cap-content > cap-layout > cap-timepicker,
+        cap-groupbox > cap-content > cap-layout > cap-datetimepicker,
         cap-groupbox > cap-content > cap-layout > cap-textbox,
+        cap-groupbox > cap-content > cap-layout > cap-timepicker,
         cap-groupbox > cap-content > cap-layout > cap-toggle {
             align-self: stretch;
         }
 
         cap-dropdown > label,
         cap-datepicker > label,
-        cap-timepicker > label,
+        cap-datetimepicker > label,
         cap-textbox > label,
+        cap-timepicker > label,
         cap-toggle > label {
             align-self: center;
             user-select: none;
             white-space: nowrap;
         }
 
-cap-dropdown,
-cap-timepicker {
+cap-dropdown {
             display: grid;
             grid-template-columns: minmax(var(--input-min-width, 6rem), 1fr);
             min-width: 0;
         }
 
-        cap-dropdown:has(> label),
-        cap-timepicker:has(> label) {
+        cap-dropdown:has(> label) {
             grid-template-columns: max-content minmax(var(--input-min-width, 6rem), 1fr);
         }
 
-        cap-dropdown > cap-selectshell,
-        cap-timepicker > cap-selectshell {
+        cap-dropdown > cap-selectshell {
             display: flex;
             flex-flow: row nowrap;
             position: relative;
@@ -539,8 +539,7 @@ cap-timepicker {
             margin-left: auto;
         }
 
-        cap-dropdown > cap-selectshell > select,
-        cap-timepicker > cap-selectshell > select {
+        cap-dropdown > cap-selectshell > select {
             position: relative;
             z-index: 1;
             min-height: var(--control-min-height, 2em);
@@ -563,8 +562,7 @@ cap-timepicker {
             white-space: nowrap;
         }
 
-        cap-dropdown > cap-selectshell::after,
-        cap-timepicker > cap-selectshell::after {
+        cap-dropdown > cap-selectshell::after {
             content: var(--dropdown-underlay-content);
             position: absolute;
             z-index: 0;
@@ -579,8 +577,7 @@ cap-timepicker {
             pointer-events: none;
         }
 
-        cap-dropdown > cap-selectshell::before,
-        cap-timepicker > cap-selectshell::before {
+        cap-dropdown > cap-selectshell::before {
             content: var(--dropdown-trigger-content);
             position: absolute;
             z-index: 2;
@@ -600,42 +597,36 @@ cap-timepicker {
             pointer-events: none;
         }
 
-        cap-dropdown > cap-selectshell:has(> select:hover:not(:disabled))::before,
-        cap-timepicker > cap-selectshell:has(> select:hover:not(:disabled))::before {
+        cap-dropdown > cap-selectshell:has(> select:hover:not(:disabled))::before {
             background: var(--dropdown-trigger-background-hover);
             box-shadow: var(--dropdown-trigger-shadow-hover);
         }
 
-        cap-dropdown > cap-selectshell:has(> select:disabled)::before,
-        cap-timepicker > cap-selectshell:has(> select:disabled)::before {
+        cap-dropdown > cap-selectshell:has(> select:disabled)::before {
             color: var(--input-color-disabled);
             background: var(--dropdown-trigger-background-disabled);
             border: var(--dropdown-trigger-border-disabled);
         }
 
-        cap-dropdown > cap-selectshell:has(> select:disabled)::after,
-        cap-timepicker > cap-selectshell:has(> select:disabled)::after {
+        cap-dropdown > cap-selectshell:has(> select:disabled)::after {
             background: var(--dropdown-underlay-background-disabled);
             border: var(--dropdown-underlay-border-disabled);
         }
 
-        cap-dropdown > cap-selectshell > select:focus-visible,
-        cap-timepicker > cap-selectshell > select:focus-visible {
+        cap-dropdown > cap-selectshell > select:focus-visible {
             outline: 2px solid transparent;
             outline-offset: 1px;
             box-shadow: var(--focus-ring);
         }
 
-        cap-dropdown > cap-selectshell:has(> select[aria-busy="true"]:not([aria-invalid="true"]))::after,
-        cap-timepicker > cap-selectshell:has(> select[aria-busy="true"]:not([aria-invalid="true"]))::after {
+        cap-dropdown > cap-selectshell:has(> select[aria-busy="true"]:not([aria-invalid="true"]))::after {
             background: var(--working-background-image), var(--dropdown-underlay-background);
             background-repeat: repeat, no-repeat;
             background-size: 2rem 2rem, 100% 100%;
             animation: cap-working-progress .55s linear infinite;
         }
 
-        cap-dropdown > cap-selectshell > select[aria-busy="true"]:not([aria-invalid="true"]),
-        cap-timepicker > cap-selectshell > select[aria-busy="true"]:not([aria-invalid="true"]) {
+        cap-dropdown > cap-selectshell > select[aria-busy="true"]:not([aria-invalid="true"]) {
             background: var(--working-background-image), var(--dropdown-select-background);
             background-repeat: repeat, no-repeat;
             background-size: 2rem 2rem, 100% 100%;
@@ -643,39 +634,30 @@ cap-timepicker {
         }
 
         cap-dropdown > cap-selectshell:has(> select[aria-invalid="true"])::before,
-        cap-timepicker > cap-selectshell:has(> select[aria-invalid="true"])::before,
         cap-dropdown > cap-selectshell:has(> select[aria-invalid="true"])::after,
-        cap-timepicker > cap-selectshell:has(> select[aria-invalid="true"])::after,
-        cap-dropdown > cap-selectshell > select[aria-invalid="true"],
-        cap-timepicker > cap-selectshell > select[aria-invalid="true"] {
+        cap-dropdown > cap-selectshell > select[aria-invalid="true"] {
             border-color: var(--error-color);
         }
 
         @media (prefers-reduced-motion: reduce) {
             cap-dropdown > cap-selectshell:has(> select[aria-busy="true"])::after,
-            cap-timepicker > cap-selectshell:has(> select[aria-busy="true"])::after,
-            cap-dropdown > cap-selectshell > select[aria-busy="true"],
-            cap-timepicker > cap-selectshell > select[aria-busy="true"] {
+            cap-dropdown > cap-selectshell > select[aria-busy="true"] {
                 animation: none !important;
             }
         }
 
         @media (forced-colors: active) {
             cap-dropdown > cap-selectshell::before,
-            cap-timepicker > cap-selectshell::before,
-            cap-dropdown > cap-selectshell::after,
-            cap-timepicker > cap-selectshell::after {
+            cap-dropdown > cap-selectshell::after {
                 display: none;
             }
 
-            cap-dropdown > cap-selectshell > select,
-            cap-timepicker > cap-selectshell > select {
+            cap-dropdown > cap-selectshell > select {
                 appearance: auto;
                 padding-inline-end: var(--space-sm);
             }
 
-            cap-dropdown > cap-selectshell > select[aria-invalid="true"],
-            cap-timepicker > cap-selectshell > select[aria-invalid="true"] {
+            cap-dropdown > cap-selectshell > select[aria-invalid="true"] {
                 outline: 2px solid Mark;
                 outline-offset: 1px;
             }
@@ -911,26 +893,30 @@ cap-filterpanel {
             }
         }
 
-cap-datepicker {
+cap-datepicker,
+cap-datetimepicker,
+cap-timepicker {
             display: grid;
-            grid-template-columns: minmax(var(--input-min-width, 6rem), 1fr) max-content;
+            grid-template-columns: minmax(var(--input-min-width, 6rem), 1fr);
             align-items: center;
-            gap: 0.5em;
-            position: relative;
-            min-height: var(--control-min-height, 2em);
             min-width: 0;
         }
 
-        cap-datepicker:has(> label) {
-            grid-template-columns: max-content minmax(var(--input-min-width, 6rem), 1fr) max-content;
+        cap-datepicker:has(> label),
+        cap-datetimepicker:has(> label),
+        cap-timepicker:has(> label) {
+            grid-template-columns: max-content minmax(var(--input-min-width, 6rem), 1fr);
         }
 
-        cap-datepicker > input {
+        cap-datepicker > input,
+        cap-datetimepicker > input,
+        cap-timepicker > input {
             min-height: var(--control-min-height, 2em);
-            width: var(--input-width, 10rem);
+            width: var(--input-width, max-content);
             max-width: 100%;
             min-width: var(--input-min-width, 6rem);
             margin: 0;
+            margin-left: auto;
             padding: 0 5px;
             color: var(--input-color);
             background: var(--input-background);
@@ -939,211 +925,66 @@ cap-datepicker {
             box-shadow: var(--input-shadow);
             box-sizing: border-box;
             font: inherit;
-            appearance: none;
-            user-select: text;
-            cursor: text;
         }
 
         cap-datepicker > input:disabled,
-        cap-datepicker > input[readonly] {
+        cap-datetimepicker > input:disabled,
+        cap-timepicker > input:disabled,
+        cap-datepicker > input[readonly],
+        cap-datetimepicker > input[readonly],
+        cap-timepicker > input[readonly] {
             color: var(--input-color-disabled);
             background: var(--input-background-disabled);
             border-color: var(--ui-input-border-disabled);
             cursor: not-allowed;
         }
 
-        cap-datepicker > input:focus-visible {
+        cap-datepicker > input:focus-visible,
+        cap-datetimepicker > input:focus-visible,
+        cap-timepicker > input:focus-visible {
             outline: 2px solid transparent;
             outline-offset: 1px;
             box-shadow: var(--focus-ring);
         }
 
-        cap-datepicker > button {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            box-sizing: border-box;
-            min-height: var(--control-min-height, 2em);
-            min-width: 2rem;
-            margin: 0;
-            padding: 0 5px;
-            color: var(--button-color);
-            background: var(--button-background);
-            border: var(--button-border);
-            border-radius: var(--radius-md);
-            cursor: pointer;
-            font: inherit;
-            user-select: none;
-        }
-
-        cap-datepicker > button:disabled {
-            color: var(--input-color-disabled);
-            background: var(--input-background-disabled);
-            cursor: not-allowed;
-        }
-
-        cap-datepicker > dialog {
-            position: absolute;
-            inset-block-start: 100%;
-            inset-inline-start: 0;
-            z-index: 1;
-            margin: 0.25em 0 0;
-            padding: 0.5em;
-            min-width: 16rem;
-            background: var(--island-background, var(--application-background));
-            border: var(--island-border, var(--input-border));
-            border-radius: var(--radius-md);
-            box-shadow: var(--island-shadow, var(--input-shadow));
-            color: var(--ui-color);
-        }
-
-        cap-datepicker > dialog::backdrop {
-            display: none;
-        }
-
-        cap-datepicker > input[aria-busy="true"]:not([aria-invalid="true"]) {
+        cap-datepicker > input[aria-busy="true"]:not([aria-invalid="true"]),
+        cap-datetimepicker > input[aria-busy="true"]:not([aria-invalid="true"]),
+        cap-timepicker > input[aria-busy="true"]:not([aria-invalid="true"]) {
             background: var(--working-background-image), var(--input-background);
             background-repeat: repeat, no-repeat;
             background-size: 2rem 2rem, 100% 100%;
             animation: cap-working-progress .55s linear infinite;
         }
 
-        cap-datepicker > input[aria-invalid="true"] {
+        cap-datepicker > input:disabled[aria-busy="true"]:not([aria-invalid="true"]),
+        cap-datetimepicker > input:disabled[aria-busy="true"]:not([aria-invalid="true"]),
+        cap-timepicker > input:disabled[aria-busy="true"]:not([aria-invalid="true"]) {
+            background: var(--working-background-image), var(--input-background-disabled);
+            background-repeat: repeat, no-repeat;
+            background-size: 2rem 2rem, 100% 100%;
+        }
+
+        cap-datepicker > input[aria-invalid="true"],
+        cap-datetimepicker > input[aria-invalid="true"],
+        cap-timepicker > input[aria-invalid="true"] {
             border-color: var(--error-color);
         }
 
-        cap-datepicker > dialog .cap-calendar {
-            display: inline-block;
-            font: inherit;
-            user-select: none;
-        }
-
-        cap-datepicker > dialog .cap-calendar .cap-calendar-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            gap: 0.5em;
-            padding: 0.25em 0.5em;
-            font: inherit;
-            text-align: center;
-        }
-
-        cap-datepicker > dialog .cap-calendar .cap-calendar-header button {
-            min-inline-size: 2em;
-            min-block-size: 2em;
-            padding: 0.25em;
-            cursor: pointer;
-        }
-
-        cap-datepicker > dialog .cap-calendar table[role="grid"] {
-            border-collapse: collapse;
-            width: 100%;
-            font: inherit;
-        }
-
-        cap-datepicker > dialog .cap-calendar table[role="grid"] th,
-        cap-datepicker > dialog .cap-calendar table[role="grid"] td {
-            padding: 0.125em;
-            text-align: center;
-        }
-
-        cap-datepicker > dialog .cap-calendar table[role="grid"] th {
-            font-weight: 600;
-        }
-
-        cap-datepicker > dialog .cap-calendar table[role="grid"] td button {
-            inline-size: 2em;
-            block-size: 2em;
-            padding: 0;
-            border: 1px solid transparent;
-            border-radius: var(--radius-sm, 0.25rem);
-            background: transparent;
-            color: inherit;
-            font: inherit;
-            cursor: pointer;
-        }
-
-        cap-datepicker > dialog .cap-calendar table[role="grid"] td button:focus-visible {
-            outline: 2px solid transparent;
-            outline-offset: 1px;
-            box-shadow: var(--focus-ring);
-        }
-
-        cap-datepicker > dialog .cap-calendar table[role="grid"] td button[data-today="true"] {
-            border-color: var(--palette-primary-500);
-        }
-
-        cap-datepicker > dialog .cap-calendar table[role="grid"] td button[data-selected="true"] {
-            background: var(--palette-primary-500);
-            color: var(--palette-primary-contrast);
-        }
-
-        cap-datepicker > dialog .cap-calendar table[role="grid"] td button:disabled,
-        cap-datepicker > dialog .cap-calendar table[role="grid"] td button[aria-disabled="true"] {
-            color: var(--input-color-disabled);
-            cursor: not-allowed;
-        }
-
         @media (prefers-reduced-motion: reduce) {
-            cap-datepicker > input[aria-busy="true"] {
+            cap-datepicker > input[aria-busy="true"],
+            cap-datetimepicker > input[aria-busy="true"],
+            cap-timepicker > input[aria-busy="true"] {
                 animation: none !important;
             }
         }
 
         @media (forced-colors: active) {
-            cap-datepicker > input[aria-invalid="true"] {
+            cap-datepicker > input[aria-invalid="true"],
+            cap-datetimepicker > input[aria-invalid="true"],
+            cap-timepicker > input[aria-invalid="true"] {
                 outline: 2px solid Mark;
                 outline-offset: 1px;
             }
-
-            cap-datepicker > dialog .cap-calendar table[role="grid"] td button[data-selected="true"] {
-                outline: 2px solid ButtonText;
-            }
-        }
-
-cap-datetimepicker {
-            display: block;
-            position: relative;
-            min-width: 0;
-        }
-
-        cap-datetimepicker > fieldset {
-            margin: 0;
-            padding: 0;
-            min-inline-size: 0;
-            border: 0;
-            display: flex;
-            flex-flow: row wrap;
-            align-items: flex-start;
-            gap: 0.5em;
-            width: 100%;
-        }
-
-        cap-datetimepicker > fieldset > legend {
-            display: block;
-            width: 100%;
-            padding: 0;
-            margin: 0 0 0.25em;
-            font: inherit;
-            user-select: none;
-        }
-
-        cap-datetimepicker > fieldset[aria-invalid="true"] cap-datepicker > input,
-        cap-datetimepicker > fieldset[aria-invalid="true"] cap-timepicker > cap-selectshell::before,
-        cap-datetimepicker > fieldset[aria-invalid="true"] cap-timepicker > cap-selectshell::after,
-        cap-datetimepicker > fieldset[aria-invalid="true"] cap-timepicker > cap-selectshell > select {
-            border-color: var(--error-color);
-        }
-
-        @media (forced-colors: active) {
-            cap-datetimepicker > fieldset[aria-invalid="true"] {
-                outline: 2px solid Mark;
-                outline-offset: 1px;
-            }
-        }
-
-cap-timepicker > cap-selectshell > select {
-            min-width: 7rem;
         }
 
 cap-descriptionlist {

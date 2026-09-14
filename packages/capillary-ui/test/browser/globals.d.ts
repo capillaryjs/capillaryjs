@@ -25,6 +25,7 @@ interface CapillaryUiBrowserTestAPI {
     setPanelReviewDisabled(value: boolean): void
     destroyRouting(): number
     measureDataTable(rowCount: number): DataTableBenchmarkMetrics
+    readonly datetime: string | null
 }
 
 declare var capillaryUiTest: CapillaryUiBrowserTestAPI

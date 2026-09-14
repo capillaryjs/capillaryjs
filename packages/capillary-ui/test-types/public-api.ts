@@ -69,12 +69,9 @@ const timeValue = new Emitter<string | null>('10:00')
 const time = new TimePicker({label: 'Start time', valueEmitter: timeValue})
 time.valueEmitter.get()?.slice(0, 2)
 
-const combinedValue = new Emitter<{date: string | null; time: string | null} | null>({
-    date: '2026-09-10',
-    time: '10:00',
-})
+const combinedValue = new Emitter<string | null>('2026-09-10T10:00')
 const combined = new DateTimePicker({label: 'Schedule', valueEmitter: combinedValue})
-combined.valueEmitter.get()?.date?.slice(0, 4)
+combined.valueEmitter.get()?.slice(0, 4)
 
 new GroupBox({header: 'Grouping', children: 'Controls'})
 new CapillaryUiApp({sizing: 'viewport', landmark: 'main', children: 'Application'})

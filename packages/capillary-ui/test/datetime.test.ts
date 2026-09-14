@@ -11,7 +11,6 @@ import {
     h,
     live,
 } from '../src/index.js'
-import type {DateTimeValue} from '../src/index.js'
 import {
     addCivilDays,
     addMonths,
@@ -32,6 +31,17 @@ import {
     timeStepOptions,
     timeToMinutes,
 } from '../src/Components/lineinputs/datetime/timeString.js'
+import {
+    combineLocalDateTime,
+    compareLocalDateTimes,
+    dateToLocalDateTime,
+    formatLocalDateTime,
+    isLocalDateTime,
+    localDateTimeToDate,
+    nowLocalDateTime,
+    parseLocalDateTime,
+    splitLocalDateTime,
+} from '../src/Components/lineinputs/datetime/localDateTime.js'
 import {requiredQuery} from './testUtils.js'
 
 let window: Window
@@ -102,12 +112,25 @@ describe('civil date utilities', () => {
 describe('time string utilities', () => {
     test('parse and format round-trip', () => {
         assert.equal(formatTime({hours: 14, minutes: 5}), '14:05')
-        assert.deepEqual(parseTime('14:05'), {hours: 14, minutes: 5})
+        assert.deepEqual(parseTime('14:05'),
+            {hours: 14, minutes: 5, seconds: 0, milliseconds: 0})
+    })
+
+    test('parses and formats optional seconds and milliseconds', () => {
+        assert.deepEqual(parseTime('14:05:30'),
+            {hours: 14, minutes: 5, seconds: 30, milliseconds: 0})
+        assert.deepEqual(parseTime('14:05:30.5'),
+            {hours: 14, minutes: 5, seconds: 30, milliseconds: 500})
+        assert.equal(formatTime({hours: 14, minutes: 5, seconds: 30}), '14:05:30')
+        assert.equal(formatTime({hours: 14, minutes: 5, milliseconds: 250}), '14:05:00.250')
+        assert.equal(formatTime({hours: 14, minutes: 5, seconds: 30, milliseconds: 250}),
+            '14:05:30.250')
     })
 
     test('rejects invalid time strings', () => {
         assert.equal(isTimeString('25:00'), false)
         assert.equal(isTimeString('12:60'), false)
+        assert.equal(isTimeString('14:05:99'), false)
         assert.equal(isTimeString('noon'), false)
     })
 
@@ -124,36 +147,122 @@ describe('time string utilities', () => {
     })
 })
 
-describe('DatePicker', () => {
-    test('renders a host, label, input, and trigger', () => {
-        DatePicker.new({label: 'Start', defaultValue: '2026-09-10'}).attachTo(document.body)
-        const host = requiredQuery<HTMLElement>('cap-datepicker')
-        assert.equal(host.dataset.capComponent, 'datepicker')
-        assert.equal(requiredQuery<HTMLLabelElement>('label', host).htmlFor,
-            requiredQuery<HTMLInputElement>('input', host).id)
-        assert.equal(requiredQuery<HTMLInputElement>('input', host).value, '2026-09-10')
-        assert.equal(host.querySelector('dialog[open]'), null)
+describe('local date-time utilities', () => {
+    test('parse and format round-trip', () => {
+        const original = '2026-09-10T14:05' as const
+        const parts = parseLocalDateTime(original)
+        assert.deepEqual(parts, {
+            year: 2026, month: 9, day: 10,
+            hours: 14, minutes: 5, seconds: 0, milliseconds: 0,
+        })
+        assert.equal(formatLocalDateTime(parts!), original)
     })
 
-    test('opens the calendar popup and selects a date', () => {
+    test('parses and formats optional seconds and milliseconds', () => {
+        assert.deepEqual(parseLocalDateTime('2026-09-10T14:05:30.25'), {
+            year: 2026, month: 9, day: 10,
+            hours: 14, minutes: 5, seconds: 30, milliseconds: 250,
+        })
+        assert.equal(formatLocalDateTime({
+            year: 2026, month: 9, day: 10,
+            hours: 14, minutes: 5, seconds: 30, milliseconds: 250,
+        }), '2026-09-10T14:05:30.250')
+    })
+
+    test('rejects invalid local date-times', () => {
+        assert.equal(isLocalDateTime('2026-09-10T14:05'), true)
+        assert.equal(isLocalDateTime('2026-09-10'), false)
+        assert.equal(isLocalDateTime('2026-09-10 14:05'), false)
+        assert.equal(isLocalDateTime('2025-02-29T14:05'), false)
+        assert.equal(isLocalDateTime('2026-09-10T25:05'), false)
+        assert.equal(isLocalDateTime('not-a-date-time'), false)
+    })
+
+    test('splits and combines date and time parts', () => {
+        assert.deepEqual(splitLocalDateTime('2026-09-10T14:05'),
+            {date: '2026-09-10', time: '14:05'})
+        assert.equal(splitLocalDateTime('not-a-date-time'), null)
+        assert.equal(combineLocalDateTime('2026-09-10', '14:05'), '2026-09-10T14:05')
+        assert.equal(combineLocalDateTime('2026-09-10', null), '2026-09-10T00:00')
+        assert.equal(combineLocalDateTime(null, '14:05'), null)
+        assert.equal(combineLocalDateTime('2026-09-10', 'noon'), null)
+    })
+
+    test('compares local date-times chronologically', () => {
+        assert.equal(compareLocalDateTimes('2026-09-10T14:05', '2026-09-10T14:05'), 0)
+        assert.ok(compareLocalDateTimes('2026-09-10T14:06', '2026-09-10T14:05') > 0)
+        assert.ok(compareLocalDateTimes('2026-09-09T23:59', '2026-09-10T00:00') < 0)
+        assert.ok(compareLocalDateTimes('2026-09-10T14:05:01', '2026-09-10T14:05') > 0)
+        assert.throws(() => compareLocalDateTimes('bad', '2026-09-10T14:05'), TypeError)
+    })
+
+    test('converts to and from Date in the local timezone', () => {
+        const date = localDateTimeToDate('2026-09-10T14:05:30.250')
+        assert.equal(date.getFullYear(), 2026)
+        assert.equal(date.getMonth(), 8)
+        assert.equal(date.getDate(), 10)
+        assert.equal(date.getHours(), 14)
+        assert.equal(date.getMinutes(), 5)
+        assert.equal(date.getSeconds(), 30)
+        assert.equal(date.getMilliseconds(), 250)
+        assert.equal(dateToLocalDateTime(date), '2026-09-10T14:05:30.250')
+        assert.equal(dateToLocalDateTime(new Date(2026, 8, 10, 14, 5)), '2026-09-10T14:05')
+        assert.throws(() => localDateTimeToDate('bad'), TypeError)
+    })
+
+    test('now produces a valid local date-time', () => {
+        assert.equal(isLocalDateTime(nowLocalDateTime()), true)
+        assert.equal(nowLocalDateTime(new Date(2026, 8, 10, 14, 5)), '2026-09-10T14:05')
+    })
+})
+
+describe('DatePicker', () => {
+    test('renders a labeled native date input', () => {
+        DatePicker.new({
+            label: 'Start',
+            defaultValue: '2026-09-10',
+            min: '2026-01-01',
+            max: '2026-12-31',
+        }).attachTo(document.body)
+
+        const host = requiredQuery<HTMLElement>('cap-datepicker')
+        assert.equal(host.dataset.capComponent, 'datepicker')
+        const input = requiredQuery<HTMLInputElement>('input', host)
+        assert.equal(input.type, 'date')
+        assert.equal(input.value, '2026-09-10')
+        assert.equal(input.getAttribute('min'), '2026-01-01')
+        assert.equal(input.getAttribute('max'), '2026-12-31')
+        assert.equal(requiredQuery<HTMLLabelElement>('label', host).htmlFor, input.id)
+    })
+
+    test('emits CivilDate values and null for empty or invalid input', () => {
+        const inputs: (string | null)[] = []
         const changes: (string | null)[] = []
         const picker = DatePicker.new({
             label: 'Start',
+            onInput: (value) => inputs.push(value),
             onChange: (value) => changes.push(value),
         }).attachTo(document.body)
 
         const input = requiredQuery<HTMLInputElement>('input')
-        input.dispatchEvent(new KeyboardEvent('keydown', {key: 'ArrowDown', bubbles: true}))
+        input.value = '2026-09-15'
+        input.dispatchEvent(new Event('input', {bubbles: true}))
+        assert.deepEqual(inputs, ['2026-09-15'])
+        assert.equal(picker.valueEmitter.get(), '2026-09-15')
+        assert.deepEqual(changes, [])
 
-        const dialog = requiredQuery<HTMLDialogElement>('dialog')
-        assert.equal(dialog.open, true)
-        const selectedDay = dialog.querySelector<HTMLButtonElement>('button[data-focused="true"]')
-        assert.notEqual(selectedDay, null)
-        selectedDay!.dispatchEvent(new MouseEvent('click', {bubbles: true}))
+        input.dispatchEvent(new Event('change', {bubbles: true}))
+        assert.deepEqual(changes, ['2026-09-15'])
 
-        assert.equal(document.querySelector('dialog[open]'), null)
-        assert.equal(changes.length, 1)
-        assert.equal(isCivilDate(changes[0]!), true)
+        input.value = ''
+        input.dispatchEvent(new Event('input', {bubbles: true}))
+        assert.equal(picker.valueEmitter.get(), null)
+        assert.deepEqual(inputs, ['2026-09-15', null])
+
+        input.value = 'not-a-date'
+        input.dispatchEvent(new Event('input', {bubbles: true}))
+        assert.equal(picker.valueEmitter.get(), null)
+        assert.deepEqual(inputs, ['2026-09-15', null, null])
     })
 
     test('follows an external emitter and cleans up on destroy', () => {
@@ -170,87 +279,10 @@ describe('DatePicker', () => {
         assert.equal(value.subscriberCount, 0)
     })
 
-    test('disables days outside min and max', () => {
-        DatePicker.new({
-            defaultValue: '2026-09-10',
-            min: '2026-09-08',
-            max: '2026-09-12',
-        }).attachTo(document.body)
-
-        const input = requiredQuery<HTMLInputElement>('input')
-        input.dispatchEvent(new KeyboardEvent('keydown', {key: 'ArrowDown', bubbles: true}))
-
-        const dialog = requiredQuery<HTMLElement>('dialog')
-        const disabledDays = [...dialog.querySelectorAll<HTMLButtonElement>('button[aria-disabled="true"]')]
-        const dayNumbers = disabledDays.map((button) => Number(button.textContent))
-        assert.ok(dayNumbers.includes(7))
-        assert.ok(dayNumbers.includes(13))
-    })
-
-    test('closes popup on mousedown outside the control', () => {
-        DatePicker.new({label: 'Start'}).attachTo(document.body)
-
-        const input = requiredQuery<HTMLInputElement>('input')
-        input.dispatchEvent(new KeyboardEvent('keydown', {key: 'ArrowDown', bubbles: true}))
-        assert.notEqual(document.querySelector('dialog[open]'), null)
-
-        document.body.dispatchEvent(new MouseEvent('mousedown', {bubbles: true}))
-
-        assert.equal(document.querySelector('dialog[open]'), null)
-    })
-
-    test('input click opens the popup', () => {
-        DatePicker.new({label: 'Start'}).attachTo(document.body)
-
-        const input = requiredQuery<HTMLInputElement>('input')
-        input.dispatchEvent(new MouseEvent('click', {bubbles: true}))
-
-        assert.notEqual(document.querySelector('dialog[open]'), null)
-    })
-
-    test('clamps focused day when paging to a shorter month', () => {
-        DatePicker.new({defaultValue: '2026-01-31'}).attachTo(document.body)
-
-        const input = requiredQuery<HTMLInputElement>('input')
-        input.dispatchEvent(new KeyboardEvent('keydown', {key: 'ArrowDown', bubbles: true}))
-
-        const dialog = requiredQuery<HTMLDialogElement>('dialog')
-        const focusedDay = dialog.querySelector<HTMLButtonElement>('button[data-focused="true"]')
-        assert.notEqual(focusedDay, null)
-        assert.equal(focusedDay!.textContent, '31')
-
-        focusedDay!.dispatchEvent(new KeyboardEvent('keydown', {key: 'PageDown', bubbles: true}))
-
-        const nextFocusedDay = dialog.querySelector<HTMLButtonElement>('button[data-focused="true"]')
-        assert.notEqual(nextFocusedDay, null)
-        assert.equal(nextFocusedDay!.textContent, '28')
-    })
-
-    test('fires onInput while typing and onChange on blur', () => {
-        const inputs: (string | null)[] = []
-        const changes: (string | null)[] = []
-        DatePicker.new({
-            label: 'Start',
-            onInput: (value) => inputs.push(value),
-            onChange: (value) => changes.push(value),
-        }).attachTo(document.body)
-
-        const input = requiredQuery<HTMLInputElement>('input')
-        input.value = '2026-09-15'
-        input.dispatchEvent(new Event('input', {bubbles: true}))
-
-        assert.deepEqual(inputs, ['2026-09-15'])
-        assert.deepEqual(changes, [])
-
-        input.dispatchEvent(new Event('change', {bubbles: true}))
-
-        assert.deepEqual(inputs, ['2026-09-15'])
-        assert.deepEqual(changes, ['2026-09-15'])
-    })
-
-    test('live disabled, required, busy, and error update without parent rerender', () => {
+    test('live disabled, required, readOnly, busy, and error update without parent rerender', () => {
         const disabled = new Emitter(false)
         const required = new Emitter(false)
+        const readOnly = new Emitter(false)
         const busy = new Emitter(false)
         const error = new Emitter<unknown>(null)
         let ownerRenders = 0
@@ -263,6 +295,7 @@ describe('DatePicker', () => {
                     defaultValue: '2026-09-10',
                     disabled: live(disabled),
                     required: live(required),
+                    readOnly: live(readOnly),
                     busy: live(busy),
                     error: live(error),
                 })
@@ -275,16 +308,19 @@ describe('DatePicker', () => {
         assert.equal(ownerRenders, 1)
         assert.equal(input.disabled, false)
         assert.equal(input.required, false)
+        assert.equal(input.readOnly, false)
         assert.equal(input.getAttribute('aria-invalid'), null)
 
         disabled.set(true)
         required.set(true)
+        readOnly.set(true)
         busy.set(true)
         error.set('Choose a date')
 
         assert.equal(ownerRenders, 1)
         assert.equal(input.disabled, true)
         assert.equal(input.required, true)
+        assert.equal(input.readOnly, true)
         assert.equal(input.getAttribute('aria-busy'), 'true')
         assert.equal(input.getAttribute('aria-invalid'), 'true')
         assert.equal(requiredQuery<HTMLElement>('[role="alert"]', input.closest('cap-datepicker')!).textContent,
@@ -293,28 +329,28 @@ describe('DatePicker', () => {
 })
 
 describe('TimePicker', () => {
-    test('renders a host, label, and select with stepped options', () => {
+    test('renders a labeled native time input', () => {
         TimePicker.new({
             label: 'Start time',
-            step: 60,
             defaultValue: '10:00',
+            step: 900,
             busy: true,
             error: 'Time service delayed',
         }).attachTo(document.body)
 
         const host = requiredQuery<HTMLElement>('cap-timepicker')
         assert.equal(host.dataset.capComponent, 'timepicker')
-        const select = requiredQuery<HTMLSelectElement>('select', host)
-        assert.equal(select.value, '10:00')
-        assert.equal(select.getAttribute('aria-busy'), 'true')
-        assert.equal(select.getAttribute('aria-invalid'), 'true')
+        const input = requiredQuery<HTMLInputElement>('input', host)
+        assert.equal(input.type, 'time')
+        assert.equal(input.value, '10:00')
+        assert.equal(input.getAttribute('step'), '900')
+        assert.equal(input.getAttribute('aria-busy'), 'true')
+        assert.equal(input.getAttribute('aria-invalid'), 'true')
         assert.equal(requiredQuery('cap-error[role="alert"]', host).textContent,
             'Time service delayed')
-        assert.equal([...select.options].some((option) => option.value === '09:00'), true)
-        assert.equal([...select.options].some((option) => option.value === '23:00'), true)
     })
 
-    test('updates an external emitter and calls onChange', () => {
+    test('emits TimeString values including seconds', () => {
         const value = new Emitter<string | null>('09:00')
         const changes: (string | null)[] = []
         TimePicker.new({
@@ -322,101 +358,59 @@ describe('TimePicker', () => {
             onChange: (next) => changes.push(next),
         }).attachTo(document.body)
 
-        const select = requiredQuery<HTMLSelectElement>('select')
-        select.value = '14:00'
-        select.dispatchEvent(new Event('change', {bubbles: true}))
+        const input = requiredQuery<HTMLInputElement>('input')
+        input.value = '14:30:15'
+        input.dispatchEvent(new Event('change', {bubbles: true}))
 
-        assert.equal(value.get(), '14:00')
-        assert.deepEqual(changes, ['14:00'])
-    })
-
-    test('clamps to first option when required becomes true via live prop', () => {
-        const required = new Emitter(false)
-
-        class Owner extends Component {
-            render() {
-                return h(TimePicker, {
-                    label: 'Start time',
-                    required: live(required),
-                })
-            }
-        }
-
-        Owner.new().attachTo(document.body)
-        const select = requiredQuery<HTMLSelectElement>('select')
-        assert.equal(select.options[0]?.textContent, 'Select time…')
-
-        required.set(true)
-        assert.equal(select.value, '00:00')
+        assert.equal(value.get(), '14:30:15')
+        assert.deepEqual(changes, ['14:30:15'])
     })
 })
 
 describe('DateTimePicker', () => {
-    test('renders a group with date and time pickers', () => {
+    test('renders a labeled native datetime-local input', () => {
         DateTimePicker.new({
-            label: 'Start',
-            defaultValue: {date: '2026-09-10', time: '10:00'},
+            label: 'Schedule',
+            defaultValue: '2026-09-10T10:00',
+            min: '2026-01-01T00:00',
+            max: '2026-12-31T23:59',
             busy: true,
             error: 'Start is unavailable',
         }).attachTo(document.body)
 
         const host = requiredQuery<HTMLElement>('cap-datetimepicker')
         assert.equal(host.dataset.capComponent, 'datetimepicker')
-        const fieldset = requiredQuery<HTMLFieldSetElement>('fieldset', host)
-        assert.equal(requiredQuery<HTMLLegendElement>('legend', fieldset).textContent, 'Start')
-        assert.equal(requiredQuery<HTMLInputElement>('input', host).value, '2026-09-10')
-        assert.equal(requiredQuery<HTMLSelectElement>('select', host).value, '10:00')
-        assert.equal(fieldset.getAttribute('aria-busy'), 'true')
-        assert.equal(fieldset.getAttribute('aria-invalid'), 'true')
-        assert.ok([...host.querySelectorAll('input, select')]
-            .every((control) => control.getAttribute('aria-busy') == null))
+        const input = requiredQuery<HTMLInputElement>('input', host)
+        assert.equal(input.type, 'datetime-local')
+        assert.equal(input.value, '2026-09-10T10:00')
+        assert.equal(input.getAttribute('min'), '2026-01-01T00:00')
+        assert.equal(input.getAttribute('max'), '2026-12-31T23:59')
+        assert.equal(input.getAttribute('aria-busy'), 'true')
+        assert.equal(input.getAttribute('aria-invalid'), 'true')
+        assert.equal(requiredQuery<HTMLLabelElement>('label', host).htmlFor, input.id)
         assert.equal(requiredQuery('cap-error[role="alert"]', host).textContent,
             'Start is unavailable')
     })
 
-    test('combines date and time into a single value emitter', () => {
-        const value = new Emitter<DateTimeValue | null>({date: '2026-09-10', time: '10:00'})
-        const changes: (DateTimeValue | null)[] = []
-
-        DateTimePicker.new({
+    test('emits LocalDateTime values and follows an external emitter', () => {
+        const value = new Emitter<string | null>('2026-09-10T10:00')
+        const changes: (string | null)[] = []
+        const picker = DateTimePicker.new({
             valueEmitter: value,
             onChange: (next) => changes.push(next),
         }).attachTo(document.body)
 
         const input = requiredQuery<HTMLInputElement>('input')
-        input.dispatchEvent(new KeyboardEvent('keydown', {key: 'ArrowDown', bubbles: true}))
+        input.value = '2026-09-15T14:30'
+        input.dispatchEvent(new Event('input', {bubbles: true}))
+        assert.equal(value.get(), '2026-09-15T14:30')
 
-        const dialog = requiredQuery<HTMLDialogElement>('dialog')
-        const day = [...dialog.querySelectorAll<HTMLButtonElement>('button:not([disabled])')]
-            .find((button) => button.textContent === '15')
-        assert.notEqual(day, null)
-        day!.dispatchEvent(new MouseEvent('click', {bubbles: true}))
+        input.dispatchEvent(new Event('change', {bubbles: true}))
+        assert.deepEqual(changes, ['2026-09-15T14:30'])
 
-        assert.equal(value.get()?.date, '2026-09-15')
-        assert.equal(changes.length, 1)
-        assert.equal(changes[0]?.date, '2026-09-15')
+        value.set('2026-09-11T11:00')
+        assert.equal(input.value, '2026-09-11T11:00')
 
-        const select = requiredQuery<HTMLSelectElement>('select')
-        select.value = '14:00'
-        select.dispatchEvent(new Event('change', {bubbles: true}))
-
-        assert.equal(value.get()?.time, '14:00')
-        assert.equal(changes.length, 2)
-        assert.equal(changes[1]?.time, '14:00')
-    })
-
-    test('follows an external combined emitter', () => {
-        const value = new Emitter<DateTimeValue | null>({date: '2026-09-10', time: '10:00'})
-        DateTimePicker.new({valueEmitter: value}).attachTo(document.body)
-
-        value.set({date: '2026-09-11', time: '11:00'})
-        assert.equal(requiredQuery<HTMLInputElement>('input').value, '2026-09-11')
-        assert.equal(requiredQuery<HTMLSelectElement>('select').value, '11:00')
-    })
-
-    test('cleans up all subscriptions on destroy', () => {
-        const value = new Emitter<DateTimeValue | null>({date: '2026-09-10', time: '10:00'})
-        const picker = DateTimePicker.new({valueEmitter: value}).attachTo(document.body)
         picker.destroy()
         assert.equal(value.subscriberCount, 0)
     })

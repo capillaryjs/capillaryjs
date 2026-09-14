@@ -7,7 +7,6 @@ import {
     Checkbox,
     ColorPicker,
     DataTable,
-    DatePicker,
     Dialog,
     Dropdown,
     TreeView,
@@ -121,59 +120,6 @@ describe('Capillary UI runtime localization', () => {
         assert.equal(toolbars[1]?.getAttribute('aria-label'), 'Explicit')
         assert.equal(requiredQuery('cap-dialog button').textContent, 'Luk')
         assert.equal(requiredQuery('cap-dropdown option').textContent, 'Select…')
-    })
-
-    test('uses locale-aware calendar names and localized calendar controls', () => {
-        const runtime = createCapillaryUiRuntime({
-            localization: {
-                locale: 'da-DK',
-                messages: {
-                    calendarGridLabel: 'Vælg en dato',
-                    calendarNextMonthLabel: 'Næste måned',
-                    calendarPreviousMonthLabel: 'Forrige måned',
-                    datePickerDialogLabel: 'Vælg en dato',
-                    datePickerOpenCalendarLabel: 'Åbn kalender',
-                },
-            },
-        })
-        runtime.mount(new DatePicker({defaultValue: '2026-09-15'}), document.body)
-
-        const trigger = requiredQuery<HTMLButtonElement>('cap-datepicker > button')
-        assert.equal(trigger.getAttribute('aria-label'), 'Åbn kalender')
-        trigger.click()
-
-        assert.equal(requiredQuery('dialog').getAttribute('aria-label'), 'Vælg en dato')
-        assert.equal(requiredQuery('[role="grid"]').getAttribute('aria-label'), 'Vælg en dato')
-        assert.equal(requiredQuery('.cap-calendar-header button').getAttribute('aria-label'),
-            'Forrige måned')
-        assert.equal(document.querySelectorAll('.cap-calendar-header button')[1]
-            ?.getAttribute('aria-label'), 'Næste måned')
-
-        const expectedMonth = new Intl.DateTimeFormat('da-DK', {
-            calendar: 'gregory',
-            month: 'long',
-            year: 'numeric',
-        }).format(new Date(2026, 8, 15, 12, 0, 0))
-        assert.equal(requiredQuery('[role="heading"]').textContent, expectedMonth)
-
-        const expectedSunday = new Intl.DateTimeFormat('da-DK', {
-            calendar: 'gregory',
-            weekday: 'long',
-        }).format(new Date(2026, 0, 4, 12, 0, 0))
-        assert.equal(requiredQuery('thead th span').getAttribute('aria-label'), expectedSunday)
-    })
-
-    test('uses the selected locale for calendar day numerals', () => {
-        const runtime = createCapillaryUiRuntime({
-            localization: {locale: 'ar-EG'},
-        })
-        runtime.mount(new DatePicker({defaultValue: '2026-09-15'}), document.body)
-
-        requiredQuery<HTMLButtonElement>('cap-datepicker > button').click()
-        const day = requiredQuery<HTMLButtonElement>('button[data-day="15"]')
-        assert.equal(day.textContent, new Intl.NumberFormat('ar-EG', {
-            useGrouping: false,
-        }).format(15))
     })
 
     test('uses a localized loading message rather than an empty tree state', () => {

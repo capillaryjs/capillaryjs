@@ -240,7 +240,7 @@ export class LineInputsPage extends Component<GalleryPageProps> {
                 <Layout vertical className="gallery-state-column">
                     <DateTimePicker label="Empty" {...this.flags()} />
                     <DateTimePicker label="Filled"
-                        defaultValue={{date: '2026-09-13', time: '14:30'}}
+                        defaultValue="2026-09-13T14:30"
                         {...this.flags()} />
                 </Layout>
             </GroupBox>

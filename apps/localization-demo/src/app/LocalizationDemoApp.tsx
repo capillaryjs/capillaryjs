@@ -51,14 +51,12 @@ export class LocalizationDemoApp extends Component<LocalizationDemoAppProps> {
         }]
         const messages = [
             [copy.dropdownMessageLabel, this.capillaryUiMessage('dropdownPlaceholder')],
-            [copy.timeMessageLabel, this.capillaryUiMessage('timePickerPlaceholder')],
             [copy.emptyMessageLabel, this.capillaryUiMessage('dataTableEmpty')],
             [copy.closeMessageLabel, this.capillaryUiMessage('dialogCloseLabel')],
             [
                 copy.sortMessageLabel,
                 this.capillaryUiMessage('tableSortColumnLabel')(copy.tableNameColumn),
             ],
-            [copy.calendarMessageLabel, this.capillaryUiMessage('calendarGridLabel')],
         ] as const
 
         return <CapillaryUiApp sizing="viewport-width" className="localization-demo-app">
@@ -100,7 +98,7 @@ export class LocalizationDemoApp extends Component<LocalizationDemoAppProps> {
                         <TimePicker
                             label={copy.timeLabel}
                             defaultValue={null}
-                            step={30}
+                            step={1800}
                         />
                         <Checkbox label={copy.remindersLabel} />
                     </div>

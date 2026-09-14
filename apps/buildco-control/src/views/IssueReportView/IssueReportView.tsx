@@ -1,9 +1,10 @@
-import type {DateTimeValue, CapillaryUiChild} from "@capillaryjs/capillary-ui";
+import type {LocalDateTime, CapillaryUiChild} from "@capillaryjs/capillary-ui";
 import {
     Component, Panel, PanelToolbar, InfoPanel, InfoField,
     Button, Dialog, DialogActions, Textbox, Dropdown, DateTimePicker, Label, ListView,
     Sidebar, SidebarToolbar, SplitPrimary, SplitSecondary, SplitView,
     RouteLink, RouteValue, Placeholder, Toolbar, live, routeTarget,
+    combineLocalDateTime, splitLocalDateTime,
 } from "@capillaryjs/capillary-ui";
 import {Emitter, DerivedEmitter} from "@capillaryjs/capillary";
 import type {Row} from "../../api/ScenarioApi.ts";
@@ -51,7 +52,7 @@ export class IssueReportView extends Component {
         description: new Emitter<string>("", {owner: this, purpose: "issue draft description"}),
         severity: new Emitter<string>("medium", {owner: this, purpose: "issue draft severity"}),
         person: new Emitter<string>("", {owner: this, purpose: "issue draft assignee"}),
-        due: new Emitter<DateTimeValue | null>(null, {owner: this, purpose: "issue draft due"}),
+        due: new Emitter<LocalDateTime | null>(null, {owner: this, purpose: "issue draft due"}),
     };
 
     initialize(): void {
@@ -209,7 +210,7 @@ export class IssueReportView extends Component {
         this.draft.description.set(String(record.description ?? ""));
         this.draft.severity.set(String(record.severity ?? "medium"));
         this.draft.person.set(String(record.assignedToId ?? ""));
-        this.draft.due.set(record.due ? {date: String(record.due), time: null} : null);
+        this.draft.due.set(record.due ? combineLocalDateTime(String(record.due), null) : null);
         this.dialogOpen.set(true);
     }
 
@@ -227,7 +228,7 @@ export class IssueReportView extends Component {
                 description: this.draft.description.get(),
                 severity: this.draft.severity.get(),
                 personId: this.draft.person.get() || undefined,
-                dueDate: this.draft.due.get()?.date ?? undefined,
+                dueDate: splitLocalDateTime(this.draft.due.get())?.date ?? undefined,
             });
         if (result) {
             this.dialogOpen.set(false);

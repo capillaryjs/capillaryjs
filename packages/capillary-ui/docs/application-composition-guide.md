@@ -179,7 +179,8 @@ const runtime = createCapillaryUiRuntime({
 Keep screen headings, navigation items, field labels, validation text, and
 domain messages in the application's catalogs and pass their resolved values
 as ordinary props/content. Capillary UI applies English fallback to omitted internal
-keys and uses the configured locale for calendar display names and numerals. It does not load the
+keys; temporal inputs delegate locale-aware display to the native date/time
+elements they wrap. It does not load the
 catalog, change `lang`/`dir`, or switch the runtime's locale reactively. If the
 application changes language in place, recreate its Capillary UI runtime tree with a
 new static localization snapshot. The application also owns direction and RTL

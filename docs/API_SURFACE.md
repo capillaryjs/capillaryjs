@@ -198,9 +198,8 @@ runtime defaults.
 `runtime.localization` is an immutable runtime-local `CapillaryUiLocalization` with
 the canonical `locale` and typed `message(key)` resolver. If localization is
 omitted, messages remain English and Capillary UI-owned `Intl` formatting uses the
-browser default locale. Calendar month/year and weekday labels, plus day
-numerals, use the configured locale and an explicit Gregorian calendar; they
-are not message keys.
+browser default locale. The temporal inputs render native `date`, `time`, and
+`datetime-local` elements, whose locale-aware display is owned by the browser.
 
 Localization is static and is not a service-scope dependency. Catalogs,
 translations, locale selection/fallback/loading/persistence, interpolation and

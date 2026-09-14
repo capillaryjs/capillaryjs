@@ -29,11 +29,9 @@ export interface DemoCopy {
     readonly resolvedHeading: string
     readonly resolvedIntroduction: string
     readonly dropdownMessageLabel: string
-    readonly timeMessageLabel: string
     readonly emptyMessageLabel: string
     readonly closeMessageLabel: string
     readonly sortMessageLabel: string
-    readonly calendarMessageLabel: string
 }
 
 export interface DemoLocaleDefinition {
@@ -50,7 +48,7 @@ const englishCopy: DemoCopy = {
     introduction: 'Switch language to update application text and Capillary UI-owned labels together.',
     languageLabel: 'Language',
     runtimeNote: 'Each choice creates a new runtime with one immutable locale snapshot.',
-    controlsHeading: 'Inputs and calendar',
+    controlsHeading: 'Inputs',
     assigneeLabel: 'Assign to',
     assigneeOptions: [['design', 'Design'], ['engineering', 'Engineering']],
     dateLabel: 'Target date',
@@ -68,18 +66,13 @@ const englishCopy: DemoCopy = {
     resolvedHeading: 'Resolved Capillary UI messages',
     resolvedIntroduction: 'These values come from the same runtime snapshot used by the controls.',
     dropdownMessageLabel: 'Dropdown placeholder',
-    timeMessageLabel: 'Time placeholder',
     emptyMessageLabel: 'Table empty state',
     closeMessageLabel: 'Dialog close action',
     sortMessageLabel: 'Generated sort label',
-    calendarMessageLabel: 'Calendar label',
 }
 
 const danishMessages: CapillaryUiMessageOverrides = {
     breadcrumbLabel: 'Brødkrumme',
-    calendarGridLabel: 'Vælg en dato',
-    calendarNextMonthLabel: 'Næste måned',
-    calendarPreviousMonthLabel: 'Forrige måned',
     checkboxOptionLabel: 'Valgmulighed',
     checkboxStateLabel: (label, state) => `${label}: ${state}`,
     colorOptionGrayLabel: 'Grå',
@@ -94,10 +87,6 @@ const danishMessages: CapillaryUiMessageOverrides = {
     dataTableLoadError: 'Rækkerne kunne ikke indlæses',
     dataTableLoading: 'Indlæser rækker…',
     dataTableRetry: 'Prøv igen',
-    datePickerDialogLabel: 'Vælg en dato',
-    datePickerOpenCalendarLabel: 'Åbn kalender',
-    dateTimePickerDateLabel: 'Dato',
-    dateTimePickerTimeLabel: 'Tid',
     dialogCloseLabel: 'Luk',
     dropdownPlaceholder: 'Vælg…',
     filterModeDenyLabel: 'afvis',
@@ -121,7 +110,6 @@ const danishMessages: CapillaryUiMessageOverrides = {
     themeOptionJavaLabel: 'Java',
     themeOptionMinimalLabel: 'Minimal',
     themeOptionShinyLabel: 'Blank',
-    timePickerPlaceholder: 'Vælg tidspunkt…',
     toolbarLabel: 'Handlinger',
     treeViewEmpty: 'Ingen træelementer',
     treeViewLoadError: 'Træelementerne kunne ikke indlæses',
@@ -130,9 +118,6 @@ const danishMessages: CapillaryUiMessageOverrides = {
 
 const germanMessages: CapillaryUiMessageOverrides = {
     breadcrumbLabel: 'Navigationspfad',
-    calendarGridLabel: 'Datum auswählen',
-    calendarNextMonthLabel: 'Nächster Monat',
-    calendarPreviousMonthLabel: 'Vorheriger Monat',
     checkboxOptionLabel: 'Option',
     checkboxStateLabel: (label, state) => `${label}: ${state}`,
     colorOptionGrayLabel: 'Grau',
@@ -147,10 +132,6 @@ const germanMessages: CapillaryUiMessageOverrides = {
     dataTableLoadError: 'Zeilen konnten nicht geladen werden',
     dataTableLoading: 'Zeilen werden geladen…',
     dataTableRetry: 'Erneut versuchen',
-    datePickerDialogLabel: 'Datum auswählen',
-    datePickerOpenCalendarLabel: 'Kalender öffnen',
-    dateTimePickerDateLabel: 'Datum',
-    dateTimePickerTimeLabel: 'Uhrzeit',
     dialogCloseLabel: 'Schließen',
     dropdownPlaceholder: 'Auswählen…',
     filterModeDenyLabel: 'ablehnen',
@@ -174,7 +155,6 @@ const germanMessages: CapillaryUiMessageOverrides = {
     themeOptionJavaLabel: 'Java',
     themeOptionMinimalLabel: 'Minimal',
     themeOptionShinyLabel: 'Glänzend',
-    timePickerPlaceholder: 'Uhrzeit auswählen…',
     toolbarLabel: 'Aktionen',
     treeViewEmpty: 'Keine Baumeinträge',
     treeViewLoadError: 'Baumeinträge konnten nicht geladen werden',
@@ -198,7 +178,7 @@ const definitions: Readonly<Record<DemoLocale, DemoLocaleDefinition>> = {
             introduction: 'Skift sprog for at opdatere applikationstekst og Capillary UI-etiketter sammen.',
             languageLabel: 'Sprog',
             runtimeNote: 'Hvert valg opretter en ny runtime med ét uforanderligt sprogøjebliksbillede.',
-            controlsHeading: 'Inputfelter og kalender',
+            controlsHeading: 'Inputfelter',
             assigneeLabel: 'Tildel til',
             assigneeOptions: [['design', 'Design'], ['engineering', 'Udvikling']],
             dateLabel: 'Måldato',
@@ -216,11 +196,9 @@ const definitions: Readonly<Record<DemoLocale, DemoLocaleDefinition>> = {
             resolvedHeading: 'CapillaryUis anvendte tekster',
             resolvedIntroduction: 'Værdierne kommer fra det samme runtime-øjebliksbillede som kontrollerne.',
             dropdownMessageLabel: 'Pladsholder i rulleliste',
-            timeMessageLabel: 'Pladsholder for tidspunkt',
             emptyMessageLabel: 'Tom tabeltilstand',
             closeMessageLabel: 'Dialogens luk-handling',
             sortMessageLabel: 'Genereret sorteringsetiket',
-            calendarMessageLabel: 'Kalenderetiket',
         },
         capillaryUiMessages: danishMessages,
     },
@@ -234,7 +212,7 @@ const definitions: Readonly<Record<DemoLocale, DemoLocaleDefinition>> = {
             introduction: 'Wechseln Sie die Sprache, um Anwendungstexte und Capillary UI-Beschriftungen gemeinsam zu aktualisieren.',
             languageLabel: 'Sprache',
             runtimeNote: 'Jede Auswahl erstellt eine neue Runtime mit einem unveränderlichen Sprach-Snapshot.',
-            controlsHeading: 'Eingaben und Kalender',
+            controlsHeading: 'Eingaben',
             assigneeLabel: 'Zuweisen an',
             assigneeOptions: [['design', 'Design'], ['engineering', 'Entwicklung']],
             dateLabel: 'Zieldatum',
@@ -252,11 +230,9 @@ const definitions: Readonly<Record<DemoLocale, DemoLocaleDefinition>> = {
             resolvedHeading: 'Aufgelöste Capillary UI-Texte',
             resolvedIntroduction: 'Diese Werte stammen aus demselben Runtime-Snapshot wie die Steuerelemente.',
             dropdownMessageLabel: 'Dropdown-Platzhalter',
-            timeMessageLabel: 'Zeit-Platzhalter',
             emptyMessageLabel: 'Leerer Tabellenzustand',
             closeMessageLabel: 'Dialog-Schließen-Aktion',
             sortMessageLabel: 'Generierte Sortierbeschriftung',
-            calendarMessageLabel: 'Kalenderbeschriftung',
         },
         capillaryUiMessages: germanMessages,
     },

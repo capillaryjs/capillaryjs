@@ -26,6 +26,16 @@ Versioning.
 
 ### Changed
 
+- Rebuilt the experimental `DatePicker`, `TimePicker`, and `DateTimePicker` on
+  the native `<input type="date">`, `<input type="time">`, and
+  `<input type="datetime-local">` elements behind a shared `TemporalInput`
+  base. `DateTimePicker` now emits a single `LocalDateTime` string instead of
+  the `{date, time}` `DateTimeValue` object, `TimePicker` `step` is a second
+  count matching the native attribute, and `TimeString` accepts optional
+  seconds and milliseconds. The custom calendar dialog, its localization
+  messages, and the `timeStepOptions` helper's select usage are removed;
+  `localDateTime` utilities add `LocalDateTime` parsing, formatting,
+  comparison, `Date` conversion, and date/time split-combine helpers.
 - Verify native input font metrics independently of authored line-height to
   account for Firefox's platform-specific single-line minimum on Linux.
 - `--control-min-height` defaults to `2em` independently of general UI padding.

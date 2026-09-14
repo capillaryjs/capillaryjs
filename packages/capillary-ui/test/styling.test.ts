@@ -615,16 +615,13 @@ describe('style registry', () => {
         runtime.registerStyles(DateTimePicker)
         const stylesheet = runtime.styleRegistry.generateCSS()
 
-        assert.match(stylesheet, /cap-datepicker\s*\{[^}]*display:\s*grid/)
-        assert.match(stylesheet, /cap-datepicker > input\s*\{[^}]*cursor:\s*text/)
-        assert.match(stylesheet, /cap-datepicker > dialog\s*\{[^}]*position:/)
-
-        assert.match(stylesheet, /cap-timepicker\s*\{[^}]*display:\s*flex/)
-        assert.match(stylesheet, /cap-timepicker > cap-selectshell\s*\{/)
-        assert.match(stylesheet, /cap-timepicker > cap-selectshell > select\s*\{[^}]*min-height:\s*var\(--control-min-height, 2em\)/)
-
-        assert.match(stylesheet, /cap-datetimepicker\s*\{[^}]*display:\s*block/)
-        assert.match(stylesheet, /cap-datetimepicker > fieldset\s*\{[^}]*display:\s*flex/)
+        assert.match(stylesheet, /cap-datepicker[^{]*\{\s*display:\s*grid/)
+        assert.match(stylesheet, /cap-timepicker[^{]*\{\s*display:\s*grid/)
+        assert.match(stylesheet, /cap-datetimepicker[^{]*\{\s*display:\s*grid/)
+        assert.match(stylesheet, /cap-datepicker > input[^{]*\{[^}]*min-height:\s*var\(--control-min-height, 2em\)/)
+        assert.match(stylesheet, /cap-timepicker > input[^{]*\{[^}]*min-height:\s*var\(--control-min-height, 2em\)/)
+        assert.match(stylesheet, /cap-datetimepicker > input[^{]*\{[^}]*min-height:\s*var\(--control-min-height, 2em\)/)
+        assert.doesNotMatch(stylesheet, /cap-timepicker > cap-selectshell|cap-datepicker > dialog|cap-datetimepicker > fieldset/)
         assert.doesNotMatch(stylesheet, /data-(?:disabled|required|error)|cap-textbox|cap-dropdown/)
     })
 

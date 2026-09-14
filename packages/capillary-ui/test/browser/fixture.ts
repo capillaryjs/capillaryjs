@@ -41,6 +41,7 @@ import {
     routeTarget,
     styleRegistry,
 } from '../../src/index.js'
+import type {LocalDateTime} from '../../src/index.js'
 import {jsx} from '../../src/jsx-runtime.js'
 
 const fixtureOptions = new URLSearchParams(location.search)
@@ -331,13 +332,12 @@ class PanelReviewProbe extends Component {
 }
 PanelReviewProbe.new().attachTo(requiredElement('#panel-review-root'))
 
-const datetimeValue = new Emitter<{date: string | null; time: string | null} | null>(null)
+const datetimeValue = new Emitter<LocalDateTime | null>(null)
 DateTimePicker.new({
     label: 'Schedule',
     valueEmitter: datetimeValue,
-    minDate: '2026-01-01',
-    maxDate: '2026-12-31',
-    onChange: (next) => datetimeValue.set(next),
+    min: '2026-01-01T00:00',
+    max: '2026-12-31T23:59',
 }).attachTo(requiredElement('#datetime-root'))
 
 if (fixtureOptions.get('status') === 'true') {
@@ -492,6 +492,9 @@ globalThis.capillaryUiTest = {
     },
     measureDataTable(rowCount) {
         return measureDataTable(rowCount)
+    },
+    get datetime() {
+        return datetimeValue.get()
     },
 }
 

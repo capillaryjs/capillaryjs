@@ -117,12 +117,9 @@ time.valueEmitter.get()?.slice(0, 2)
 
 const combined = new DateTimePicker({
     label: 'Schedule',
-    valueEmitter: new Emitter<{date: string | null; time: string | null} | null>({
-        date: '2026-09-10',
-        time: '10:00',
-    }),
+    valueEmitter: new Emitter<string | null>('2026-09-10T10:00'),
 })
-combined.valueEmitter.get()?.date?.slice(0, 4)
+combined.valueEmitter.get()?.slice(0, 4)
 
 const url = serializeTableQuery(new URL('https://example.test/rows'), {
     sort: {field: 'name', direction: 'desc'},

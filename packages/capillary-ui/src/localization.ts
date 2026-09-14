@@ -7,9 +7,6 @@
  */
 export interface CapillaryUiMessageOverrides {
     readonly breadcrumbLabel?: string
-    readonly calendarGridLabel?: string
-    readonly calendarNextMonthLabel?: string
-    readonly calendarPreviousMonthLabel?: string
     readonly checkboxOptionLabel?: string
     readonly checkboxStateLabel?: (label: string, state: string) => string
     readonly colorOptionGrayLabel?: string
@@ -24,10 +21,6 @@ export interface CapillaryUiMessageOverrides {
     readonly dataTableLoadError?: string
     readonly dataTableLoading?: string
     readonly dataTableRetry?: string
-    readonly datePickerDialogLabel?: string
-    readonly datePickerOpenCalendarLabel?: string
-    readonly dateTimePickerDateLabel?: string
-    readonly dateTimePickerTimeLabel?: string
     readonly dialogCloseLabel?: string
     readonly dropdownLoadError?: string
     readonly dropdownPlaceholder?: string
@@ -52,7 +45,6 @@ export interface CapillaryUiMessageOverrides {
     readonly themeOptionJavaLabel?: string
     readonly themeOptionMinimalLabel?: string
     readonly themeOptionShinyLabel?: string
-    readonly timePickerPlaceholder?: string
     readonly toolbarLabel?: string
     readonly treeViewEmpty?: string
     readonly treeViewLoadError?: string
@@ -84,9 +76,6 @@ type ResolvedCapillaryUiMessages = {
 
 const englishCapillaryUiMessages = Object.freeze({
     breadcrumbLabel: 'Breadcrumb',
-    calendarGridLabel: 'Choose a date',
-    calendarNextMonthLabel: 'Next month',
-    calendarPreviousMonthLabel: 'Previous month',
     checkboxOptionLabel: 'Option',
     checkboxStateLabel: (label: string, state: string) => `${label}: ${state}`,
     colorOptionGrayLabel: 'Gray',
@@ -101,10 +90,6 @@ const englishCapillaryUiMessages = Object.freeze({
     dataTableLoadError: 'Unable to load rows',
     dataTableLoading: 'Loading rows…',
     dataTableRetry: 'Retry',
-    datePickerDialogLabel: 'Choose a date',
-    datePickerOpenCalendarLabel: 'Open calendar',
-    dateTimePickerDateLabel: 'Date',
-    dateTimePickerTimeLabel: 'Time',
     dialogCloseLabel: 'Close',
     dropdownLoadError: 'Unable to load options',
     dropdownPlaceholder: 'Select…',
@@ -129,7 +114,6 @@ const englishCapillaryUiMessages = Object.freeze({
     themeOptionJavaLabel: 'Java',
     themeOptionMinimalLabel: 'Minimal',
     themeOptionShinyLabel: 'Shiny',
-    timePickerPlaceholder: 'Select time…',
     toolbarLabel: 'Actions',
     treeViewEmpty: 'No tree items',
     treeViewLoadError: 'Unable to load tree items',
