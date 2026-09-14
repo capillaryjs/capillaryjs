@@ -1,7 +1,8 @@
 @charset "utf-8";
-/* Minimal deliberately keeps base.css's no-gutter, flat island treatment. */
+/* Minimal deliberately keeps base.css's no-gutter, flat island treatment.
+ * It has no dark token set, so it must not advertise automatic dark rendering. */
 @layer theme {
   :root {
-    color-scheme: light dark;
+    color-scheme: only light;
   }
 }
