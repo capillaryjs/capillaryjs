@@ -1,10 +1,6 @@
 # Capillary UI
 
-Capillary UI is a browser-only TypeScript component runtime built around Capillary
-emitters. It provides TSX rendering, explicit component lifecycle, accessible
-controls and data views, scoped services and routing, and dependency-collected
-structural CSS. Its built-in messages and calendar display names can be
-localized once per runtime.
+Capillary UI is a browser-only TypeScript UI runtime that gives Capillary application models native, interactive browser structure. It provides TSX rendering, explicit component lifecycle, accessible controls and data views, scoped services and routing, runtime localization, and dependency-collected structural CSS. It prefers native HTML when the browser already provides the right semantic concept and uses readable light-DOM component boundaries where an application needs something more specific.
 
 Capillary UI 1.x is ESM-only and targets current evergreen browsers. Install it with
 its Capillary peer:

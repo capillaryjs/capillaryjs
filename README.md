@@ -71,27 +71,18 @@ traits, and cross-cutting concerns. Structural layout, visual themes, and color
 choices are kept distinct so they can evolve independently without turning the
 markup into a collection of styling hooks.
 
-This is the principle that ties Capillary and Capillary UI together: abstractions should help
-the code describe the application more directly, not force the developer to
-translate the application into a model invented by the framework.
+This principle runs through the entire Capillary stack: abstractions should help the code describe the application more directly, not force the developer to translate the application into a model invented by the framework.
 
-The goal is not to eliminate abstraction. It is to make the abstractions line
-up closely enough with the developer's mental model that the implementation
-still feels like the application they intended to build.
+The goal is not to eliminate abstraction. It is to choose abstractions that line up closely enough with the developer's mental model that the implementation still feels like the application they intended to build.
 
-The names reflect that idea too.
+The name **Capillary** reflects that idea.
 
-Capillary is the connective layer: it joins the application's queries, filters,
-mappings, derived relationships, and other reactive pieces into an explicit
-graph.
+Biological capillaries form fine-grained branching networks that connect larger vessels with the places they serve. The metaphor here is the network rather than capillary action: many small pathways carry values through a larger system without requiring everything to pass through one centralized representation.
 
-Capillary UI comes from the image of threads or filaments: a lightweight structure
-through which those relationships become visible and interactive in the
-browser.
+A Capillary application has a similar shape. Inputs, derived values, query arguments, query results, commands, and views remain meaningful concepts in their own right. Developers connect them where the application requires a relationship, producing an explicit reactive graph through which values and state changes propagate.
 
-There is a deliberate tension between the names. Capillary binds things together;
-Capillary UI exposes the individual threads. Together they describe the stack fairly
-well: one connects the application's relationships, the other presents them.
+**Capillary UI** and **Capillary Viz** are descriptive extensions of that central model rather than separate metaphors. Capillary UI gives the application's relationships native, interactive browser structure. Capillary Viz adds analytical models and visualizations over the same values.
+
 
 ## Architecture and ownership
 

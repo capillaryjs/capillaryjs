@@ -1,10 +1,8 @@
 # Capillary
 
-Capillary is a small, platform-neutral reactive value and live-query library. Its
-current 0.x releases follow documented migration guidance. Capillary UI
-uses it as its state/data-flow layer, but Capillary does not depend on Capillary UI, a DOM,
-or any UI framework. Its implementation and tests are strict TypeScript; the
-ESM build includes declarations and declaration maps.
+Capillary is a small, platform-neutral TypeScript library for building explicit reactive application graphs. Mutable values, derivations, live queries, commands, and diagnostics share a small observable model, allowing application concepts to be connected directly without first being copied into a framework-specific state system.
+
+Capillary UI builds on that model for browser applications, but Capillary itself has no dependency on Capillary UI, the DOM, or any UI framework. Its implementation and tests are strict TypeScript; the ESM build includes declarations and declaration maps.
 
 Install with pnpm:
 
@@ -28,6 +26,8 @@ Capillary keeps each value at its natural boundary. A control can write an
 to argument emitters while exposing its result, loading state, and error. A
 consumer reads the downstream value it needs without knowing whether it began
 as input, computation, or remote data.
+
+Those relationships are where the name comes from. Biological capillaries form fine-grained branching networks that connect larger vessels with the places they serve. Capillary applies the same idea to application state: small values and computations remain at their natural boundaries while explicit relationships connect them into a larger reactive system. The metaphor is the distributed network, not capillary action.
 
 For example, a table header may write a sort emitter. A `LiveQuery` uses that
 emitter as an argument, retrieves fresh rows, and emits the new result to the
