@@ -6,6 +6,14 @@ Versioning.
 
 ## Unreleased
 
+### Added
+
+- Add diagnostic ownership scopes and stable diagnostic labels, automatic
+  native interaction roots, component/read/watch and function-consumer facts,
+  and reactive child, live-property, and native-binding endpoints. Synchronous
+  propagation retains its original interaction through the complete UI chain;
+  inspection subtrees can be excluded without hiding application writes.
+
 ### Changed
 
 - Make DataTable, ListView, and TreeView shrink and own overflow before a

@@ -921,3 +921,22 @@ legacy browsers, or a concurrent rendering scheduler.
 - [Theme contract](themes/README.md)
 - [Color palette contract](colors/README.md)
 - [Release history](CHANGELOG.md)
+
+## Optional interaction-to-leaf diagnostics
+
+With a Capillary diagnostic observer attached, native handlers and bindings
+establish interaction roots. Component reads/watchers, class/function renders,
+reactive children, and native/live-property bindings report causal consumers.
+Without an observer these paths do not create diagnostic events.
+
+Runtime `diagnosticScope` and static component `diagnosticScope` allow tool
+subtrees to be excluded. Set static `diagnosticLabel` (or function component
+`diagnosticLabel`) for names that survive minification; built-in hosts already
+supply readable defaults. Keep the application in its normal runtime and use an
+excluded runtime for custom inspection controls. Existing application-emitter
+writes remain observable even if initiated by an excluded control.
+
+These additive APIs require the diagnostics-enabled Capillary/Capillary UI 1.2
+lines. See the [diagnostics guide](../../docs/diagnostics.md) and
+[DevTools package](../capillary-devtools/README.md). Application policy remains
+outside the UI runtime, and playback never rerenders the inspected application.

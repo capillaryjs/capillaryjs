@@ -2,6 +2,7 @@ const semanticVersionPattern = /^\d+\.\d+\.\d+(?:-[0-9A-Za-z]+(?:[.-][0-9A-Za-z]
 const datePattern = /^\d{4}-\d{2}-\d{2}$/
 
 export const releasePackageDefinitions = [
+    // Keep propagation and presentation peers before optional tools.
     {
         key: 'capillary', name: '@capillaryjs/capillary', directory: 'capillary',
         changelog: 'packages/capillary/CHANGELOG.md',
@@ -13,6 +14,10 @@ export const releasePackageDefinitions = [
     {
         key: 'capillaryViz', name: '@capillaryjs/capillary-viz',
         directory: 'capillary-viz', changelog: 'packages/capillary-viz/CHANGELOG.md',
+    },
+    {
+        key: 'capillaryDevtools', name: '@capillaryjs/capillary-devtools',
+        directory: 'capillary-devtools', changelog: 'packages/capillary-devtools/CHANGELOG.md',
     },
 ]
 
@@ -56,6 +61,15 @@ export function formatReleasePlan(plan) {
 export function releaseTagForVersion(version) {
     assert(isExactSemanticVersion(version), 'npm tag requested for an invalid semantic version')
     return version.includes('-') ? 'next' : 'latest'
+}
+
+/** The diagnostics protocol and automatic UI consumers first ship in the 1.2 line. */
+export function assertDevtoolsPeerVersions(capillaryVersion, capillaryUiVersion) {
+    for (const [name, version] of [['Capillary', capillaryVersion], ['Capillary UI', capillaryUiVersion]]) {
+        const [major, minor] = version.split('.').map(Number)
+        assert(major > 1 || (major === 1 && minor >= 2),
+            `Capillary DevTools requires ${name} 1.2 or later; include its diagnostics update in the release plan`)
+    }
 }
 
 export function isExactSemanticVersion(value) {

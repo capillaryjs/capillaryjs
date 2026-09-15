@@ -1,4 +1,7 @@
 import {EventBubble} from '../debugging/eventBubble.js'
+import {Diagnostics} from '../debugging/diagnostics.js'
+import type {DiagnosticNodeKind, DiagnosticScope} from '../debugging/diagnostics.js'
+import {DiagnosticOperation} from '../debugging/diagnosticOperation.js'
 import {FetchState} from '../enums/fetchState.js'
 import type {QueryHandlerLike, QueryRequestOptions, QueryValues} from '../queryhandling/queryHandler.js'
 import {isReplacementArgument} from '../queryhandling/replaceArg.js'
@@ -57,6 +60,7 @@ export interface LiveQueryOptions<
     owner?: unknown
     purpose?: string
     trace?: boolean
+    diagnosticScope?: DiagnosticScope | undefined
 }
 
 interface AbortControllerLike {
@@ -94,6 +98,7 @@ implements RefreshableLiveResult<TResult | undefined, unknown> {
     private retryWait: {handle: unknown, cancel: () => void} | null = null
     private requestId = 0
     private abortController: AbortControllerLike | null = null
+    private diagnosticOperation: DiagnosticOperation | null = null
     /** Exposed for deterministic tests; consumers should use refresh()/retry(). */
     _activeRequest: Promise<TResult | undefined> | null = null
 
@@ -112,6 +117,7 @@ implements RefreshableLiveResult<TResult | undefined, unknown> {
             owner,
             purpose = 'live query',
             trace,
+            diagnosticScope,
         } = options
         if (handler == null || typeof handler.fetch !== 'function') {
             throw new TypeError('LiveQuery handler must implement fetch()')
@@ -125,6 +131,7 @@ implements RefreshableLiveResult<TResult | undefined, unknown> {
             error: null,
             owner,
             purpose,
+            diagnosticScope,
             ...(trace === undefined ? {} : {trace}),
         })
         this.handler = handler
@@ -190,26 +197,33 @@ implements RefreshableLiveResult<TResult | undefined, unknown> {
         retention: LiveQueryRetention = 'retain',
     ): Promise<TResult | undefined> {
 
+        this.diagnosticOperation?.close('superseded')
         const requestId = ++this.requestId
         this.abortController?.abort()
         this.cancelRetryWait()
         const controller = createAbortController()
         this.abortController = controller
-        const parentEvent = eventOrCause instanceof EventBubble ? eventOrCause : null
+        const parentEvent = eventOrCause instanceof EventBubble ? eventOrCause : Diagnostics.currentEvent
         const retainPreviousValue = this.keepPreviousValue && retention === 'retain'
         this.lastRequestRetention = retention
         this.replacementPending = retention === 'replace'
         this.hasVisibleResult = retainPreviousValue && this.hasSuccessfulValue
         const cause = parentEvent ? 'query arguments changed' : eventOrCause
         const loadingValue = this.hasVisibleResult ? this.lastSuccessfulValue : undefined
+        let queryEvent = Diagnostics.active ? this.createEvent('query fetch', parentEvent, this.argumentValues,
+            {kind: 'operation', outcome: 'started'}) : null
+        const operation = Diagnostics.active && this.diagnosticScope.capture
+            ? new DiagnosticOperation(this, queryEvent) : null
+        this.diagnosticOperation = operation
+        operation?.begin(this.argumentValues)
         this.setSnapshot({
             value: loadingValue,
             fetchState: FetchState.Loading,
             error: null,
             cause,
-            parentEvent,
+            parentEvent: operation?.event ?? parentEvent,
         })
-        const queryEvent = this.createEvent('query fetch', parentEvent, this.argumentValues)
+        queryEvent ??= this.createEvent('query fetch', parentEvent, this.argumentValues)
 
         const request = Promise.resolve()
             .then(() => this.runAttempts(
@@ -217,11 +231,13 @@ implements RefreshableLiveResult<TResult | undefined, unknown> {
                 controller,
                 queryEvent,
                 retainPreviousValue,
+                operation,
             ))
             .finally(() => {
                 if (this.isCurrentRequest(requestId, controller)) {
                     this.abortController = null
                     this._activeRequest = null
+                    this.diagnosticOperation = null
                 }
             })
 
@@ -234,29 +250,36 @@ implements RefreshableLiveResult<TResult | undefined, unknown> {
         controller: AbortControllerLike,
         queryEvent: EventBubble<unknown> | null,
         retainPreviousValue: boolean,
+        operation: DiagnosticOperation | null,
     ): Promise<TResult | undefined> {
         try {
             for (let attempt = 1; ; attempt += 1) {
+                if (attempt > 1) operation?.begin(this.argumentValues)
                 try {
-                    const result = await this.handler.fetch(this.argumentValues, {
+                    const arguments_ = this.argumentValues
+                    const invoke = (event: EventBubble<unknown> | null) => this.handler.fetch(arguments_, {
                         signal: controller.signal,
-                        event: queryEvent,
+                        event,
                     })
-                    if (!this.isCurrentRequest(requestId, controller)) return undefined
+                    const result = await (operation ? operation.invoke(arguments_, invoke) : invoke(queryEvent))
+                    if (!this.isCurrentRequest(requestId, controller)) { operation?.ignored(result); return undefined }
                     this.lastSuccessfulValue = result
                     this.hasSuccessfulValue = true
                     this.hasVisibleResult = true
                     this.replacementPending = false
+                    const completion = operation?.settle('succeeded', result)
                     this.setSnapshot({
                         value: result,
                         fetchState: FetchState.Ready,
                         error: null,
                         cause: 'query succeeded',
-                        parentEvent: queryEvent,
+                        parentEvent: completion ?? queryEvent,
                     })
+                    operation?.close('succeeded')
                     return result
                 } catch (error: unknown) {
-                    if (!this.isCurrentRequest(requestId, controller)) return undefined
+                    if (!this.isCurrentRequest(requestId, controller)) { operation?.ignored(undefined, error); return undefined }
+                    const completion = operation?.settle(isAbortError(error) ? 'aborted' : 'failed', undefined, error)
                     const retry = this.retryPolicy
                     if (isAbortError(error)
                         || retry == null
@@ -267,13 +290,15 @@ implements RefreshableLiveResult<TResult | undefined, unknown> {
                             fetchState: FetchState.Error,
                             error,
                             cause: 'query failed',
-                            parentEvent: queryEvent,
+                            parentEvent: completion ?? queryEvent,
                         })
+                        operation?.close(isAbortError(error) ? 'aborted' : 'failed')
                         this.hasVisibleResult = retainPreviousValue && this.hasSuccessfulValue
                         return undefined
                     }
                     const delayMs = computeRetryDelay(retry, attempt, error)
-                    this.createEvent('query retry', queryEvent, {attempt, delayMs, error})
+                    this.createEvent('query retry', completion ?? queryEvent, {attempt, delayMs, error},
+                        {kind: 'retry', outcome: 'scheduled', delayMs})
                     if (!await this.waitRetryDelay(retry, delayMs, requestId, controller)) {
                         return undefined
                     }
@@ -281,6 +306,7 @@ implements RefreshableLiveResult<TResult | undefined, unknown> {
             }
         } catch (error: unknown) {
             if (!this.isCurrentRequest(requestId, controller)) return undefined
+            operation?.close('failed')
             this.setSnapshot({
                 value: retainPreviousValue ? this.lastSuccessfulValue : undefined,
                 fetchState: FetchState.Error,
@@ -334,6 +360,8 @@ implements RefreshableLiveResult<TResult | undefined, unknown> {
 
     abort(eventOrCause: EventBubble<unknown> | unknown = 'query aborted'): void {
         if (this.isDisposed || this.abortController == null) return
+        this.diagnosticOperation?.close('aborted')
+        this.diagnosticOperation = null
         this.requestId += 1
         this.abortController.abort()
         this.abortController = null
@@ -352,6 +380,8 @@ implements RefreshableLiveResult<TResult | undefined, unknown> {
 
     override dispose(): void {
         if (this.isDisposed) return
+        this.diagnosticOperation?.close('aborted')
+        this.diagnosticOperation = null
         this.requestId += 1
         this.abortController?.abort()
         this.abortController = null
@@ -375,7 +405,7 @@ implements RefreshableLiveResult<TResult | undefined, unknown> {
                         ? 'replace'
                         : 'retain',
                 })
-            }, {emitCurrent: false}),
+            }, {emitCurrent: false, diagnosticTarget: this}),
         )
         if (this.polling != null) this.initializePolling(this.polling)
     }
@@ -388,7 +418,7 @@ implements RefreshableLiveResult<TResult | undefined, unknown> {
                 assertPollingEnabled(readPollingValue(polling.enabled, true))
                 this.cancelScheduledPoll()
                 this.scheduleNextPoll()
-            }, {emitCurrent: false}))
+            }, {emitCurrent: false, diagnosticTarget: this}))
         }
     }
 
@@ -419,6 +449,12 @@ implements RefreshableLiveResult<TResult | undefined, unknown> {
             && controller === this.abortController
             && !controller.signal.aborted
     }
+
+    protected override diagnosticSources(): readonly object[] {
+        return [...Object.values(this.args ?? {}),
+            ...[this.polling?.enabled, this.polling?.intervalMs].filter(isReadableEmitter)]
+    }
+    protected override get diagnosticKind(): DiagnosticNodeKind { return 'query' }
 }
 
 const defaultPollingScheduler: PollingScheduler = {

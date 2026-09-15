@@ -10,6 +10,10 @@ const expectedRepository = 'git+https://github.com/capillaryjs/capillaryjs.git'
 const expectedOrigin = 'https://github.com/capillaryjs/capillaryjs'
 const packages = [
     [
+        'packages/capillary-devtools/package.json', '@capillaryjs/capillary-devtools',
+        'packages/capillary-devtools', 'packages/capillary-devtools/CHANGELOG.md',
+    ],
+    [
         'packages/capillary/package.json', '@capillaryjs/capillary', 'packages/capillary',
         'packages/capillary/CHANGELOG.md',
     ],

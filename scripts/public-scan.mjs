@@ -28,6 +28,8 @@ const generated = [
     path.join(root, 'packages/capillary/dist'),
     path.join(root, 'packages/capillary-ui/dist'),
     path.join(root, 'packages/capillary-viz/dist'),
+    path.join(root, 'packages/capillary-devtools/dist'),
+    path.join(root, 'apps/capillary-devtools-demo/dist'),
     path.join(root, '.artifacts/release/packages'),
     path.join(root, '.artifacts/release/package-artifacts.json'),
 ].flatMap(listFiles)

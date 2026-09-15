@@ -1,3 +1,6 @@
+import {Diagnostics} from './diagnostics.js'
+import type {DiagnosticEventDetails, DiagnosticScope} from './diagnostics.js'
+
 let nextEventId = 1
 
 export interface EventOptions<TValue = unknown> {
@@ -7,6 +10,8 @@ export interface EventOptions<TValue = unknown> {
     cause?: unknown
     parent?: EventBubble<unknown> | null
     timestamp?: number
+    diagnostic?: DiagnosticEventDetails
+    diagnosticScope?: DiagnosticScope
 }
 
 /** A causal diagnostic event. EventBus deliberately stores no history. */
@@ -20,6 +25,8 @@ export class EventBubble<TValue = unknown> {
     readonly parentBubble: EventBubble<unknown> | null
     readonly children: EventBubble<unknown>[] = []
     readonly ownerType: string | null
+    readonly diagnostic: DiagnosticEventDetails | undefined
+    readonly diagnosticScope: DiagnosticScope | undefined
     private readonly ownerRef: WeakRef<object> | null
     private readonly strongOwner: unknown
 
@@ -35,6 +42,8 @@ export class EventBubble<TValue = unknown> {
         this.value = options.value
         this.parent = options.parent ?? null
         this.parentBubble = this.parent
+        this.diagnostic = options.diagnostic
+        this.diagnosticScope = options.diagnosticScope
 
         const owner = options.owner
         this.ownerType = owner == null
@@ -49,6 +58,7 @@ export class EventBubble<TValue = unknown> {
         }
 
         this.parent?.registerChild(this)
+        Diagnostics.observe(this)
     }
 
     get owner(): unknown {

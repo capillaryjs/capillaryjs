@@ -60,13 +60,14 @@ function createFixture() {
         {directory: 'capillary', name: '@capillaryjs/capillary'},
         {directory: 'capillary-ui', name: '@capillaryjs/capillary-ui'},
         {directory: 'capillary-viz', name: '@capillaryjs/capillary-viz'},
+        {directory: 'capillary-devtools', name: '@capillaryjs/capillary-devtools'},
     ]) {
         mkdirSync(path.join(root, 'packages', directory), {recursive: true})
         writeFileSync(path.join(root, 'packages', directory, 'package.json'), JSON.stringify({
             name,
             version: '0.5.0',
             peerDependencies: directory === 'capillary-ui' ? {'@capillaryjs/capillary': '^0.5.0'}
-                : directory === 'capillary-viz' ? {
+                : directory === 'capillary-viz' || directory === 'capillary-devtools' ? {
                     '@capillaryjs/capillary': '^0.5.0', '@capillaryjs/capillary-ui': '^0.5.0',
                 } : undefined,
         }, null, 2) + '\n')
@@ -82,6 +83,21 @@ function createFixture() {
     git(root, ['commit', '-m', 'fixture'])
     return root
 }
+
+test('DevTools release requires its framework updates and prepares both peer ranges', () => {
+    const fixture = createFixture()
+    const alone = invoke(fixture, releasePlan([{key: 'capillaryDevtools', version: '1.0.0', tag: 'latest'}]))
+    assert.equal(alone.status, 1)
+    assert.match(alone.stderr, /requires Capillary 1.2 or later/)
+    const result = invoke(fixture, releasePlan([
+        {key: 'capillary', version: '1.2.0', tag: 'latest'},
+        {key: 'capillaryUi', version: '1.2.0', tag: 'latest'},
+        {key: 'capillaryDevtools', version: '1.0.0', tag: 'latest'},
+    ]))
+    assert.equal(result.status, 0, result.stderr)
+    const manifest = readJson(fixture, 'packages/capillary-devtools/package.json')
+    assert.deepEqual(manifest.peerDependencies, {'@capillaryjs/capillary': '^1.2.0', '@capillaryjs/capillary-ui': '^1.2.0'})
+})
 
 function releasePlan(packages) {
     return JSON.stringify({schemaVersion: 1, releaseDate: '2026-09-05', packages})

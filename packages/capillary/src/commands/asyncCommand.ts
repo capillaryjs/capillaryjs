@@ -1,4 +1,7 @@
 import {EventBubble} from '../debugging/eventBubble.js'
+import {Diagnostics} from '../debugging/diagnostics.js'
+import type {DiagnosticNodeKind, DiagnosticScope} from '../debugging/diagnostics.js'
+import {DiagnosticOperation} from '../debugging/diagnosticOperation.js'
 import {BaseEmitter} from '../emitters/baseEmitter.js'
 import type {ReadableEmitter} from '../emitters/baseEmitter.js'
 import {Emitter} from '../emitters/emitter.js'
@@ -31,6 +34,7 @@ export interface AsyncCommandOptions<TArguments, TResult, TError = unknown> {
     owner?: unknown
     purpose?: string
     trace?: boolean
+    diagnosticScope?: DiagnosticScope | undefined
 }
 
 interface AbortControllerLike {
@@ -61,6 +65,7 @@ export class AsyncCommand<TArguments, TResult, TError = unknown>
     private retryWait: {handle: unknown, cancel: () => void} | null = null
     private requestId = 0
     private abortController: AbortControllerLike | null = null
+    private diagnosticOperation: DiagnosticOperation | null = null
     private lastSuccessfulValue: TResult | undefined
     private hasSuccessfulValue = false
     /** Exposed for deterministic tests; consumers should use run()/abort(). */
@@ -76,6 +81,7 @@ export class AsyncCommand<TArguments, TResult, TError = unknown>
             owner,
             purpose = 'async command',
             trace,
+            diagnosticScope,
         } = options
         assertConcurrency(concurrency)
         if (typeof mapError !== 'function') {
@@ -86,6 +92,7 @@ export class AsyncCommand<TArguments, TResult, TError = unknown>
             error: null,
             owner,
             purpose,
+            diagnosticScope,
             ...(trace === undefined ? {} : {trace}),
         })
         this.execute = execute
@@ -95,6 +102,7 @@ export class AsyncCommand<TArguments, TResult, TError = unknown>
         this.runningEmitter = new Emitter<boolean, never>(false, {
             owner: owner ?? this,
             purpose: `${purpose}:running`,
+            diagnosticScope: this.diagnosticScope,
             ...(trace === undefined ? {} : {trace}),
         })
         this.isRunning = this.runningEmitter
@@ -111,30 +119,38 @@ export class AsyncCommand<TArguments, TResult, TError = unknown>
                 return Promise.reject(new AsyncCommandConcurrencyError())
             }
             this.abortController?.abort()
+            this.diagnosticOperation?.close('superseded')
         }
         this.cancelRetryWait()
 
         const requestId = ++this.requestId
         const controller = createAbortController()
         this.abortController = controller
-        const parentEvent = eventOrCause instanceof EventBubble ? eventOrCause : null
+        const parentEvent = eventOrCause instanceof EventBubble ? eventOrCause : Diagnostics.currentEvent
         const cause = parentEvent ? 'parent command requested' : eventOrCause
+        let commandEvent = Diagnostics.active ? this.createEvent('command execute', parentEvent, arguments_,
+            {kind: 'operation', outcome: 'started'}) : null
+        const operation = Diagnostics.active && this.diagnosticScope.capture
+            ? new DiagnosticOperation(this, commandEvent) : null
+        this.diagnosticOperation = operation
+        operation?.begin(arguments_)
         this.setSnapshot({
             value: this.lastSuccessfulValue,
             fetchState: FetchState.Loading,
             error: null,
             cause,
-            parentEvent,
+            parentEvent: operation?.event ?? parentEvent,
         })
-        const commandEvent = this.createEvent('command execute', parentEvent, arguments_)
+        commandEvent ??= this.createEvent('command execute', parentEvent, arguments_)
         this.runningEmitter.set(true, commandEvent ?? cause)
 
         const request = Promise.resolve()
-            .then(() => this.runAttempts(arguments_, requestId, controller, commandEvent))
+            .then(() => this.runAttempts(arguments_, requestId, controller, commandEvent, operation))
             .finally(() => {
                 if (!this.isCurrentRequest(requestId, controller)) return
                 this.abortController = null
                 this._activeRequest = null
+                this.diagnosticOperation = null
                 this.runningEmitter.set(false, commandEvent ?? 'command settled')
             })
 
@@ -147,27 +163,33 @@ export class AsyncCommand<TArguments, TResult, TError = unknown>
         requestId: number,
         controller: AbortControllerLike,
         commandEvent: EventBubble<unknown> | null,
+        operation: DiagnosticOperation | null,
     ): Promise<TResult | undefined> {
         try {
             for (let attempt = 1; ; attempt += 1) {
+                if (attempt > 1) operation?.begin(arguments_)
                 try {
-                    const result = await this.execute(arguments_, {
+                    const invoke = (event: EventBubble<unknown> | null) => this.execute(arguments_, {
                         signal: controller.signal,
-                        event: commandEvent,
+                        event,
                     })
-                    if (!this.isCurrentRequest(requestId, controller)) return undefined
+                    const result = await (operation ? operation.invoke(arguments_, invoke) : invoke(commandEvent))
+                    if (!this.isCurrentRequest(requestId, controller)) { operation?.ignored(result); return undefined }
                     this.lastSuccessfulValue = result
                     this.hasSuccessfulValue = true
+                    const completion = operation?.settle('succeeded', result)
                     this.setSnapshot({
                         value: result,
                         fetchState: FetchState.Ready,
                         error: null,
                         cause: 'command succeeded',
-                        parentEvent: commandEvent,
+                        parentEvent: completion ?? commandEvent,
                     })
+                    operation?.close('succeeded')
                     return result
                 } catch (error: unknown) {
-                    if (!this.isCurrentRequest(requestId, controller)) return undefined
+                    if (!this.isCurrentRequest(requestId, controller)) { operation?.ignored(undefined, error); return undefined }
+                    const completion = operation?.settle(isAbortError(error) ? 'aborted' : 'failed', undefined, error)
                     const retry = this.retryPolicy
                     if (isAbortError(error)
                         || retry == null
@@ -178,12 +200,14 @@ export class AsyncCommand<TArguments, TResult, TError = unknown>
                             fetchState: FetchState.Error,
                             error: this.mapCommandError(error),
                             cause: 'command failed',
-                            parentEvent: commandEvent,
+                            parentEvent: completion ?? commandEvent,
                         })
+                        operation?.close(isAbortError(error) ? 'aborted' : 'failed')
                         return undefined
                     }
                     const delayMs = computeRetryDelay(retry, attempt, error)
-                    this.createEvent('command retry', commandEvent, {attempt, delayMs, error})
+                    this.createEvent('command retry', completion ?? commandEvent, {attempt, delayMs, error},
+                        {kind: 'retry', outcome: 'scheduled', delayMs})
                     if (!await this.waitRetryDelay(retry, delayMs, requestId, controller)) {
                         return undefined
                     }
@@ -191,6 +215,7 @@ export class AsyncCommand<TArguments, TResult, TError = unknown>
             }
         } catch (error: unknown) {
             if (!this.isCurrentRequest(requestId, controller)) return undefined
+            operation?.close('failed')
             this.setSnapshot({
                 value: this.lastSuccessfulValue,
                 fetchState: FetchState.Error,
@@ -234,6 +259,8 @@ export class AsyncCommand<TArguments, TResult, TError = unknown>
 
     abort(eventOrCause: EventBubble<unknown> | unknown = 'command aborted'): boolean {
         if (this.isDisposed || this.abortController == null) return false
+        this.diagnosticOperation?.close('aborted')
+        this.diagnosticOperation = null
         const parentEvent = eventOrCause instanceof EventBubble ? eventOrCause : null
         const cause = parentEvent ? 'parent command aborted' : eventOrCause
         this.requestId += 1
@@ -269,6 +296,8 @@ export class AsyncCommand<TArguments, TResult, TError = unknown>
 
     override dispose(): void {
         if (this.isDisposed) return
+        this.diagnosticOperation?.close('aborted')
+        this.diagnosticOperation = null
         this.requestId += 1
         this.abortController?.abort()
         this.abortController = null
@@ -293,6 +322,7 @@ export class AsyncCommand<TArguments, TResult, TError = unknown>
             return mappingError as TError
         }
     }
+    protected override get diagnosticKind(): DiagnosticNodeKind { return 'command' }
 }
 
 function assertOptions<TArguments, TResult, TError>(

@@ -9,6 +9,8 @@ application state, presentation, and transport policy separate.
   accessibility, structural CSS, and application-scoped services and routing.
 - **Capillary Viz** adds domain-neutral grouping, filtering, proportional
   block diagrams, and civil-date history charts.
+- **Capillary DevTools** optionally records bounded causal flows and explains
+  interactions all the way to UI and non-UI leaves, with non-executing playback.
 
 Applications remain the composition root. They own domain policy, endpoint
 configuration, service implementations, routes, page layout, and the active
@@ -118,6 +120,7 @@ Install only the packages the application uses:
 ```bash
 pnpm add @capillaryjs/capillary @capillaryjs/capillary-ui
 pnpm add @capillaryjs/capillary-viz # optional
+pnpm add @capillaryjs/capillary-devtools # optional; diagnostics-enabled 1.2 peers
 ```
 
 All packages are ESM-only. Repository tooling requires Node 22 or newer and
@@ -246,3 +249,14 @@ Ordinary pushes never publish packages; maintainers use the staged,
 ## License
 
 Copyright 2026 Sylwell Software. Licensed under the Apache License, Version 2.0.
+
+## Inspect a complete causal flow
+
+The optional [Capillary DevTools package](packages/capillary-devtools/README.md)
+provides bounded recordings and individually importable views. See the
+[diagnostics contract](docs/diagnostics.md) for interaction roots, async
+continuations, topology, scopes, and capture privacy.
+
+The backend-free [flow lab](apps/capillary-devtools-demo/README.md) demonstrates
+both a workbench and compact graph/stepper. After `pnpm build`, run
+`pnpm --filter @capillaryjs/capillary-devtools-demo dev` and open port 3004.

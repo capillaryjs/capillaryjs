@@ -5,6 +5,7 @@ export default defineConfig({
     testMatch: [
         'packages/capillary-ui/test/browser/**/*.spec.ts',
         'apps/component-gallery/test/browser/**/*.spec.ts',
+        'apps/capillary-devtools-demo/test/browser/**/*.spec.ts',
     ],
     fullyParallel: true,
     forbidOnly: true,
@@ -24,6 +25,11 @@ export default defineConfig({
     }, {
         command: 'pnpm --filter @sylwellsoftware/component-gallery exec vite --host 127.0.0.1 --port 4175 --strictPort',
         url: 'http://127.0.0.1:4175',
+        reuseExistingServer: false,
+        timeout: 30_000,
+    }, {
+        command: 'pnpm --filter @capillaryjs/capillary-devtools-demo exec vite --host 127.0.0.1 --port 4176 --strictPort',
+        url: 'http://127.0.0.1:4176',
         reuseExistingServer: false,
         timeout: 30_000,
     }],

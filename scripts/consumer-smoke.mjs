@@ -22,9 +22,11 @@ const report = JSON.parse(readFileSync(join(artifactRoot, 'package-artifacts.jso
 const capillary = findPackage('@capillaryjs/capillary')
 const capillaryUi = findPackage('@capillaryjs/capillary-ui')
 const visualization = findPackage('@capillaryjs/capillary-viz')
+const devtools = findPackage('@capillaryjs/capillary-devtools')
 const capillaryTarball = join(artifactRoot, 'packages', capillary.filename)
 const capillaryUiTarball = join(artifactRoot, 'packages', capillaryUi.filename)
 const visualizationTarball = join(artifactRoot, 'packages', visualization.filename)
+const devtoolsTarball = join(artifactRoot, 'packages', devtools.filename)
 const fixtureRoot = mkdtempSync(join(tmpdir(), 'capillaryjs-consumer-'))
 
 let completed = false
@@ -38,6 +40,7 @@ try {
     assertInstalledPackage('@capillaryjs/capillary', capillary.version)
     assertInstalledPackage('@capillaryjs/capillary-ui', capillaryUi.version)
     assertInstalledPackage('@capillaryjs/capillary-viz', visualization.version)
+    assertInstalledPackage('@capillaryjs/capillary-devtools', devtools.version)
     assertSingleCapillaryInstall()
 
     writeFixtureSources()
@@ -61,6 +64,7 @@ function writeConsumerManifest(includeCapillaryUi) {
     if (includeCapillaryUi) dependencies['@capillaryjs/capillary-ui'] = `file:${capillaryUiTarball}`
     if (includeCapillaryUi) {
         dependencies['@capillaryjs/capillary-viz'] = `file:${visualizationTarball}`
+        dependencies['@capillaryjs/capillary-devtools'] = `file:${devtoolsTarball}`
     }
 
     writeJson('package.json', {
@@ -135,10 +139,16 @@ import {
 } from '@capillaryjs/capillary-viz'
 import '@capillaryjs/capillary-ui/styles/structural.css'
 import '@capillaryjs/capillary-viz/styles/structural.css'
+import {TraceRecorder, TraceSelection, TracePlayback, traceRoots, devtoolsDiagnosticScope} from '@capillaryjs/capillary-devtools/model'
+import {TraceInspector} from '@capillaryjs/capillary-devtools/views/TraceInspector'
+import '@capillaryjs/capillary-devtools/styles/structural.css'
 import '@capillaryjs/capillary-ui/themes/base.css'
 import '@capillaryjs/capillary-ui/colors/iceblue/colors.css'
 import '@capillaryjs/capillary-ui/themes/minimal/theme.css'
 
+const recorder = new TraceRecorder().start({fromStart: true})
+const selection = new TraceSelection()
+const playback = new TracePlayback()
 const greetingService = defineService<{prefix: string}>('greeting')
 type RecordRow = {id: string; state: 'open' | 'closed'}
 const rows = new Emitter<readonly RecordRow[]>([
@@ -157,7 +167,7 @@ const splitSelection = createSplitSelection([stateCriterion])
 const blockSelection = createBlockSelection(rows, splitSelection.activeSplits$)
 
 class App extends Component {
-    readonly count = new Emitter(0)
+    readonly count = new Emitter(0, {purpose: 'counter'})
     readonly offset = new Emitter(1)
     readonly name = new Emitter('Ada')
     readonly textbox = new Textbox({label: 'Name', valueEmitter: this.name})
@@ -216,7 +226,17 @@ const services = createServiceScope([
 ])
 const runtime = createCapillaryUiRuntime({services})
 runtime.registerStyles(App).injectStyles(document)
-runtime.mount(runtime.create(App), document.querySelector('#app')!)
+const app = runtime.create(App)
+runtime.mount(app, document.querySelector('#app')!)
+const inspector = new TraceInspector({recording: recorder, selection, playback})
+runtime.registerStyles(TraceInspector).injectStyles(document)
+runtime.mount(inspector, document.querySelector('#app')!)
+recorder.revision.subscribe(() => {
+    const root = traceRoots(recorder.snapshot()).findLast((event) => event.kind === 'interaction')
+    if (root && selection.state.get().rootId !== root.id) selection.selectRoot(root.id)
+}, {emitCurrent: false, diagnosticScope: devtoolsDiagnosticScope})
+Reflect.set(window, 'consumerTrace', () => ({events: recorder.snapshot().events.length, count: app.count.get(),
+    origins: recorder.snapshot().events.filter((event) => event.kind === 'interaction').length}))
 `)
 }
 
@@ -245,6 +265,12 @@ async function verifyBrowserRuntime() {
             await counter.click()
             const updatedCounter = page.getByRole('button', {name: 'Count: 1'})
             assert(await updatedCounter.textContent() === 'Count: 1', 'Counter button did not update')
+            const beforeReplay = await page.evaluate(() => Reflect.get(window, 'consumerTrace')())
+            assert(beforeReplay.origins > 0, 'Packed DevTools did not capture the native interaction')
+            await page.getByRole('button', {name: 'First step', exact: true}).click()
+            await page.getByRole('button', {name: 'Next step', exact: true}).click()
+            const afterReplay = await page.evaluate(() => Reflect.get(window, 'consumerTrace')())
+            assert(JSON.stringify(beforeReplay) === JSON.stringify(afterReplay), 'Packed replay changed the application or captured itself')
             await expectText(page, '#h-output', 'Hello, Ada.')
             await expectText(page, '#endpoint-output', 'Derived total: 2')
             const peerIdentity = await page.locator('main').getAttribute('data-peer-identity')

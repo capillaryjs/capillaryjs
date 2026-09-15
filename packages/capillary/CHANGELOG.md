@@ -6,6 +6,16 @@ Versioning.
 
 ## Unreleased
 
+### Added
+
+- Add the opt-in protocol-v1 `Diagnostics` all-event/topology observer, weak
+  node identities, immutable diagnostic scopes, explicit graph discovery, and
+  synchronous causal context without changing root-only `EventBus` observation.
+- Trace ordinary subscribers, unchanged computations/full inputs when verbose,
+  and query/command attempts, handler invocation, retry, abort, supersession,
+  disposal, and ignored stale settlement. Scope exclusion applies across the
+  reactive graph; the core stores no recording or copied payload history.
+
 ## 1.1.0 - 2026-09-14
 
 ### Added

@@ -24,6 +24,17 @@ test('validates all three packages in dependency order', () => {
     assert.match(result.stdout, /order: @capillaryjs\/capillary -> @capillaryjs\/capillary-ui -> @capillaryjs\/capillary-viz/)
 })
 
+test('validates DevTools after its required peers and refuses an older diagnostics baseline', () => {
+    const old = createFixture()
+    const rejected = invoke(old, 'validate', ['capillaryDevtools'])
+    assert.equal(rejected.status, 1)
+    assert.match(rejected.stderr, /requires Capillary 1.2 or later/)
+    const fixture = createFixture({version: '1.2.0'})
+    const result = invoke(fixture, 'validate', ['capillary', 'capillaryUi', 'capillaryViz', 'capillaryDevtools'])
+    assert.equal(result.status, 0, result.stderr)
+    assert.match(result.stdout, /capillary-ui -> @capillaryjs\/capillary-viz -> @capillaryjs\/capillary-devtools/)
+})
+
 test('accepts the optional package-manager argument separator', () => {
     const fixture = createFixture()
     const result = invoke(fixture, 'validate', ['capillary', 'capillaryUi'], {}, {separator: true})
@@ -81,12 +92,13 @@ test('release workflow has the protected stage-only trust boundary', () => {
     assert.doesNotMatch(workflow, /NODE_AUTH_TOKEN|NPM_TOKEN|npm publish|stage approve/)
 })
 
-function createFixture({published, stalePeer = false} = {}) {
+function createFixture({published, stalePeer = false, version = '0.1.0-alpha.2'} = {}) {
     const root = mkdtempSync(path.join(os.tmpdir(), 'stage-release-'))
     mkdirSync(path.join(root, 'scripts'), {recursive: true})
     mkdirSync(path.join(root, 'packages', 'capillary'), {recursive: true})
     mkdirSync(path.join(root, 'packages', 'capillary-ui'), {recursive: true})
     mkdirSync(path.join(root, 'packages', 'capillary-viz'), {recursive: true})
+    mkdirSync(path.join(root, 'packages', 'capillary-devtools'), {recursive: true})
     mkdirSync(path.join(root, '.artifacts', 'release', 'packages'), {recursive: true})
     cpSync(path.join(sourceRoot, 'scripts', 'stage-release.mjs'), path.join(root, 'scripts', 'stage-release.mjs'))
     cpSync(path.join(sourceRoot, 'scripts', 'release-metadata.mjs'), path.join(root, 'scripts', 'release-metadata.mjs'))
@@ -95,20 +107,21 @@ function createFixture({published, stalePeer = false} = {}) {
         {directory: 'capillary', name: '@capillaryjs/capillary'},
         {directory: 'capillary-ui', name: '@capillaryjs/capillary-ui'},
         {directory: 'capillary-viz', name: '@capillaryjs/capillary-viz'},
+        {directory: 'capillary-devtools', name: '@capillaryjs/capillary-devtools'},
     ]) {
         writeFileSync(path.join(root, 'packages', directory, 'package.json'), JSON.stringify({
             name,
-            version: '0.1.0-alpha.2',
+            version,
             private: false,
             publishConfig: {access: 'public'},
             ...(directory === 'capillary-ui' ? {
                 peerDependencies: {
-                    '@capillaryjs/capillary': stalePeer ? '^0.1.0-alpha.1' : '^0.1.0-alpha.2',
+                    '@capillaryjs/capillary': stalePeer ? '^0.1.0-alpha.1' : `^${version}`,
                 },
-            } : directory === 'capillary-viz' ? {
+            } : directory === 'capillary-viz' || directory === 'capillary-devtools' ? {
                 peerDependencies: {
-                    '@capillaryjs/capillary': '^0.1.0-alpha.2',
-                    '@capillaryjs/capillary-ui': '^0.1.0-alpha.2',
+                    '@capillaryjs/capillary': `^${version}`,
+                    '@capillaryjs/capillary-ui': `^${version}`,
                 },
             } : {}),
         }))
@@ -117,7 +130,7 @@ function createFixture({published, stalePeer = false} = {}) {
         writeFileSync(tarball, `${directory} artifact`)
         entries.push({
             name,
-            version: '0.1.0-alpha.2',
+            version,
             filename,
             bytes: Buffer.byteLength(`${directory} artifact`),
             sha256: createHash('sha256').update(`${directory} artifact`).digest('hex'),
@@ -140,6 +153,7 @@ exit 0
 `)
     chmodSync(path.join(bin, 'npm'), 0o755)
     return {
+        version,
         root,
         log,
         capillaryTarball: path.join(root, '.artifacts', 'release', 'packages', entries[0].filename),
@@ -160,7 +174,7 @@ function invoke(fixture, command, keys, extraEnv = {}, {separator = false} = {})
     const releasePlan = JSON.stringify({
         schemaVersion: 1,
         releaseDate: '2026-09-05',
-        packages: keys.map((key) => ({key, version: '0.1.0-alpha.2', tag: 'next'})),
+        packages: keys.map((key) => ({key, version: fixture.version, tag: fixture.version.includes('-') ? 'next' : 'latest'})),
     })
     return spawnSync(process.execPath, [
         path.join(fixture.root, 'scripts', 'stage-release.mjs'),

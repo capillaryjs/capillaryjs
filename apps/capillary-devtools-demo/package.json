@@ -1,0 +1,17 @@
+{
+  "name": "@capillaryjs/capillary-devtools-demo",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 127.0.0.1 --port 3004",
+    "build": "pnpm typecheck && vite build && node scripts/check-compact-bundle.mjs",
+    "typecheck": "tsc --noEmit",
+    "test": "node --import tsx --test src/*.test.ts",
+    "preview": "vite preview --host 127.0.0.1 --port 4176"
+  },
+  "dependencies": {"@capillaryjs/capillary": "workspace:^", "@capillaryjs/capillary-ui": "workspace:^", "@capillaryjs/capillary-devtools": "workspace:^"},
+  "devDependencies": {"vite": "^6.4.3"},
+  "engines": {"node": ">=22", "pnpm": ">=10"},
+  "packageManager": "pnpm@10.11.0"
+}

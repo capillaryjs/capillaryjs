@@ -1,12 +1,12 @@
 # Public API surface
 
 Status: current package-root and documented CSS entry points
-Updated: 2026-09-07
+Updated: 2026-09-15
 
-This inventory describes the supported public surface of Capillary 0.8, Capillary UI 1.1,
-and Capillary Viz 0.9. Capillary UI follows 1.x semantic-versioning guarantees.
-Capillary and Capillary Viz remain on 0.x lines and may make documented
-breaking changes in minor releases.
+This inventory describes the checked-out Capillary, Capillary UI, Capillary Viz,
+and optional Capillary DevTools packages. All follow 1.x semantic-versioning
+guarantees. Diagnostics additions below require the upcoming Capillary/Capillary
+UI 1.2 lines; guarded release preparation owns final version promotion.
 
 Anything exported only from a source file, test fixture, or build directory is
 internal unless it appears below or in a package export map.
@@ -25,7 +25,7 @@ package root.
 | Endpoints | `QueryEndpoint`, `RestEndpoint`, `DerivedEndpoint`, `DerivedLiveResult`, `queryEndpoint`, `restEndpoint`, `derivedEndpoint` | declaration and open-result option types |
 | Commands | `AsyncCommand`, `AsyncCommandConcurrencyError` | executor, context, concurrency, retry, and option types |
 | Retry | `resolveRetryPolicy`, `computeRetryDelay`, `isAbortError` | `RetryPolicy`, `RetryBackoff`, `ResolvedRetryPolicy`, and `RetryScheduler` contracts |
-| Diagnostics | `EventBubble`, `EventBus` | event options/listener and `BubbleGraph` |
+| Diagnostics | `EventBubble`, `EventBus`, `Diagnostics`, `DiagnosticScope`, `defaultDiagnosticScope`, `diagnosticInfo` | event options/listener, `BubbleGraph`, protocol-v1 node/description/subject/fact/event-kind/outcome/details/observer options |
 | Utility | — | `NonEmptyArray` |
 
 Important compatibility boundaries:
@@ -55,6 +55,8 @@ Important compatibility boundaries:
   Abort, dispose, and superseding requests cancel pending retry timers. A
   failing retry predicate, backoff function, or scheduler settles terminally.
 - Diagnostics observe causality but do not retain event history or owners.
+  `EventBus` remains root-only; `Diagnostics` observes individual occurrences,
+  topology, optional unchanged/input facts, and explicit ownership scopes.
 
 See the [Capillary guide](../packages/capillary/README.md) for full behavior and ownership
 rules.
@@ -83,6 +85,11 @@ Public declaration contracts include component constructors/dependencies,
 props, children, vnodes, keys, refs, writable emitters, live bindings and prop
 contracts, emitter snapshots, template props, runtime options, and style
 registry types.
+
+Runtime `diagnosticScope`, component static `diagnosticScope`/`diagnosticLabel`,
+and function-component `diagnosticLabel` support opt-in automatic native
+interaction, component-read/watch, reactive-child, live-prop, and binding facts.
+See the [diagnostics contract](diagnostics.md).
 
 The root exports `CapillaryUiLayoutDirection`, `CapillaryUiLayoutAllocation`, direction-prop
 contracts, and `CapillaryUiLayoutParticipantProps`. Public structural classes provide horizontal or
@@ -367,3 +374,21 @@ The public stack does not provide:
 - localization catalogs, locale negotiation, live language switching, or RTL
   policy;
 - a retained diagnostic history store.
+
+## Capillary DevTools
+
+`@capillaryjs/capillary-devtools` is an optional ESM peer package. The root exports
+`TraceRecorder`, `TraceSelection`, `TracePlayback`, `devtoolsDiagnosticScope`,
+`filterTrace`, `traceRoots`, `causalOutline`, `projectFlow`, `traceAttempts`,
+`captureLimitations`, `nodeValueEvent`, and recording/node/event/preview/filter/attempt/flow/capture/
+playback/view types. `./model` exports only the headless model surface.
+
+Independently importable `./views/<Name>` exports are `CausalTraceView`,
+`ChronologicalTraceView`, `FlowGraphView`, `TraceTimelineView`,
+`ActivityOverviewView`, `TraceDetailsView`, `TracePlaybackControls`, and the
+optional composed `TraceInspector`. Every view accepts `TraceViewProps`.
+`./styles/structural.css` is the public all-view stylesheet; runtime style
+registration can collect just selected dependencies.
+
+See the [DevTools guide](../packages/capillary-devtools/README.md) for budgets,
+privacy, capture limitations, lifecycle, composability, and non-executing replay.

@@ -1,0 +1,22 @@
+:root { font-family: system-ui, sans-serif; color: #192c3d; background: #f3f5f7; color-scheme: light; }
+* { box-sizing: border-box; }
+body { margin: 0; }
+#app { max-width: 1720px; margin: auto; padding: 2rem; }
+.lab-header { margin-bottom: 2rem; }
+.lab-header > p { font-size: .7rem; font-weight: 700; letter-spacing: .16em; color: #36556d; }
+h1 { font-size: clamp(2rem, 4vw, 3.8rem); letter-spacing: -.05em; font-weight: 600; margin: .5rem 0 1rem; }
+.lab-header nav { display: flex; flex-wrap: wrap; gap: 1.5rem; }
+a { color: #0058ae; text-underline-offset: .25rem; }
+.scenario, .compact-trace { padding: 1.5rem; background: #fff; border: 1px solid #cad4de; border-radius: 10px; margin-bottom: 1.5rem; }
+h2 { font-size: 1.1rem; }
+.scenario-actions { display: flex; flex-wrap: wrap; gap: .5rem; margin: 1rem 0; }
+.scenario button, .compact-trace select { font: inherit; font-size: .8rem; color: #19344a; background: #f8fafc; border: 1px solid #becbd6; border-radius: 5px; padding: .55rem .75rem; cursor: pointer; }
+.scenario button:hover { background: #edf5ff; }
+.scenario input { padding: .5rem; border: 1px solid #a2b3c2; border-radius: 4px; font: inherit; }
+.scenario-results { display: grid; grid-template-columns: minmax(0, 1fr) minmax(14rem, .6fr); gap: 2rem; font-size: .85rem; }
+.scenario table { width: 100%; text-align: left; border-collapse: collapse; }
+.scenario th, .scenario td { padding: .5rem; border-bottom: 1px solid #dae1e7; }
+.scenario cap-datatable { min-height: 10rem; }
+.compact-trace { display: grid; gap: 1rem; }
+@media (max-width: 800px) { #app { padding: 1rem; } .scenario-results { grid-template-columns: minmax(0, 1fr); gap: .5rem; } }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }

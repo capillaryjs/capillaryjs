@@ -13,12 +13,14 @@ import type {QueryHandlerLike, QueryValues} from './queryHandler.js'
 import {RestQueryHandler} from './restQueryHandler.js'
 import type {RestQueryHandlerOptions} from './restQueryHandler.js'
 import type {RetryPolicy} from '../retryPolicy.js'
+import type {DiagnosticNodeKind, DiagnosticScope} from '../debugging/diagnostics.js'
 
 export type EndpointArgumentEmitters<TArguments extends QueryValues> = {
     [TName in keyof TArguments]: ReadableEmitter<TArguments[TName], unknown>
 }
 
 export interface EndpointQueryOptions {
+    diagnosticScope?: DiagnosticScope
     execution?: LiveQueryExecution
     autoFetch?: boolean
     keepPreviousValue?: boolean
@@ -145,6 +147,7 @@ export interface OpenDerivedEndpointOptions<
     TArguments extends QueryValues,
     TSourceError,
 > {
+    diagnosticScope?: DiagnosticScope
     source: ReadableEmitter<TSource, TSourceError>
     args: EndpointArgumentEmitters<TArguments>
     owner?: unknown
@@ -231,6 +234,7 @@ implements LiveResult<TResult, unknown> {
             fetchState: FetchState.Initial,
             error: null,
             owner: options.owner,
+            diagnosticScope: options.diagnosticScope ?? (options.source as BaseEmitter<TSource>).diagnosticScope,
             ...(options.purpose === undefined ? {} : {purpose: options.purpose}),
             ...(options.trace === undefined ? {} : {trace: options.trace}),
         })
@@ -244,7 +248,7 @@ implements LiveResult<TResult, unknown> {
         ]
         this.unsubscribers = sources.map((source) => source.subscribe(({event}) => {
             this.recompute(event)
-        }, {emitCurrent: false}))
+        }, {emitCurrent: false, diagnosticTarget: this}))
         this.recompute(null, false)
     }
 
@@ -254,6 +258,11 @@ implements LiveResult<TResult, unknown> {
         this.unsubscribers = []
         super.dispose()
     }
+
+    protected override diagnosticSources(): readonly object[] {
+        return this.source ? [this.source, ...Object.values(this.args ?? {})] : []
+    }
+    protected override get diagnosticKind(): DiagnosticNodeKind { return 'derived' }
 
     private recompute(parentEvent: import('../debugging/eventBubble.js').EventBubble<unknown> | null,
         notify = true): void {

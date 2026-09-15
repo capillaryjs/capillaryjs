@@ -1,4 +1,13 @@
-# Releasing Capillary, Capillary UI, and Capillary Viz
+# Releasing Capillary, Capillary UI, Viz, and DevTools
+
+DevTools' first release must accompany (or follow) the diagnostics-enabled
+Capillary and Capillary UI 1.2 releases. Its source peer minimum is `^1.2.0`;
+prepare/stage validation rejects the older baseline. An exact independent plan
+can select Capillary 1.2.0, UI 1.2.0, and DevTools 1.0.0 without releasing Viz.
+The implementation checkout intentionally leaves existing manifests/Unreleased
+notes for guarded metadata promotion. Local packed-consumer verification uses
+the updated source; it is not evidence that old published 1.1 binaries support
+the new protocol. Nothing is published by building or starting the flow lab.
 
 Ordinary pushes never publish packages. npm releases begin from a reviewed,
 clean commit on protected public `main`, pass the full public verification
@@ -92,7 +101,7 @@ npx --yes --package=npm@11.19.1 npm stage approve <stage-id>
 
 Approval requires an authenticated maintainer session and npm 2FA. If a
 combined release is staged, approve and verify each dependency before its
-dependant: Capillary, then Capillary UI, then Capillary Viz.
+dependant: Capillary, then Capillary UI, then Capillary Viz and Capillary DevTools.
 
 After each promotion, verify the exact public version, distribution tag,
 provenance link, and a clean exact-version install.
@@ -122,5 +131,5 @@ rerun the mirror workflow after correcting its GitHub Packages permissions.
   prepare a corrected version.
 
 To suspend releases, disable `release.yml` and remove or revoke the npm trusted
-publisher entries for all three packages. This does not delete existing public
+publisher entries for all four packages. This does not delete existing public
 versions.

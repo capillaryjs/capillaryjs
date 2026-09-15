@@ -1,8 +1,10 @@
 import type {
-    EventBubble,
+    DiagnosticDescription,
+    DiagnosticScope,
     FetchStateValue,
     ReadableEmitter,
 } from '@capillaryjs/capillary'
+import {Diagnostics, diagnosticInfo, EventBubble} from '@capillaryjs/capillary'
 
 import {CapillaryUiRuntime, defaultCapillaryUiRuntime} from '../runtime.js'
 import type {ServiceKey} from '../services.js'
@@ -34,9 +36,9 @@ export type Ref<TNode extends Node = Node> =
     | ((value: TNode | null) => void)
     | {current: TNode | null}
 
-export type FunctionComponent<TProps extends ComponentProps = ComponentProps> = (
+export type FunctionComponent<TProps extends ComponentProps = ComponentProps> = ((
     props: TProps,
-) => CapillaryUiChild
+) => CapillaryUiChild) & {diagnosticLabel?: string}
 
 export type ComponentConstructor<
     TProps extends ComponentProps = ComponentProps,
@@ -122,7 +124,7 @@ export interface ComponentDependency {
 interface Watchable {
     subscribe(
         listener: (notification: {event: EventBubble<unknown> | null}) => void,
-        options?: {emitCurrent?: boolean},
+        options?: {emitCurrent?: boolean; diagnosticTarget?: object},
     ): () => void
 }
 
@@ -440,6 +442,10 @@ export class Component<TProps extends ComponentProps = ComponentProps> {
         }
     `
     static hostName: string | null = null
+    /** Override for a diagnostic-tool subtree; ordinary components inherit their owner/runtime. */
+    static diagnosticScope: DiagnosticScope | null = null
+    /** Optional stable display name for bundled application components. Built-ins use their host name. */
+    static diagnosticLabel: string | null = null
     /** Optional host-level data surface marker for parent composition. */
     static dataSurface: CapillaryUiDataSurface = null
 
@@ -515,6 +521,17 @@ export class Component<TProps extends ComponentProps = ComponentProps> {
             throw new TypeError(`${this.constructor.name} props must be an object`)
         }
         this.props = props
+    }
+
+    get diagnosticScope(): DiagnosticScope {
+        return (this.constructor as typeof Component).diagnosticScope
+            ?? this._parentComponent?.diagnosticScope ?? this._runtime.diagnosticScope
+    }
+
+    [diagnosticInfo](): DiagnosticDescription {
+        return {kind: 'component', label: componentDiagnosticLabel(this), scope: this.diagnosticScope,
+            sources: [...this.watched.keys(), ...this.renderReadSubscriptions.keys()],
+            targets: [...this._childComponents]}
     }
 
     /** One-time setup hook. Constructors must not subscribe or render. */
@@ -601,7 +618,7 @@ export class Component<TProps extends ComponentProps = ComponentProps> {
         if (!this.initialized) {
             this.validateRequiredServices()
             this.initialized = true
-            this.initialize()
+            Diagnostics.withScope(this.diagnosticScope, () => this.initialize())
         }
         if (!this.mounted) {
             this.mounted = true
@@ -630,14 +647,19 @@ export class Component<TProps extends ComponentProps = ComponentProps> {
         }
 
         this.updating = true
+        const diagnosticEvent = Diagnostics.event(this, 'consumer', {
+            parent: _event instanceof EventBubble ? _event : Diagnostics.currentEvent,
+            cause: 'component render', outcome: 'started',
+        })
         try {
+            Diagnostics.withEvent(diagnosticEvent, () => {
             do {
                 this.updateRequested = false
                 const nextReads = new Set<Watchable>()
                 this.collectingRenderReads = nextReads
                 let nextVNode: NormalizedChild
                 try {
-                    nextVNode = normalizeRoot(this.render())
+                    nextVNode = Diagnostics.withScope(this.diagnosticScope, () => normalizeRoot(this.render()))
                 } finally {
                     this.collectingRenderReads = null
                 }
@@ -646,6 +668,15 @@ export class Component<TProps extends ComponentProps = ComponentProps> {
                 this.reconcileRenderReads(nextReads)
                 this.afterUpdate(this.dom)
             } while (this.updateRequested && !this.destroyed)
+            })
+            if (diagnosticEvent) Diagnostics.event(this, 'consumer', {
+                parent: diagnosticEvent, cause: 'component rendered', outcome: 'succeeded',
+            })
+        } catch (error) {
+            if (diagnosticEvent) Diagnostics.event(this, 'consumer', {
+                parent: diagnosticEvent, cause: 'component render failed', outcome: 'failed', error,
+            })
+            throw error
         } finally {
             this.updating = false
         }
@@ -673,7 +704,7 @@ export class Component<TProps extends ComponentProps = ComponentProps> {
             if (this.watched.has(observable)) continue
             const unsubscribe = observable.subscribe(({event}) => {
                 if (this.mounted && !this.destroyed) this.update(event)
-            }, {emitCurrent: false})
+            }, {emitCurrent: false, diagnosticTarget: this})
             this.watched.set(observable, unsubscribe)
             this.onCleanup(() => {
                 unsubscribe()
@@ -756,9 +787,16 @@ export class Component<TProps extends ComponentProps = ComponentProps> {
         if (target == null || typeof target.addEventListener !== 'function') {
             throw new TypeError('listen target must be an EventTarget')
         }
-        const eventListener = listener as EventListener
+        const subject = {}
+        Diagnostics.configure(subject, {kind: 'interaction', label: `${componentDiagnosticLabel(this)}: ${type}`,
+            scope: this.diagnosticScope})
+        const eventListener: EventListener = (event) => runUiInteraction(subject, this.diagnosticScope,
+            event, eventListener, type, () => listener(event as TEvent))
         target.addEventListener(type, eventListener, options)
-        this.onCleanup(() => target.removeEventListener(type, eventListener, options))
+        this.onCleanup(() => {
+            target.removeEventListener(type, eventListener, options)
+            Diagnostics.dispose(subject)
+        })
         return this
     }
 
@@ -767,6 +805,7 @@ export class Component<TProps extends ComponentProps = ComponentProps> {
             throw new TypeError('registerChild requires a Component')
         }
         this._childComponents.add(component)
+        if (Diagnostics.active) Diagnostics.inspect(this)
         return component
     }
 
@@ -774,6 +813,7 @@ export class Component<TProps extends ComponentProps = ComponentProps> {
         if (this.destroyed) return
         this.destroyed = true
         this.mounted = false
+        Diagnostics.dispose(this)
 
         for (const cleanup of [...this.cleanupFunctions]) cleanup()
         this.cleanupFunctions.clear()
@@ -839,7 +879,7 @@ export class Component<TProps extends ComponentProps = ComponentProps> {
             if (this.watched.has(emitter) || this.renderReadSubscriptions.has(emitter)) continue
             const unsubscribe = emitter.subscribe(({event}) => {
                 if (this.mounted && !this.destroyed) this.update(event)
-            }, {emitCurrent: false})
+            }, {emitCurrent: false, diagnosticTarget: this})
             this.renderReadSubscriptions.set(emitter, unsubscribe)
         }
     }
@@ -913,6 +953,7 @@ interface FunctionRecord extends RecordBase {
     sourceProps: ComponentProps
     liveProps: Map<string, LivePropRecord>
     child: RenderRecord
+    diagnosticSubject: object | null
 }
 
 type RenderRecord =
@@ -974,12 +1015,12 @@ function createRecord(value: NormalizedChild, owner: Component): RenderRecord {
             unsubscribe: () => {},
             owner,
         }
-        record.unsubscribe = value.subscribe(({value: nextValue}) => {
+        record.unsubscribe = subscribeUi(value, record, owner, 'reactive child', (nextValue) => {
             if (Object.is(nextValue, value)) {
                 throw new TypeError('A Capillary UI emitter child cannot render itself')
             }
             record.child = patchRoot(record.child, normalizeRoot(nextValue), owner)
-        }, {emitCurrent: false})
+        })
         return record
     }
 
@@ -1055,7 +1096,8 @@ function createRecord(value: NormalizedChild, owner: Component): RenderRecord {
         const sourceProps = props as ComponentProps
         assertSupportedComponentLiveProps(type, sourceProps)
         const resolvedProps = resolveLivePropValues(sourceProps)
-        const instance = new type(resolvedProps as never)
+        const instance = Diagnostics.withScope((type as typeof Component).diagnosticScope ?? owner.diagnosticScope,
+            () => new type(resolvedProps as never))
         instance._setRuntime(owner._runtime)
         instance._setRouteContext(owner._routeContextForChildren())
         instance._setParentComponent(owner)
@@ -1079,7 +1121,11 @@ function createRecord(value: NormalizedChild, owner: Component): RenderRecord {
         const functionType = type as FunctionComponent
         const sourceProps = props as ComponentProps
         const functionProps = resolveLivePropValues(sourceProps)
-        const rendered = normalizeRoot(functionType(functionProps))
+        const diagnosticSubject = functionType === Reflect.get(owner, 'Host') ? null : {}
+        if (diagnosticSubject) Diagnostics.configure(diagnosticSubject, {kind: 'component',
+            label: String(Reflect.get(functionType, 'diagnosticLabel') ?? functionType.name ?? 'Function component'),
+            scope: owner.diagnosticScope, sources: [owner]})
+        const child = renderFunction(diagnosticSubject, () => createRecord(normalizeRoot(functionType(functionProps)), owner))
         const record: FunctionRecord = {
             kind: 'function',
             key,
@@ -1087,7 +1133,8 @@ function createRecord(value: NormalizedChild, owner: Component): RenderRecord {
             props: functionProps,
             sourceProps,
             liveProps: new Map(),
-            child: createRecord(rendered, owner),
+            child,
+            diagnosticSubject,
             owner,
         }
         subscribeFunctionLiveProps(record)
@@ -1178,7 +1225,7 @@ function subscribeComponentLiveProps(
     record: ComponentRecord,
     sourceProps: ComponentProps,
 ): void {
-    reconcileLiveProps(record.liveProps, sourceProps, (key, value) => {
+    reconcileLiveProps(record.liveProps, sourceProps, record.instance, componentDiagnosticLabel(record.instance), (key, value) => {
         record.props = {...record.props, [key]: value}
         record.instance.setProps(record.props)
     })
@@ -1211,7 +1258,7 @@ function assertSupportedComponentLiveProps(
 }
 
 function subscribeFunctionLiveProps(record: FunctionRecord): void {
-    reconcileLiveProps(record.liveProps, record.sourceProps, (key, value) => {
+    reconcileLiveProps(record.liveProps, record.sourceProps, record.owner, record.type.diagnosticLabel ?? record.type.name, (key, value) => {
         record.props = {...record.props, [key]: value}
         rerenderFunctionRecord(record)
     })
@@ -1220,7 +1267,7 @@ function subscribeFunctionLiveProps(record: FunctionRecord): void {
 
 function patchFunctionLiveProps(record: FunctionRecord, sourceProps: ComponentProps): void {
     record.sourceProps = sourceProps
-    reconcileLiveProps(record.liveProps, sourceProps, (key, value) => {
+    reconcileLiveProps(record.liveProps, sourceProps, record.owner, record.type.diagnosticLabel ?? record.type.name, (key, value) => {
         record.props = {...record.props, [key]: value}
         rerenderFunctionRecord(record)
     })
@@ -1229,13 +1276,30 @@ function patchFunctionLiveProps(record: FunctionRecord, sourceProps: ComponentPr
 }
 
 function rerenderFunctionRecord(record: FunctionRecord): void {
-    const rendered = normalizeRoot(record.type(record.props))
-    record.child = patchRoot(record.child, rendered, record.owner)
+    renderFunction(record.diagnosticSubject, () => {
+        const rendered = normalizeRoot(record.type(record.props))
+        record.child = patchRoot(record.child, rendered, record.owner)
+    })
+}
+
+function renderFunction<T>(subject: object | null, render: () => T): T {
+    if (!subject) return render()
+    const event = Diagnostics.event(subject, 'consumer', {cause: 'function component render', outcome: 'started'})
+    try {
+        const result = event ? Diagnostics.withEvent(event, render) : render()
+        if (event) Diagnostics.event(subject, 'consumer', {parent: event, cause: 'function component rendered', outcome: 'succeeded'})
+        return result
+    } catch (error) {
+        if (event) Diagnostics.event(subject, 'consumer', {parent: event, cause: 'function component failed', outcome: 'failed', error})
+        throw error
+    }
 }
 
 function reconcileLiveProps(
     subscriptions: Map<string, LivePropRecord>,
     sourceProps: ComponentProps,
+    owner: Component,
+    label: string,
     onValue: (key: string, value: unknown) => void,
 ): void {
     for (const [key, existing] of subscriptions) {
@@ -1252,11 +1316,11 @@ function reconcileLiveProps(
             value: value.emitter.get(),
             unsubscribe: () => {},
         }
-        liveProp.unsubscribe = value.emitter.subscribe(({value: nextValue}) => {
+        liveProp.unsubscribe = subscribeUi(value.emitter, liveProp, owner, `${label}.${key}`, (nextValue) => {
             if (subscriptions.get(key) !== liveProp) return
             liveProp.value = nextValue
             onValue(key, nextValue)
-        }, {emitCurrent: false})
+        })
         subscriptions.set(key, liveProp)
     }
 }
@@ -1385,13 +1449,13 @@ function patchLiveElementProp(
         value,
         unsubscribe: () => {},
     }
-    liveProp.unsubscribe = binding.emitter.subscribe(({value: nextValue}) => {
+    liveProp.unsubscribe = subscribeUi(binding.emitter, liveProp, record.owner, `${record.type}.${key}`, (nextValue) => {
         const previousValue = liveProp.value
         liveProp.value = nextValue
         if (!Object.is(previousValue, nextValue)) {
             patchDOMProp(record.node, key, previousValue, nextValue)
         }
-    }, {emitCurrent: false})
+    })
     record.liveProps.set(key, liveProp)
 }
 
@@ -1422,8 +1486,9 @@ function patchNativeBinding(
     const eventName = nativeBindingEvent(record.node, property)
     const value = next.get()
     patchDOMProp(record.node, property, existing?.value, value)
-    const listener: EventListener = () => {
-        next.set(Reflect.get(record.node, property), `${key} changed`)
+    const listener: EventListener = (event) => {
+        runUiInteraction(interactionSubject(record, eventName), record.owner.diagnosticScope,
+            event, listener, `${key} changed`, () => next.set(Reflect.get(record.node, property), `${key} changed`))
     }
     const binding: NativeBindingRecord = {
         source: next,
@@ -1432,13 +1497,13 @@ function patchNativeBinding(
         listener,
         unsubscribe: () => {},
     }
-    binding.unsubscribe = next.subscribe(({value: nextValue}) => {
+    binding.unsubscribe = subscribeUi(next, binding, record.owner, `${record.type}.${key}`, (nextValue) => {
         const previousValue = binding.value
         binding.value = nextValue
         if (!Object.is(previousValue, nextValue)) {
             patchDOMProp(record.node, property, previousValue, nextValue)
         }
-    }, {emitCurrent: false})
+    })
     record.node.addEventListener(eventName, listener)
     record.nativeBindings.set(key, binding)
 }
@@ -1446,18 +1511,83 @@ function patchNativeBinding(
 function patchEvent(record: ElementRecord, key: string, next: unknown): void {
     const eventName = key.slice(2).toLowerCase()
     const registered = record.listeners.get(key)
-    if (registered && registered !== next) {
+    const previous = registered ? originalListeners.get(registered) ?? registered : null
+    if (registered && previous !== next) {
         record.node.removeEventListener(eventName, registered)
         record.listeners.delete(key)
     }
     if (next != null && typeof next !== 'function') {
         throw new TypeError(`${key} must be a function or null`)
     }
-    if (typeof next === 'function' && registered !== next) {
-        const listener = next as EventListener
+    if (typeof next === 'function' && previous !== next) {
+        const listener: EventListener = (event) => runUiInteraction(interactionSubject(record, eventName),
+            record.owner.diagnosticScope, event, listener, eventName, () => (next as EventListener).call(record.node, event))
+        originalListeners.set(listener, next)
         record.node.addEventListener(eventName, listener)
         record.listeners.set(key, listener)
     }
+}
+
+const interactions = new WeakMap<ElementRecord, Map<string, object>>()
+const originalListeners = new WeakMap<EventListener, Function>()
+const nativeInteractions = new WeakMap<Event, {event: EventBubble<unknown> | null; listeners: Set<object>}>()
+
+function runUiInteraction<T>(subject: object, scope: DiagnosticScope, native: Event, listener: object,
+    cause: string, action: () => T): T {
+    return Diagnostics.withScope(scope, () => {
+        if (!Diagnostics.active) return action()
+        let interaction = nativeInteractions.get(native)
+        if (!interaction || interaction.listeners.has(listener)) {
+            interaction = {event: Diagnostics.event(subject, 'interaction', {cause, outcome: 'started'}), listeners: new Set()}
+            nativeInteractions.set(native, interaction)
+            queueMicrotask(() => nativeInteractions.delete(native))
+        }
+        interaction.listeners.add(listener)
+        return Diagnostics.withEvent(interaction.event, action)
+    })
+}
+
+function interactionSubject(record: ElementRecord, type: string): object {
+    let subjects = interactions.get(record)
+    if (!subjects) { subjects = new Map(); interactions.set(record, subjects) }
+    let subject = subjects.get(type)
+    if (!subject) {
+        subject = {}
+        const name = record.node.getAttribute('aria-label') ?? record.node.getAttribute('name')
+            ?? record.node.textContent?.trim().slice(0, 80) ?? ''
+        Diagnostics.configure(subject, {kind: 'interaction',
+            label: `${componentDiagnosticLabel(record.owner)}: ${record.type} ${name} ${type}`.trim(),
+            scope: record.owner.diagnosticScope})
+        subjects.set(type, subject)
+    }
+    return subject
+}
+
+function subscribeUi<T>(
+    source: ReadableEmitter<T, unknown>, subject: object, owner: Component, label: string,
+    onValue: (value: T) => void,
+): () => void {
+    Diagnostics.configure(subject, {kind: 'binding', label: `${componentDiagnosticLabel(owner)}: ${label}`,
+        scope: owner.diagnosticScope, sources: [source]})
+    const unsubscribe = source.subscribe(({value, event}) => {
+        const consumed = Diagnostics.event(subject, 'consumer', {parent: event,
+            cause: 'binding update', value, outcome: 'started'})
+        try {
+            Diagnostics.withEvent(consumed, () => onValue(value))
+            if (consumed) Diagnostics.event(subject, 'consumer', {parent: consumed,
+                cause: 'binding updated', value, outcome: 'succeeded'})
+        } catch (error) {
+            if (consumed) Diagnostics.event(subject, 'consumer', {parent: consumed,
+                cause: 'binding update failed', outcome: 'failed', error})
+            throw error
+        }
+    }, {emitCurrent: false, diagnosticTarget: subject})
+    return () => { unsubscribe(); Diagnostics.dispose(subject) }
+}
+
+function componentDiagnosticLabel(component: Component): string {
+    const type = component.constructor as typeof Component
+    return type.diagnosticLabel ?? type.hostName ?? type.name
 }
 
 function patchRef(record: ElementRecord, next: unknown): void {
@@ -1604,6 +1734,7 @@ function disposeRecord(record: RenderRecord, removeNodes: boolean): void {
     if (record.kind === 'function') {
         for (const binding of record.liveProps.values()) binding.unsubscribe()
         record.liveProps.clear()
+        if (record.diagnosticSubject) Diagnostics.dispose(record.diagnosticSubject)
         disposeRecord(record.child, removeNodes)
         return
     }

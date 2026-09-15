@@ -65,6 +65,14 @@ const definitions = [
                 || path === 'styles/structural.css'
         },
     },
+    {
+        directory: join(workspaceRoot, 'packages', 'capillary-devtools'),
+        name: '@capillaryjs/capillary-devtools',
+        allow(path) {
+            return ['CHANGELOG.md', 'LICENSE', 'NOTICE', 'README.md', 'package.json', 'styles/structural.css'].includes(path)
+                || isDistributionFile(path)
+        },
+    },
 ]
 
 resetArtifactDirectory()
@@ -275,18 +283,18 @@ function validateTarball(definition, tarball, tarFiles, expectedVersion) {
         )
     }
 
-    if (definition.name === '@capillaryjs/capillary-viz') {
+    if (definition.name === '@capillaryjs/capillary-viz' || definition.name === '@capillaryjs/capillary-devtools') {
         for (const peerName of ['@capillaryjs/capillary', '@capillaryjs/capillary-ui']) {
             const peer = manifest.peerDependencies?.[peerName]
             assert(
                 typeof peer === 'string'
                     && peer.length > 0
                     && !/^(?:file:|link:|workspace:)/.test(peer),
-                `Capillary Viz packed ${peerName} peer range is missing or local-only`,
+                `${definition.name} packed ${peerName} peer range is missing or local-only`,
             )
             assert(
                 !Object.hasOwn(manifest.dependencies ?? {}, peerName),
-                `Capillary Viz must not bundle ${peerName} as a runtime dependency`,
+                `${definition.name} must not bundle ${peerName} as a runtime dependency`,
             )
         }
     }

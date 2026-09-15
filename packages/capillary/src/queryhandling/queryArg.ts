@@ -1,10 +1,11 @@
 import {Emitter} from '../emitters/emitter.js'
-import type {EmitterOptions, ReadableEmitter} from '../emitters/baseEmitter.js'
+import type {BaseEmitter, EmitterOptions, ReadableEmitter} from '../emitters/baseEmitter.js'
 
 /** A named reactive value used by LiveQuery. */
 export class QueryArg<TValue, TError = unknown> extends Emitter<TValue, TError> {
     readonly name: string
     private sourceUnsubscribe: (() => void) | null
+    private readonly source: ReadableEmitter<TValue, TError>
 
     constructor(
         name: string,
@@ -22,11 +23,13 @@ export class QueryArg<TValue, TError = unknown> extends Emitter<TValue, TError> 
 
         super(source.get(), {
             ...options,
+            diagnosticScope: options.diagnosticScope ?? (source as BaseEmitter<TValue, TError>).diagnosticScope,
             fetchState: source.getFetchState(),
             error: source.getError(),
             purpose: options.purpose ?? `query argument: ${name}`,
         })
         this.name = name
+        this.source = source
         this.sourceUnsubscribe = source.subscribe((notification) => {
             this.setWithState(
                 notification.value,
@@ -34,7 +37,7 @@ export class QueryArg<TValue, TError = unknown> extends Emitter<TValue, TError> 
                 notification.error,
                 notification.event,
             )
-        }, {emitCurrent: false})
+        }, {emitCurrent: false, diagnosticTarget: this})
     }
 
     override dispose(): void {
@@ -43,4 +46,6 @@ export class QueryArg<TValue, TError = unknown> extends Emitter<TValue, TError> 
         this.sourceUnsubscribe = null
         super.dispose()
     }
+
+    protected override diagnosticSources(): readonly object[] { return this.source ? [this.source] : [] }
 }

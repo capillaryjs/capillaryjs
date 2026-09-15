@@ -5,6 +5,7 @@ import os from 'node:os'
 import {fileURLToPath} from 'node:url'
 
 import {
+    assertDevtoolsPeerVersions,
     parseReleasePlan,
     promoteUnreleased,
     setManifestDependencyRange,
@@ -39,7 +40,7 @@ function parseArguments(args) {
 function prepare(plan) {
     const selectedByKey = new Map(plan.packages.map((entry) => [entry.key, entry]))
     const manifests = new Map(plan.packages.map((entry) => [entry.key, readManifest(entry)]))
-    const allManifests = new Map(['capillary', 'capillaryUi', 'capillaryViz'].map((key) => {
+    const allManifests = new Map(['capillary', 'capillaryUi', ...plan.packages.map(({key}) => key)].map((key) => {
         const selected = selectedByKey.get(key)
         return [key, selected ? manifests.get(key) : readManifestByKey(key)]
     }))
@@ -74,6 +75,7 @@ function desiredMetadata(plan, manifests) {
     const target = new Map(plan.packages.map((entry) => [entry.key, entry.version]))
     const capillaryVersion = target.get('capillary') ?? manifests.get('capillary').version
     const capillaryUiVersion = target.get('capillaryUi') ?? manifests.get('capillaryUi').version
+    if (target.has('capillaryDevtools')) assertDevtoolsPeerVersions(capillaryVersion, capillaryUiVersion)
     const expected = new Map()
     for (const entry of plan.packages) {
         const manifestPath = `packages/${entry.directory}/package.json`
@@ -82,7 +84,7 @@ function desiredMetadata(plan, manifests) {
             manifest = setManifestDependencyRange(
                 manifest, 'peerDependencies', '@capillaryjs/capillary', `^${capillaryVersion}`)
         }
-        if (entry.key === 'capillaryViz') {
+        if (entry.key === 'capillaryViz' || entry.key === 'capillaryDevtools') {
             manifest = setManifestDependencyRange(
                 manifest, 'peerDependencies', '@capillaryjs/capillary', `^${capillaryVersion}`)
             manifest = setManifestDependencyRange(
@@ -116,6 +118,7 @@ function readManifestByKey(key) {
         capillary: 'capillary',
         capillaryUi: 'capillary-ui',
         capillaryViz: 'capillary-viz',
+        capillaryDevtools: 'capillary-devtools',
     }[key]
     assert(directory, `unknown package key: ${key}`)
     return JSON.parse(readFile(`packages/${directory}/package.json`))

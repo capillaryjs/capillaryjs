@@ -58,6 +58,22 @@ importers:
         specifier: ^6.4.3
         version: 6.4.3(@types/node@26.4.1)(tsx@4.23.13)
 
+  apps/capillary-devtools-demo:
+    dependencies:
+      '@capillaryjs/capillary':
+        specifier: workspace:^
+        version: link:../../packages/capillary
+      '@capillaryjs/capillary-devtools':
+        specifier: workspace:^
+        version: link:../../packages/capillary-devtools
+      '@capillaryjs/capillary-ui':
+        specifier: workspace:^
+        version: link:../../packages/capillary-ui
+    devDependencies:
+      vite:
+        specifier: ^6.4.3
+        version: 6.4.3(@types/node@26.4.1)(tsx@4.23.13)
+
   apps/capillary-ui-demo:
     dependencies:
       '@capillaryjs/capillary':
@@ -143,6 +159,15 @@ importers:
       vite:
         specifier: ^6.3.5
         version: 6.4.3(@types/node@26.4.1)(tsx@4.23.13)
+
+  packages/capillary-devtools:
+    devDependencies:
+      '@capillaryjs/capillary':
+        specifier: workspace:^
+        version: link:../capillary
+      '@capillaryjs/capillary-ui':
+        specifier: workspace:^
+        version: link:../capillary-ui
 
   packages/capillary-ui:
     devDependencies:

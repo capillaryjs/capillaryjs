@@ -1,5 +1,7 @@
 import {EventBubble} from '../debugging/eventBubble.js'
 import {EventBus} from '../debugging/eventBus.js'
+import {Diagnostics, diagnosticInfo, defaultDiagnosticScope} from '../debugging/diagnostics.js'
+import type {DiagnosticDescription, DiagnosticEventDetails, DiagnosticNodeKind, DiagnosticScope} from '../debugging/diagnostics.js'
 import {combineFetchStates, FetchState} from '../enums/fetchState.js'
 import type {FetchStateValue} from '../enums/fetchState.js'
 
@@ -17,11 +19,16 @@ export interface EmitterOptions<TValue, TError = unknown> {
     purpose?: string
     equals?: (left: TValue, right: TValue) => boolean
     trace?: boolean
+    diagnosticScope?: DiagnosticScope | undefined
 }
 
 export interface SubscribeOptions {
     emitCurrent?: boolean
     parentEvent?: EventBubble<unknown> | null
+    /** Identity of a framework consumer; omitted subscriptions become named callback leaves. */
+    diagnosticTarget?: object
+    diagnosticLabel?: string
+    diagnosticScope?: DiagnosticScope
 }
 
 export interface SnapshotUpdate<TValue, TError> {
@@ -30,6 +37,7 @@ export interface SnapshotUpdate<TValue, TError> {
     error?: TError | null
     cause?: unknown
     parentEvent?: EventBubble<unknown> | null
+    diagnostic?: Omit<Partial<DiagnosticEventDetails>, 'node'>
 }
 
 export interface ReadableEmitter<TValue, TError = unknown> {
@@ -69,7 +77,7 @@ type MapEachResult<TValue, TMapped> = TValue extends null | undefined
 
 export type MapOptions<TValue> = Pick<
     EmitterOptions<TValue, DerivedErrors>,
-    'owner' | 'purpose' | 'equals' | 'trace'
+    'owner' | 'purpose' | 'equals' | 'trace' | 'diagnosticScope'
 >
 
 /** Shared read, subscription, mapping, tracing, and disposal behavior. */
@@ -86,6 +94,8 @@ implements ReadableEmitter<TValue, TError> {
     readonly owner: unknown
     readonly purpose: string
     readonly trace: boolean
+    private readonly explicitDiagnosticScope: DiagnosticScope | null
+    private readonly diagnosticSubscriptions = new Map<Function, {target: object; framework: boolean}>()
 
     constructor(initialValue: TValue, options: EmitterOptions<TValue, TError> = {}) {
         if (options == null || typeof options !== 'object' || Array.isArray(options)) {
@@ -97,14 +107,32 @@ implements ReadableEmitter<TValue, TError> {
         this.error = options.error ?? null
         this.equals = options.equals ?? Object.is
         this.owner = options.owner
-        this.purpose = options.purpose ?? this.constructor.name
+        this.purpose = options.purpose ?? (this.diagnosticKind === 'derived' ? 'DerivedEmitter' : 'Emitter')
         this.trace = options.trace ?? false
+        this.explicitDiagnosticScope = options.diagnosticScope ?? Diagnostics.creationScope
 
         if (typeof this.equals !== 'function') {
             throw new TypeError('Emitter equals option must be a function')
         }
         assertFetchState(this.fetchState)
+        if (Diagnostics.active && options.owner == null) Diagnostics.discover(this)
     }
+
+    get diagnosticScope(): DiagnosticScope {
+        return this.explicitDiagnosticScope
+            ?? (this.owner as {diagnosticScope?: DiagnosticScope} | undefined)?.diagnosticScope
+            ?? defaultDiagnosticScope
+    }
+
+    [diagnosticInfo](): DiagnosticDescription {
+        return {label: this.purpose, scope: this.diagnosticScope,
+            kind: this.diagnosticKind,
+            sources: this.diagnosticSources(),
+            targets: [...this.subscribers].map((listener) => this.diagnosticSubscriptions.get(listener)?.target ?? listener)}
+    }
+
+    protected diagnosticSources(): readonly object[] { return [] }
+    protected get diagnosticKind(): DiagnosticNodeKind { return 'emitter' }
 
     subscribe(
         listener: (notification: EmitterNotification<TValue, TError>) => void,
@@ -119,10 +147,18 @@ implements ReadableEmitter<TValue, TError> {
         }
 
         const {emitCurrent = true, parentEvent = null} = options
+        const previous = this.diagnosticSubscriptions.get(listener)
+        if (previous) Diagnostics.disconnect(this, previous.target)
+        const target = options.diagnosticTarget ?? {}
+        if (!options.diagnosticTarget) Diagnostics.configure(target, {kind: 'subscriber',
+            label: options.diagnosticLabel ?? (listener.name || 'subscriber'),
+            scope: options.diagnosticScope ?? this.diagnosticScope})
+        this.diagnosticSubscriptions.set(listener, {target, framework: Boolean(options.diagnosticTarget)})
         this.subscribers.add(listener)
+        if (Diagnostics.active) Diagnostics.inspect(this)
         if (emitCurrent) {
             const event = this.createEvent('subscribed', parentEvent, this.value)
-            listener(this.notification(event))
+            this.deliver(listener, this.notification(event))
         }
 
         let active = true
@@ -130,6 +166,8 @@ implements ReadableEmitter<TValue, TError> {
             if (!active) return
             active = false
             this.subscribers.delete(listener)
+            Diagnostics.disconnect(this, this.diagnosticSubscriptions.get(listener)?.target ?? listener)
+            this.diagnosticSubscriptions.delete(listener)
         }
     }
 
@@ -172,6 +210,7 @@ implements ReadableEmitter<TValue, TError> {
                 owner: options.owner ?? this.owner,
                 purpose: options.purpose ?? `${this.purpose}:map`,
                 trace: options.trace ?? this.trace,
+                diagnosticScope: options.diagnosticScope ?? this.diagnosticScope,
             },
         )
     }
@@ -198,13 +237,17 @@ implements ReadableEmitter<TValue, TError> {
         }, {
             ...options,
             purpose: options.purpose ?? `${this.purpose}:mapEach`,
+            diagnosticScope: options.diagnosticScope ?? this.diagnosticScope,
         })
     }
 
     dispose(): void {
         if (this.isDisposed) return
         this.isDisposed = true
+        Diagnostics.event(this, 'disposed', {outcome: 'disposed'})
+        Diagnostics.dispose(this)
         this.subscribers.clear()
+        this.diagnosticSubscriptions.clear()
     }
 
     protected notification(
@@ -221,7 +264,37 @@ implements ReadableEmitter<TValue, TError> {
     protected notify(event: EventBubble<unknown> | null = null): void {
         if (this.isDisposed) return
         const notification = this.notification(event)
-        for (const listener of [...this.subscribers]) listener(notification)
+        if (Diagnostics.active) {
+            // A prior listener can unsubscribe a later listener while this delivery
+            // is in flight. Preserve its original consumer identity and ordering.
+            const deliveries = [...this.subscribers].map((listener) =>
+                [listener, this.diagnosticSubscriptions.get(listener)] as const)
+            for (const [listener, delivery] of deliveries) this.deliver(listener, notification, delivery)
+        } else for (const listener of [...this.subscribers]) listener(notification)
+    }
+
+    private deliver(
+        listener: (notification: EmitterNotification<TValue, TError>) => void,
+        notification: EmitterNotification<TValue, TError>,
+        delivery = this.diagnosticSubscriptions.get(listener),
+    ): void {
+        if (!Diagnostics.active) { listener(notification); return }
+        const frameworkConsumer = delivery?.framework ?? false
+        const subject = delivery?.target ?? listener
+        const event = frameworkConsumer ? notification.event
+            : Diagnostics.event(subject, 'consumer', {parent: notification.event,
+                cause: 'subscriber notified', value: notification.value, outcome: 'started'})
+        try {
+            Diagnostics.withEvent(event, () => listener(notification))
+            if (!frameworkConsumer && event) Diagnostics.event(subject, 'consumer', {
+                parent: event, cause: 'subscriber returned', outcome: 'succeeded',
+            })
+        } catch (error) {
+            if (!frameworkConsumer && event) Diagnostics.event(subject, 'consumer', {
+                parent: event, cause: 'subscriber threw', outcome: 'failed', error,
+            })
+            throw error
+        }
     }
 
     protected setSnapshot(next: SnapshotUpdate<TValue, TError> = {}): boolean {
@@ -230,18 +303,29 @@ implements ReadableEmitter<TValue, TError> {
         const fetchState = next.fetchState ?? this.fetchState
         const error = Object.hasOwn(next, 'error') ? next.error as TError | null : this.error
         const cause = next.cause ?? 'state changed'
-        const parentEvent = next.parentEvent ?? null
+        const parentEvent = next.parentEvent ?? Diagnostics.currentEvent
         assertFetchState(fetchState)
 
         const changed = !this.equals(this.value, value)
             || this.fetchState !== fetchState
             || !Object.is(this.error, error)
-        if (!changed) return false
+        if (!changed) {
+            if (Diagnostics.active && Diagnostics.verbose) {
+                Diagnostics.event(this, 'recomputed-unchanged', {parent: parentEvent,
+                    cause, value, outcome: 'unchanged', ...next.diagnostic})
+            }
+            return false
+        }
 
+        const before = this.value
+        const valueChanged = !Object.is(before, value)
         this.value = value
         this.fetchState = fetchState
         this.error = error
-        const event = this.createEvent(cause, parentEvent, value)
+        const event = this.createEvent(cause, parentEvent, value, Diagnostics.active ? {
+            kind: this instanceof DerivedEmitter ? 'derived' : valueChanged ? 'value' : 'state',
+            outcome: 'changed', before, fetchState, error, ...next.diagnostic,
+        } : undefined)
         this.notify(event)
         return true
     }
@@ -250,15 +334,21 @@ implements ReadableEmitter<TValue, TError> {
         cause: unknown,
         parentEvent: EventBubble<unknown> | null = null,
         value: TEventValue = this.value as unknown as TEventValue,
+        details: Omit<Partial<DiagnosticEventDetails>, 'node'> = {},
     ): EventBubble<TEventValue> | null {
-        if (!this.trace && !parentEvent && !EventBus.hasSubscribers) return null
+        if (!this.diagnosticScope.capture) return null
+        parentEvent ??= Diagnostics.currentEvent
+        if (!this.trace && !parentEvent && !EventBus.hasSubscribers && !Diagnostics.active) return null
 
+        const node = Diagnostics.active ? Diagnostics.discover(this) : null
         const event = new EventBubble({
             owner: this.owner ?? this,
             purpose: this.purpose,
             value,
             cause,
             parent: parentEvent,
+            diagnosticScope: this.diagnosticScope,
+            ...(node ? {diagnostic: {node, kind: cause === 'subscribed' ? 'subscribed' : 'operation', ...details}} : {}),
         })
         if (!parentEvent) EventBus.emit(event)
         return event
@@ -288,6 +378,10 @@ export class DerivedEmitter<
         // The first synchronous recomputation below establishes the real value.
         super(undefined as TValue, {
             ...emitterOptions,
+            diagnosticScope: emitterOptions.diagnosticScope
+                ?? (sources.length && sources.every((source) =>
+                    (source as BaseEmitter<unknown>).diagnosticScope === (sources[0] as BaseEmitter<unknown>).diagnosticScope)
+                    ? (sources[0] as BaseEmitter<unknown>).diagnosticScope : undefined),
             fetchState: FetchState.Initial,
             error: null,
         })
@@ -314,7 +408,7 @@ export class DerivedEmitter<
         this.sources = [...sources] as unknown as TSources
         this.compute = compute
         this.sourceUnsubscribers = this.sources.map((source) =>
-            source.subscribe(({event}) => this.recompute(event), {emitCurrent: false}),
+            source.subscribe(({event}) => this.recompute(event), {emitCurrent: false, diagnosticTarget: this}),
         )
         this.recompute(options.parentEvent ?? null, options.notify ?? true)
         return this
@@ -325,6 +419,9 @@ export class DerivedEmitter<
         this.releaseSources()
         super.dispose()
     }
+
+    protected override diagnosticSources(): readonly object[] { return this.sources ?? [] }
+    protected override get diagnosticKind(): DiagnosticNodeKind { return 'derived' }
 
     private releaseSources(): void {
         for (const unsubscribe of this.sourceUnsubscribers) unsubscribe()
@@ -370,6 +467,12 @@ export class DerivedEmitter<
             error,
             cause: 'derived source changed',
             parentEvent,
+            ...(Diagnostics.active && Diagnostics.verbose ? {diagnostic: {
+                inputs: this.sources.flatMap((source, index) => {
+                    const node = Diagnostics.discover(source)
+                    return node ? [{nodeId: node.id, value: values[index]}] : []
+                }),
+            }} : {}),
         })
     }
 }

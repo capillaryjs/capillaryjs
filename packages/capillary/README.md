@@ -490,3 +490,15 @@ See the [workspace overview](../../README.md), [API
 surface](../../docs/API_SURFACE.md), [changelog](CHANGELOG.md),
 [contribution guide](../../CONTRIBUTING.md), and [security
 policy](../../SECURITY.md).
+
+## Optional causal diagnostics
+
+The additive diagnostics-enabled 1.2 API provides `Diagnostics.subscribe()` for
+individual event and topology facts while retaining the root-only `EventBus`
+contract. `purpose`/subscription labels, weak identities, query/command attempts,
+explicit graph discovery, synchronous context, and `DiagnosticScope` let optional
+tools follow real propagation without making Capillary a retained event store.
+Unchanged recomputations and full inputs require verbose capture. Values are not
+serialized or copied by the core. See the [diagnostics guide](../../docs/diagnostics.md)
+for external interaction roots, async event forwarding, and scope ownership, and
+[Capillary DevTools](../capillary-devtools/README.md) for bounded recording/views.

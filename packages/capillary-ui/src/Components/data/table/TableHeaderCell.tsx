@@ -36,6 +36,7 @@ export interface TableHeaderCellProps extends ComponentProps, TableColumnBase {
 }
 
 export class TableHeaderCell extends Component<TableHeaderCellProps> {
+    static override diagnosticLabel = 'Table header cell'
     static override liveProps: readonly string[] = []
     private filterVisible = false
 

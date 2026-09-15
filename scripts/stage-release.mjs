@@ -4,7 +4,7 @@ import {existsSync, readFileSync} from 'node:fs'
 import {basename, join, resolve} from 'node:path'
 import {fileURLToPath} from 'node:url'
 
-import {parseReleasePlan} from './release-metadata.mjs'
+import {assertDevtoolsPeerVersions, parseReleasePlan} from './release-metadata.mjs'
 
 const root = resolve(fileURLToPath(new URL('..', import.meta.url)))
 try {
@@ -46,6 +46,9 @@ function validateArtifacts(selected, options) {
 
     const capillaryManifest = JSON.parse(readFileSync(join(root, 'packages/capillary/package.json'), 'utf8'))
     const capillaryUiManifest = JSON.parse(readFileSync(join(root, 'packages/capillary-ui/package.json'), 'utf8'))
+    if (selected.some(({key}) => key === 'capillaryDevtools')) {
+        assertDevtoolsPeerVersions(capillaryManifest.version, capillaryUiManifest.version)
+    }
     return selected.map((definition) => {
         const manifest = JSON.parse(readFileSync(join(root, 'packages', definition.directory, 'package.json'), 'utf8'))
         assert(manifest.name === definition.name, `manifest identity drifted for ${definition.name}`)
@@ -56,7 +59,7 @@ function validateArtifacts(selected, options) {
             assert(manifest.peerDependencies?.['@capillaryjs/capillary'] === `^${capillaryManifest.version}`,
                 `${definition.name} must peer-depend on the current Capillary release line`)
         }
-        if (definition.key === 'capillaryViz') {
+        if (definition.key === 'capillaryViz' || definition.key === 'capillaryDevtools') {
             assert(manifest.peerDependencies?.['@capillaryjs/capillary'] === `^${capillaryManifest.version}`,
                 `${definition.name} must peer-depend on the current Capillary release line`)
             assert(manifest.peerDependencies?.['@capillaryjs/capillary-ui'] === `^${capillaryUiManifest.version}`,

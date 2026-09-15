@@ -2,6 +2,12 @@ export {EventBubble} from './debugging/eventBubble.js'
 export type {EventOptions} from './debugging/eventBubble.js'
 export {EventBus} from './debugging/eventBus.js'
 export type {BubbleGraph, EventListener} from './debugging/eventBus.js'
+export {Diagnostics, DiagnosticScope, defaultDiagnosticScope, diagnosticInfo} from './debugging/diagnostics.js'
+export type {
+    DiagnosticDescription, DiagnosticEventDetails, DiagnosticEventKind, DiagnosticFact,
+    DiagnosticNode, DiagnosticNodeKind, DiagnosticObserverOptions, DiagnosticOutcome,
+    DiagnosticSubject,
+} from './debugging/diagnostics.js'
 
 export {BaseEmitter, DerivedEmitter} from './emitters/baseEmitter.js'
 export type {

@@ -11,6 +11,8 @@ import {ServiceScope, createServiceScope} from './services.js'
 import type {BrowserRouter} from './routing/router.js'
 import {createRuntimeLocalization} from './localization.js'
 import type {CapillaryUiLocalization, CapillaryUiLocalizationOptions} from './localization.js'
+import {defaultDiagnosticScope, Diagnostics} from '@capillaryjs/capillary'
+import type {DiagnosticScope} from '@capillaryjs/capillary'
 
 const RESERVED_CUSTOM_ELEMENT_NAMES = new Set([
     'annotation-xml',
@@ -24,6 +26,8 @@ const RESERVED_CUSTOM_ELEMENT_NAMES = new Set([
 ])
 
 export interface CapillaryUiRuntimeOptions {
+    /** Inherited by component and binding diagnostic identities. */
+    diagnosticScope?: DiagnosticScope
     /** Service scope inherited by every component created or mounted here. */
     services?: ServiceScope
     /** Optional caller-owned browser router inherited by routed components. */
@@ -38,6 +42,7 @@ export class CapillaryUiRuntime {
     readonly services: ServiceScope
     readonly router: BrowserRouter | null
     readonly localization: CapillaryUiLocalization
+    readonly diagnosticScope: DiagnosticScope
     private readonly routedRoots = new WeakSet<Component>()
 
     constructor(
@@ -51,6 +56,7 @@ export class CapillaryUiRuntime {
             throw new TypeError('CapillaryUiRuntime no longer supports configurable element names')
         }
         this.styleRegistry = registry
+        this.diagnosticScope = options.diagnosticScope ?? defaultDiagnosticScope
         this.localization = createRuntimeLocalization(options.localization)
         this.services = options.services ?? createServiceScope()
         if (!(this.services instanceof ServiceScope)) {
@@ -93,7 +99,7 @@ export class CapillaryUiRuntime {
         componentType: new(...args: TArgs) => TComponent,
         ...args: TArgs
     ): TComponent {
-        const component = new componentType(...args)
+        const component = Diagnostics.withScope(this.diagnosticScope, () => new componentType(...args))
         component._setRuntime(this)
         return component
     }

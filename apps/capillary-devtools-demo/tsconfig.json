@@ -1,0 +1,5 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {"lib": ["ES2023", "DOM", "DOM.Iterable"], "types": ["node"], "jsx": "react-jsx", "jsxImportSource": "@capillaryjs/capillary-ui", "noEmit": true},
+  "include": ["src/**/*.ts", "src/**/*.tsx"]
+}
