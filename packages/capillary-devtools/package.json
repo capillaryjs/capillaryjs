@@ -5,22 +5,51 @@
   "type": "module",
   "description": "Bounded causal recordings and composable Capillary flow inspection tools.",
   "license": "Apache-2.0",
-  "author": {"name": "Sylwell Software", "email": "npm@sylwellsoftware.com", "url": "https://sylwellsoftware.com"},
-  "repository": {"type": "git", "url": "git+https://github.com/capillaryjs/capillaryjs.git", "directory": "packages/capillary-devtools"},
+  "author": {
+    "name": "Sylwell Software",
+    "email": "npm@sylwellsoftware.com",
+    "url": "https://sylwellsoftware.com"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/capillaryjs/capillaryjs.git",
+    "directory": "packages/capillary-devtools"
+  },
   "homepage": "https://github.com/capillaryjs/capillaryjs#readme",
-  "bugs": {"url": "https://github.com/capillaryjs/capillaryjs/issues"},
-  "publishConfig": {"access": "public"},
+  "bugs": {
+    "url": "https://github.com/capillaryjs/capillaryjs/issues"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
   "main": "dist/index.js",
   "module": "dist/index.js",
   "types": "dist/index.d.ts",
   "exports": {
-    ".": {"types": "./dist/index.d.ts", "import": "./dist/index.js"},
-    "./model": {"types": "./dist/model/index.d.ts", "import": "./dist/model/index.js"},
-    "./views/*": {"types": "./dist/views/*.d.ts", "import": "./dist/views/*.js"},
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./model": {
+      "types": "./dist/model/index.d.ts",
+      "import": "./dist/model/index.js"
+    },
+    "./views/*": {
+      "types": "./dist/views/*.d.ts",
+      "import": "./dist/views/*.js"
+    },
     "./styles/structural.css": "./styles/structural.css"
   },
-  "files": ["dist", "styles", "CHANGELOG.md", "LICENSE", "NOTICE"],
-  "sideEffects": ["./styles/*.css"],
+  "files": [
+    "dist",
+    "styles",
+    "CHANGELOG.md",
+    "LICENSE",
+    "NOTICE"
+  ],
+  "sideEffects": [
+    "./styles/*.css"
+  ],
   "scripts": {
     "build": "tsc -p tsconfig.build.json && node --import tsx scripts/build-structural-css.mjs",
     "typecheck": "tsc -p tsconfig.json --noEmit",
@@ -28,8 +57,17 @@
     "test:types:consumer": "tsc -p test-types/consumer/tsconfig.json --noEmit",
     "prepack": "pnpm typecheck && pnpm test && pnpm build && pnpm test:types:consumer"
   },
-  "peerDependencies": {"@capillaryjs/capillary": "^1.2.0", "@capillaryjs/capillary-ui": "^1.2.0"},
-  "devDependencies": {"@capillaryjs/capillary": "workspace:^", "@capillaryjs/capillary-ui": "workspace:^"},
-  "engines": {"node": ">=22", "pnpm": ">=10"},
+  "peerDependencies": {
+    "@capillaryjs/capillary": "^1.2.0",
+    "@capillaryjs/capillary-ui": "^1.2.0"
+  },
+  "devDependencies": {
+    "@capillaryjs/capillary": "workspace:^",
+    "@capillaryjs/capillary-ui": "workspace:^"
+  },
+  "engines": {
+    "node": ">=22",
+    "pnpm": ">=10"
+  },
   "packageManager": "pnpm@10.11.0"
 }

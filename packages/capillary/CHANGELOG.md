@@ -6,6 +6,8 @@ Versioning.
 
 ## Unreleased
 
+## 1.2.0 - 2026-09-15
+
 ### Added
 
 - Add the opt-in protocol-v1 `Diagnostics` all-event/topology observer, weak
