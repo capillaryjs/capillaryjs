@@ -63,6 +63,20 @@ test('stages Capillary before Capillary UI with no publish or approval command',
     assert.doesNotMatch(log, /stage approve|^publish .*\.tgz/m)
 })
 
+test('retains a new trailing DevTools package for direct initial publication', () => {
+    const fixture = createFixture({missingPackage: 'capillary-devtools', version: '1.2.0'})
+    const result = invoke(fixture, 'stage', ['capillary', 'capillaryUi', 'capillaryDevtools'], {
+        GITHUB_ACTIONS: 'true',
+        GITHUB_REF: 'refs/heads/main',
+    })
+    assert.equal(result.status, 0, result.stderr)
+    assert.match(result.stdout, /retaining @capillaryjs\/capillary-devtools@1\.2\.0 for initial publication/)
+    const log = readFileSync(fixture.log, 'utf8')
+    assert.match(log, /stage publish .*capillary-0\.1\.0-alpha\.2\.tgz/)
+    assert.match(log, /stage publish .*capillary-ui-0\.1\.0-alpha\.2\.tgz/)
+    assert.doesNotMatch(log, /stage publish .*capillary-devtools-0\.1\.0-alpha\.2\.tgz/)
+})
+
 test('refuses a Capillary UI artifact with a stale Capillary peer range', () => {
     const fixture = createFixture({stalePeer: true})
     const result = invoke(fixture, 'validate', ['capillary', 'capillaryUi'])
@@ -92,7 +106,7 @@ test('release workflow has the protected stage-only trust boundary', () => {
     assert.doesNotMatch(workflow, /NODE_AUTH_TOKEN|NPM_TOKEN|npm publish|stage approve/)
 })
 
-function createFixture({published, stalePeer = false, version = '0.1.0-alpha.2'} = {}) {
+function createFixture({published, missingPackage, stalePeer = false, version = '0.1.0-alpha.2'} = {}) {
     const root = mkdtempSync(path.join(os.tmpdir(), 'stage-release-'))
     mkdirSync(path.join(root, 'scripts'), {recursive: true})
     mkdirSync(path.join(root, 'packages', 'capillary'), {recursive: true})
@@ -144,6 +158,12 @@ function createFixture({published, stalePeer = false, version = '0.1.0-alpha.2'}
     writeFileSync(path.join(bin, 'npm'), `#!/bin/sh
 printf '%s\\n' "$*" >> "${log}"
 if [ "$1" = view ]; then
+  if [ "$3" = name ]; then
+    case "$2" in
+      *${missingPackage ?? 'never-match'}*) printf 'npm ERR! code E404\\n' >&2; exit 1 ;;
+      *) printf '"%s"\\n' "$2"; exit 0 ;;
+    esac
+  fi
   case "$2" in
     *${published ?? 'never-match'}*) printf '"0.1.0-alpha.2"\\n'; exit 0 ;;
     *) printf 'npm ERR! code E404\\n' >&2; exit 1 ;;

@@ -98,13 +98,30 @@ function stagePackages(selected, artifacts) {
     assert(process.env.GITHUB_ACTIONS === 'true', 'staging is allowed only in GitHub Actions')
     assert(process.env.GITHUB_REF === 'refs/heads/main', 'staging is allowed only from main')
     assert(!process.env.NODE_AUTH_TOKEN && !process.env.NPM_TOKEN, 'long-lived npm tokens must not be present')
+    const stageable = selected.map((definition) => ({definition, exists: npmPackageExists(definition.name)}))
+    const firstInitial = stageable.findIndex(({exists}) => !exists)
+    assert(firstInitial < 0 || stageable.slice(firstInitial).every(({exists}) => !exists),
+        'brand-new packages must form a trailing dependency suffix')
     for (let index = 0; index < selected.length; index += 1) {
+        if (!stageable[index].exists) {
+            console.log(`[stage-release] retaining ${artifacts[index].name}@${artifacts[index].version} for initial publication; npm cannot stage a package that does not yet exist`)
+            continue
+        }
         if (index > 0) assertVersionsAvailable([selected[index]])
         const artifact = artifacts[index]
         const result = run('npm', ['stage', 'publish', artifact.tarball, '--access', 'public', '--tag', artifact.tag], {inherit: true})
         assert(result.status === 0, `staging failed for ${artifact.name}; inspect npm's staged packages before retrying`)
     }
     console.log('[stage-release] staged successfully; CI cannot approve these packages')
+}
+
+function npmPackageExists(packageName) {
+    const result = run('npm', ['view', packageName, 'name', '--json'])
+    if (result.status === 0) return true
+    const output = `${result.stdout}\n${result.stderr}`
+    assert(/E404|404 Not Found|is not in this registry/.test(output),
+        `could not determine whether ${packageName} exists on npm`)
+    return false
 }
 
 function run(command, args, {inherit = false} = {}) {
