@@ -27,6 +27,10 @@ After disposing the query, reload to restore the scenario.
 JavaScript dependency graph excludes unselected presentation modules.
 `?limit=12` demonstrates eviction; `?late=1` demonstrates explicit late capture.
 Application and inspection runtimes have separate diagnostic ownership scopes.
+The lab opts into bounded snapshot capture for its synthetic rows. Select
+`searchResults` and expand `Value` in details to inspect captured row fields.
+Select `Table body` to inspect render counts and own DOM writes; unchanged table
+headers remain known connections without row-update render events.
 
 `pnpm test` tests scenario behavior. From the public root,
 `pnpm exec playwright test apps/capillary-devtools-demo/test/browser/flow.spec.ts`

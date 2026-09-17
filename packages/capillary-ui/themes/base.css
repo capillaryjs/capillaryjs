@@ -10,9 +10,15 @@
       --palette-contrast-dark: var(--palette-dark);
       --palette-light-clear: color-mix(in srgb, var(--palette-light) 0%, transparent);
       --palette-light-faint: color-mix(in srgb, var(--palette-light) 8%, transparent);
-      --palette-red: #b3261e;
-      --palette-green: #287a3c;
+      /* Semantic status colors; distinct from the neutral tonal ramp below. */
+      --palette-status-negative: #b3261e;
+      --palette-status-positive: #287a3c;
+      --palette-status-neutral: #64748b;
       --palette-primary-500: #2989d8;
+      /* 0 removes primary hue from the three muted chrome surfaces; 1 retains
+         their calibrated palette tint. Palette files may choose a value in
+         this inclusive range without affecting the accent ramp. */
+      --palette-primary-surface-saturation: 1;
       --palette-secondary-500: #7137a8;
       --palette-neutral-500: #7892aa;
 
@@ -37,6 +43,20 @@
       --palette-primary: var(--palette-primary-500);
       --palette-primary-light: var(--palette-primary-200);
       --palette-primary-dark: var(--palette-primary-800);
+
+      /* Muted surface tones, separate from the potentially saturated accent ramp.
+         Desaturate the primary, then tint with the light endpoint in sRGB.
+         The rational weights/hue offsets preserve Ice blue's historical
+         #f5f7f8 / #ebeff3 / #d7dee3 exactly; see colors/README.md. */
+      --palette-primary-surface-light: color-mix(in srgb,
+        hsl(from var(--palette-primary-500) calc(h - 248 / 35) calc(s * 759 / 2975 * var(--palette-primary-surface-saturation)) l) calc(100% * 17 / 253),
+        var(--palette-light));
+      --palette-primary-surface-medium: color-mix(in srgb,
+        hsl(from var(--palette-primary-500) calc(h + 102 / 35) calc(s * 253 / 700 * var(--palette-primary-surface-saturation)) l) calc(100% * 32 / 253),
+        var(--palette-light));
+      --palette-primary-surface-dark: color-mix(in srgb,
+        hsl(from var(--palette-primary-500) calc(h - 73 / 35) calc(s * 759 / 2975 * var(--palette-primary-surface-saturation)) l) calc(100% * 68 / 253),
+        var(--palette-light));
 
       --palette-secondary-50: color-mix(in oklch, var(--palette-secondary-500) 8%, var(--palette-secondary-light-mix));
       --palette-secondary-100: color-mix(in oklch, var(--palette-secondary-500) 16%, var(--palette-secondary-light-mix));
@@ -91,9 +111,12 @@
     --ui-shadow: none;
     --focus-ring: 0 0 0 1px var(--ui-accent-color-highlight);
     --focus-color: var(--ui-accent-color);
-    --error-color: var(--palette-red, #b3261e);
+    --negative-color: var(--palette-status-negative, #b3261e);
+    --positive-color: var(--palette-status-positive, #287a3c);
+    --neutral-status-color: var(--palette-status-neutral, #64748b);
+    --error-color: var(--negative-color);
     --error-contrast: var(--palette-contrast-light, #fff);
-    --success-color: #080;
+    --success-color: var(--positive-color);
 
     /* Layout components */
     --panel-background: var(--palette-neutral-50);
@@ -298,9 +321,9 @@
     --ui-input-text-color-disabled: #777;
     --ui-accent-color: var(--ui-select-bg-dark);
     --ui-accent-color-highlight: var(--primary-color-l90);
-    --ui-primary-bg-color: #f5f7f8;
-    --ui-medium-bg-color: #ebeff3;
-    --ui-dark-bg-color: #d7dee3;
+    --ui-primary-bg-color: var(--palette-primary-surface-light);
+    --ui-medium-bg-color: var(--palette-primary-surface-medium);
+    --ui-dark-bg-color: var(--palette-primary-surface-dark);
     --ui-dark2-bg-color: var(--palette-neutral-400);
     --text-color: var(--palette-neutral-950);
     --primary-color-l90: var(--palette-primary-200);
@@ -312,17 +335,17 @@
     --input-width: 15em;
     --groupbox-preferred-width: 15rem;
     --button-border-disabled: #777;
-    --error-text-color-light: #fcc;
-    --error-text-color-dark: #800;
-    --error-border-color: #f00;
-    --error-bg: #faa;
-    --error-bg-translucent: #f002;
+    --error-text-color-light: color-mix(in oklch, var(--negative-color) 24%, var(--palette-light));
+    --error-text-color-dark: color-mix(in oklch, var(--negative-color) 58%, var(--palette-dark));
+    --error-border-color: var(--negative-color);
+    --error-bg: color-mix(in oklch, var(--negative-color) 32%, var(--palette-light));
+    --error-bg-translucent: color-mix(in srgb, var(--negative-color) 13%, transparent);
     --error-bg-neutral: #fff;
-    --success-text-color-light: #bfb;
-    --success-text-color-dark: #b00;
-    --success-border-color: #0b0;
-    --success-bg: #beb;
-    --success-bg-translucent: #0f02;
+    --success-text-color-light: color-mix(in oklch, var(--positive-color) 24%, var(--palette-light));
+    --success-text-color-dark: color-mix(in oklch, var(--positive-color) 58%, var(--palette-dark));
+    --success-border-color: var(--positive-color);
+    --success-bg: color-mix(in oklch, var(--positive-color) 32%, var(--palette-light));
+    --success-bg-translucent: color-mix(in srgb, var(--positive-color) 13%, transparent);
     --success-bg-neutral: #fff;
     --icon-filter-hue: 205deg;
     --icon-filter: brightness(1) opacity(.7) hue-rotate(var(--icon-filter-hue)) saturate(.75);

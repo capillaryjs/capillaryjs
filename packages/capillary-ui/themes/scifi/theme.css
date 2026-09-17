@@ -1,0 +1,71 @@
+@charset "utf-8";
+
+/* Semantic port of the legacy Sci-fi treatment. */
+@layer theme {
+  :root {
+    color-scheme: only dark;
+    --scifi-deep: color-mix(in srgb, var(--palette-primary-900) 58%, var(--palette-dark));
+    --scifi-panel: linear-gradient(to bottom in srgb, #0005, #0005),
+      color-mix(in srgb, var(--palette-primary-700) 60%, var(--palette-dark));
+    --scifi-control: linear-gradient(to bottom in srgb, #fff1, #fff1),
+      color-mix(in srgb, var(--palette-primary-600) 72%, var(--palette-dark));
+    --application-background: linear-gradient(to top in srgb, #0007, #0002),
+      linear-gradient(to top in srgb, var(--palette-primary-900), var(--palette-primary-800));
+    --ui-background: var(--scifi-deep);
+    --ui-color: var(--palette-primary-100);
+    --ui-border: 1px solid #fff3;
+    --focus-ring: 0 0 0 2px var(--palette-primary-300);
+    --focus-color: var(--palette-primary-300);
+    --panel-background: var(--scifi-panel);
+    --panel-color: var(--palette-primary-100);
+    --panel-border: 1px solid #fff3;
+    --panel-radius: 4px;
+    --island-shadow: none;
+    --header-background: transparent;
+    --header-color: var(--palette-primary-100);
+    --toolbar-background: transparent;
+    --toolbar-color: var(--palette-primary-100);
+    --table-header-background: var(--scifi-control);
+    --table-header-color: var(--palette-primary-100);
+    --table-row-background: color-mix(in srgb, var(--palette-primary-900) 76%, var(--palette-dark));
+    --table-row-alt-background: color-mix(in srgb, var(--palette-primary-900) 86%, var(--palette-dark));
+    --row-hover-background: color-mix(in srgb, var(--palette-primary-600) 48%, var(--palette-dark));
+    --input-background: linear-gradient(to right in srgb, #0005, #0005),
+      color-mix(in srgb, var(--palette-primary-900) 82%, var(--palette-dark));
+    --input-color: var(--palette-primary-100);
+    --input-border: 1px solid #000;
+    --input-background-disabled: #0002;
+    --input-color-disabled: #fff5;
+    --input-border-disabled: 1px solid #0005;
+    --button-background: var(--scifi-control);
+    --button-background-hover: linear-gradient(to bottom in srgb, #fff3, #fff2),
+      color-mix(in srgb, var(--palette-primary-600) 72%, var(--palette-dark));
+    --button-background-active: color-mix(in srgb, var(--palette-primary-500) 78%, var(--palette-dark));
+    --button-background-disabled: #0002;
+    --button-color: #ffffffaa;
+    --button-border: 1px solid #fff3;
+    --button-border-disabled: 1px solid #0007;
+    --selection-background: linear-gradient(to bottom in srgb,
+      var(--palette-primary-900), var(--palette-primary) 65%, var(--palette-primary-400));
+    --checkbox-box-background: radial-gradient(140% 75% at 30% 10%,
+      #fff1, #fff2 47%, #fff0 55%), var(--scifi-panel);
+    --checkbox-box-border: 0 solid transparent;
+    --checkbox-box-shadow: inset 1px -1px 3px var(--palette-primary-600),
+      inset -1px 1px 2px #0005, -1px 1px 2px #0007;
+    --toggle-button-background-checked: var(--selection-background);
+    --tabline-background: #0003;
+    --tab-active-background: var(--scifi-control);
+    --tab-button-background: color-mix(in srgb, var(--palette-primary-900) 82%, var(--palette-dark));
+    --tab-button-background-active: var(--scifi-control);
+    --tab-button-shadow-active: none;
+    --navigation-bar-color: var(--palette-primary-100);
+    --navigation-link-color: var(--palette-primary-100);
+    --navigation-link-color-current: var(--palette-contrast-light);
+    --navigation-link-background-current: var(--selection-background);
+    --progress-track-background: var(--scifi-panel);
+    --progress-track-color: #ffffffaa;
+    --progress-value-background: var(--selection-background);
+    --progress-value-shadow: var(--checkbox-box-shadow);
+    --dialog-backdrop-background: #111a;
+  }
+}

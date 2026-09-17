@@ -1,5 +1,5 @@
 import {h} from '@capillaryjs/capillary-ui'
-import {causalOutline} from '../model/projection.js'
+import {causalOutline, eventValueText} from '../model/projection.js'
 import {TraceView} from './shared.js'
 
 export class CausalTraceView extends TraceView {
@@ -17,7 +17,7 @@ export class CausalTraceView extends TraceView {
             const button = h('button', {type: 'button', 'data-event-id': event.id,
                 'aria-current': events[this.cursor]?.id === event.id ? 'step' : undefined,
                 onClick: () => this.choose(event)}, label,
-                h('small', null, `${event.outcome ?? event.kind} · ${event.value.text}`))
+                h('small', null, `${event.outcome ?? event.kind} · ${eventValueText(event)}`))
             const content = h('li', {key: event.id}, children.length
                 ? h('details', {open: true}, h('summary', null, label), button,
                     h('ol', {style: {paddingInlineStart: '1rem'}}, ...children.reverse())) : button)

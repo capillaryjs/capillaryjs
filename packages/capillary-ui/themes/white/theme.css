@@ -1,0 +1,51 @@
+@charset "utf-8";
+
+/* Semantic port of the airy, rounded legacy White treatment. */
+@layer theme {
+  :root {
+    color-scheme: only light;
+    --font-family: Arial, sans-serif;
+    --radius-sm: 15px;
+    --radius-md: 15px;
+    --radius-lg: 15px;
+    --ui-border-radius: 15px;
+    --application-background: #ddd;
+    --panel-background: var(--palette-light);
+    --panel-color: #373737;
+    --panel-border: 0 solid transparent;
+    --panel-radius: 0;
+    --island-margin: 0;
+    --island-padding: 1rem;
+    --island-border: 0 solid transparent;
+    --header-background: transparent;
+    --header-color: var(--palette-primary-600);
+    --section-header-background: var(--palette-primary-600);
+    --section-header-color: var(--palette-contrast-light);
+    --toolbar-background: var(--ui-primary-bg-color);
+    --toolbar-color: #373737;
+    --table-header-background: var(--ui-dark-bg-color);
+    --table-header-color: #373737;
+    --table-row-background: var(--palette-light);
+    --table-row-alt-background: var(--ui-primary-bg-color);
+    --input-background: var(--palette-light);
+    --input-border: 1px solid #ddd;
+    --input-background-disabled: #f3f3f3;
+    --input-color-disabled: #bbb;
+    --button-background: var(--ui-dark-bg-color);
+    --button-background-hover: var(--palette-primary);
+    --button-background-active: var(--palette-primary-600);
+    --button-border: 0 solid transparent;
+    --button-color: var(--palette-primary-700);
+    --button-color-disabled: #999;
+    --toggle-button-background-checked: var(--palette-primary);
+    --tabline-background: var(--ui-primary-bg-color);
+    --tab-active-background: var(--palette-light);
+    --tab-button-background: var(--ui-dark-bg-color);
+    --tab-button-background-active: var(--palette-light);
+    --tab-button-shadow: none;
+    --navigation-bar-background: var(--palette-light);
+    --navigation-link-background-current: var(--palette-primary);
+    --navigation-link-color-current: var(--palette-contrast-light);
+    --progress-track-background: var(--ui-primary-bg-color);
+  }
+}

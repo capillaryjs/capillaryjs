@@ -1,5 +1,6 @@
 import type {
     DiagnosticDescription,
+    DiagnosticConsumerDetails,
     DiagnosticScope,
     FetchStateValue,
     ReadableEmitter,
@@ -173,6 +174,10 @@ const PROPERTY_PROPS = new Set([
 ])
 
 const CAPILLARY_UI_RENDERER_ATTRIBUTE = 'data-cap'
+
+// Each consumer owns its writes; nested/excluded consumers suspend the outer count.
+let rendererWrites: {count: number} | null = null
+function recordRendererWrite(): void { if (rendererWrites) rendererWrites.count += 1 }
 
 /** Mark an emitter as a one-way live value for a DOM or component property. */
 export function live<TValue>(emitter: ReadableEmitter<TValue, unknown>): LiveBinding<TValue> {
@@ -528,6 +533,12 @@ export class Component<TProps extends ComponentProps = ComponentProps> {
             ?? this._parentComponent?.diagnosticScope ?? this._runtime.diagnosticScope
     }
 
+    /** Stable instance label, captured when this component is first observed. */
+    get diagnosticLabel(): string {
+        const type = this.constructor as typeof Component
+        return type.diagnosticLabel ?? type.hostName ?? type.name
+    }
+
     [diagnosticInfo](): DiagnosticDescription {
         return {kind: 'component', label: componentDiagnosticLabel(this), scope: this.diagnosticScope,
             sources: [...this.watched.keys(), ...this.renderReadSubscriptions.keys()],
@@ -638,7 +649,7 @@ export class Component<TProps extends ComponentProps = ComponentProps> {
         return this
     }
 
-    update(_event?: unknown): this {
+    update(_event?: unknown, trigger: DiagnosticConsumerDetails['trigger'] = _event instanceof EventBubble ? 'dependency' : 'explicit'): this {
         if (this.destroyed) return this
         if (!this.mounted) return this.mount()
         if (this.updating) {
@@ -650,10 +661,16 @@ export class Component<TProps extends ComponentProps = ComponentProps> {
         const diagnosticEvent = Diagnostics.event(this, 'consumer', {
             parent: _event instanceof EventBubble ? _event : Diagnostics.currentEvent,
             cause: 'component render', outcome: 'started',
+            consumer: {trigger},
         })
+        const outerWrites = rendererWrites
+        const writes = diagnosticEvent ? {count: 0} : null
+        let renderPasses = 0
+        rendererWrites = writes
         try {
             Diagnostics.withEvent(diagnosticEvent, () => {
             do {
+                renderPasses += 1
                 this.updateRequested = false
                 const nextReads = new Set<Watchable>()
                 this.collectingRenderReads = nextReads
@@ -671,13 +688,16 @@ export class Component<TProps extends ComponentProps = ComponentProps> {
             })
             if (diagnosticEvent) Diagnostics.event(this, 'consumer', {
                 parent: diagnosticEvent, cause: 'component rendered', outcome: 'succeeded',
+                consumer: {trigger, domWrites: writes!.count, renderPasses},
             })
         } catch (error) {
             if (diagnosticEvent) Diagnostics.event(this, 'consumer', {
                 parent: diagnosticEvent, cause: 'component render failed', outcome: 'failed', error,
+                consumer: {trigger, domWrites: writes!.count, renderPasses},
             })
             throw error
         } finally {
+            rendererWrites = outerWrites
             this.updating = false
         }
         return this
@@ -689,7 +709,8 @@ export class Component<TProps extends ComponentProps = ComponentProps> {
         }
         this.validateIslandAncestry(nextProps)
         this.props = nextProps
-        if (this.mounted) this.update()
+        if (this.mounted) this.update(undefined,
+            Diagnostics.currentEvent?.diagnostic?.node.kind === 'binding' ? 'dependency' : 'parent')
         return this
     }
 
@@ -1044,6 +1065,7 @@ function createRecord(value: NormalizedChild, owner: Component): RenderRecord {
         }
         const fragment = document.createDocumentFragment()
         fragment.append(start, end)
+        recordRendererWrite(); recordRendererWrite()
         const child = createRecord(normalizeRoot(current), owner)
         insertRecord(fragment, child, end)
         const record: EmitterRecord = {
@@ -1102,6 +1124,7 @@ function createRecord(value: NormalizedChild, owner: Component): RenderRecord {
         }
         const fragment = document.createDocumentFragment()
         fragment.append(start, end)
+        recordRendererWrite(); recordRendererWrite()
         record.children = patchChildren(
             fragment,
             [],
@@ -1211,6 +1234,7 @@ function patchCompatible(
         if (!Object.is(record.value, value)) {
             record.value = value
             record.node.data = String(value)
+            recordRendererWrite()
         }
         return record
     }
@@ -1301,7 +1325,7 @@ function assertSupportedComponentLiveProps(
 function subscribeFunctionLiveProps(record: FunctionRecord): void {
     reconcileLiveProps(record.liveProps, record.sourceProps, record.owner, record.type.diagnosticLabel ?? record.type.name, (key, value) => {
         record.props = {...record.props, [key]: value}
-        rerenderFunctionRecord(record)
+        rerenderFunctionRecord(record, 'dependency')
     })
     record.props = resolvedLiveProps(record.liveProps, record.sourceProps)
 }
@@ -1310,30 +1334,33 @@ function patchFunctionLiveProps(record: FunctionRecord, sourceProps: ComponentPr
     record.sourceProps = sourceProps
     reconcileLiveProps(record.liveProps, sourceProps, record.owner, record.type.diagnosticLabel ?? record.type.name, (key, value) => {
         record.props = {...record.props, [key]: value}
-        rerenderFunctionRecord(record)
+        rerenderFunctionRecord(record, 'dependency')
     })
     record.props = resolvedLiveProps(record.liveProps, sourceProps)
     rerenderFunctionRecord(record)
 }
 
-function rerenderFunctionRecord(record: FunctionRecord): void {
+function rerenderFunctionRecord(record: FunctionRecord, trigger: DiagnosticConsumerDetails['trigger'] = 'parent'): void {
     renderFunction(record.diagnosticSubject, () => {
         const rendered = normalizeRoot(record.type(record.props))
         record.child = patchRoot(record.child, rendered, record.owner)
-    })
+    }, trigger)
 }
 
-function renderFunction<T>(subject: object | null, render: () => T): T {
+function renderFunction<T>(subject: object | null, render: () => T, trigger: DiagnosticConsumerDetails['trigger'] = 'parent'): T {
     if (!subject) return render()
-    const event = Diagnostics.event(subject, 'consumer', {cause: 'function component render', outcome: 'started'})
+    const event = Diagnostics.event(subject, 'consumer', {cause: 'function component render', outcome: 'started', consumer: {trigger}})
+    const outerWrites = rendererWrites
+    const writes = event ? {count: 0} : null
+    rendererWrites = writes
     try {
         const result = event ? Diagnostics.withEvent(event, render) : render()
-        if (event) Diagnostics.event(subject, 'consumer', {parent: event, cause: 'function component rendered', outcome: 'succeeded'})
+        if (event) Diagnostics.event(subject, 'consumer', {parent: event, cause: 'function component rendered', outcome: 'succeeded', consumer: {trigger, domWrites: writes!.count, renderPasses: 1}})
         return result
     } catch (error) {
-        if (event) Diagnostics.event(subject, 'consumer', {parent: event, cause: 'function component failed', outcome: 'failed', error})
+        if (event) Diagnostics.event(subject, 'consumer', {parent: event, cause: 'function component failed', outcome: 'failed', error, consumer: {trigger, domWrites: writes!.count, renderPasses: 1}})
         throw error
-    }
+    } finally { rendererWrites = outerWrites }
 }
 
 function reconcileLiveProps(
@@ -1426,6 +1453,7 @@ function patchChildren(
                 cursor = cursor.nextSibling
             } else {
                 parent.insertBefore(node, cursor ?? end)
+                recordRendererWrite()
                 cursor = node.nextSibling
             }
         }
@@ -1470,7 +1498,7 @@ function patchElementProps(record: ElementRecord, nextProps: ComponentProps): vo
             }
         }
     }
-    record.node.setAttribute(CAPILLARY_UI_RENDERER_ATTRIBUTE, '')
+    setAttribute(record.node, CAPILLARY_UI_RENDERER_ATTRIBUTE, '')
     record.props = {...next}
 }
 
@@ -1612,23 +1640,25 @@ function subscribeUi<T>(
         scope: owner.diagnosticScope, sources: [source]})
     const unsubscribe = source.subscribe(({value, event}) => {
         const consumed = Diagnostics.event(subject, 'consumer', {parent: event,
-            cause: 'binding update', value, outcome: 'started'})
+            cause: 'binding update', value, outcome: 'started', consumer: {trigger: 'dependency'}})
+        const outerWrites = rendererWrites
+        const writes = consumed ? {count: 0} : null
+        rendererWrites = writes
         try {
             Diagnostics.withEvent(consumed, () => onValue(value))
             if (consumed) Diagnostics.event(subject, 'consumer', {parent: consumed,
-                cause: 'binding updated', value, outcome: 'succeeded'})
+                cause: 'binding updated', value, outcome: 'succeeded', consumer: {trigger: 'dependency', domWrites: writes!.count}})
         } catch (error) {
             if (consumed) Diagnostics.event(subject, 'consumer', {parent: consumed,
-                cause: 'binding update failed', outcome: 'failed', error})
+                cause: 'binding update failed', outcome: 'failed', error, consumer: {trigger: 'dependency', domWrites: writes!.count}})
             throw error
-        }
+        } finally { rendererWrites = outerWrites }
     }, {emitCurrent: false, diagnosticTarget: subject})
     return () => { unsubscribe(); Diagnostics.dispose(subject) }
 }
 
 function componentDiagnosticLabel(component: Component): string {
-    const type = component.constructor as typeof Component
-    return type.diagnosticLabel ?? type.hostName ?? type.name
+    return component.diagnosticLabel
 }
 
 function patchRef(record: ElementRecord, next: unknown): void {
@@ -1669,8 +1699,11 @@ function patchDOMProp(
     const property = normalizePropertyName(key)
     if (BOOLEAN_ATTRIBUTES.has(property)) {
         const enabled = Boolean(next)
-        if (property in node) Reflect.set(node, property, enabled)
-        node.toggleAttribute(normalizeAttributeName(key), enabled)
+        if (property in node && Reflect.get(node, property) !== enabled) {
+            Reflect.set(node, property, enabled)
+            recordRendererWrite()
+        }
+        setAttribute(node, normalizeAttributeName(key), enabled)
         return
     }
     // `<option value="">` is semantically distinct from omitting `value`:
@@ -1682,8 +1715,11 @@ function patchDOMProp(
     }
     if (PROPERTY_PROPS.has(property) && property in node) {
         const value = next ?? (property === 'value' ? '' : false)
-        if (!Object.is(Reflect.get(node, property), value)) Reflect.set(node, property, value)
-        if (next == null) node.removeAttribute(normalizeAttributeName(key))
+        if (!Object.is(Reflect.get(node, property), value)) {
+            Reflect.set(node, property, value)
+            recordRendererWrite()
+        }
+        if (next == null) setAttribute(node, normalizeAttributeName(key), null)
         return
     }
 
@@ -1695,29 +1731,34 @@ function patchDataset(node: HTMLElement, previous: unknown, next: unknown): void
     const newValues = toPropertyRecord(next, 'dataset')
     for (const key of new Set([...Object.keys(oldValues), ...Object.keys(newValues)])) {
         const value = newValues[key]
+        if (node.dataset[key] === (value == null ? undefined : String(value))) continue
         if (value == null) delete node.dataset[key]
         else node.dataset[key] = String(value)
+        recordRendererWrite()
     }
 }
 
 function patchStyle(node: HTMLElement, previous: unknown, next: unknown): void {
     if (typeof next === 'string') {
-        node.style.cssText = next
+        if (node.style.cssText !== next) { node.style.cssText = next; recordRendererWrite() }
         return
     }
     const oldValues = typeof previous === 'string'
         ? {}
         : toPropertyRecord(previous, 'style')
     const newValues = toPropertyRecord(next, 'style')
-    if (typeof previous === 'string') node.style.cssText = ''
+    if (typeof previous === 'string' && node.style.cssText !== '') { node.style.cssText = ''; recordRendererWrite() }
     for (const key of new Set([...Object.keys(oldValues), ...Object.keys(newValues)])) {
         const value = newValues[key]
         if (key.startsWith('--')) {
+            if (node.style.getPropertyValue(key) === (value == null ? '' : String(value))) continue
             if (value == null) node.style.removeProperty(key)
             else node.style.setProperty(key, String(value))
         } else {
+            if (Reflect.get(node.style, key) === (value == null ? '' : String(value))) continue
             Reflect.set(node.style, key, value == null ? '' : String(value))
         }
+        recordRendererWrite()
     }
 }
 
@@ -1730,9 +1771,11 @@ function toPropertyRecord(value: unknown, label: string): Record<string, unknown
 }
 
 function setAttribute(node: HTMLElement, name: string, value: unknown): void {
-    if (value == null || value === false) node.removeAttribute(name)
-    else if (value === true) node.setAttribute(name, '')
-    else node.setAttribute(name, String(value))
+    const next = value == null || value === false ? null : value === true ? '' : String(value)
+    if (node.getAttribute(name) === next) return
+    if (next === null) node.removeAttribute(name)
+    else node.setAttribute(name, next)
+    recordRendererWrite()
 }
 
 function normalizePropertyName(key: string): string {
@@ -1768,7 +1811,7 @@ function disposeRecord(record: RenderRecord, removeNodes: boolean): void {
         record.unsubscribe()
         disposeRecord(record.child, false)
         if (removeNodes) {
-            for (const node of recordNodes(record)) node.remove()
+            for (const node of recordNodes(record)) removeRenderedNode(node)
         }
         return
     }
@@ -1800,22 +1843,30 @@ function disposeRecord(record: RenderRecord, removeNodes: boolean): void {
         }
         record.nativeBindings.clear()
         for (const child of record.children) disposeRecord(child, false)
-        if (removeNodes) record.node.remove()
+        if (removeNodes) removeRenderedNode(record.node)
         return
     }
     if (record.kind === 'fragment') {
         for (const child of record.children) disposeRecord(child, false)
         if (removeNodes) {
-            for (const node of recordNodes(record)) node.remove()
+            for (const node of recordNodes(record)) removeRenderedNode(node)
         }
         return
     }
-    if (removeNodes) record.node.remove()
+    if (removeNodes) removeRenderedNode(record.node)
+}
+
+function removeRenderedNode(node: ChildNode): void {
+    if (node.parentNode) { node.remove(); recordRendererWrite() }
 }
 
 function insertRecord(parent: ParentNode, record: RenderRecord | null, before: Node | null = null): void {
     if (record == null) return
-    for (const node of recordNodes(record)) parent.insertBefore(node, before)
+    for (const node of recordNodes(record)) {
+        if (node.parentNode === parent && node.nextSibling === before) continue
+        parent.insertBefore(node, before)
+        recordRendererWrite()
+    }
 }
 
 function recordNodes(record: RenderRecord | null): ChildNode[] {

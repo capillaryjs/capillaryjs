@@ -1,0 +1,37 @@
+@charset "utf-8";
+
+/* Semantic port of the legacy Soft treatment. */
+@layer theme {
+  :root {
+    color-scheme: only light;
+    --font-family: Arial, Helvetica, sans-serif;
+    --panel-background: var(--ui-medium-bg-color);
+    --panel-color: #373737;
+    --panel-border: 0 solid transparent;
+    --panel-shadow: -1px 1px 1px #aaa;
+    --panel-radius: 4px;
+    --island-border: 0 solid transparent;
+    --header-background: var(--palette-primary-600);
+    --header-color: var(--palette-contrast-light);
+    --toolbar-background: var(--ui-medium-bg-color);
+    --toolbar-color: var(--panel-color);
+    --table-header-background: var(--ui-dark-bg-color);
+    --table-header-color: var(--panel-color);
+    --table-row-background: var(--ui-primary-bg-color);
+    --table-row-alt-background: var(--ui-medium-bg-color);
+    --button-background: var(--ui-primary-bg-color);
+    --button-background-hover: var(--ui-dark-bg-color);
+    --button-background-active: var(--palette-primary-600);
+    --button-shadow: -1px 1px 1px rgb(0 0 0 / 0.5);
+    --button-shadow-active: -1px 1px 1px rgb(0 0 0 / 0.65);
+    --selection-background: var(--palette-primary-600);
+    --toggle-button-background-checked: var(--palette-primary-600);
+    --tabline-background: var(--ui-dark-bg-color);
+    --tab-active-background: var(--ui-medium-bg-color);
+    --tab-button-background: var(--ui-dark-bg-color);
+    --tab-button-background-active: var(--ui-medium-bg-color);
+    --tab-button-shadow: var(--panel-shadow);
+    --progress-track-background: var(--ui-dark-bg-color);
+    --progress-value-background: var(--palette-primary-600);
+  }
+}

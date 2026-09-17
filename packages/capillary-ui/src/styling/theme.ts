@@ -23,6 +23,7 @@ export type CapillaryUiThemeVariableValue =
     | 'font'
     | 'opacity'
     | 'radius'
+    | 'ratio'
     | 'shadow'
 
 export interface CapillaryUiThemeVariableDefinition {
@@ -45,6 +46,10 @@ export const capillaryUiThemeVariableCatalog = Object.freeze([
     variable('--palette-primary', 'palette', 'primary', 'color', 'Primary anchor color', '--palette-primary-500'),
     variable('--palette-primary-light', 'palette', 'primary', 'color', 'Light primary color', '--palette-primary-200'),
     variable('--palette-primary-dark', 'palette', 'primary', 'color', 'Dark primary color', '--palette-primary-800'),
+    variable('--palette-primary-surface-saturation', 'palette', 'primary', 'ratio', 'Muted primary surface saturation (0 neutral; 1 calibrated)'),
+    variable('--palette-primary-surface-light', 'palette', 'primary', 'color', 'Light muted primary surface'),
+    variable('--palette-primary-surface-medium', 'palette', 'primary', 'color', 'Medium muted primary surface'),
+    variable('--palette-primary-surface-dark', 'palette', 'primary', 'color', 'Dark muted primary surface'),
     variable('--palette-secondary', 'palette', 'secondary', 'color', 'Secondary anchor color', '--palette-secondary-500'),
     variable('--palette-secondary-light', 'palette', 'secondary', 'color', 'Light secondary color', '--palette-secondary-200'),
     variable('--palette-secondary-dark', 'palette', 'secondary', 'color', 'Dark secondary color', '--palette-secondary-800'),
@@ -63,8 +68,9 @@ export const capillaryUiThemeVariableCatalog = Object.freeze([
     variable('--palette-neutral-dark-mix', 'palette', 'neutral', 'color', 'Dark-side neutral ramp mix endpoint', '--palette-dark'),
     variable('--palette-contrast-light', 'palette', 'contrast', 'color', 'Light contrasting foreground', '--palette-light'),
     variable('--palette-contrast-dark', 'palette', 'contrast', 'color', 'Dark contrasting foreground', '--palette-dark'),
-    variable('--palette-red', 'palette', 'hue', 'color', 'Red palette color'),
-    variable('--palette-green', 'palette', 'hue', 'color', 'Green palette color'),
+    variable('--palette-status-negative', 'palette', 'status', 'color', 'Negative status color'),
+    variable('--palette-status-positive', 'palette', 'status', 'color', 'Positive status color'),
+    variable('--palette-status-neutral', 'palette', 'status', 'color', 'Neutral status color (not the neutral tonal ramp)'),
 
     variable('--font-family', 'theme', 'typography', 'font', 'UI font stack'),
     variable('--font-size', 'theme', 'typography', 'dimension', 'Base UI font size'),
@@ -81,11 +87,17 @@ export const capillaryUiThemeVariableCatalog = Object.freeze([
 
     variable('--application-background', 'theme', 'surface', 'background', 'Application canvas'),
     variable('--ui-background', 'theme', 'surface', 'background', 'Default UI background'),
+    variable('--ui-primary-bg-color', 'theme', 'surface', 'color', 'Light chrome background', '--palette-primary-surface-light'),
+    variable('--ui-medium-bg-color', 'theme', 'surface', 'color', 'Medium chrome background', '--palette-primary-surface-medium'),
+    variable('--ui-dark-bg-color', 'theme', 'surface', 'color', 'Dark chrome background', '--palette-primary-surface-dark'),
     variable('--ui-color', 'theme', 'surface', 'color', 'Default UI text'),
     variable('--ui-border', 'theme', 'surface', 'border', 'Default UI border'),
     variable('--ui-shadow', 'theme', 'surface', 'shadow', 'Default raised shadow'),
     variable('--focus-ring', 'theme', 'focus', 'shadow', 'Keyboard focus ring'),
     variable('--focus-color', 'theme', 'focus', 'color', 'Keyboard focus color'),
+    variable('--negative-color', 'theme', 'status', 'color', 'Negative status color', '--palette-status-negative'),
+    variable('--positive-color', 'theme', 'status', 'color', 'Positive status color', '--palette-status-positive'),
+    variable('--neutral-status-color', 'theme', 'status', 'color', 'Neutral status color', '--palette-status-neutral'),
     variable('--error-color', 'theme', 'status', 'color', 'Error state color'),
     variable('--error-contrast', 'theme', 'status', 'color', 'Content on an error surface'),
     variable('--success-color', 'theme', 'status', 'color', 'Success state color'),
@@ -200,8 +212,14 @@ export const capillaryUiThemeVariableCatalog = Object.freeze([
 
 export const capillaryUiThemeOptions = Object.freeze([
     themeOption('shiny', 'Shiny', distributedAssetUrl('themes/shiny/theme.css'), 'light'),
+    themeOption('glossy', 'Glossy', distributedAssetUrl('themes/glossy/theme.css'), 'light'),
+    themeOption('original', 'Original', distributedAssetUrl('themes/original/theme.css'), 'light'),
+    themeOption('soft', 'Soft', distributedAssetUrl('themes/soft/theme.css'), 'light'),
+    themeOption('white', 'White', distributedAssetUrl('themes/white/theme.css'), 'light'),
     themeOption('java', 'Java', distributedAssetUrl('themes/java/theme.css'), 'light'),
     themeOption('minimal', 'Minimal', distributedAssetUrl('themes/minimal/theme.css'), 'adaptive'),
+    themeOption('dark', 'Dark', distributedAssetUrl('themes/dark/theme.css'), 'dark'),
+    themeOption('scifi', 'Sci-fi', distributedAssetUrl('themes/scifi/theme.css'), 'dark'),
 ])
 
 export const capillaryUiColorOptions = Object.freeze([

@@ -6,6 +6,12 @@ Versioning.
 
 ## Unreleased
 
+### Added
+
+- Add optional `DiagnosticConsumerDetails` to protocol-v1 events, reporting UI
+  consumer triggers, render passes, and own renderer DOM writes without changing
+  reactive delivery or retaining application history.
+
 ## 1.2.0 - 2026-09-15
 
 ### Added

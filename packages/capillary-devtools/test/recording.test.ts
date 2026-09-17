@@ -49,6 +49,62 @@ test('default capture never touches object properties; raw export never invokes 
     raw.dispose(); source.dispose()
 })
 
+test('snapshot capture retains bounded immutable nested values without getters or toJSON', () => {
+    let calls = 0
+    const row = {name: 'Plumbing', progress: 40}
+    const value = {rows: [row], total: 1, get secret() { calls++; return 'secret' },
+        toJSON() { calls++; throw new Error('must not call') }}
+    const recorder = new TraceRecorder({capture: 'snapshot', maxSnapshotDepth: 4}).start()
+    const source = new Emitter<unknown>(null)
+    source.set(value)
+    const snapshot = recorder.snapshot().events.at(-1)!.value.snapshot!
+    row.name = 'Later mutation'
+    assert.equal(calls, 0)
+    assert(Object.isFrozen(snapshot))
+    assert(Object.isFrozen(snapshot.entries))
+    assert(Object.isFrozen(snapshot.entries![0]!.value))
+    const json = recorder.export()
+    assert.match(json, /Plumbing/)
+    assert(!json.includes('Later mutation'))
+    assert.match(json, /Accessor not invoked/)
+    assert.equal(calls, 0)
+    recorder.dispose(); source.dispose()
+})
+
+test('snapshot bounds disclose cycles, depth/entry/string limits and proxy failures', () => {
+    const recorder = new TraceRecorder({capture: 'snapshot', maxSnapshotDepth: 2,
+        maxSnapshotEntries: 5, maxPreviewLength: 30}).start()
+    const source = new Emitter<unknown>(null)
+    const cycle: Record<string, unknown> = {}
+    cycle.self = cycle
+    source.set(cycle)
+    assert.match(recorder.export(), /Circular reference/)
+    source.set({nested: {deep: {secret: 'not retained'}}})
+    assert.match(recorder.export(), /depth limit/)
+    assert(!recorder.export().includes('not retained'))
+    source.set(Array.from({length: 20}, (_, index) => 'value-' + index + '-'.repeat(100)))
+    const preview = recorder.snapshot().events.at(-1)!.value.snapshot!
+    assert.equal(preview.entries!.length, 5)
+    assert.equal(preview.truncated, true)
+    assert.equal(preview.entries![0]!.value.truncated, true)
+    assert(preview.entries!.every((entry) => entry.value.text.length <= 30))
+    source.set(new Proxy({}, {ownKeys() { throw new Error('private error') }}))
+    assert.equal(recorder.snapshot().events.at(-1)!.value.snapshot!.text, '[Capture failed]')
+    assert(!recorder.export().includes('private error'))
+    recorder.dispose(); source.dispose()
+    assert.throws(() => new TraceRecorder({maxSnapshotDepth: 21}), /maxSnapshotDepth/)
+    assert.throws(() => new TraceRecorder({maxSnapshotEntries: 0}), /maxSnapshotEntries/)
+})
+
+test('nested snapshot bytes participate in the recording budget', () => {
+    const recorder = new TraceRecorder({capture: 'snapshot', maxBytes: 3000}).start()
+    const source = new Emitter<unknown>(null)
+    for (let index = 0; index < 10; index++) source.set({rows: Array.from({length: 100}, () => ({name: 'x'.repeat(500)}))})
+    assert(recorder.snapshot().capture.bytes <= 3000)
+    assert(recorder.snapshot().capture.evictedEvents > 0)
+    recorder.dispose(); source.dispose()
+})
+
 test('formatter failures, truncation, reentry and privacy redaction are isolated', () => {
     const source = new Emitter<unknown>('start')
     let mode = 'redact'

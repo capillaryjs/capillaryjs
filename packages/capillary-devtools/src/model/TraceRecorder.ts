@@ -2,8 +2,9 @@ import {Diagnostics, Emitter} from '@capillaryjs/capillary'
 import type {DiagnosticFact, DiagnosticNode, DiagnosticObserverOptions} from '@capillaryjs/capillary'
 import {devtoolsDiagnosticScope} from './scope.js'
 import type {TraceEdge, TraceEvent, TraceNode, TraceRecording, ValuePreview} from './types.js'
+import {captureValueSnapshot} from './valueSnapshot.js'
 
-export type TraceCaptureMode = 'none' | 'scalar' | 'preview' | 'raw' | 'formatter'
+export type TraceCaptureMode = 'none' | 'scalar' | 'preview' | 'snapshot' | 'raw' | 'formatter'
 export interface TraceCaptureContext {readonly nodeId: string; readonly field: string}
 export interface TraceRecorderOptions extends DiagnosticObserverOptions {
     maxEvents?: number
@@ -11,6 +12,8 @@ export interface TraceRecorderOptions extends DiagnosticObserverOptions {
     maxNodes?: number
     maxEdges?: number
     maxPreviewLength?: number
+    maxSnapshotDepth?: number
+    maxSnapshotEntries?: number
     capture?: TraceCaptureMode
     formatter?: (value: unknown, context: TraceCaptureContext) => string
     clock?: () => number
@@ -39,14 +42,15 @@ export class TraceRecorder {
 
     constructor(options: TraceRecorderOptions = {}) {
         this.options = {maxEvents: 2000, maxBytes: 2_000_000, maxNodes: 2000, maxEdges: 8000,
-            maxPreviewLength: 180, capture: 'scalar', clock: Date.now,
+            maxPreviewLength: 180, maxSnapshotDepth: 3, maxSnapshotEntries: 100, capture: 'scalar', clock: Date.now,
             topology: true, verbose: false, ui: true, ...options}
-        for (const key of ['maxEvents', 'maxBytes', 'maxNodes', 'maxEdges', 'maxPreviewLength'] as const) {
+        for (const key of ['maxEvents', 'maxBytes', 'maxNodes', 'maxEdges', 'maxPreviewLength', 'maxSnapshotDepth', 'maxSnapshotEntries'] as const) {
             if (!Number.isSafeInteger(this.options[key]) || this.options[key] < 1) {
                 throw new TypeError(`${key} must be a positive safe integer`)
             }
         }
-        if (!['none', 'scalar', 'preview', 'raw', 'formatter'].includes(this.options.capture)) {
+        if (this.options.maxSnapshotDepth > 20) throw new TypeError('maxSnapshotDepth must not exceed 20')
+        if (!['none', 'scalar', 'preview', 'snapshot', 'raw', 'formatter'].includes(this.options.capture)) {
             throw new TypeError('Unknown trace capture mode')
         }
         if (this.options.capture === 'formatter' && typeof options.formatter !== 'function') {
@@ -94,7 +98,7 @@ export class TraceRecorder {
                 evictedEvents: this.evictedEvents, droppedTopology: this.droppedTopology, bytes: this.bytes,
                 maxBytes: this.options.maxBytes, maxEvents: this.options.maxEvents,
                 rawReferences: this.options.capture === 'raw', topology: this.options.topology,
-                ui: this.options.ui, verbose: this.options.verbose})})
+                ui: this.options.ui, verbose: this.options.verbose, mode: this.options.capture})})
         return this.cached
     }
 
@@ -135,6 +139,7 @@ export class TraceRecorder {
                 error: details?.error == null ? null : preview(details.error, 'error'),
                 fetchState: details?.fetchState ?? null, attemptId: details?.attemptId ?? null,
                 delayMs: details?.delayMs ?? null,
+                ...(details?.consumer ? {consumer: Object.freeze({...details.consumer})} : {}),
                 inputs: Object.freeze((details?.inputs ?? []).map((input) => Object.freeze({nodeId: input.nodeId,
                     value: preview(input.value, 'input')})))}))
         }
@@ -153,8 +158,13 @@ export class TraceRecorder {
         const type = value === null ? 'null' : typeof value
         let text: string
         let captureError: string | undefined
+        const snapshot = mode === 'snapshot' ? captureValueSnapshot(value, {
+            depth: this.options.maxSnapshotDepth, entries: this.options.maxSnapshotEntries,
+            text: this.options.maxPreviewLength,
+        }) : undefined
         try {
             text = mode === 'none' ? 'not captured'
+                : snapshot ? snapshot.text
                 : mode === 'formatter' ? this.options.formatter!(value, context)
                 : mode === 'preview' ? boundedPreview(value, this.options.maxPreviewLength)
                 : scalarText(value)
@@ -162,9 +172,10 @@ export class TraceRecorder {
         } catch {
             text = '[capture failed]'; captureError = 'Preview capture failed'
         }
-        const truncated = text.length > this.options.maxPreviewLength
+        const truncated = text.length > this.options.maxPreviewLength || snapshot?.truncated === true
         return Object.freeze({text: text.slice(0, this.options.maxPreviewLength), type, truncated,
             historical: mode !== 'raw', ...(captureError ? {captureError} : {}),
+            ...(snapshot ? {snapshot} : {}),
             ...(mode === 'raw' ? {raw: value} : {})})
     }
 

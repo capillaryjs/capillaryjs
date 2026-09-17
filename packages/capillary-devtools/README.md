@@ -47,6 +47,19 @@ arrows are known connections/input provenance, not proof of execution. Expand
 emitters. Details show inputs, values, state, errors, attempt outcomes, and
 capture limitations. A node with no observed event is labelled as such.
 
+Components show render calls separately from lifecycle-event counts. A render
+start and completion are two events, usually one render; synchronous reentrant
+passes are counted too. UI consumers are identified even when they have downstream
+children. `DataTable` has named header, column-header, and body consumers. A body
+render can change rows without rendering unchanged headers.
+
+Consumer details show the trigger (`dependency`, `parent`, or `explicit`) and
+**own renderer DOM writes**. These counts exclude nested consumers and application
+DOM code; they include renderer writes to detached nodes. They are not paint/layout
+measurements. Zero own writes does not mean that child consumers did no work.
+Older recordings without this metadata show unknown effects. The composed inspector
+places node details beside the graph; standalone views remain independently composable.
+
 First/previous/next, the range control, and optional timed playback inspect the
 recording only. They never rewind or rerun application work. The default is the
 complete flow, with no autoplay; timed playback starts only on explicit Play.
@@ -72,11 +85,12 @@ available to the caller.
 | `maxBytes` | 2,000,000 estimated UTF-16 bytes of serialized records; not a heap-size guarantee |
 | `maxNodes`, `maxEdges` | 2,000 nodes and 8,000 connection lifetime records |
 | `maxPreviewLength` | 180 characters per preview |
+| `maxSnapshotDepth`, `maxSnapshotEntries` | 3 levels (maximum 20), 100 properties across each captured value tree |
 | `capture` | `scalar`: metadata and primitive previews; object contents are not read |
 | `topology`, `ui`, `verbose` | `true`, `true`, `false`; verbose adds unchanged recomputations and input snapshots |
 | `clock` | `Date.now`; use a monotonic/injected clock for measured intervals |
 
-Payload modes are `none`, `scalar`, `preview`, `raw`, and `formatter`.
+Payload modes are `none`, `scalar`, `preview`, `snapshot`, `raw`, and `formatter`.
 `preview` explicitly opts into shallow own-property inspection (at most eight
 retained fields, no getters or recursive copy). Proxy descriptor traps may run;
 failures are caught. `raw` deliberately retains mutable references, labels them
@@ -86,6 +100,32 @@ requires a pure `(value, {nodeId, field}) => string` function for application
 redaction. Formatter failures become a capture-error preview, not an application
 exception. Node labels/causes are metadata, not passed through payload redaction;
 do not put secrets there. Scalar strings can also be sensitive.
+
+For trusted development data, opt into expandable capture-time object contents:
+
+```ts
+const recorder = new TraceRecorder({
+    verbose: true,
+    capture: 'snapshot',
+    maxSnapshotDepth: 4,
+    maxSnapshotEntries: 100,
+    maxPreviewLength: 180,
+}).start({fromStart: true})
+```
+
+`snapshot` copies nested own data properties into immutable `ValueSnapshot` trees.
+Details expand values, before-values, errors, and inputs without accessing the live
+objects. Arrays show their captured length. Cycles, accessors, descriptor failures,
+and depth/entry/string limits have explicit markers. Getters and `toJSON` are never
+called; proxy own-key/descriptor traps may run and failures are contained. Property
+enumeration itself follows JavaScript's `Reflect.ownKeys` behavior; the entry budget
+bounds retained/traversed properties, not a proxy's own execution time. Captured trees
+participate in `maxBytes` and JSON export. Original object references are not retained.
+This mode can retain sensitive fields; application policy must choose whether to use it.
+
+Scalar recordings cannot recover omitted contents later: configure capture and
+record a new interaction. `preview` remains shallow; increasing its character
+limit does not make it recursive. `raw` is not a historical object snapshot.
 
 Eviction is explicit; missing parents/metadata and unfinished attempts are never
 presented as a complete trace or proof that a request is still running. An

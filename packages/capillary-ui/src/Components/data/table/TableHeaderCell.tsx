@@ -46,6 +46,10 @@ export class TableHeaderCell extends Component<TableHeaderCellProps> {
     private filterVisible = false
     private removeGlobalClickListener: (() => void) | null = null
 
+    override get diagnosticLabel(): string {
+        return `Table header cell: ${this.props.ariaLabel ?? textAlternative(this.props.label) ?? String(this.props.field)}`
+    }
+
     initialize(): void {
         this.watch(this.props.sortEmitter, this.props.filtersEmitter)
     }

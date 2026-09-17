@@ -8,6 +8,24 @@ Versioning.
 
 ### Fixed
 
+- Replace hue-named palette status primitives with semantic negative, positive,
+  and neutral status colors. Error and success aliases follow the negative and
+  positive colors; multi-state checkbox deny, require, and prefer chrome uses
+  negative, positive, and neutral respectively.
+- Derive shared chrome backgrounds from muted primary palette tones, so panels,
+  table headers, button gradients, and disabled surfaces follow palette changes.
+  Ice blue preserves exactly `#f5f7f8`, `#ebeff3`, and `#d7dee3`. The derivation
+  uses relative HSL colors and sRGB mixing; existing UI aliases remain overridable.
+- Add palette-level `--palette-primary-surface-saturation`: `0` removes primary
+  hue from the three chrome surfaces, `1` retains their calibrated default.
+- Add semantic ports of the legacy Original, Sci-fi, Soft, Dark, Glossy, and
+  White themes to the public selectable theme catalog. The old selectors are
+  not carried forward; the ports use the current semantic variable contract.
+- Keep unchanged DataTable headers out of row-update renders and avoid redundant
+  renderer marker, attribute, dataset, and style writes.
+- Preserve table-part names after minification and identify header cells by column.
+- Preserve table/header/body identities when loading/error messages or captions change.
+
 - `DataTable` filterable columns no longer keep a permanent document-level
   click listener: the outside-click listener that closes the filter panel is
   now attached only while the panel is open. Previously every click in the
@@ -18,6 +36,9 @@ Versioning.
 
 ### Added
 
+- Add an overridable instance diagnostic label and a named table-body consumer.
+  Consumer facts report render triggers/passes and own renderer DOM-write counts,
+  distinguishing execution from DOM work without changing update scheduling.
 - Add `Component.listenWhile(target, type, listener, options)`: like
   `listen`, but returns a function that detaches the listener, for listeners
   that are only active some of the time. It runs through the same traced

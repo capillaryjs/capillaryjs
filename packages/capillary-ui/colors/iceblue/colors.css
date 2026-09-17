@@ -6,13 +6,15 @@
       --palette-dark: #111827;
       --palette-contrast-light: var(--palette-light);
       --palette-contrast-dark: var(--palette-dark);
-      --palette-red: #b3261e;
-      --palette-green: #287a3c;
+      --palette-status-negative: #b3261e;
+      --palette-status-positive: #287a3c;
+      --palette-status-neutral: #64748b;
 
       /* Preserve the legacy Shiny movement from navy through blue to cyan. */
       --palette-primary-light-mix: #00b9e8;
       --palette-primary-dark-mix: #00193f;
       --palette-primary-500: #2989d8;
+      --palette-primary-surface-saturation: 1;
       --palette-secondary-500: #7137a8;
       --palette-neutral-500: #7892aa;
   }

@@ -52,6 +52,16 @@ export interface DiagnosticEventDetails {
     readonly attemptId?: string
     readonly inputs?: readonly {readonly nodeId: string; readonly value: unknown}[]
     readonly delayMs?: number
+    /** Renderer facts, not browser layout/paint measurements. */
+    readonly consumer?: DiagnosticConsumerDetails
+}
+
+export interface DiagnosticConsumerDetails {
+    readonly trigger: 'dependency' | 'parent' | 'explicit'
+    /** Completed/attempted render() calls, including synchronous reentrant passes. */
+    readonly renderPasses?: number
+    /** Own renderer DOM writes; excludes nested consumers and application DOM code. */
+    readonly domWrites?: number
 }
 
 export type DiagnosticFact =
@@ -146,7 +156,7 @@ function event(
     if (!observers.size || publishing) return null
     const subjectNode = inspect(subject)
     if (!subjectNode) return null
-    const {before, fetchState, error, attemptId, inputs, delayMs, outcome, ...eventOptions} = options
+    const {before, fetchState, error, attemptId, inputs, delayMs, outcome, consumer, ...eventOptions} = options
     const bubble = new EventBubble({...eventOptions, owner: subject,
         purpose: subjectNode.label, parent: options.parent ?? currentEvent,
         diagnostic: {node: subjectNode, kind,
@@ -156,7 +166,8 @@ function event(
             ...(error === undefined ? {} : {error}),
             ...(attemptId === undefined ? {} : {attemptId}),
             ...(inputs === undefined ? {} : {inputs}),
-            ...(delayMs === undefined ? {} : {delayMs})}})
+            ...(delayMs === undefined ? {} : {delayMs}),
+            ...(consumer === undefined ? {} : {consumer: Object.freeze({...consumer})})}})
     if (!bubble.parent) EventBus.emit(bubble)
     return bubble
 }

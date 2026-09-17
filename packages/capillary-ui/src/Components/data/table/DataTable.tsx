@@ -32,6 +32,10 @@ import type {
 } from './tableDataSource.js'
 import type {TableFilters, TableSort} from './tableQuery.js'
 
+// A native tbody with its own consumer identity; no extra host or subscription.
+const TableBody = Object.assign((props: ComponentProps) =>
+    <tbody>{props.children}</tbody>, {diagnosticLabel: 'Table body'})
+
 interface DataTableCommonProps<TRow extends TableRow> extends ComponentProps {
     columns: readonly TableColumn<TRow>[]
     rowKey?: Extract<keyof TRow, string> | ItemKeyGetter<TRow>
@@ -189,7 +193,7 @@ export class DataTable<TRow extends TableRow = TableRow>
                     onClick={() => this.dataSource?.retry?.('table retry')}
                 >{this.capillaryUiMessage('dataTableRetry')}</button>
                 : null}
-            <table aria-busy={isLoading ? 'true' : null}>
+            <table key="table" aria-busy={isLoading ? 'true' : null}>
                 {this.props.caption == null ? null : <caption>{this.props.caption}</caption>}
                 <TableHeader
                     key="header"
@@ -209,7 +213,7 @@ export class DataTable<TRow extends TableRow = TableRow>
                         ? {}
                         : {onFilterChange: this.props.onFilterChange})}
                 />
-                <tbody>
+                <TableBody key="body">
                     {replacesContent
                         ? this.renderPlaceholders()
                         : rows.length > 0
@@ -222,7 +226,7 @@ export class DataTable<TRow extends TableRow = TableRow>
                                         {this.props.emptyMessage ?? this.capillaryUiMessage('dataTableEmpty')}
                                     </td>
                                 </tr>}
-                </tbody>
+                </TableBody>
             </table>
         </Host>
     }

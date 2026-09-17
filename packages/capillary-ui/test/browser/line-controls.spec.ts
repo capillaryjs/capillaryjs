@@ -5,7 +5,7 @@ const packageRoot = new URL('../../', import.meta.url)
 const bodies = 'cap-textbox > input, cap-dropdown > cap-selectshell, '
     + 'cap-toggle > cap-options > button, cap-button > button'
 
-for (const theme of ['base', 'minimal', 'shiny', 'java']) {
+for (const theme of ['base', 'minimal', 'shiny', 'java', 'original', 'scifi', 'soft', 'dark', 'glossy', 'white']) {
     test.describe(theme, () => {
         test.beforeEach(async ({page}) => {
             await page.setViewportSize({width: 1600, height: 1000})
@@ -112,6 +112,30 @@ for (const theme of ['base', 'minimal', 'shiny', 'java']) {
             expect(await button.boundingBox()).toEqual(buttonBefore)
             await button.evaluate((e) => e.removeAttribute('disabled'))
             expect(await button.boundingBox()).toEqual(buttonBefore)
+        })
+
+        test('quad checkbox maps prefer, require, and deny to semantic status colors', async ({page}) => {
+            const quad = page.locator('#compact > cap-quadcheckbox')
+            const input = quad.locator('input')
+            const shell = quad.locator('cap-checkshell')
+            const statusColor = (status: 'neutral' | 'positive' | 'negative') => page.evaluate((name) => {
+                const probe = document.createElement('span')
+                probe.style.background = `var(--palette-status-${name})`
+                document.body.append(probe)
+                try {
+                    return getComputedStyle(probe).backgroundColor
+                } finally {
+                    probe.remove()
+                }
+            }, status)
+
+            await input.focus()
+            await input.press('ArrowRight') // neutral → prefer
+            await expect(shell).toHaveCSS('background-color', await statusColor('neutral'))
+            await input.press('ArrowRight') // prefer → require
+            await expect(shell).toHaveCSS('background-color', await statusColor('positive'))
+            await input.press('ArrowRight') // require → deny
+            await expect(shell).toHaveCSS('background-color', await statusColor('negative'))
         })
 
         test('toggle paint keeps busy, error and reduced-motion feedback', async ({page}) => {

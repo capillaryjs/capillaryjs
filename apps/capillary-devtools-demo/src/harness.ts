@@ -40,7 +40,7 @@ export interface DemoComposition extends ComponentProps {
 export function mountDemo(compose: (models: DemoComposition) => Component): void {
     const parameters = new URLSearchParams(location.search)
     const clock = new ScenarioClock()
-    const recorder = new TraceRecorder({verbose: true, capture: 'preview', clock: clock.now,
+    const recorder = new TraceRecorder({verbose: true, capture: 'snapshot', clock: clock.now,
         maxEvents: parameters.has('limit') ? 12 : 2000})
     const late = parameters.has('late')
     if (!late) recorder.start({fromStart: true})

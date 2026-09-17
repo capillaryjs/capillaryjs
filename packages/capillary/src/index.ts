@@ -4,7 +4,7 @@ export {EventBus} from './debugging/eventBus.js'
 export type {BubbleGraph, EventListener} from './debugging/eventBus.js'
 export {Diagnostics, DiagnosticScope, defaultDiagnosticScope, diagnosticInfo} from './debugging/diagnostics.js'
 export type {
-    DiagnosticDescription, DiagnosticEventDetails, DiagnosticEventKind, DiagnosticFact,
+    DiagnosticDescription, DiagnosticEventDetails, DiagnosticEventKind, DiagnosticFact, DiagnosticConsumerDetails,
     DiagnosticNode, DiagnosticNodeKind, DiagnosticObserverOptions, DiagnosticOutcome,
     DiagnosticSubject,
 } from './debugging/diagnostics.js'

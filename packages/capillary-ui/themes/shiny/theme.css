@@ -7,8 +7,9 @@
     --box-shadow: -1px 1px 2px 1px rgba(0,0,0,0.3);
     --button-shadow: -1px 1px 2px 1px rgba(0,0,0,0.5);
     --button-shadow-pressed: -1px 1px 2px 0px #0008;
-    --ui-gradient: linear-gradient( to top, var(--ui-primary-bg-color) 9px, var(--ui-primary-bg-color) 13px, var(--ui-dark-bg-color) 100% );
-    --ui-gradient-2: linear-gradient( to bottom, var(--ui-primary-bg-color) 9px, var(--ui-primary-bg-color) 13px, var(--ui-dark-bg-color) 100% );
+    /* Match legacy sRGB interpolation for palette-derived surface stops. */
+    --ui-gradient: linear-gradient( to top in srgb, var(--ui-primary-bg-color) 9px, var(--ui-primary-bg-color) 13px, var(--ui-dark-bg-color) 100% );
+    --ui-gradient-2: linear-gradient( to bottom in srgb, var(--ui-primary-bg-color) 9px, var(--ui-primary-bg-color) 13px, var(--ui-dark-bg-color) 100% );
     --shiny-ui-gradient: var(--ui-gradient);
     --shiny-ui-gradient-2: var(--ui-gradient-2);
     --shiny-background: radial-gradient(140% 75% at 30% 10%, #fff2, #fff3 47%, #fff0 55%, #fff0), linear-gradient(to bottom, var(--palette-primary-900) 0%, var(--palette-primary) 65%, var(--palette-primary) 66%, var(--palette-primary-400) 100%);
@@ -51,11 +52,11 @@
     --button-border: 1px solid #fff;
     --button-shadow-active: var(--button-shadow-pressed);
 
-    --cbx-x-bg: radial-gradient(140% 75% at 30% 10%, #fff5, #fff4 47%, #fff0 55%, #fff0), linear-gradient(to bottom, #400 0%, #c00 65%, #e00 100%);
+    --cbx-x-bg: radial-gradient(140% 75% at 30% 10%, #fff5, #fff4 47%, #fff0 55%, #fff0), linear-gradient(to bottom, color-mix(in oklch, var(--palette-status-negative) 55%, #000) 0%, var(--palette-status-negative) 65%, color-mix(in oklch, var(--palette-status-negative) 82%, #fff) 100%);
     --cbx-x-color: #fff;
     --cbx-x-border: 0px solid rgba(0,0,0,0);
     --cbx-x-shadow: inset 1px -1px 1px 0px #fffa, inset -1px 2px 3px -1px #0002, -1px 1px 2px 0px #0005;
-    --cbx-o-bg: linear-gradient(to bottom, #ffffffd5 0%, #ffffffe5 100%), linear-gradient(to bottom, var(--palette-primary) 0%, var(--palette-primary) 100%);
+    --cbx-o-bg: linear-gradient(to bottom, #ffffffd5 0%, #ffffffe5 100%), linear-gradient(to bottom, var(--palette-status-neutral) 0%, var(--palette-status-neutral) 100%);
     --cbx-o-color: var(--ui-input-text-color);
     --cbx-o-border: 0px solid rgba(0,0,0,0);
     --cbx-o-shadow: inset 1px -1px 1px 0px #ffff, inset -1px 2px 3px -1px #0002, -1px 1px 2px 0px #0005;
@@ -63,7 +64,7 @@
     --cbx-c-color: #fff;
     --cbx-c-border: 0px solid rgba(0,0,0,0);
     --cbx-c-shadow: inset 1px -1px 1px 0px #fff9, inset -1px 2px 3px -1px #0002, -1px 1px 2px 0px #0005;
-    --cbx-r-bg: radial-gradient(140% 75% at 30% 10%, #fff5, #fff4 47%, #fff0 55%, #fff0), linear-gradient(to bottom, #030 0%, #0a0 65%, #0d0 100%);
+    --cbx-r-bg: radial-gradient(140% 75% at 30% 10%, #fff5, #fff4 47%, #fff0 55%, #fff0), linear-gradient(to bottom, color-mix(in oklch, var(--palette-status-positive) 55%, #000) 0%, var(--palette-status-positive) 65%, color-mix(in oklch, var(--palette-status-positive) 82%, #fff) 100%);
     --cbx-r-color: #fff;
     --cbx-r-border: 0px solid rgba(0,0,0,0);
     --cbx-r-shadow: inset 1px -1px 1px 0px #fff8, inset -1px 2px 3px -1px #0002, -1px 1px 2px 0px #0005;

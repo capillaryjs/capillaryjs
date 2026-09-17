@@ -494,7 +494,7 @@ cap-checkbox > label > input[value="require"] + cap-checkshell,
 cap-quadcheckbox > label > input[value="require"] + cap-checkshell,
 cap-tricheckbox > label > input[value="require"] + cap-checkshell {
             color: var(--palette-contrast-light);
-            background: var(--palette-green);
+            background: var(--palette-status-positive);
             box-shadow: var(--checkbox-box-shadow-checked);
         }
 
@@ -502,7 +502,15 @@ cap-tricheckbox > label > input[value="require"] + cap-checkshell {
         cap-quadcheckbox > label > input[value="deny"] + cap-checkshell,
         cap-tricheckbox > label > input[value="deny"] + cap-checkshell {
             color: var(--palette-contrast-light);
-            background: var(--palette-red);
+            background: var(--palette-status-negative);
+            box-shadow: var(--checkbox-box-shadow-checked);
+        }
+
+        cap-checkbox > label > input[value="prefer"] + cap-checkshell,
+        cap-quadcheckbox > label > input[value="prefer"] + cap-checkshell,
+        cap-tricheckbox > label > input[value="prefer"] + cap-checkshell {
+            color: var(--palette-contrast-light);
+            background: var(--palette-status-neutral);
             box-shadow: var(--checkbox-box-shadow-checked);
         }
 

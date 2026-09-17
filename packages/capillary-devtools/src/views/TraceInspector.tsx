@@ -1,6 +1,6 @@
 import {h} from '@capillaryjs/capillary-ui'
 import {TraceRecorder} from '../model/TraceRecorder.js'
-import {traceRoots, captureLimitations} from '../model/projection.js'
+import {traceRoots, captureLimitations, eventValueText} from '../model/projection.js'
 import {TraceView} from './shared.js'
 import {FlowGraphView} from './FlowGraphView.js'
 import {CausalTraceView} from './CausalTraceView.js'
@@ -46,15 +46,15 @@ export class TraceInspector extends TraceView {
                     roots.length ? h('ol', {className: 'trace-roots'}, ...roots.map((root) => h('li', {key: root.id},
                         h('button', {type: 'button', 'data-root-id': root.id, 'aria-pressed': state.rootId === root.id,
                             onClick: () => { this.props.selection.selectRoot(root.id); this.props.playback?.seek(null, 0) }},
-                            `${this.label(root.nodeId)} · ${root.cause}`, h('small', null, `#${root.sequence} · ${root.value.text}`)))))
+                            `${this.label(root.nodeId)} · ${root.cause}`, h('small', null, `#${root.sequence} · ${eventValueText(root)}`)))))
                         : h('p', null, 'Interact with the application to record a trace.')),
                 h('div', {className: 'trace-stack'},
                     h('div', {className: 'trace-actions'}, filter('source'), filter('target')),
-                    h('div', {className: 'trace-pane'}, h(FlowGraphView, this.props)),
-                    h('div', {className: 'trace-pane'}, h(TracePlaybackControls, this.props)),
                     h('div', {className: 'trace-columns'},
-                        h('div', {className: 'trace-pane trace-scroll'}, h(CausalTraceView, this.props)),
+                        h('div', {className: 'trace-pane'}, h(FlowGraphView, this.props)),
                         h('div', {className: 'trace-pane'}, h(TraceDetailsView, this.props))),
+                    h('div', {className: 'trace-pane'}, h(TracePlaybackControls, this.props)),
+                    h('div', {className: 'trace-pane trace-scroll'}, h(CausalTraceView, this.props)),
                     h('details', {className: 'trace-pane'}, h('summary', null, 'Chronological events'), h(ChronologicalTraceView, this.props)),
                     h('details', {className: 'trace-pane'}, h('summary', null, 'Timeline and activity'),
                         h(TraceTimelineView, this.props), h(ActivityOverviewView, this.props)))))

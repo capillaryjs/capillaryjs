@@ -5,7 +5,7 @@ import {fileURLToPath} from 'node:url'
 
 const minimalThemePath = fileURLToPath(new URL('../../themes/minimal/theme.css', import.meta.url))
 const baseThemePath = fileURLToPath(new URL('../../themes/base.css', import.meta.url))
-const modernThemePaths = ['minimal', 'java', 'shiny'].map((name) => ({
+const modernThemePaths = ['minimal', 'java', 'shiny', 'original', 'scifi', 'soft', 'dark', 'glossy', 'white'].map((name) => ({
     name,
     path: fileURLToPath(new URL(`../../themes/${name}/theme.css`, import.meta.url)),
 }))

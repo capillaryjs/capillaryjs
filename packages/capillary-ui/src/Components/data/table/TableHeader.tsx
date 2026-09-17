@@ -21,7 +21,27 @@ export interface TableHeaderProps<TRow extends TableRow = TableRow> extends Comp
 
 export class TableHeader<TRow extends TableRow = TableRow>
     extends Component<TableHeaderProps<TRow>> {
+    static override diagnosticLabel = 'Table header'
     static override liveProps: readonly string[] = []
+
+    override setProps(next: TableHeaderProps<TRow>): this {
+        const previous = this.props
+        const equal = previous.sortEmitter === next.sortEmitter
+            && previous.filtersEmitter === next.filtersEmitter
+            && previous.filterModes === next.filterModes
+            && previous.defaultSemanticState === next.defaultSemanticState
+            && previous.onFilterChange === next.onFilterChange
+            && previous.columns.length === next.columns.length
+            && previous.columns.every((column, index) => {
+                const other = next.columns[index]!
+                return column.field === other.field && column.label === other.label
+                    && column.ariaLabel === other.ariaLabel && column.sortable === other.sortable
+                    && column.filterOptions === other.filterOptions
+            })
+        if (!equal) return super.setProps(next)
+        this.props = next
+        return this
+    }
     render(): CapillaryUiChild {
         return <thead>
             <tr>

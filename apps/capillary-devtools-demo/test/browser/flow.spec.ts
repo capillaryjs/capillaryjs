@@ -74,6 +74,28 @@ test('failure/retry, supersession, abort/disposal and command completion are ins
     expect(traceAttempts(disposed.events).at(-1)?.status).toBe('aborted')
 })
 
+test('table rendering and captured row contents are inspectable without header render noise', async ({page}) => {
+    await page.goto(url)
+    await page.getByRole('textbox', {name: 'Search', exact: true}).fill('plumbing')
+    await expect(page.getByTestId('summary')).toHaveText('2 results')
+    const trace = await recording(page)
+    const root = trace.events.findLast(event => event.kind === 'interaction' && event.cause === 'input')!
+    const events = filterTrace(trace, {rootId: root.id})
+    const body = trace.nodes.find(node => node.label === 'Table body')!
+    const header = trace.nodes.find(node => node.label === 'Table header')!
+    const query = trace.nodes.find(node => node.label === 'searchResults')!
+    expect(events.some(event => event.nodeId === header.id)).toBe(false)
+    expect(events.some(event => event.nodeId === body.id && (event.consumer?.domWrites ?? 0) > 0)).toBe(true)
+    await page.locator(`.trace-node[data-node-id="${body.id}"]`).click()
+    const details = page.getByRole('region', {name: 'Trace details'})
+    await expect(details).toContainText('Own renderer DOM writes')
+    await expect(details).toContainText('Table body')
+    await page.locator(`.trace-node[data-node-id="${query.id}"]`).click()
+    await details.locator('summary').filter({hasText: /^Value: Array/}).click()
+    await details.locator('summary').filter({hasText: /^0: Object/}).click()
+    await expect(details.getByText('title: "plumbing · first"', {exact: true})).toBeVisible()
+})
+
 test('unchanged branches, source/target convergence filters, capture limits and compact composition', async ({page}) => {
     await page.goto(url)
     await page.getByRole('button', {name: 'Direct write / diamond', exact: true}).click()

@@ -170,13 +170,19 @@ export class Checkbox<TValue extends CheckboxValue = FilterModeValue>
     static override css = css`
         & > label > input[value="require"] + cap-checkshell {
             color: var(--palette-contrast-light);
-            background: var(--palette-green);
+            background: var(--palette-status-positive);
             box-shadow: var(--checkbox-box-shadow-checked);
         }
 
         & > label > input[value="deny"] + cap-checkshell {
             color: var(--palette-contrast-light);
-            background: var(--palette-red);
+            background: var(--palette-status-negative);
+            box-shadow: var(--checkbox-box-shadow-checked);
+        }
+
+        & > label > input[value="prefer"] + cap-checkshell {
+            color: var(--palette-contrast-light);
+            background: var(--palette-status-neutral);
             box-shadow: var(--checkbox-box-shadow-checked);
         }
     `

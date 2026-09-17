@@ -87,8 +87,11 @@ contracts, emitter snapshots, template props, runtime options, and style
 registry types.
 
 Runtime `diagnosticScope`, component static `diagnosticScope`/`diagnosticLabel`,
-and function-component `diagnosticLabel` support opt-in automatic native
+the overridable instance `diagnosticLabel` getter, and function-component `diagnosticLabel` support opt-in automatic native
 interaction, component-read/watch, reactive-child, live-prop, and binding facts.
+`DiagnosticConsumerDetails` adds optional trigger, render-pass, and own renderer
+DOM-write facts. `Component.update(event?, trigger?)` defaults to dependency for
+an EventBubble and explicit otherwise; prop reconciliation supplies parent/dependency.
 See the [diagnostics contract](diagnostics.md).
 
 The root exports `CapillaryUiLayoutDirection`, `CapillaryUiLayoutAllocation`, direction-prop
@@ -291,6 +294,29 @@ Presentation loads as base variables, structural CSS, color anchors, then
 theme overrides. Applications can collect structural CSS from declared root
 dependencies instead of loading the complete artifact.
 
+Built-in theme options are `shiny`, `glossy`, `original`, `soft`, `white`,
+`java`, `minimal`, `dark`, and `scifi`. Dark and Sci-fi are fixed dark
+treatments; Minimal is adaptive; the rest are fixed light treatments. The six
+legacy named treatments are ports through current semantic variables, not
+legacy component selectors.
+
+`--palette-primary-surface-light`, `--palette-primary-surface-medium`, and
+`--palette-primary-surface-dark` are muted surface tones derived in the base
+from `--palette-primary-500` and `--palette-light`, using relative HSL and sRGB
+mixing. The existing `--ui-primary-bg-color`, `--ui-medium-bg-color`, and
+`--ui-dark-bg-color` alias them. Ice blue retains exactly `#f5f7f8`, `#ebeff3`,
+and `#d7dee3`; custom anchors and other palettes recompute the tones.
+`--palette-primary-surface-saturation` is a palette-level `0`–`1` multiplier
+for these surfaces' primary saturation: `0` produces neutral chrome and `1`
+is the calibrated default.
+
+Palettes also supply `--palette-status-negative`,
+`--palette-status-positive`, and `--palette-status-neutral`. These are semantic
+status colors, not hue names; the neutral status color is distinct from the
+`--palette-neutral-*` tonal ramp. Base maps negative and positive status colors
+to error and success roles. Multi-state checkbox deny, require, and prefer
+states use negative, positive, and neutral status chrome respectively.
+
 Line controls use a `--control-min-height` default of `2em` (24px at 12px UI
 text), independent of general padding and text line height. Component CSS
 centers bodies and text; checkboxes/radio buttons keep compact 1.2em label
@@ -380,8 +406,14 @@ The public stack does not provide:
 `@capillaryjs/capillary-devtools` is an optional ESM peer package. The root exports
 `TraceRecorder`, `TraceSelection`, `TracePlayback`, `devtoolsDiagnosticScope`,
 `filterTrace`, `traceRoots`, `causalOutline`, `projectFlow`, `traceAttempts`,
-`captureLimitations`, `nodeValueEvent`, and recording/node/event/preview/filter/attempt/flow/capture/
+`captureLimitations`, `nodeValueEvent`, `nodeActivity`, `eventValueText`, and recording/node/event/preview/filter/attempt/flow/capture/
 playback/view types. `./model` exports only the headless model surface.
+
+`TraceCaptureMode` includes opt-in `snapshot`. `maxSnapshotDepth` (default 3,
+range 1–20) and `maxSnapshotEntries` (default 100) bound immutable `ValueSnapshot`
+trees retained on `ValuePreview.snapshot`. `maxPreviewLength` also bounds each
+snapshot's scalar text/property label. Optional `TraceEvent.consumer` and
+`TraceRecording.capture.mode` preserve compatibility with older recordings.
 
 Independently importable `./views/<Name>` exports are `CausalTraceView`,
 `ChronologicalTraceView`, `FlowGraphView`, `TraceTimelineView`,

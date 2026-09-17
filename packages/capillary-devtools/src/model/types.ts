@@ -1,4 +1,11 @@
-import type {DiagnosticEventKind, DiagnosticNode, DiagnosticOutcome} from '@capillaryjs/capillary'
+import type {DiagnosticConsumerDetails, DiagnosticEventKind, DiagnosticNode, DiagnosticOutcome} from '@capillaryjs/capillary'
+
+export interface ValueSnapshot {
+    readonly type: string
+    readonly text: string
+    readonly truncated?: boolean
+    readonly entries?: readonly {readonly key: string; readonly value: ValueSnapshot}[]
+}
 
 export interface ValuePreview {
     readonly text: string
@@ -6,6 +13,8 @@ export interface ValuePreview {
     readonly truncated: boolean
     readonly historical: boolean
     readonly captureError?: string
+    /** Bounded immutable capture-time contents, only in snapshot mode. */
+    readonly snapshot?: ValueSnapshot
     /** Only present for explicitly selected raw capture; never exported to JSON. */
     readonly raw?: unknown
 }
@@ -26,6 +35,7 @@ export interface TraceEvent {
     readonly attemptId: string | null
     readonly delayMs: number | null
     readonly inputs: readonly {readonly nodeId: string; readonly value: ValuePreview}[]
+    readonly consumer?: DiagnosticConsumerDetails
 }
 
 export interface TraceNode extends DiagnosticNode {
@@ -60,6 +70,8 @@ export interface TraceRecording {
         readonly topology: boolean
         readonly ui: boolean
         readonly verbose: boolean
+        /** Absent in older recordings. */
+        readonly mode?: string
     }
 }
 

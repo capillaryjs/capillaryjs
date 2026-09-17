@@ -149,6 +149,14 @@ A class component has explicit phases:
 `onCleanup()` registers listeners or other cleanup functions that Capillary UI invokes
 on destruction.
 
+Diagnostic labels default to static `diagnosticLabel`, `hostName`, then the class
+name. Override the instance `diagnosticLabel` getter when instances need distinct
+names; identity labels are captured at first observation. Table diagnostics expose
+`Table header`, column-specific header cells, and `Table body`. Unchanged header
+props skip parent-driven rendering, while sort/filter subscriptions remain active.
+Consumer events distinguish render passes from own renderer DOM writes; see the
+[diagnostics guide](../../docs/diagnostics.md) for the exact counting boundary.
+
 ```tsx
 class Counter extends Component {
     readonly count = new Emitter(0)
@@ -197,7 +205,7 @@ class Badge extends Component<BadgeProps> {
     static override hostName = 'badge'
     static override css = css`
         & { display: inline-flex; }
-        &[data-tone="positive"] { color: var(--palette-green); }
+        &[data-tone="positive"] { color: var(--palette-status-positive); }
     `
 }
 ```
@@ -747,6 +755,14 @@ component selectors. Color files provide anchors and endpoints. Component
 `static css` owns selectors, layout, pseudo-elements, native states, and
 interaction mechanics.
 
+The three chrome backgrounds (`--ui-primary-bg-color`, `--ui-medium-bg-color`,
+and `--ui-dark-bg-color`) alias muted primary surface tones derived from the
+palette's primary anchor and light endpoint. Ice blue retains the exact legacy
+colors `#f5f7f8`, `#ebeff3`, and `#d7dee3`; other palettes recolor these surfaces.
+See the [palette contract](colors/README.md#muted-primary-surfaces) for the
+relative-HSL/sRGB calibration, including the `0`–`1`
+`--palette-primary-surface-saturation` palette control and override points.
+
 Theme files provide intentional overrides. Custom properties are the primary
 instrument and belong on `:root` inside `@layer theme`, with `color-scheme` as
 the only ordinary property in that block. A theme may also write ordinary CSS
@@ -754,6 +770,13 @@ rules when no variable expresses the intended difference, but those rules must
 be placed after the `@layer theme` block: component CSS is injected as an
 unlayered `<style>` element prepended to `<head>`, so unlayered theme rules win
 by document order while layered ones would always lose.
+
+The built-in theme options are Shiny, Glossy, Original, Soft, White, Java,
+Minimal, Dark, and Sci-fi. Dark and Sci-fi are fixed dark treatments; Minimal
+is adaptive; the remaining options are fixed light treatments. The legacy
+Original, Sci-fi, Soft, Dark, Glossy, and White appearances are semantic ports:
+they retain their characteristic colors, depth, and geometry through current
+variables rather than relying on their former DOM selectors.
 
 `capillaryUiThemeVariableCatalog` describes the supported palette and semantic
 variable hierarchy. `findCapillaryUiStylesheetOption`, `replaceCapillaryUiStylesheet`,

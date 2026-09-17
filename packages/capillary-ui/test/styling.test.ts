@@ -417,6 +417,9 @@ describe('style registry', () => {
         assert.match(stylesheet, /label:has\(> input:disabled\)\s*\{[^}]*color:\s*var\(--checkable-label-color-disabled\)[^}]*cursor:\s*not-allowed/)
         assert.match(stylesheet, /cap-checkshell\s*\{[^}]*box-shadow:\s*var\(--checkbox-box-shadow\)/)
         assert.match(stylesheet, /input:checked \+ cap-checkshell\s*\{[^}]*box-shadow:\s*var\(--checkbox-box-shadow-checked\)/)
+        assert.match(stylesheet, /input\[value="require"\] \+ cap-checkshell\s*\{[^}]*background:\s*var\(--palette-status-positive\)/)
+        assert.match(stylesheet, /input\[value="deny"\] \+ cap-checkshell\s*\{[^}]*background:\s*var\(--palette-status-negative\)/)
+        assert.match(stylesheet, /input\[value="prefer"\] \+ cap-checkshell\s*\{[^}]*background:\s*var\(--palette-status-neutral\)/)
         assert.match(stylesheet, /label:has\(> input\[type="checkbox"\]:required:invalid:not\(:disabled\):not\(\[aria-invalid="true"\]\)\)\s*\{[^}]*outline:\s*1px dashed var\(--required-color\)/)
         assert.doesNotMatch(stylesheet, /\.checkboxshell|\[data-(?:disabled|required|error|state)\]|cap-checkboxshell|cap-checkbox\s*\{[^}]*width:\s*var\(--input-width/)
     })
@@ -678,8 +681,18 @@ describe('four-file styling contract', () => {
             assert.match(css, new RegExp(`--palette-${family}-light-mix:\\s*var\\(--palette-light\\)`))
             assert.match(css, new RegExp(`--palette-${family}-900:[^;]*--palette-${family}-dark-mix`))
         }
+        assert.match(css, /--palette-primary-surface-saturation:\s*1/)
+        for (const status of ['negative', 'positive', 'neutral']) {
+            assert.match(css, new RegExp(`--palette-status-${status}:`))
+        }
+        assert.doesNotMatch(css, /--palette-(?:red|green):/)
+        assert.match(css, /--error-color:\s*var\(--negative-color\)/)
+        assert.match(css, /--success-color:\s*var\(--positive-color\)/)
         for (const {name, fallback} of capillaryUiThemeVariableCatalog) {
             if (fallback == null) assert.match(css, new RegExp(`${name}:`))
+        }
+        for (const [alias, tone] of [['primary', 'light'], ['medium', 'medium'], ['dark', 'dark']]) {
+            assert.match(css, new RegExp(`--ui-${alias}-bg-color:\\s*var\\(--palette-primary-surface-${tone}\\)`))
         }
     })
 
@@ -693,6 +706,14 @@ describe('four-file styling contract', () => {
                 assert.match(css, new RegExp(`--palette-${family}-500:`))
                 assert.doesNotMatch(css, new RegExp(`--palette-${family}-(?:50|100|200|300|400|600|700|800|900|950):`))
             }
+            const saturation = css.match(/--palette-primary-surface-saturation:\s*([\d.]+)/)?.[1]
+            assert.ok(saturation != null, `${option.value} declares palette surface saturation`)
+            assert.ok(Number(saturation) >= 0 && Number(saturation) <= 1,
+                `${option.value} palette surface saturation is within 0–1`)
+            for (const status of ['negative', 'positive', 'neutral']) {
+                assert.match(css, new RegExp(`--palette-status-${status}:`))
+            }
+            assert.doesNotMatch(css, /--palette-(?:red|green):/)
         }
     })
 
@@ -784,6 +805,23 @@ describe('four-file styling contract', () => {
         for (const definition of capillaryUiThemeVariableCatalog) {
             if (definition.fallback != null) assert.ok(names.has(definition.fallback))
         }
+    })
+
+    test('publishes the complete supported theme catalog', () => {
+        assert.deepEqual(
+            capillaryUiThemeOptions.map(({value, appearance}) => [value, appearance]),
+            [
+                ['shiny', 'light'],
+                ['glossy', 'light'],
+                ['original', 'light'],
+                ['soft', 'light'],
+                ['white', 'light'],
+                ['java', 'light'],
+                ['minimal', 'adaptive'],
+                ['dark', 'dark'],
+                ['scifi', 'dark'],
+            ],
+        )
     })
 
     test('replaces theme and color links independently', () => {

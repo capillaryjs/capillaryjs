@@ -22,14 +22,25 @@ derived emitter are not collapsed. A graph edge describes a known possible
 connection; only occurrence ancestry proves propagation. Disposal and source
 replacement close connection intervals.
 
-Emitters use `purpose` labels. Components use static `diagnosticLabel`, then
-their `hostName`, then the constructor name. Function components can set
+Emitters use `purpose` labels. Components expose an overridable instance
+`diagnosticLabel` getter, defaulting to static `diagnosticLabel`, then
+their `hostName`, then the constructor name. Labels are fixed at first diagnostic
+identity creation. Table header cells include their column label. Function components can set
 `diagnosticLabel`; supply it for stable names after minification. Ordinary
 subscriptions can specify `{diagnosticLabel: 'persist selection'}`. They are
 first-class non-UI consumers and propagate context to synchronous writes.
 Subscription identities are distinct even when the same callback is reused
 across emitters, so another subscription's scope cannot hide application work.
 An emitter with no subscribers is still a discoverable downstream leaf.
+
+UI consumer facts may include `DiagnosticConsumerDetails`: a trigger (`dependency`,
+`parent`, or `explicit`), completion `renderPasses`, and `domWrites`. Start/completion
+events are not separate render calls. DOM-write counts cover renderer-managed
+text, attribute/property/style/dataset, and child insertion/removal operations,
+including detached construction, excluding nested consumers and application DOM code.
+They do not measure paints/layout or imply that a zero-write parent's descendants
+did no work. Missing metadata means unknown. The optional fields extend protocol v1
+without changing propagation, scheduling, or old-recording compatibility.
 
 With no diagnostic observer the new event instrumentation does not allocate
 facts, serialize values, or retain history. Weak identity/description metadata

@@ -39,6 +39,30 @@ export function nodeValueEvent(events: readonly TraceEvent[]): TraceEvent | unde
         ?? events.findLast((event) => event.value.type !== 'undefined') ?? events.at(-1)
 }
 
+/** Render/update starts are executions; their completion markers are not extra executions. */
+export function nodeActivity(node: TraceNode, events: readonly TraceEvent[]): string {
+    if (node.kind !== 'component' && node.kind !== 'binding') return `${events.length} events`
+    const executions = new Map<string, number>()
+    for (const event of events) {
+        if (event.kind !== 'consumer') continue
+        if (event.outcome === 'started') executions.set(event.id, 1)
+        else executions.set(event.parentId ?? event.id, event.consumer?.renderPasses ?? 1)
+    }
+    const starts = [...executions.values()].reduce((total, count) => total + count, 0)
+    const noun = node.kind === 'component' ? 'render' : 'update'
+    return `${starts} ${noun}${starts === 1 ? '' : 's'} · ${events.length} events`
+}
+
+export function eventValueText(event: TraceEvent): string {
+    if (event.kind === 'consumer' && event.value.type === 'undefined' && !event.cause.startsWith('binding ')) {
+        const state = event.outcome === 'succeeded' ? 'Completed' : event.outcome === 'failed' ? 'Failed' : 'Started'
+        return event.consumer?.domWrites === undefined ? `${state} · DOM effects unknown`
+            : `${state} · ${event.consumer.domWrites} own DOM writes`
+    }
+    if (event.kind === 'interaction' && event.value.type === 'undefined') return event.cause
+    return event.value.text
+}
+
 export function causalOutline(events: readonly TraceEvent[]): readonly CausalRow[] {
     const children = new Map<string, TraceEvent[]>()
     const ids = new Set(events.map((event) => event.id))
@@ -84,6 +108,16 @@ export interface FlowNode {
 }
 export interface FlowEdge {readonly from: string; readonly to: string; readonly observed: boolean}
 export interface TraceFlow {readonly nodes: readonly FlowNode[]; readonly edges: readonly FlowEdge[]; readonly width: number; readonly height: number}
+
+/** Shared geometry for the compact graph cards and their connector anchors. */
+export const flowLayout = Object.freeze({
+    canvasInset: 16,
+    nodeWidth: 192,
+    nodeSlotHeight: 108,
+    columnGap: 24,
+    rowGap: 16,
+    edgeY: 42,
+})
 
 /** Stable geometry depends on the complete selected trace, never the replay cursor. */
 export function projectFlow(recording: TraceRecording, events: readonly TraceEvent[], options: {includeConnected?: boolean} = {}): TraceFlow {
@@ -146,11 +180,13 @@ export function projectFlow(recording: TraceRecording, events: readonly TraceEve
                 : node.kind === 'subscriber' ? 'subscription leaf'
                     : node.kind === 'emitter' || node.kind === 'derived' ? 'emitter without known subscribers'
                         : 'downstream leaf'
-        return {node, events: occurrences, x: 20 + column * 260, y: 20 + row * 132, leaf}
+        return {node, events: occurrences,
+            x: flowLayout.canvasInset + column * (flowLayout.nodeWidth + flowLayout.columnGap),
+            y: flowLayout.canvasInset + row * (flowLayout.nodeSlotHeight + flowLayout.rowGap), leaf}
     })
     return {nodes: positioned, edges: links,
-        width: Math.max(300, ...positioned.map((node) => node.x + 240)),
-        height: Math.max(150, ...positioned.map((node) => node.y + 120))}
+        width: Math.max(256, ...positioned.map((node) => node.x + flowLayout.nodeWidth + flowLayout.canvasInset)),
+        height: Math.max(140, ...positioned.map((node) => node.y + flowLayout.nodeSlotHeight + flowLayout.canvasInset))}
 }
 
 function stronglyConnected(ids: string[], edges: FlowEdge[]): string[][] {
