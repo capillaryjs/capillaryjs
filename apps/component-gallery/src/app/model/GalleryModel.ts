@@ -5,6 +5,8 @@ import type {Key, TableDataSource} from '@capillaryjs/capillary-ui'
 import {createBlockSelection, createSplitSelection, staticCriterion} from '@capillaryjs/capillary-viz'
 
 export type LayoutVariant = 'shell' | 'website'
+/** The gallery distinguishes a refresh from a load that replaces visible data. */
+export type GalleryDataState = FetchStateValue | 'loading-replace'
 
 export interface GalleryDataItem {
     [field: string]: unknown
@@ -78,15 +80,21 @@ export class GalleryModel {
     })
 
     /** Selected fetch state applied to the shared gallery data emitter. */
-    readonly dataState = new Emitter<FetchStateValue>(FetchState.Ready, {
+    readonly dataState = new Emitter<GalleryDataState>(FetchState.Ready, {
         owner: this,
         purpose: 'gallery data state',
     })
     /** Shared rows used by the data-component page, including retained refresh values. */
-    readonly dataItems = new Emitter<readonly GalleryDataItem[], Error>(galleryData, {
+    readonly dataItems = new Emitter<readonly GalleryDataItem[] | undefined, Error>(galleryData, {
         owner: this,
         purpose: 'gallery data-component items',
     })
+    /** Block selection needs an array value, while collection views accept an absent loading value. */
+    readonly blockItems = new DerivedEmitter(
+        [this.dataItems] as const,
+        ([items]): readonly GalleryDataItem[] => items ?? [],
+        {owner: this, purpose: 'gallery block items'},
+    )
     readonly tableDataSource: TableDataSource<GalleryDataItem>
     readonly blockCriteria = (['team', 'status'] as const).map((field) =>
         staticCriterion<GalleryDataItem>({
@@ -100,7 +108,7 @@ export class GalleryModel {
             })),
         }))
     readonly blockSplits = createSplitSelection(this.blockCriteria)
-    readonly blockSelection = createBlockSelection(this.dataItems, this.blockSplits.activeSplits$)
+    readonly blockSelection = createBlockSelection(this.blockItems, this.blockSplits.activeSplits$)
     private readonly dataStateUnsubscribe: () => void
 
     // Component-state flags applied to showcased controls.
@@ -154,9 +162,14 @@ export class GalleryModel {
         )
         this.dataStateUnsubscribe = this.dataState.subscribe(({value: state}) => {
             if (state === FetchState.Initial) {
-                this.dataItems.setWithState([], FetchState.Initial)
+                this.dataItems.setWithState(undefined, FetchState.Initial)
             } else if (state === FetchState.Loading) {
-                this.dataItems.setWithState(this.dataItems.get(), FetchState.Loading)
+                // Replacement loading clears the displayed value. Returning to
+                // refresh restores the gallery's retained result so this mode
+                // continues to demonstrate busy-but-visible collections.
+                this.dataItems.setWithState(this.dataItems.get() ?? galleryData, FetchState.Loading)
+            } else if (state === 'loading-replace') {
+                this.dataItems.setWithState(undefined, FetchState.Loading)
             } else if (state === FetchState.Error) {
                 this.dataItems.setWithState(
                     this.dataItems.get(),
@@ -190,6 +203,7 @@ export class GalleryModel {
             this.lastAction,
             this.dataState,
             this.dataItems,
+            this.blockItems,
             this.componentDisabled,
             this.componentRequired,
             this.componentReadOnly,

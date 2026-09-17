@@ -124,8 +124,8 @@ test('toolbar toggles switch layout variant and shared data state', async () => 
     // The shared emitter's loading state drives control busy presentation.
     const loadingOption = [...document.querySelectorAll<HTMLElement>(
         'cap-toggle button[role="radio"]',
-    )].find((button) => button.textContent === 'Loading')
-    assert.ok(loadingOption, 'loading data-state option')
+    )].find((button) => button.textContent === 'Loading (refresh)')
+    assert.ok(loadingOption, 'refresh-loading data-state option')
     loadingOption.click()
     const pageTextbox = document.querySelector<HTMLInputElement>(
         '#gallery-basic-inputs cap-textbox input',
@@ -206,7 +206,7 @@ test('data page demonstrates initial skeletons, retained refreshes, errors, retr
         assert.equal(document.querySelector<HTMLTableRowElement>('#gallery-table tbody tr')
             ?.cells.item(0)?.textContent, 'Runtime', 'toolbar resets derived table state')
 
-        toolbarOption('Loading').click()
+        toolbarOption('Loading (refresh)').click()
         assert.equal(document.querySelectorAll('#gallery-table tbody > tr[aria-hidden="true"]').length, 0)
         assert.ok(document.querySelectorAll('#gallery-table tbody [data-cap-selectable-row]').length > 0)
         assert.ok(document.querySelectorAll('#gallery-collections [role="option"]').length > 0)
@@ -220,6 +220,23 @@ test('data page demonstrates initial skeletons, retained refreshes, errors, retr
             ?.getAttribute('aria-busy'), 'true')
         assert.ok(document.querySelector('#gallery-blockgraph cap-blockskeleton cap-placeholder'))
         assert.match(document.querySelector('.gallery-main')?.textContent ?? '', /Runtime/)
+
+        toolbarOption('Loading (replace)').click()
+        assert.ok(document.querySelectorAll('#gallery-table cap-placeholder').length > 0,
+            'replacement table placeholders')
+        assert.ok(document.querySelectorAll('#gallery-collections cap-placeholder').length > 0,
+            'replacement collection placeholders')
+        assert.equal(document.querySelectorAll('#gallery-table tbody [data-cap-selectable-row]').length, 0)
+        assert.equal(document.querySelectorAll('#gallery-collections [role="option"]').length, 0)
+        assert.equal(document.querySelectorAll('#gallery-collections [role="treeitem"]').length, 0)
+
+        toolbarOption('Loading (refresh)').click()
+        assert.ok(document.querySelectorAll('#gallery-table tbody [data-cap-selectable-row]').length > 0,
+            'refresh restores retained table rows after replacement loading')
+        assert.ok(document.querySelectorAll('#gallery-collections [role="option"]').length > 0,
+            'refresh restores retained list rows after replacement loading')
+        assert.ok(document.querySelectorAll('#gallery-collections [role="treeitem"]').length > 0,
+            'refresh restores retained tree rows after replacement loading')
 
         toolbarOption('Error').click()
         assert.ok(document.querySelectorAll('#gallery-table cap-error[role="alert"]').length > 0)

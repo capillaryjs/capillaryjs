@@ -48,7 +48,8 @@ export class GalleryToolbar extends Component<GalleryToolbarProps> {
                 options={[
                     [FetchState.Initial, 'Initial'],
                     [FetchState.Ready, 'Ready'],
-                    [FetchState.Loading, 'Loading'],
+                    [FetchState.Loading, 'Loading (refresh)'],
+                    ['loading-replace', 'Loading (replace)'],
                     [FetchState.Error, 'Error'],
                 ]}
             />

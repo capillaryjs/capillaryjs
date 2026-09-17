@@ -20,11 +20,13 @@ The header island carries the page navbar and a control toolbar below it:
 - **Theme / Colors** — `ThemePicker` and `ColorPicker` swap the loaded Capillary UI
   theme and color stylesheets.
 - **Emitter state** — a `Toggle` selecting the shared fetch state (`initial`, `ready`,
-  `loading`, `error`) applied to `GalleryModel.dataItems`, the shared
-  emitter gallery pages bind data-aware components to. Loading and error also
-  drive the corresponding busy or error presentation on the line-input page,
-  so the selector demonstrates one emitter state consistently throughout the
-  gallery. The error state raises a simulated load error.
+  `loading (refresh)`, `loading (replace)`, `error`) applied to
+  `GalleryModel.dataItems`, the shared emitter gallery pages bind data-aware
+  components to. Refresh loading retains visible data and marks it busy;
+  replacement loading presents placeholders until a value arrives. Loading and
+  error also drive the corresponding busy or error presentation on the
+  line-input page, so the selector demonstrates one emitter state consistently
+  throughout the gallery. The error state raises a simulated load error.
 - **Component state** — checkboxes for `disabled`, `required`, `read-only`,
   a `busy` override, and a validation-error override exposed on `GalleryModel`
   for gallery pages to apply to showcased controls.
@@ -38,7 +40,7 @@ the status line.
 | Page | Content |
 | --- | --- |
 | Line inputs | One island and one combined `PanelToolbar`, with three section rows (checkboxes, basic inputs, date/time). Each row contains vertical `GroupBox` columns of intrinsic states and content variants. Shared `live()` flags apply throughout. Groups grow toward a soft 15rem preference, accommodate wider content, and shrink fields before wrapping. The sidebar offers section navigation, an evenly inset Filters group, and shared data state. |
-| Data components | `DataTable`, `ListView`, `TreeView`, and `BlockGraph` share the toolbar-controlled emitter. Initial and Loading render skeletons instead of cached values; Ready shows data. Error and table retry remain distinct. BlockGraph groups by team and status; its models are owned and disposed by `GalleryModel`. A separate panel keeps ready-but-empty table/list/tree examples visible. |
+| Data components | `DataTable`, `ListView`, `TreeView`, and `BlockGraph` share the toolbar-controlled emitter. Initial and replacement loading render skeletons; refresh loading retains data while busy; Ready shows data. Error and table retry remain distinct. BlockGraph groups by team and status; its models are owned and disposed by `GalleryModel`. A separate panel keeps ready-but-empty table/list/tree examples visible. |
 
 Navigation uses the public router (`createBrowserRouter` +
 `createHashNavigation`), a `NavigationBar` of `RouteLink`s, and a `RouteOutlet`

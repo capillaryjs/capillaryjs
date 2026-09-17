@@ -242,14 +242,16 @@ test('labelled island Panels make one data surface flush without a duplicate tab
     await expect(page.locator('#gallery-table')).toHaveAttribute('aria-labelledby')
 })
 
-test('data collections retain rows during refresh while initial loads use skeletons', async ({page}, testInfo) => {
+test('data collections distinguish refresh retention from replacement-loading skeletons', async ({page}, testInfo) => {
     await page.goto('/#/data-components')
     const main = page.locator('.gallery-main')
     await expect(main.getByRole('treeitem').first()).toBeVisible()
     const collections = ['#gallery-table cap-datatable', '#gallery-collections cap-listview',
         '#gallery-collections cap-treeview']
     const blockGraph = '#gallery-blockgraph cap-blockgraph'
-    for (const state of ['Loading', 'Ready', 'Initial', 'Ready', 'Loading']) {
+    for (const state of [
+        'Loading (refresh)', 'Ready', 'Initial', 'Ready', 'Loading (replace)', 'Loading (refresh)',
+    ]) {
         await page.locator('.gallery-controls').getByRole('radio', {name: state, exact: true}).click()
         if (state === 'Ready') {
             for (const selector of [...collections, blockGraph]) {
@@ -257,7 +259,7 @@ test('data collections retain rows during refresh while initial loads use skelet
             }
             continue
         }
-        if (state === 'Loading') {
+        if (state === 'Loading (refresh)') {
             for (const selector of collections) {
                 const control = page.locator(selector)
                 const busyTarget = selector.includes('cap-datatable')
