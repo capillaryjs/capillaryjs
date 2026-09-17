@@ -63,6 +63,21 @@ test('data components replace initial data but retain rows during background loa
     await expect(retained.locator('cap-treeview'))
         .toHaveAttribute('aria-busy', 'true')
 
+    const retainedCollections = [
+        retained.locator('cap-datatable'),
+        retained.locator('cap-listview'),
+        retained.locator('cap-treeview'),
+    ]
+    for (const collection of retainedCollections) {
+        await expect(collection).toHaveAttribute('data-cap-retained-loading', '')
+        const presentation = await collection.evaluate((element) => {
+            const style = getComputedStyle(element, '::after')
+            return {animationName: style.animationName, backgroundImage: style.backgroundImage}
+        })
+        expect(presentation.animationName).toContain('cap-working-progress')
+        expect(presentation.backgroundImage).not.toBe('none')
+    }
+
     await expect(retained.locator('[data-cap-selectable-row]')).toHaveCount(4)
     await expect(retained.getByRole('treeitem')).toHaveCount(2)
     await expect(retained.locator('cap-placeholder')).toHaveCount(0)

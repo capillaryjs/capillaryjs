@@ -118,6 +118,7 @@ export class ListView<TItem = unknown> extends Component<ListViewProps<TItem>> {
         const isLoading = status === FetchState.Initial || status === FetchState.Loading
         const replacesContent = status === FetchState.Initial
             || (status === FetchState.Loading && result === undefined)
+        const retainedLoading = status === FetchState.Loading && result !== undefined
         const selectedKeys = new Set(this.selectedItemsEmitter.get()
             .map((item, index) => this.getItemKey(item, index)))
 
@@ -125,6 +126,7 @@ export class ListView<TItem = unknown> extends Component<ListViewProps<TItem>> {
         return <Host
             className={componentClass(this.props) || null}
             aria-busy={isLoading ? 'true' : null}
+            data-cap-retained-loading={retainedLoading ? '' : null}
         >
             {status === FetchState.Error
                 ? <ErrorMessage
@@ -235,6 +237,19 @@ export class ListView<TItem = unknown> extends Component<ListViewProps<TItem>> {
             list-style: none;
         }
 
+        &[data-cap-retained-loading]::after {
+            content: "";
+            position: absolute;
+            z-index: 1;
+            inset: 0;
+            opacity: 0.33;
+            animation: cap-working-progress .55s linear infinite;
+            background-image: var(--working-background-image);
+            background-repeat: repeat;
+            background-size: 2rem 2rem;
+            pointer-events: none;
+        }
+
         & > [role="listbox"] > [role="option"],
         & > ul[aria-hidden="true"] > li {
             display: flex;
@@ -275,6 +290,16 @@ export class ListView<TItem = unknown> extends Component<ListViewProps<TItem>> {
             &:has(> cap-error) {
                 outline: 2px solid Mark;
                 outline-offset: -2px;
+            }
+
+            &[data-cap-retained-loading]::after {
+                display: none;
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            &[data-cap-retained-loading]::after {
+                animation: none !important;
             }
         }
     `

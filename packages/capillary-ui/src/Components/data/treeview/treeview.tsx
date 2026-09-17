@@ -104,6 +104,7 @@ export class TreeView<TValue = unknown> extends Component<TreeViewProps<TValue>>
         const isLoading = fetchState === FetchState.Initial || fetchState === FetchState.Loading
         const replacesContent = fetchState === FetchState.Initial
             || (fetchState === FetchState.Loading && result === undefined)
+        const retainedLoading = fetchState === FetchState.Loading && result !== undefined
         const expanded = new Set(this.expandedKeysEmitter.get())
         const visible = flattenVisible(nodes, expanded)
         const selected = this.selectedKeyEmitter.get()
@@ -115,7 +116,8 @@ export class TreeView<TValue = unknown> extends Component<TreeViewProps<TValue>>
 
         const Host = this.Host
         return <Host className={componentClass(this.props) || null}
-            aria-busy={isLoading ? 'true' : null}>
+            aria-busy={isLoading ? 'true' : null}
+            data-cap-retained-loading={retainedLoading ? '' : null}>
             {fetchState === FetchState.Error
                 ? <ErrorMessage
                     className="cap-error-banner"
@@ -228,6 +230,19 @@ export class TreeView<TValue = unknown> extends Component<TreeViewProps<TValue>>
             list-style: none;
         }
 
+        &[data-cap-retained-loading]::after {
+            content: "";
+            position: absolute;
+            z-index: 1;
+            inset: 0;
+            opacity: 0.33;
+            animation: cap-working-progress .55s linear infinite;
+            background-image: var(--working-background-image);
+            background-repeat: repeat;
+            background-size: 2rem 2rem;
+            pointer-events: none;
+        }
+
         & [role="treeitem"],
         & > ul[aria-hidden="true"] > li {
             display: flex;
@@ -295,6 +310,16 @@ export class TreeView<TValue = unknown> extends Component<TreeViewProps<TValue>>
 
             &:has(> cap-error) {
                 outline: 2px solid Mark;
+            }
+
+            &[data-cap-retained-loading]::after {
+                display: none;
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            &[data-cap-retained-loading]::after {
+                animation: none !important;
             }
         }
     `

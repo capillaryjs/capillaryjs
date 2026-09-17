@@ -166,12 +166,14 @@ export class DataTable<TRow extends TableRow = TableRow>
         const isLoading = status === FetchState.Initial || status === FetchState.Loading
         const replacesContent = status === FetchState.Initial
             || (status === FetchState.Loading && result === undefined)
+        const retainedLoading = status === FetchState.Loading && result !== undefined
         const selectedKeys = new Set(
             this.selectedItemsEmitter.get().map((item, index) => this.rowKey(item, index)),
         )
         const Host = this.Host
         return <Host
             className={componentClass(this.props) || null}
+            data-cap-retained-loading={retainedLoading ? '' : null}
         >
             {replacesContent ? <p role="status">{this.capillaryUiMessage('dataTableLoading')}</p> : null}
             {status === FetchState.Error
@@ -341,6 +343,19 @@ export class DataTable<TRow extends TableRow = TableRow>
             width: 100%;
         }
 
+        &[data-cap-retained-loading]::after {
+            content: "";
+            position: absolute;
+            z-index: 3;
+            inset: 0;
+            opacity: 0.33;
+            animation: cap-working-progress .55s linear infinite;
+            background-image: var(--working-background-image);
+            background-repeat: repeat;
+            background-size: 2rem 2rem;
+            pointer-events: none;
+        }
+
         & thead:has([aria-expanded="true"]) {
             position: relative;
             z-index: 1100;
@@ -399,6 +414,16 @@ export class DataTable<TRow extends TableRow = TableRow>
         @media (forced-colors: active) {
             &:has(> cap-error) {
                 outline: 2px solid Mark;
+            }
+
+            &[data-cap-retained-loading]::after {
+                display: none;
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            &[data-cap-retained-loading]::after {
+                animation: none !important;
             }
         }
 

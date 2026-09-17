@@ -475,12 +475,13 @@ range while retaining selections outside that range.
 On an initial snapshot, or a loading snapshot with no result, all three
 collection views render deterministic, `aria-hidden` placeholder rows;
 `placeholderCount` selects their count. A loading snapshot with retained rows
-keeps those rows in place and marks the collection busy, avoiding flicker during
-sort and filter refinements. Application renderers never receive dummy values,
-and refreshes preserve valid keyed selections and expansions. Error snapshots
-retain any available rows, add an error edge and overlay detail icon, and stop
-the loading animation. A `DataTable` data source with `retry` also renders its
-localized retry action.
+keeps those rows in place, marks the collection busy, and displays a thin
+animated translucent working texture, avoiding flicker during sort and filter
+refinements.
+Application renderers never receive dummy values, and refreshes preserve valid
+keyed selections and expansions. Error snapshots retain any available rows,
+add an error edge and overlay detail icon, and stop the loading animation. A
+`DataTable` data source with `retry` also renders its localized retry action.
 
 Advanced compositions may use `BaseSelectionHandler`,
 `SingleSelectionHandler`, `MultiSelectionHandler`, and

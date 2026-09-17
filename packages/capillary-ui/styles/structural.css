@@ -682,6 +682,19 @@ cap-datatable {
             width: 100%;
         }
 
+        cap-datatable[data-cap-retained-loading]::after {
+            content: "";
+            position: absolute;
+            z-index: 3;
+            inset: 0;
+            opacity: 0.11;
+            animation: cap-working-progress .55s linear infinite;
+            background-image: var(--working-background-image);
+            background-repeat: repeat;
+            background-size: 2rem 2rem;
+            pointer-events: none;
+        }
+
         cap-datatable thead:has([aria-expanded="true"]) {
             position: relative;
             z-index: 1100;
@@ -740,6 +753,16 @@ cap-datatable {
         @media (forced-colors: active) {
             cap-datatable:has(> cap-error) {
                 outline: 2px solid Mark;
+            }
+
+            cap-datatable[data-cap-retained-loading]::after {
+                display: none;
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            cap-datatable[data-cap-retained-loading]::after {
+                animation: none !important;
             }
         }
 
@@ -1440,6 +1463,19 @@ cap-listview {
             list-style: none;
         }
 
+        cap-listview[data-cap-retained-loading]::after {
+            content: "";
+            position: absolute;
+            z-index: 1;
+            inset: 0;
+            opacity: 0.11;
+            animation: cap-working-progress .55s linear infinite;
+            background-image: var(--working-background-image);
+            background-repeat: repeat;
+            background-size: 2rem 2rem;
+            pointer-events: none;
+        }
+
         cap-listview > [role="listbox"] > [role="option"],
         cap-listview > ul[aria-hidden="true"] > li {
             display: flex;
@@ -1480,6 +1516,16 @@ cap-listview {
             cap-listview:has(> cap-error) {
                 outline: 2px solid Mark;
                 outline-offset: -2px;
+            }
+
+            cap-listview[data-cap-retained-loading]::after {
+                display: none;
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            cap-listview[data-cap-retained-loading]::after {
+                animation: none !important;
             }
         }
 
@@ -2354,6 +2400,19 @@ cap-treeview {
             list-style: none;
         }
 
+        cap-treeview[data-cap-retained-loading]::after {
+            content: "";
+            position: absolute;
+            z-index: 1;
+            inset: 0;
+            opacity: 0.11;
+            animation: cap-working-progress .55s linear infinite;
+            background-image: var(--working-background-image);
+            background-repeat: repeat;
+            background-size: 2rem 2rem;
+            pointer-events: none;
+        }
+
         cap-treeview [role="treeitem"],
         cap-treeview > ul[aria-hidden="true"] > li {
             display: flex;
@@ -2421,5 +2480,15 @@ cap-treeview {
 
             cap-treeview:has(> cap-error) {
                 outline: 2px solid Mark;
+            }
+
+            cap-treeview[data-cap-retained-loading]::after {
+                display: none;
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            cap-treeview[data-cap-retained-loading]::after {
+                animation: none !important;
             }
         }

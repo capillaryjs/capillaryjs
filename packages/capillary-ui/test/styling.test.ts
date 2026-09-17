@@ -204,6 +204,9 @@ describe('style registry', () => {
         assert.match(stylesheet, /cap-toggle > cap-options\[aria-busy="true"\][\s\S]*button\[role="radio"\][\s\S]*animation:\s*cap-working-progress/)
         assert.match(stylesheet, /cap-progressbar:has\(> progress:indeterminate\) > cap-content::after[\s\S]*animation:\s*cap-working-progress/)
         assert.match(stylesheet, /cap-placeholder::after[\s\S]*animation:\s*cap-working-progress/)
+        for (const host of ['cap-datatable', 'cap-listview', 'cap-treeview']) {
+            assert.match(stylesheet, new RegExp(`${host}\\[data-cap-retained-loading\\]::after`))
+        }
         assert.doesNotMatch(stylesheet, /td::after|\[role="option"\]::after|\[role="treeitem"\]::after/)
 
         assert.match(stylesheet, /cap-error\s*\{[^}]*position:\s*absolute/)

@@ -38,6 +38,9 @@ Versioning.
 
 ### Changed
 
+- Retained `Loading` results in `DataTable`, `ListView`, and `TreeView` now
+  show a non-blocking translucent animated working texture while their existing
+  rows remain visible.
 - Make DataTable, ListView, and TreeView shrink and own overflow before a
   bounded flex layout container must scroll. DataTable header cells now remain
   sticky within the table's scrollport.
