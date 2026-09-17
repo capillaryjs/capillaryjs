@@ -38,6 +38,11 @@ Versioning.
 
 ### Changed
 
+- Empty required text, temporal, and dropdown controls now have a subtle
+  themeable dashed required-value outline. The same outline appears on an
+  unchecked two-state `Checkbox`; tri- and quad-state checkboxes intentionally
+  do not use native required validity because no single semantic state is the
+  required value.
 - Retained `Loading` results in `DataTable`, `ListView`, and `TreeView` now
   show a non-blocking translucent animated working texture while their existing
   rows remain visible.

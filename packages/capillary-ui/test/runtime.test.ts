@@ -190,6 +190,22 @@ describe('Component lifecycle', () => {
 })
 
 describe('DOM patching', () => {
+    test('preserves an explicit empty option value', () => {
+        class SelectOwner extends Component {
+            render() {
+                return h('select', {}, h('option', {value: ''}, 'Select…'))
+            }
+        }
+        const owner = SelectOwner.new().attachTo(document.body)
+        const option = requiredQuery<HTMLOptionElement>('option')
+        const select = requiredQuery<HTMLSelectElement>('select')
+
+        assert.equal(option.getAttribute('value'), '')
+        assert.equal(option.value, '')
+        assert.equal(select.value, '')
+        owner.destroy()
+    })
+
     test('marks every renderer-created element and preserves the marker', () => {
         class MarkerProbe extends Component {
             render() {

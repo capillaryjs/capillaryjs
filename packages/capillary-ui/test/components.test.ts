@@ -395,6 +395,28 @@ describe('choice controls', () => {
         assert.equal(alert.textContent, 'Choose a permitted risk focus')
     })
 
+    test('Dropdown retains an empty selection when required becomes live', () => {
+        const value = new Emitter('')
+        const required = new Emitter(false)
+        class DropdownOwner extends Component {
+            render() {
+                return h(Dropdown, {
+                    label: 'Risk focus',
+                    valueEmitter: value,
+                    options: [{value: 'all', label: 'All risks'}],
+                    required: live(required),
+                })
+            }
+        }
+        DropdownOwner.new().attachTo(document.body)
+        const select = requiredQuery<HTMLSelectElement>('select')
+
+        assert.equal(select.value, '')
+        required.set(true)
+        assert.equal(select.value, '', 'required must not select the first real option')
+        assert.equal(select.validity.valueMissing, true)
+    })
+
     test('Dropdown derives busy and error feedback from a caller-owned options source', () => {
         const options = new Emitter<readonly {value: string; label: string}[], Error>([], {
             fetchState: FetchState.Initial,
@@ -663,7 +685,7 @@ describe('choice controls', () => {
     })
 
     test('Checkbox variants expose semantic state and keyboard cycling', () => {
-        const basic = Checkbox.new({label: 'Basic'}).attachTo(document.body)
+        const basic = Checkbox.new({label: 'Basic', required: true}).attachTo(document.body)
         const control = requiredQuery<HTMLInputElement>('input[type="checkbox"]')
         const host = requiredQuery<HTMLElement>('cap-checkbox')
         assert.equal(host.dataset.capComponent, 'check-box')
@@ -675,6 +697,8 @@ describe('choice controls', () => {
         assert.equal(host.hasAttribute('data-required'), false)
         assert.equal(host.hasAttribute('data-error'), false)
         assert.equal(host.dataset.state, 'neutral')
+        assert.equal(control.required, true, 'two-state checkbox supports native required validity')
+        assert.equal(control.validity.valueMissing, true, 'unchecked required checkbox is empty')
         assert.equal(basic.valueEmitter.get(), FilterMode.Neutral)
         control.dispatchEvent(new Event('change', {bubbles: true}))
         assert.equal(basic.valueEmitter.get(), FilterMode.Prefer)
@@ -692,8 +716,10 @@ describe('choice controls', () => {
 
         basic.destroy()
         document.body.replaceChildren()
-        const tri = TriCheckbox.new({label: 'Tri'}).attachTo(document.body)
+        const tri = TriCheckbox.new({label: 'Tri', required: true}).attachTo(document.body)
         assert.equal(requiredQuery('cap-tricheckbox').dataset.capComponent, 'tricheckbox')
+        assert.equal(requiredQuery<HTMLInputElement>('input[type="checkbox"]').required, false,
+            'multi-state checkbox has no native required value')
         assert.equal(tri.valueEmitter.get(), FilterMode.Neutral)
         requiredQuery<HTMLInputElement>('input[type="checkbox"]').dispatchEvent(
             new KeyboardEvent('keydown', {key: 'ArrowLeft', bubbles: true}),

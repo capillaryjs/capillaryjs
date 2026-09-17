@@ -112,6 +112,10 @@ export class Checkbox<TValue extends CheckboxValue = FilterModeValue>
         const localizedStateName = this.localizedStateName(semanticState, stateName)
         const textLabel = ariaLabel ?? textAlternative(label)
         const checked = isCheckedSemanticState(this.symbols, semanticState)
+        // Native required-checkbox validity means "must be checked", which
+        // only maps to the two-state control. Tri/quad semantic states do not
+        // have one unambiguous required value.
+        const nativeRequired = required && this.symbols.length === 2
 
         const Host = this.Host
         return <Host
@@ -124,7 +128,7 @@ export class Checkbox<TValue extends CheckboxValue = FilterModeValue>
                     type="checkbox"
                     checked={checked}
                     disabled={disabled}
-                    required={required}
+                    required={nativeRequired}
                     name={this.props.name}
                     value={String(semanticState)}
                     aria-busy={busy ? 'true' : null}

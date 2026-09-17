@@ -389,6 +389,7 @@ describe('style registry', () => {
         assert.match(stylesheet, /cap-dropdown > cap-selectshell\s*\{/)
         assert.match(stylesheet, /cap-dropdown > cap-selectshell::before\s*\{/)
         assert.match(stylesheet, /cap-dropdown > cap-selectshell::after\s*\{/)
+        assert.match(stylesheet, /cap-selectshell:has\(> select:required:invalid:not\(:disabled\):not\(\[aria-invalid="true"\]\)\)\s*\{[^}]*outline:\s*1px dashed var\(--required-color\)/)
         assert.match(stylesheet, /appearance:\s*var\(--dropdown-appearance\)/)
         assert.doesNotMatch(stylesheet, /\.selectshell|data-disabled|data-required|data-error|cap-dropdown > (?:input|textarea)/)
     })
@@ -416,6 +417,7 @@ describe('style registry', () => {
         assert.match(stylesheet, /label:has\(> input:disabled\)\s*\{[^}]*color:\s*var\(--checkable-label-color-disabled\)[^}]*cursor:\s*not-allowed/)
         assert.match(stylesheet, /cap-checkshell\s*\{[^}]*box-shadow:\s*var\(--checkbox-box-shadow\)/)
         assert.match(stylesheet, /input:checked \+ cap-checkshell\s*\{[^}]*box-shadow:\s*var\(--checkbox-box-shadow-checked\)/)
+        assert.match(stylesheet, /label:has\(> input\[type="checkbox"\]:required:invalid:not\(:disabled\):not\(\[aria-invalid="true"\]\)\)\s*\{[^}]*outline:\s*1px dashed var\(--required-color\)/)
         assert.doesNotMatch(stylesheet, /\.checkboxshell|\[data-(?:disabled|required|error|state)\]|cap-checkboxshell|cap-checkbox\s*\{[^}]*width:\s*var\(--input-width/)
     })
 
@@ -471,6 +473,7 @@ describe('style registry', () => {
         assert.match(stylesheet, /cap-textbox > input\s*\{[^}]*cursor:\s*text/)
         assert.match(stylesheet, /cap-textbox > input:disabled\s*\{[^}]*cursor:\s*not-allowed/)
         assert.match(stylesheet, /cap-textbox > input:focus-visible\s*\{[^}]*box-shadow:\s*var\(--focus-ring\)/)
+        assert.match(stylesheet, /cap-textbox > input:required:invalid:not\(:disabled\):not\(\[readonly\]\):not\(\[aria-invalid="true"\]\)\s*\{[^}]*outline:\s*1px dashed var\(--required-color\)/)
         assert.doesNotMatch(stylesheet, /textarea|data-disabled|data-required|data-error|cap-dropdown|cap-button/)
     })
 
@@ -640,6 +643,7 @@ describe('style registry', () => {
         assert.match(stylesheet, /cap-datepicker > input[^{]*\{[^}]*min-height:\s*var\(--control-min-height, 2em\)/)
         assert.match(stylesheet, /cap-timepicker > input[^{]*\{[^}]*min-height:\s*var\(--control-min-height, 2em\)/)
         assert.match(stylesheet, /cap-datetimepicker > input[^{]*\{[^}]*min-height:\s*var\(--control-min-height, 2em\)/)
+        assert.match(stylesheet, /cap-datepicker > input:required:invalid:not\(:disabled\):not\(\[readonly\]\):not\(\[aria-invalid="true"\]\),[\s\S]*?outline:\s*1px dashed var\(--required-color\)/)
         assert.doesNotMatch(stylesheet, /cap-timepicker > cap-selectshell|cap-datepicker > dialog|cap-datetimepicker > fieldset/)
         assert.doesNotMatch(stylesheet, /data-(?:disabled|required|error)|cap-textbox|cap-dropdown/)
     })

@@ -150,6 +150,10 @@
     --input-color: var(--text-color);
     --input-border: 1px solid #aaa;
     --input-shadow: none;
+    /* A missing required value is actionable but not yet a validation error. */
+    --required-color: var(--palette-primary-700);
+    --required-indicator-background: var(--required-color);
+    --required-indicator-color: var(--palette-contrast-light);
     --input-background-disabled: var(--ui-medium-bg-color);
     --input-color-disabled: #777;
     --dropdown-appearance: none;

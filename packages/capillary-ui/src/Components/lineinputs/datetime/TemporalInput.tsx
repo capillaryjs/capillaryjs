@@ -181,6 +181,11 @@ export abstract class TemporalInput<
             cursor: not-allowed;
         }
 
+        & > input:required:invalid:not(:disabled):not([readonly]):not([aria-invalid="true"]) {
+            outline: 1px dashed var(--required-color);
+            outline-offset: 3px;
+        }
+
         & > input:focus-visible {
             outline: 2px solid transparent;
             outline-offset: 1px;

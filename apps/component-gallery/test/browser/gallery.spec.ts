@@ -61,6 +61,43 @@ test('Website variant grows the document and scrolls the page, not an inner regi
     expect(metrics.mainInternalScroll).toBe(false)
 })
 
+test('empty required controls show required-value chrome', async ({page}) => {
+    await page.getByText('Required', {exact: true}).click()
+
+    const requiredChrome = await page.evaluate(() => {
+        const textbox = document.querySelector<HTMLInputElement>(
+            '#gallery-basic-inputs cap-textbox input',
+        )!
+        const dropdown = document.querySelector<HTMLSelectElement>(
+            '#gallery-basic-inputs cap-dropdown select',
+        )!
+        const checkbox = document.querySelector<HTMLInputElement>(
+            '#gallery-checkboxes cap-checkbox input',
+        )!
+        return {
+            textbox: {
+                missing: textbox.validity.valueMissing,
+                outline: getComputedStyle(textbox).outlineStyle,
+                indicator: getComputedStyle(textbox.closest('cap-textbox')!, '::after').content,
+            },
+            dropdown: {
+                missing: dropdown.validity.valueMissing,
+                outline: getComputedStyle(dropdown.parentElement!).outlineStyle,
+                indicator: getComputedStyle(dropdown.closest('cap-dropdown')!, '::after').content,
+            },
+            checkbox: {
+                missing: checkbox.validity.valueMissing,
+                outline: getComputedStyle(checkbox.closest('label')!).outlineStyle,
+                indicator: getComputedStyle(checkbox.closest('label')!, '::after').content,
+            },
+        }
+    })
+
+    expect(requiredChrome.textbox).toEqual({missing: true, outline: 'dashed', indicator: '"!"'})
+    expect(requiredChrome.dropdown).toEqual({missing: true, outline: 'dashed', indicator: '"!"'})
+    expect(requiredChrome.checkbox).toEqual({missing: true, outline: 'dashed', indicator: '"!"'})
+})
+
 test('section rules and natural columns retain usable control floors', async ({page}) => {
     await page.setViewportSize({width: 2000, height: 1100})
     const section = page.locator('#gallery-basic-inputs')

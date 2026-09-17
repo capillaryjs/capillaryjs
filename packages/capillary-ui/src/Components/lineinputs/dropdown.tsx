@@ -119,7 +119,10 @@ export class Dropdown<TValue extends DropdownValue = string>
                     onChange={(event: Event) => this.selectOption(event)}
                 >
                     {currentValue == null || currentValue === ''
-                        ? <option value="" disabled={required} selected={true}>{placeholder}</option>
+                        // Keep the no-value sentinel disabled from its first render.
+                        // Toggling `disabled` on the selected placeholder causes browsers
+                        // to select the first real option, losing required-empty validity.
+                        ? <option value="" disabled={true} selected={true}>{placeholder}</option>
                         : null}
                     {options.map((option) => {
                         if (option == null || !Object.hasOwn(option, 'value')) {

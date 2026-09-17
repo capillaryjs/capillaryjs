@@ -400,6 +400,36 @@ cap-tricheckbox {
             box-shadow: var(--checkbox-box-shadow-checked);
         }
 
+        cap-checkbox > label:has(> input[type="checkbox"]:required:invalid:not(:disabled):not([aria-invalid="true"])),
+        cap-quadcheckbox > label:has(> input[type="checkbox"]:required:invalid:not(:disabled):not([aria-invalid="true"])),
+        cap-radiobutton > label:has(> input[type="checkbox"]:required:invalid:not(:disabled):not([aria-invalid="true"])),
+        cap-tricheckbox > label:has(> input[type="checkbox"]:required:invalid:not(:disabled):not([aria-invalid="true"])) {
+            outline: 1px dashed var(--required-color);
+            outline-offset: 3px;
+        }
+
+        cap-checkbox > label:has(> input[type="checkbox"]:required:invalid:not(:disabled):not([aria-invalid="true"]))::after,
+        cap-quadcheckbox > label:has(> input[type="checkbox"]:required:invalid:not(:disabled):not([aria-invalid="true"]))::after,
+        cap-radiobutton > label:has(> input[type="checkbox"]:required:invalid:not(:disabled):not([aria-invalid="true"]))::after,
+        cap-tricheckbox > label:has(> input[type="checkbox"]:required:invalid:not(:disabled):not([aria-invalid="true"]))::after {
+            content: "!";
+            position: absolute;
+            z-index: 1;
+            inset-block-start: -.5em;
+            inset-inline-end: -.5em;
+            display: grid;
+            inline-size: 1em;
+            block-size: 1em;
+            place-items: center;
+            color: var(--required-indicator-color);
+            background: var(--required-indicator-background);
+            border-radius: 50%;
+            font-size: .75em;
+            font-weight: 700;
+            line-height: 1;
+            pointer-events: none;
+        }
+
         cap-checkbox > label > input:focus-visible + cap-checkshell,
         cap-quadcheckbox > label > input:focus-visible + cap-checkshell,
         cap-radiobutton > label > input:focus-visible + cap-checkshell,
@@ -516,6 +546,30 @@ cap-toggle {
             white-space: nowrap;
         }
 
+        cap-dropdown:has(> input:required:invalid:not(:disabled):not([readonly]):not([aria-invalid="true"]))::after,
+        cap-datepicker:has(> input:required:invalid:not(:disabled):not([readonly]):not([aria-invalid="true"]))::after,
+        cap-datetimepicker:has(> input:required:invalid:not(:disabled):not([readonly]):not([aria-invalid="true"]))::after,
+        cap-textbox:has(> input:required:invalid:not(:disabled):not([readonly]):not([aria-invalid="true"]))::after,
+        cap-timepicker:has(> input:required:invalid:not(:disabled):not([readonly]):not([aria-invalid="true"]))::after,
+        cap-toggle:has(> input:required:invalid:not(:disabled):not([readonly]):not([aria-invalid="true"]))::after {
+            content: "!";
+            position: absolute;
+            z-index: 3;
+            inset-block-start: -.5em;
+            inset-inline-end: -.5em;
+            display: grid;
+            inline-size: 1em;
+            block-size: 1em;
+            place-items: center;
+            color: var(--required-indicator-color);
+            background: var(--required-indicator-background);
+            border-radius: 50%;
+            font-size: .75em;
+            font-weight: 700;
+            line-height: 1;
+            pointer-events: none;
+        }
+
 cap-dropdown {
             display: grid;
             grid-template-columns: minmax(var(--input-min-width, 6rem), 1fr);
@@ -611,6 +665,30 @@ cap-dropdown {
         cap-dropdown > cap-selectshell:has(> select:disabled)::after {
             background: var(--dropdown-underlay-background-disabled);
             border: var(--dropdown-underlay-border-disabled);
+        }
+
+        cap-dropdown > cap-selectshell:has(> select:required:invalid:not(:disabled):not([aria-invalid="true"])) {
+            outline: 1px dashed var(--required-color);
+            outline-offset: 3px;
+        }
+
+        cap-dropdown:has(> cap-selectshell > select:required:invalid:not(:disabled):not([aria-invalid="true"]))::after {
+            content: "!";
+            position: absolute;
+            z-index: 3;
+            inset-block-start: -.5em;
+            inset-inline-end: -.5em;
+            display: grid;
+            inline-size: 1em;
+            block-size: 1em;
+            place-items: center;
+            color: var(--required-indicator-color);
+            background: var(--required-indicator-background);
+            border-radius: 50%;
+            font-size: .75em;
+            font-weight: 700;
+            line-height: 1;
+            pointer-events: none;
         }
 
         cap-dropdown > cap-selectshell > select:focus-visible {
@@ -969,6 +1047,13 @@ cap-timepicker {
             background: var(--input-background-disabled);
             border-color: var(--ui-input-border-disabled);
             cursor: not-allowed;
+        }
+
+        cap-datepicker > input:required:invalid:not(:disabled):not([readonly]):not([aria-invalid="true"]),
+        cap-datetimepicker > input:required:invalid:not(:disabled):not([readonly]):not([aria-invalid="true"]),
+        cap-timepicker > input:required:invalid:not(:disabled):not([readonly]):not([aria-invalid="true"]) {
+            outline: 1px dashed var(--required-color);
+            outline-offset: 3px;
         }
 
         cap-datepicker > input:focus-visible,
@@ -2159,6 +2244,11 @@ cap-textbox {
             background: var(--input-background-disabled);
             border-color: var(--ui-input-border-disabled);
             cursor: not-allowed;
+        }
+
+        cap-textbox > input:required:invalid:not(:disabled):not([readonly]):not([aria-invalid="true"]) {
+            outline: 1px dashed var(--required-color);
+            outline-offset: 3px;
         }
 
         cap-textbox > input:focus-visible {

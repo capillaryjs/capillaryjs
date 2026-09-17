@@ -1673,6 +1673,13 @@ function patchDOMProp(
         node.toggleAttribute(normalizeAttributeName(key), enabled)
         return
     }
+    // `<option value="">` is semantically distinct from omitting `value`:
+    // without the attribute, browsers use the option's label as its value.
+    // Preserve an explicit empty sentinel for required selects.
+    if (property === 'value' && node.localName === 'option') {
+        setAttribute(node, normalizeAttributeName(key), next)
+        return
+    }
     if (PROPERTY_PROPS.has(property) && property in node) {
         const value = next ?? (property === 'value' ? '' : false)
         if (!Object.is(Reflect.get(node, property), value)) Reflect.set(node, property, value)

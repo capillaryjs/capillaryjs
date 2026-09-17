@@ -104,6 +104,30 @@ export abstract class SelectControl<
             border: var(--dropdown-underlay-border-disabled);
         }
 
+        & > cap-selectshell:has(> select:required:invalid:not(:disabled):not([aria-invalid="true"])) {
+            outline: 1px dashed var(--required-color);
+            outline-offset: 3px;
+        }
+
+        &:has(> cap-selectshell > select:required:invalid:not(:disabled):not([aria-invalid="true"]))::after {
+            content: "!";
+            position: absolute;
+            z-index: 3;
+            inset-block-start: -.5em;
+            inset-inline-end: -.5em;
+            display: grid;
+            inline-size: 1em;
+            block-size: 1em;
+            place-items: center;
+            color: var(--required-indicator-color);
+            background: var(--required-indicator-background);
+            border-radius: 50%;
+            font-size: .75em;
+            font-weight: 700;
+            line-height: 1;
+            pointer-events: none;
+        }
+
         & > cap-selectshell > select:focus-visible {
             outline: 2px solid transparent;
             outline-offset: 1px;

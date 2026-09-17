@@ -192,7 +192,7 @@ export class LineInputsPage extends Component<GalleryPageProps> {
                 </GroupBox>
                 <GroupBox header="Dropdown" variant="column">
                     <Layout vertical className="gallery-state-column">
-                        <Dropdown label="Choice" options={dropdownOptions}
+                        <Dropdown label="Empty" options={dropdownOptions} defaultValue=""
                             {...this.flags()} />
                         <Dropdown label="Display mode" options={detailedDropdownOptions}
                             {...this.flags()} />
