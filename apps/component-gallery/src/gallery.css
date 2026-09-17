@@ -17,6 +17,7 @@ body {
 .gallery-masthead {
     display: flex;
     flex-direction: column;
+    position: relative;
 }
 
 .gallery-masthead-row {
@@ -33,6 +34,18 @@ body {
     white-space: nowrap;
 }
 
+/* Appearance is global to the gallery, rather than part of its interactive
+   component-state toolbar. Keep it visually available without consuming a
+   toolbar row. */
+.gallery-appearance-controls {
+    position: absolute;
+    inset-block-start: 0.75rem;
+    inset-inline-end: 0.75rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
 .gallery-masthead-row > cap-navigation-bar {
     flex: 1 1 auto;
     min-width: 0;
@@ -40,6 +53,14 @@ body {
 
 .gallery-controls {
     row-gap: 0.5rem;
+}
+
+@media (max-width: 50rem) {
+    .gallery-appearance-controls {
+        position: static;
+        align-self: flex-end;
+        margin: 0.25rem 0.75rem;
+    }
 }
 
 /* The flag OptionGroup's fieldset lays its Checkbox hosts out in a wrapping

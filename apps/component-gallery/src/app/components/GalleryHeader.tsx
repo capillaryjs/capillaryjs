@@ -1,6 +1,6 @@
 import {Component, routeTarget} from '@capillaryjs/capillary-ui'
 import type {ComponentProps, CapillaryUiChild} from '@capillaryjs/capillary-ui'
-import {Layout, NavigationBar} from '@capillaryjs/capillary-ui'
+import {ColorPicker, Layout, NavigationBar, ThemePicker} from '@capillaryjs/capillary-ui'
 
 import type {GalleryModel} from '../model/GalleryModel.js'
 import {galleryPages} from '../routing.js'
@@ -11,9 +11,8 @@ export interface GalleryHeaderProps extends ComponentProps {
 }
 
 /**
- * Island header: brand and routed page navbar on the first row, and the
- * gallery control toolbar (layout, theme, data state, component state) on the
- * second row.
+ * Island header: brand, routed page navbar, a dedicated appearance-control
+ * area in the upper-right corner, and the gallery interaction toolbar.
  */
 export class GalleryHeader extends Component<GalleryHeaderProps> {
     render(): CapillaryUiChild {
@@ -22,6 +21,13 @@ export class GalleryHeader extends Component<GalleryHeaderProps> {
             <Layout horizontal className="gallery-masthead-row">
                 <h1>Capillary UI component gallery</h1>
             </Layout>
+            {/* This precedes the navbar in DOM order so the navbar and toolbar
+                remain adjacent for theme sibling selectors. It is positioned
+                independently on wide headers. */}
+            <div class="gallery-appearance-controls" aria-label="Appearance controls">
+                <ThemePicker label="Theme" valueEmitter={model.themeSelection} />
+                <ColorPicker label="Colors" valueEmitter={model.colorSelection} />
+            </div>
             <NavigationBar
                 label="Gallery pages"
                 items={galleryPages.map((page) => ({
@@ -35,5 +41,5 @@ export class GalleryHeader extends Component<GalleryHeaderProps> {
         </header>
     }
 
-    static dependencies = [Layout, NavigationBar, GalleryToolbar]
+    static dependencies = [Layout, NavigationBar, ThemePicker, ColorPicker, GalleryToolbar]
 }

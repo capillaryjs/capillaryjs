@@ -45,9 +45,19 @@ test('gallery shell mounts the line-inputs page with islands and toolbar', async
     assert.ok(document.querySelector('cap-sidebar'), 'page sidebar')
     assert.ok(document.querySelector('cap-panel'), 'content panel')
 
+    // Appearance controls are separate from the interactive gallery toolbar.
+    const appearanceControls = document.querySelector('.gallery-appearance-controls')
+    assert.ok(appearanceControls, 'appearance-control area')
+    assert.ok(appearanceControls.querySelector('cap-dropdown.cap-theme-picker'), 'theme picker')
+    assert.ok(appearanceControls.querySelector('cap-dropdown.cap-colors-picker'), 'color picker')
+    assert.equal(document.querySelector('.gallery-controls .cap-theme-picker'), null,
+        'theme picker is outside toolbar')
+    assert.equal(document.querySelector('.gallery-controls .cap-colors-picker'), null,
+        'color picker is outside toolbar')
+    assert.ok(document.querySelector('cap-navigationbar + cap-toolbar.gallery-controls'),
+        'navbar remains immediately followed by toolbar for theme styling')
+
     // Toolbar controls
-    assert.ok(document.querySelector('cap-dropdown.cap-theme-picker'), 'theme picker')
-    assert.ok(document.querySelector('cap-dropdown.cap-colors-picker'), 'color picker')
     const headerToggles = document.querySelectorAll('.gallery-controls cap-toggle')
     assert.equal(headerToggles.length, 2, 'layout and data-state toggles')
     const flagInputs = document.querySelectorAll('.gallery-flag-group input')

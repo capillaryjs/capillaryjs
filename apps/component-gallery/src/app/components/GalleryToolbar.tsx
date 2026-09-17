@@ -13,9 +13,7 @@ import type {
 } from '@capillaryjs/capillary-ui'
 import {
     Checkbox,
-    ColorPicker,
     OptionGroup,
-    ThemePicker,
     Toggle,
     Toolbar,
 } from '@capillaryjs/capillary-ui'
@@ -27,9 +25,9 @@ export interface GalleryToolbarProps extends ComponentProps {
 }
 
 /**
- * Gallery control toolbar below the navbar: layout variant, theme and color
- * pickers, the shared data-state selector, and the component-state flags that
- * gallery pages apply to showcased controls.
+ * Gallery control toolbar below the navbar: layout variant, the shared
+ * data-state selector, and the component-state flags that gallery pages apply
+ * to showcased controls. Appearance selection lives separately in the header.
  */
 export class GalleryToolbar extends Component<GalleryToolbarProps> {
     render(): CapillaryUiChild {
@@ -40,8 +38,6 @@ export class GalleryToolbar extends Component<GalleryToolbarProps> {
                 valueEmitter={model.layoutVariant}
                 options={[['shell', 'App shell'], ['website', 'Website']]}
             />
-            <ThemePicker label="Theme" valueEmitter={model.themeSelection} />
-            <ColorPicker label="Colors" valueEmitter={model.colorSelection} />
             <Toggle
                 label="Emitter state"
                 valueEmitter={model.dataState}
@@ -68,7 +64,7 @@ export class GalleryToolbar extends Component<GalleryToolbarProps> {
         </Toolbar>
     }
 
-    static dependencies = [Toolbar, Toggle, ThemePicker, ColorPicker, OptionGroup, Checkbox]
+    static dependencies = [Toolbar, Toggle, OptionGroup, Checkbox]
 }
 
 /**
