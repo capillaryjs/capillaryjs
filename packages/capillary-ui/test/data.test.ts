@@ -30,7 +30,7 @@ import type {
     FilterModeValue,
     TreeNode,
 } from '../src/index.js'
-import {Emitter, FetchState} from '@capillaryjs/capillary'
+import {Diagnostics, Emitter, FetchState} from '@capillaryjs/capillary'
 import {requiredAt, requiredQuery} from './testUtils.js'
 
 let window: Window
@@ -910,6 +910,127 @@ describe('stable data components', () => {
             source.dispose()
             assert.equal(emitterSubscriberCount(source.sortEmitter), 0)
         })
+})
+
+describe('filterable columns', () => {
+    const rows = [
+        {id: 1, name: 'Beta', department: 'Ops'},
+        {id: 2, name: 'Alpha', department: 'R&D'},
+        {id: 3, name: 'Gamma', department: 'Sales'},
+        {id: 4, name: 'Delta', department: 'Ops'},
+    ]
+    const openFilter = () => {
+        requiredQuery<HTMLButtonElement>('button[aria-label="Filter Department"]').click()
+        return requiredQuery<HTMLElement>('[role="group"]')
+    }
+    const optionLabels = () =>
+        [...document.querySelectorAll<HTMLInputElement>('[role="group"] input[type="checkbox"]')]
+            .map((input) => input.getAttribute('aria-label')
+                ?.replace(/: (neutral|require|prefer|deny)$/i, ''))
+
+    test('derive options from the unfiltered rows and keep them stable while filtered', () => {
+        const table = DataTable.new({
+            data: rows,
+            columns: [
+                {field: 'name', label: 'Name'},
+                {field: 'department', label: 'Department', filterable: true},
+            ],
+        }).attachTo(document.body)
+        try {
+            openFilter()
+            assert.deepEqual(optionLabels(), ['Ops', 'R&D', 'Sales'])
+
+            // Filtering down to Ops must not shrink the option list: options
+            // come from the source's unfiltered rows, not the displayed rows.
+            table.filtersEmitter.set({department: [['Ops', FilterMode.Require]]})
+            assert.deepEqual(
+                [...document.querySelectorAll<HTMLTableRowElement>('tbody tr')]
+                    .map((row) => requiredAt(row.cells, 0).textContent),
+                ['Beta', 'Delta'],
+            )
+            assert.deepEqual(optionLabels(), ['Ops', 'R&D', 'Sales'])
+        } finally {
+            table.destroy()
+        }
+    })
+
+    test('explicit filterOptions take precedence over filterable', () => {
+        const table = DataTable.new({
+            data: rows,
+            columns: [{field: 'department', label: 'Department',
+                filterable: true, filterOptions: ['Only', 'These']}],
+        }).attachTo(document.body)
+        try {
+            openFilter()
+            assert.deepEqual(optionLabels(), ['Only', 'These'])
+        } finally {
+            table.destroy()
+        }
+    })
+
+    test('outside-click listener is traced only while open and coalesces with the click', () => {
+        const interactions: string[] = []
+        const unsubscribe = Diagnostics.subscribe((fact) => {
+            if (fact.type === 'event' && fact.event.diagnostic?.kind === 'interaction')
+                interactions.push(fact.event.diagnostic.node.label)
+        })
+        const table = DataTable.new({
+            data: rows,
+            columns: [
+                {field: 'name', label: 'Name', sortable: true},
+                {field: 'department', label: 'Department', filterable: true},
+            ],
+        }).attachTo(document.body)
+        try {
+            // Panel closed: a document click produces no interaction at all.
+            document.body.dispatchEvent(new MouseEvent('click', {bubbles: true}))
+            assert.equal(interactions.length, 0)
+
+            openFilter()
+            interactions.length = 0
+            // A click on the sort button bubbles to the document listener; both
+            // share one traced interaction rather than opening a second root.
+            requiredQuery<HTMLButtonElement>('button[aria-label="Sort Name"]')
+                .dispatchEvent(new MouseEvent('click', {bubbles: true}))
+            assert.equal(interactions.length, 1)
+
+            // A genuine outside click is still traced (and closes the panel).
+            // Re-open first: the sort-button click above was an outside click
+            // for the Department cell and already closed its panel.
+            openFilter()
+            interactions.length = 0
+            document.body.dispatchEvent(new MouseEvent('click', {bubbles: true}))
+            assert.equal(interactions.length, 1)
+            assert.match(interactions[0] ?? '', /Table header cell/)
+        } finally {
+            table.destroy()
+            unsubscribe()
+        }
+    })
+
+    test('disposes derived option emitters with the table', () => {
+        const labels = new Map<string, string>()
+        const disposed: string[] = []
+        const unsubscribe = Diagnostics.subscribe((fact) => {
+            if (fact.type === 'node') labels.set(fact.node.id, fact.node.label)
+            else if (fact.type === 'disposed') {
+                const label = labels.get(fact.nodeId)
+                if (label != null) disposed.push(label)
+            }
+        })
+        const table = DataTable.new({
+            data: rows,
+            columns: [{field: 'department', label: 'Department', filterable: true}],
+        }).attachTo(document.body)
+        try {
+            openFilter()
+            table.destroy()
+            assert.ok(disposed.some((label) => /filter options: department/.test(label)),
+                'derived filter-options emitter is disposed on destroy')
+        } finally {
+            unsubscribe()
+        }
+    })
 })
 
 describe('semantic filter state', () => {

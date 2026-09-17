@@ -1,4 +1,4 @@
-import {Emitter, FetchState} from '@capillaryjs/capillary'
+import {DerivedEmitter, Emitter, FetchState} from '@capillaryjs/capillary'
 import type {ReadableEmitter} from '@capillaryjs/capillary'
 
 import {Placeholder} from '../../Placeholder.js'
@@ -20,6 +20,7 @@ import type {
 } from '../selectionhandler.js'
 import {TableHeader} from './TableHeader.js'
 import type {TableColumn, TableRow} from './TableHeaderCell.js'
+import type {FilterOptions, FilterValue} from './FilterPanel.js'
 import {
     createLocalTableDataSource,
     createRestTableDataSource,
@@ -91,6 +92,8 @@ export class DataTable<TRow extends TableRow = TableRow>
     private readonly ownedSortEmitter: Emitter<TableSort | null> | null
     private readonly ownedFiltersEmitter: Emitter<TableFilters> | null
     private ownedDataSource: TableDataSource<TRow> | null = null
+    private readonly derivedFilterOptions =
+        new Map<string, ReadableEmitter<FilterOptions, unknown> & {dispose?: () => void}>()
 
     constructor(props: DataTableProps<TRow>) {
         super(props)
@@ -188,7 +191,10 @@ export class DataTable<TRow extends TableRow = TableRow>
                 {this.props.caption == null ? null : <caption>{this.props.caption}</caption>}
                 <TableHeader
                     key="header"
-                    columns={this.columns}
+                    columns={this.columns.map((column) => {
+                        const options = this.filterOptionsFor(column)
+                        return options == null ? column : {...column, filterOptions: options}
+                    })}
                     sortEmitter={this.sortEmitter}
                     filtersEmitter={this.filtersEmitter}
                     {...(this.props.filterModes == null
@@ -281,6 +287,33 @@ export class DataTable<TRow extends TableRow = TableRow>
         this.ownedDataSource?.dispose()
         this.ownedSortEmitter?.dispose()
         this.ownedFiltersEmitter?.dispose()
+        for (const emitter of this.derivedFilterOptions.values()) emitter.dispose?.()
+        this.derivedFilterOptions.clear()
+    }
+
+    /**
+     * Options for a `filterable` column: the field's distinct values across
+     * the source's unfiltered rows (or the displayed rows when the source
+     * cannot expose them, e.g. remote sources). Explicit `filterOptions`
+     * always win; anything else returns null.
+     */
+    private filterOptionsFor(
+        column: TableColumn<TRow>,
+    ): ReadableEmitter<FilterOptions, unknown> | null {
+        if (column.filterable !== true || column.filterOptions != null) return null
+        const field = column.field
+        let emitter = this.derivedFilterOptions.get(field)
+        if (emitter == null) {
+            const rows = this.dataSource?.sourceRows ?? this.query
+            if (rows == null) return null
+            emitter = new DerivedEmitter(
+                [rows] as const,
+                ([list]) => distinctFilterValues(list, field),
+                {owner: this, purpose: `filter options: ${field}`},
+            )
+            this.derivedFilterOptions.set(field, emitter)
+        }
+        return emitter
     }
 
     static dependencies = [Placeholder, TableHeader, ErrorMessage]
@@ -447,4 +480,17 @@ function normalizeRowKey<TRow extends TableRow>(
 function renderCellValue(value: unknown): CapillaryUiChild {
     if (value == null || typeof value === 'string' || typeof value === 'number') return value
     return String(value)
+}
+
+/** Distinct string/number values of a row field, sorted for a stable panel. */
+function distinctFilterValues<TRow extends TableRow>(
+    rows: readonly TRow[] | undefined,
+    field: string,
+): FilterOptions {
+    const values = new Set<FilterValue>()
+    for (const row of rows ?? []) {
+        const value = row[field]
+        if (typeof value === 'string' || typeof value === 'number') values.add(value)
+    }
+    return [...values].sort()
 }

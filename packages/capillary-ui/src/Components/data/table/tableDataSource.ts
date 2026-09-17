@@ -32,6 +32,12 @@ export type TableQueryInput<TRow extends TableRow = TableRow> = ReadableEmitter<
 
 export interface TableDataSource<TRow extends TableRow = TableRow> {
     readonly query: TableQueryInput<TRow>
+    /**
+     * Rows before local sort/filter is applied, when the source can expose
+     * them. Local and caller-query sources do; remote sources leave this
+     * absent because filtering happens server-side.
+     */
+    readonly sourceRows?: ReadableEmitter<readonly TRow[] | undefined, unknown> | undefined
     readonly sortEmitter: ValueEmitter<TableSort | null>
     readonly filtersEmitter: ValueEmitter<TableFilters>
     readonly retry?: (cause?: unknown) => unknown
@@ -83,7 +89,7 @@ export function createLocalTableDataSource<TRow extends TableRow>(
     return new ManagedTableDataSource(query, state, () => {
         query.dispose()
         ownedData?.dispose()
-    })
+    }, undefined, data)
 }
 
 /**
@@ -107,6 +113,7 @@ export function createQueryTableDataSource<TRow extends TableRow>(
         retry == null
             ? undefined
             : (cause?: unknown) => options.query.retry?.call(options.query, cause),
+        options.query,
     )
 }
 
@@ -190,6 +197,7 @@ class ManagedTableDataSource<TRow extends TableRow> implements TableDataSource<T
         private readonly state: ManagedState,
         private readonly disposeQuery: (() => void) | null = null,
         retry: ((cause?: unknown) => unknown) | undefined = query.retry,
+        readonly sourceRows?: ReadableEmitter<readonly TRow[] | undefined, unknown>,
     ) {
         this.sortEmitter = state.sortEmitter
         this.filtersEmitter = state.filtersEmitter

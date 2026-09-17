@@ -20,6 +20,11 @@ export interface TableColumnBase {
     ariaLabel?: string
     sortable?: boolean
     filterOptions?: FilterOptionsSource
+    /**
+     * Derive this column's filter options from the distinct values in the
+     * table's unfiltered rows. Ignored when filterOptions is supplied.
+     */
+    filterable?: boolean
 }
 
 export interface TableColumn<TRow extends TableRow = TableRow> extends TableColumnBase {
@@ -39,12 +44,10 @@ export class TableHeaderCell extends Component<TableHeaderCellProps> {
     static override diagnosticLabel = 'Table header cell'
     static override liveProps: readonly string[] = []
     private filterVisible = false
+    private removeGlobalClickListener: (() => void) | null = null
 
     initialize(): void {
         this.watch(this.props.sortEmitter, this.props.filtersEmitter)
-        if (this.props.filterOptions != null) {
-            this.listen<MouseEvent>(document, 'click', this.onGlobalClick)
-        }
     }
 
     toggleSort(): void {
@@ -62,6 +65,7 @@ export class TableHeaderCell extends Component<TableHeaderCellProps> {
     toggleFilterPanel(event: MouseEvent): void {
         event.stopPropagation()
         this.filterVisible = !this.filterVisible
+        this.setGlobalClickListener(this.filterVisible)
         this.update()
     }
 
@@ -142,7 +146,31 @@ export class TableHeaderCell extends Component<TableHeaderCellProps> {
             && event.target instanceof Node
             && !this.dom.contains(event.target)) {
             this.filterVisible = false
+            this.setGlobalClickListener(false)
             this.update()
+        }
+    }
+
+    /**
+     * The outside-click listener exists only while the panel is open. A
+     * permanent document listener would fire — and be traced as an
+     * interaction — on every click in the document, even though it only
+     * acts when the panel is open. listenWhile keeps it on the same traced
+     * native-event path as listen(), so a real outside-click coalesces with
+     * any other listener observing that click instead of opening a
+     * separate root.
+     */
+    private setGlobalClickListener(active: boolean): void {
+        if (active === (this.removeGlobalClickListener != null)) return
+        if (!active) {
+            this.removeGlobalClickListener!()
+            return
+        }
+        const detach = this.listenWhile<MouseEvent>(document, 'click',
+            (event) => this.onGlobalClick(event))
+        this.removeGlobalClickListener = () => {
+            detach()
+            this.removeGlobalClickListener = null
         }
     }
 

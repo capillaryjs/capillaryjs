@@ -503,13 +503,21 @@ expander needs a reusable presentation trait such as `colored`.
 For reusable sources, use `createLocalTableDataSource`,
 `createQueryTableDataSource`, `createHandlerTableDataSource`, or
 `createRestTableDataSource`. Sources expose `query`, `sortEmitter`,
-`filtersEmitter`, optional `retry`, and `dispose()`. Both direct data and
-query-shaped sources pass their rows through an emitter-derived local table
-view, so their sort and filter state always changes the rendered rows.
+`filtersEmitter`, optional `retry`, optional `sourceRows`, and `dispose()`.
+Both direct data and query-shaped sources pass their rows through an
+emitter-derived local table view, so their sort and filter state always
+changes the rendered rows. `sourceRows` exposes the rows before local
+sort/filter when the source can provide them — local and caller-query
+sources do; remote sources leave it absent because filtering is
+server-side.
 
 `TableColumn` definitions own display and local comparison/filter functions.
 When a column's visible `label` is rich content, supply its textual
 `ariaLabel` for Capillary UI-generated sort and filter control names.
+Set a column's `filterable` flag to derive its header filter options from
+the field's distinct values across `sourceRows` (or the displayed rows when
+the source cannot expose them), so the options stay stable while a filter
+is applied. Explicit `filterOptions` take precedence over `filterable`.
 The pure `applyLocalTableState`, `serializeTableQuery`, and related table-query
 helpers keep local behavior and remote encoding explicit. Pagination,
 virtualization, and server-specific wire policy remain application concerns.

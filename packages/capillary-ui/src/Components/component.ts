@@ -800,6 +800,47 @@ export class Component<TProps extends ComponentProps = ComponentProps> {
         return this
     }
 
+    /**
+     * Like {@link listen}, but returns a function that detaches the listener.
+     * Use for listeners that are only active some of the time — for example
+     * an outside-click handler that exists only while a popup is open — so
+     * they neither fire nor appear in the trace while inactive. The listener
+     * runs through the same traced native-event coalescing as listen(), and
+     * is removed on destroy if it is still attached.
+     */
+    protected listenWhile<TEvent extends Event = Event>(
+        target: EventTarget,
+        type: string,
+        listener: (event: TEvent) => void,
+        options?: boolean | AddEventListenerOptions,
+    ): () => void {
+        if (target == null || typeof target.addEventListener !== 'function') {
+            throw new TypeError('listen target must be an EventTarget')
+        }
+        const subject = {}
+        Diagnostics.configure(subject, {kind: 'interaction', label: `${componentDiagnosticLabel(this)}: ${type}`,
+            scope: this.diagnosticScope})
+        const eventListener: EventListener = (event) => runUiInteraction(subject, this.diagnosticScope,
+            event, eventListener, type, () => listener(event as TEvent))
+        let attached = false
+        const detach = (): void => {
+            if (!attached) return
+            attached = false
+            target.removeEventListener(type, eventListener, options)
+            Diagnostics.dispose(subject)
+        }
+        // onCleanup returns a disposer that removes the registration *and*
+        // runs detach. Returning it (rather than detach) means a manual detach
+        // also drops the cleanupFunctions entry, so repeated attach/detach
+        // cycles don't accumulate retained closures until destroy.
+        const unregister = this.onCleanup(detach)
+        if (!this.destroyed) {
+            attached = true
+            target.addEventListener(type, eventListener, options)
+        }
+        return unregister
+    }
+
     registerChild<TComponent extends Component>(component: TComponent): TComponent {
         if (!(component instanceof Component)) {
             throw new TypeError('registerChild requires a Component')

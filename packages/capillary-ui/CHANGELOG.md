@@ -6,8 +6,30 @@ Versioning.
 
 ## Unreleased
 
+### Fixed
+
+- `DataTable` filterable columns no longer keep a permanent document-level
+  click listener: the outside-click listener that closes the filter panel is
+  now attached only while the panel is open. Previously every click in the
+  document fired it, which also flooded event traces with a
+  "Table header cell: click" interaction per click. The listener uses the new
+  `Component.listenWhile`, so it stays on the normal traced native-event path
+  and coalesces with other listeners observing the same click.
+
 ### Added
 
+- Add `Component.listenWhile(target, type, listener, options)`: like
+  `listen`, but returns a function that detaches the listener, for listeners
+  that are only active some of the time. It runs through the same traced
+  native-event coalescing as `listen` and is removed on destroy if still
+  attached.
+- Add a `filterable` column flag to `DataTable`: a column marked
+  `filterable` derives its header filter options from the field's distinct
+  values across the source's unfiltered rows, so options stay stable while
+  a filter is applied. Explicit `filterOptions` still take precedence.
+  Local and caller-query data sources expose their pre-filter rows through
+  the new `TableDataSource.sourceRows`; remote sources fall back to the
+  displayed rows.
 - Add diagnostic ownership scopes and stable diagnostic labels, automatic
   native interaction roots, component/read/watch and function-consumer facts,
   and reactive child, live-property, and native-binding endpoints. Synchronous
