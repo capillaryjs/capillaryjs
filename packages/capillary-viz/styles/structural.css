@@ -971,6 +971,30 @@ cap-checkbox {
             box-shadow: var(--checkbox-box-shadow-checked);
         }
 
+        cap-checkbox > label:has(> input[type="checkbox"]:required:invalid:not(:disabled):not([aria-invalid="true"])) {
+            outline: 1px dashed var(--required-color);
+            outline-offset: 3px;
+        }
+
+        cap-checkbox > label:has(> input[type="checkbox"]:required:invalid:not(:disabled):not([aria-invalid="true"]))::after {
+            content: "!";
+            position: absolute;
+            z-index: 1;
+            inset-block-start: -.5em;
+            inset-inline-end: -.5em;
+            display: grid;
+            inline-size: 1em;
+            block-size: 1em;
+            place-items: center;
+            color: var(--required-indicator-color);
+            background: var(--required-indicator-background);
+            border-radius: 50%;
+            font-size: .75em;
+            font-weight: 700;
+            line-height: 1;
+            pointer-events: none;
+        }
+
         cap-checkbox > label > input:focus-visible + cap-checkshell {
             outline: 2px solid var(--focus-color, var(--ui-accent-color, Highlight));
             outline-offset: 1px;
