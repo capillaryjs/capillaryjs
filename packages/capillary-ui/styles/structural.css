@@ -687,7 +687,7 @@ cap-datatable {
             position: absolute;
             z-index: 3;
             inset: 0;
-            opacity: 0.11;
+            opacity: 0.33;
             animation: cap-working-progress .55s linear infinite;
             background-image: var(--working-background-image);
             background-repeat: repeat;
@@ -1468,7 +1468,7 @@ cap-listview {
             position: absolute;
             z-index: 1;
             inset: 0;
-            opacity: 0.11;
+            opacity: 0.33;
             animation: cap-working-progress .55s linear infinite;
             background-image: var(--working-background-image);
             background-repeat: repeat;
@@ -2405,7 +2405,7 @@ cap-treeview {
             position: absolute;
             z-index: 1;
             inset: 0;
-            opacity: 0.11;
+            opacity: 0.33;
             animation: cap-working-progress .55s linear infinite;
             background-image: var(--working-background-image);
             background-repeat: repeat;
