@@ -11,6 +11,12 @@ and Semantic Versioning.
 - Use flexbox for single-axis selection-panel stacks and BlockGraph label
   composition, retaining grid only where its track model is required.
 
+### Fixed
+
+- Preserve inherited category colors when constructing nested BlockGraph
+  groups, so child blocks retain the intended palette when no local color is
+  supplied.
+
 ## 1.0.0 - 2026-09-14
 
 ### Changed

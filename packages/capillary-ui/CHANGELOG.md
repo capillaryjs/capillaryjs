@@ -8,6 +8,9 @@ Versioning.
 
 ### Fixed
 
+- Set the default GroupBox content gap independently from island spacing, using
+  a compact 2px rhythm for controls inside a GroupBox.
+
 - Render unfilled required controls with a transparent negative ✲ marker:
   inside native input surfaces and beside a pseudo-element checkable outline
   extension that does not change the label's layout width.
@@ -115,6 +118,11 @@ Versioning.
 - Retained `Loading` results in `DataTable`, `ListView`, and `TreeView` now
   show a non-blocking translucent animated working texture while their existing
   rows remain visible.
+
+## 1.2.0 - 2026-09-15
+
+### Changed
+
 - Make DataTable, ListView, and TreeView shrink and own overflow before a
   bounded flex layout container must scroll. DataTable header cells now remain
   sticky within the table's scrollport.
