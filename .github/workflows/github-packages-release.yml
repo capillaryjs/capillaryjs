@@ -49,14 +49,59 @@ jobs:
           run-id: ${{ inputs.workflow_run_id }}
           path: .artifacts/release
 
-      - name: Publish verified packages to GitHub Packages
+      - name: Publish or verify packages in GitHub Packages
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -euo pipefail
-          for tarball in .artifacts/release/packages/*.tgz; do
-            npm publish "$tarball" \
-              --registry=https://npm.pkg.github.com \
-              --access public \
-              --ignore-scripts
-          done
+          node --input-type=module <<'NODE'
+          import {createHash} from 'node:crypto'
+          import {mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, statSync} from 'node:fs'
+          import {tmpdir} from 'node:os'
+          import {join} from 'node:path'
+          import {spawnSync} from 'node:child_process'
+
+          const registry = 'https://npm.pkg.github.com'
+          const root = '.artifacts/release'
+          const report = JSON.parse(readFileSync(join(root, 'package-artifacts.json'), 'utf8'))
+          const downloads = mkdtempSync(join(tmpdir(), 'capillaryjs-github-packages-'))
+
+          try {
+              for (const entry of report.packages) {
+                  const tarball = join(root, 'packages', entry.filename)
+                  const identity = `${entry.name}@${entry.version}`
+                  const view = npm(['view', identity, 'dist.tarball', '--json', `--registry=${registry}`])
+                  if (view.status !== 0) {
+                      if (!`${view.stdout}\n${view.stderr}`.includes('E404')) throw commandError('inspect', identity, view)
+                      console.log(`[github-packages] publishing absent ${identity}`)
+                      const publish = npm(['publish', tarball, `--registry=${registry}`, '--access', 'public', '--ignore-scripts'])
+                      if (publish.status !== 0) throw commandError('publish', identity, publish)
+                      continue
+                  }
+
+                  const packageDirectory = join(downloads, entry.filename)
+                  mkdirSync(packageDirectory)
+                  const packed = npm(['pack', identity, '--json', `--registry=${registry}`, '--ignore-scripts', '--pack-destination', packageDirectory])
+                  if (packed.status !== 0) throw commandError('download existing', identity, packed)
+                  const existing = readdirSync(packageDirectory)
+                  if (existing.length !== 1) throw new Error(`[github-packages] expected one downloaded tarball for ${identity}, found ${existing.length}`)
+                  const filename = join(packageDirectory, existing[0])
+                  const sha256 = createHash('sha256').update(readFileSync(filename)).digest('hex')
+                  const bytes = statSync(filename).size
+                  if (sha256 !== entry.sha256 || bytes !== entry.bytes) {
+                      throw new Error(`[github-packages] existing ${identity} differs from the verified workflow artifact`)
+                  }
+                  console.log(`[github-packages] existing ${identity} matches verified artifact; skipping publish`)
+              }
+          } finally {
+              rmSync(downloads, {recursive: true, force: true})
+          }
+
+          function npm(args) {
+              return spawnSync('npm', args, {encoding: 'utf8', env: process.env})
+          }
+
+          function commandError(action, identity, result) {
+              return new Error(`[github-packages] could not ${action} ${identity}: ${(result.stderr || result.stdout).trim()}`)
+          }
+          NODE

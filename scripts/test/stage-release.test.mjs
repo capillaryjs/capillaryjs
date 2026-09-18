@@ -106,6 +106,17 @@ test('release workflow has the protected stage-only trust boundary', () => {
     assert.doesNotMatch(workflow, /NODE_AUTH_TOKEN|NPM_TOKEN|npm publish|stage approve/)
 })
 
+test('GitHub Packages mirror verifies an existing immutable version before it publishes', () => {
+    const workflow = readFileSync(path.join(sourceRoot, '.github/workflows/github-packages-release.yml'), 'utf8')
+    assert.match(workflow, /npm\(\['view'/)
+    assert.match(workflow, /E404/)
+    assert.match(workflow, /npm\(\['pack'/)
+    assert.match(workflow, /sha256 !== entry\.sha256/)
+    assert.match(workflow, /matches verified artifact; skipping publish/)
+    assert.match(workflow, /npm\(\['publish', tarball/)
+    assert.doesNotMatch(workflow, /for tarball in \.artifacts\/release\/packages\/\*\.tgz/)
+})
+
 function createFixture({published, missingPackage, stalePeer = false, version = '0.1.0-alpha.2'} = {}) {
     const root = mkdtempSync(path.join(os.tmpdir(), 'stage-release-'))
     mkdirSync(path.join(root, 'scripts'), {recursive: true})

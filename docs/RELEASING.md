@@ -110,10 +110,19 @@ After the ReleaseTool verifies the final npm package, it automatically
 dispatches `.github/workflows/github-packages-release.yml` with the same
 verified tarballs. That workflow mirrors the packages to GitHub Packages using
 the repository `GITHUB_TOKEN` and `packages: write`; it does not rebuild or
-republish from the working tree. GitHub creates a new npm package privately by
-default, so configure the package visibility once in GitHub if a public mirror
-is desired. A mirror failure does not alter the already verified npm release;
-rerun the mirror workflow after correcting its GitHub Packages permissions.
+republish from the working tree. For each immutable package version it first
+checks GitHub Packages: an absent version is published, an existing version is
+downloaded and must match the retained workflow tarball byte-for-byte before it
+is skipped, and a different artifact fails the mirror. GitHub creates a new
+npm package privately by default, so configure the package visibility once in
+GitHub if a public mirror is desired.
+
+ReleaseTool records the mirror dispatch, its GitHub Actions run, and its final
+result. The release cannot create tags or archive until the mirror succeeds.
+For a pending workflow, use **Check GitHub Packages mirror**. For a failed
+workflow, correct the GitHub Packages problem and use the tool's explicit
+**Retry GitHub Packages mirror** action; it dispatches a new idempotent mirror
+attempt rather than attempting a direct working-tree publish.
 
 ## Failure and recovery
 
