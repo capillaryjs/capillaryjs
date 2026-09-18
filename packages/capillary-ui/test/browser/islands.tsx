@@ -1,7 +1,7 @@
 import {Emitter} from '@capillaryjs/capillary'
 import {
-    CapillaryUiApp, Component, Header, Layout, Panel, RouteOutlet, Sidebar,
-    SplitPrimary, SplitSecondary, SplitView, createBrowserRouter, createCapillaryUiRuntime,
+    CapillaryUiApp, Component, Header, Layout, NavigationBar, Panel, RouteOutlet, Sidebar,
+    SplitPrimary, SplitSecondary, SplitView, Toolbar, createBrowserRouter, createCapillaryUiRuntime,
     createHashNavigation, defineRoute,
 } from '../../src/index.js'
 import '../../themes/base.css'
@@ -20,7 +20,8 @@ class Page extends Component {
             islands={options.has('nested') ? true : undefined}>
             <Sidebar id="sidebar" island header="Sidebar" />
             <section class="cap-layout-vertical cap-size-flexible">
-                <Layout vertical allocation="flexible" id="column">
+                <Layout vertical allocation="flexible" id="column" scroll={options.has('scroll')}
+                    islands={options.has('nested') ? true : undefined}>
                     <Panel id="overview" island header="Overview" />
                     <Panel id="results" island allocation="flexible" header="Results">
                         <Layout vertical id="inner">
@@ -38,17 +39,42 @@ class Page extends Component {
 
 class Fixture extends Component {
     render() {
+        if (options.has('app-header')) return <CapillaryUiApp id="canvas"
+            sizing={options.has('embedded') ? 'embedded' : 'viewport'}
+            islands={this.read(mode)} layout="vertical">
+            <header id="shell-header" class="island">
+                <NavigationBar label="Application pages" items={[
+                    {id: 'home', label: 'Home', to: {kind: 'external', href: '#home'}},
+                ]} />
+                <Toolbar id="shell-toolbar">Actions</Toolbar>
+            </header>
+            <Header id="shell-heading" island>Application heading</Header>
+            <Header id="plain-heading">Ordinary heading</Header>
+            <header id="plain-header">Ordinary native header</header>
+            <Layout vertical id="nested-headers">
+                <Header id="nested-heading" island>Section heading</Header>
+                <header id="nested-header" class="island">Section header</header>
+            </Layout>
+            <footer id="shell-footer" class="island">Footer</footer>
+        </CapillaryUiApp>
+
         return <CapillaryUiApp id="canvas" sizing="viewport" islands={this.read(mode)} layout="vertical">
             <Header id="heading" island>Header</Header>
             {options.has('split') ? <Layout vertical allocation="flexible" id="split-container">
                 <SplitView className="test-split"
                     {...(options.get('axis') === 'vertical' ? {vertical: true} : {horizontal: true})}
                     primarySize="160px" primaryMinSize={80} secondaryMinSize={80}>
-                    <SplitPrimary scroll={false}>
-                        <Panel id="primary-surface" island allocation="flexible">Primary</Panel>
+                    <SplitPrimary scroll={options.has('scroll')}
+                        island={options.has('pane-islands')}
+                        islands={options.has('nested') ? true : undefined}>
+                        {options.has('pane-islands') ? 'Primary' :
+                            <Panel id="primary-surface" island allocation="flexible">Primary</Panel>}
                     </SplitPrimary>
-                    <SplitSecondary scroll={false}>
-                        <Panel id="secondary-surface" island allocation="flexible">Secondary</Panel>
+                    <SplitSecondary scroll={options.has('scroll')}
+                        island={options.has('pane-islands')}
+                        islands={options.has('nested') ? true : undefined}>
+                        {options.has('pane-islands') ? 'Secondary' :
+                            <Panel id="secondary-surface" island allocation="flexible">Secondary</Panel>}
                     </SplitSecondary>
                 </SplitView>
             </Layout> : <RouteOutlet id="pages" activeViewEmitter={route} mountPolicy="lazy" views={[
@@ -62,7 +88,7 @@ class Fixture extends Component {
         </CapillaryUiApp>
     }
 
-    static dependencies = [CapillaryUiApp, Header, Layout, SplitView, Panel, RouteOutlet, Page]
+    static dependencies = [CapillaryUiApp, Header, Layout, NavigationBar, Toolbar, SplitView, Panel, RouteOutlet, Page]
 }
 
 const runtime = createCapillaryUiRuntime({router: createBrowserRouter({adapter: createHashNavigation(window)})})

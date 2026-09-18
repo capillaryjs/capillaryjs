@@ -86,11 +86,11 @@ test('gallery shell mounts the line-inputs page with islands and toolbar', async
         assert.ok(document.querySelector(id)?.classList.contains('cap-groupbox-section'),
             `${id} section variant`)
         assert.ok(
-            document.querySelector(`${id} > cap-content > cap-layout.gallery-group-row`),
-            `${id} horizontal inner group row`,
+            document.querySelector(`${id}.gallery-group-row > cap-content`),
+            `${id} horizontal group body`,
         )
         assert.ok(
-            document.querySelector(`${id} cap-layout.gallery-group-row > cap-groupbox.cap-groupbox-column`),
+            document.querySelector(`${id} > cap-content > cap-groupbox.cap-groupbox-column`),
             `${id} column variant`,
         )
         assert.equal(

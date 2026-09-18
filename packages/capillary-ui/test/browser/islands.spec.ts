@@ -1,6 +1,7 @@
 import {expect, test} from '@playwright/test'
 import type {Page} from '@playwright/test'
 import {fileURLToPath} from 'node:url'
+import {probeBorderPixels, probeChrome, probeShadowPixels, surfaceChromePixels} from './paint.js'
 
 test.beforeEach(async ({page}) => {
     await page.setViewportSize({width: 900, height: 700})
@@ -18,7 +19,91 @@ async function bounds(page: Page, selector: string) {
     })
 }
 
+for (const sizing of ['viewport', 'embedded']) {
+    test(`${sizing}: only direct app island headers omit surface padding`, async ({page}) => {
+        await open(page, `?app-header&${sizing}`)
+        await page.addStyleTag({content: `${probeChrome}
+            #canvas {
+                --island-padding: 12px 20px;
+                --ui-padding: 7px;
+                --navigation-bar-padding: 3px 5px;
+            }
+            #plain-header { padding: 3px; }
+        `})
+
+        for (const mode of [true, false, undefined]) {
+            await page.evaluate(mode => capillaryUiIslandTest.setMode(mode), mode)
+            for (const selector of ['#shell-header', '#shell-heading']) {
+                await expect(page.locator(selector)).toHaveCSS('padding', '0px')
+                expect(await surfaceChromePixels(page, selector)).toEqual({
+                    shadow: probeShadowPixels, border: probeBorderPixels,
+                })
+            }
+            for (const selector of ['#nested-header', '#nested-heading', '#shell-footer']) {
+                await expect(page.locator(selector)).toHaveCSS('padding', '12px 20px')
+            }
+            // Resetting the inherited island token would incorrectly change
+            // descendant surfaces; the shell exception changes padding only.
+            expect(await page.locator('#shell-toolbar').evaluate(e =>
+                getComputedStyle(e).getPropertyValue('--island-padding').trim())).toBe('12px 20px')
+            await expect(page.locator('#shell-toolbar')).toHaveCSS('padding', '7px')
+            await expect(page.locator('#shell-header nav > ul')).toHaveCSS('padding', '3px 5px')
+            await expect(page.locator('#plain-header')).toHaveCSS('padding', '3px')
+            expect(await page.locator('#plain-heading').evaluate(e => {
+                const s = getComputedStyle(e)
+                return parseFloat(s.paddingTop) / parseFloat(s.fontSize)
+            })).toBeCloseTo(0.25)
+
+            const header = await bounds(page, '#shell-header')
+            const heading = await bounds(page, '#shell-heading')
+            const toolbar = await bounds(page, '#shell-toolbar')
+            expect(header.left).toBe(16)
+            expect(header.right).toBe(884)
+            expect(header.top).toBe(16)
+            expect(heading.top - header.bottom).toBe(mode === true ? 16 : 32)
+            expect(toolbar.left - header.left).toBe(2) // border, no extra island padding
+            expect(header.right - toolbar.right).toBe(2)
+        }
+    })
+}
+
 for (const dir of ['ltr', 'rtl']) {
+    test(`${dir}: nested scrollports paint borders and all four shadow edges`, async ({page}) => {
+        await open(page, `?dir=${dir}&nested&scroll`)
+        await page.addStyleTag({content: probeChrome})
+        for (const selector of ['#sidebar', '#overview', '#results', '#details']) {
+            const pixels = await surfaceChromePixels(page, selector)
+            expect(pixels.shadow, `${selector} shadow`).toEqual(probeShadowPixels)
+            expect(pixels.border, `${selector} border`).toEqual(probeBorderPixels)
+        }
+        const original = await bounds(page, '#overview')
+        // Change 039 regression: shadows are clipped but border positions and
+        // computed box-shadow remain correct. Prove pixel checks detect it.
+        const broken = await page.addStyleTag({content: '#column { margin: 0; padding: 0; }'})
+        expect(await bounds(page, '#overview')).toEqual(original)
+        expect((await surfaceChromePixels(page, '#overview')).shadow).not.toEqual(probeShadowPixels)
+        await broken.evaluate(e => e.parentNode!.removeChild(e))
+        // Missing border chrome must also be caught, not just overflow clipping.
+        await page.locator('#overview').evaluate(e => e.style.setProperty('border-color', 'transparent', 'important'))
+        expect((await surfaceChromePixels(page, '#overview')).border).not.toEqual(probeBorderPixels)
+        await page.locator('#overview').evaluate(e => e.style.setProperty('box-shadow', 'none', 'important'))
+        expect((await surfaceChromePixels(page, '#overview')).shadow).not.toEqual(probeShadowPixels)
+    })
+
+    test(`${dir}: scrolling a panel collection preserves first and last chrome`, async ({page}) => {
+        await open(page, `?dir=${dir}&scroll`)
+        await page.addStyleTag({content: `${probeChrome}
+            #column > .island { height: 420px; max-height: none; flex: none; }
+        `})
+        expect(await page.locator('#column').evaluate(e => e.scrollHeight > e.clientHeight)).toBe(true)
+        const first = await surfaceChromePixels(page, '#overview')
+        expect(first).toEqual({shadow: probeShadowPixels, border: probeBorderPixels})
+        await page.locator('#column').evaluate(e => { e.scrollTop = e.scrollHeight })
+        const last = await surfaceChromePixels(page, '#results')
+        expect(last).toEqual({shadow: probeShadowPixels, border: probeBorderPixels})
+        expect(await page.locator('#canvas').evaluate(e => [e.scrollWidth, e.scrollHeight])).toEqual([900, 700])
+    })
+
     test(`${dir}: nested and routed layouts share gutters and one perimeter inset`, async ({page}) => {
         await open(page, `?dir=${dir}&nested`)
         const header = await bounds(page, '#heading')
@@ -137,6 +222,44 @@ test('White theme makes the composition flush and a larger body keeps scrolling 
 
 for (const axis of ['horizontal', 'vertical']) {
     for (const dir of ['ltr', 'rtl']) {
+        test(`${axis}/${dir}: scrolling split panes paint chrome and preserve resize allocation`, async ({page}) => {
+            await open(page, `?split&scroll&axis=${axis}&dir=${dir}`)
+            await page.addStyleTag({content: probeChrome})
+            const horizontal = axis === 'horizontal'
+            const extent = (rect: Awaited<ReturnType<typeof bounds>>) => horizontal ? rect.width : rect.height
+            const separator = page.getByRole('separator')
+            for (const selector of ['#primary-surface', '#secondary-surface']) {
+                expect(await surfaceChromePixels(page, selector))
+                    .toEqual({shadow: probeShadowPixels, border: probeBorderPixels})
+            }
+            expect(extent(await bounds(page, '#primary-surface'))).toBe(160)
+            await separator.focus()
+            await separator.press(horizontal ? (dir === 'rtl' ? 'ArrowLeft' : 'ArrowRight') : 'ArrowDown')
+            expect(extent(await bounds(page, '#primary-surface'))).toBe(176)
+            await separator.press('End')
+            expect(extent(await bounds(page, '#secondary-surface'))).toBe(80)
+            await separator.press('Home')
+            expect(extent(await bounds(page, '#primary-surface'))).toBe(80)
+            const handle = await separator.boundingBox()
+            const x = handle!.x + handle!.width / 2
+            const y = handle!.y + handle!.height / 2
+            await page.mouse.move(x, y)
+            await page.mouse.down()
+            await page.mouse.move(x + (horizontal ? (dir === 'rtl' ? -30 : 30) : 0), y + (horizontal ? 0 : 30))
+            await page.mouse.up()
+            expect(extent(await bounds(page, '#primary-surface'))).toBe(110)
+            // Repeating islands on a pane must not alter its allocated size.
+            await open(page, `?split&scroll&nested&axis=${axis}&dir=${dir}`)
+            expect(extent(await bounds(page, '#primary-surface'))).toBe(160)
+            // A pane may itself be the surface. Its border belongs inside the
+            // allocation, and it must not receive a gutter extension.
+            await open(page, `?split&scroll&pane-islands&axis=${axis}&dir=${dir}`)
+            await page.addStyleTag({content: probeChrome})
+            expect(extent(await bounds(page, 'cap-primary'))).toBe(160)
+            expect(await surfaceChromePixels(page, 'cap-primary'))
+                .toEqual({shadow: probeShadowPixels, border: probeBorderPixels})
+        })
+
         test(`${axis}/${dir}: split separator owns one gutter and resizes at zero gap`, async ({page}) => {
             await open(page, `?split&axis=${axis}&dir=${dir}`)
             const horizontal = axis === 'horizontal'

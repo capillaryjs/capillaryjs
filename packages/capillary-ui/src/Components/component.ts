@@ -398,6 +398,12 @@ export class Component<TProps extends ComponentProps = ComponentProps> {
         }
 
         .cap-scroll {
+            /* Move the clip into the surrounding gutter without moving the
+             * content. The inherited allowance is owned by the parent layout,
+             * so local gaps and nested scrollports do not add extra spacing. */
+            --_cap-scroll-gutter: calc(var(--_cap-island-flow, 0) * var(--_cap-island-gutter, 0px));
+            margin: calc(-1 * var(--_cap-scroll-gutter));
+            padding: var(--_cap-scroll-gutter);
             overflow: auto;
             min-inline-size: 0;
             min-block-size: 0;
@@ -418,6 +424,17 @@ export class Component<TProps extends ComponentProps = ComponentProps> {
             --_cap-island-outer-inset: 0px;
         }
 
+        .cap-layout-horizontal > *,
+        .cap-layout-vertical > *,
+        .cap-island-layout > * {
+            --_cap-island-gutter: calc(var(--_cap-island-flow, 0) * var(--island-gap, 0px) / 2);
+        }
+
+        .cap-island-layout.cap-scroll {
+            padding: calc(var(--_cap-island-outer-inset, var(--island-inset, 0px))
+                + var(--_cap-scroll-gutter));
+        }
+
         .cap-island-layout-off {
             --_cap-island-flow: 0;
             --_cap-island-margin: initial;
@@ -427,6 +444,7 @@ export class Component<TProps extends ComponentProps = ComponentProps> {
         .cap-island-layout-off > *,
         .island > * {
             --_cap-island-outer-inset: initial;
+            --_cap-island-gutter: 0px;
         }
 
         .colored {

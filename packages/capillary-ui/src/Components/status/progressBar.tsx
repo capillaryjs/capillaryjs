@@ -1,6 +1,7 @@
 import type {ReadableEmitter} from '@capillaryjs/capillary'
 
-import {Component, css} from '../component.js'
+import {css} from '../component.js'
+import {LineControl} from '../lineinputs/LineControl.js'
 import type {ComponentProps, CapillaryUiChild} from '../component.js'
 import {componentClass, controlId} from '../controlUtils.js'
 import {StatusPresentation} from './statusPresentation.js'
@@ -15,7 +16,7 @@ export interface ProgressBarProps extends ComponentProps {
 }
 
 /** Labelled native progress indicator with determinate and indeterminate modes. */
-export class ProgressBar extends Component<ProgressBarProps> {
+export class ProgressBar extends LineControl<ProgressBarProps> {
     static override liveProps: readonly string[] = []
     static override dependencies = [StatusPresentation]
     readonly progressId: string
@@ -69,7 +70,8 @@ export class ProgressBar extends Component<ProgressBarProps> {
 
     static css = css`
         & {
-            display: block;
+            display: flex;
+            align-items: center;
         }
 
         & > label,

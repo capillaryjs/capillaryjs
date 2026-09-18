@@ -5,6 +5,10 @@
   :root {
     color-scheme: only light;
     --ui-control-padding: 6px 5px;
+    --control-row-padding-block: 0em;
+    /* Reserve one row for the roomiest native temporal body without changing
+     * the theme's painted input, button, checkbox or radio geometry. */
+    --control-row-min-height: 2.75em;
     --font-family: Arial, Helvetica, sans-serif;
     --radius-sm: 6px;
     --radius-md: 10px;
@@ -31,7 +35,7 @@
       inset 0 1px 0 color-mix(in srgb, var(--palette-light) 96%, transparent),
       inset 0 -1px 0 color-mix(in srgb, var(--palette-dark) 8%, transparent),
       0 0.3rem 0.85rem color-mix(in srgb, var(--palette-dark) 16%, transparent);
-    --island-padding: 1rem;
+    --island-padding: .5rem;
     --header-background: transparent;
     --header-color: var(--palette-primary-500);
     --section-header-background: transparent;
@@ -43,6 +47,7 @@
     --groupbox-section-header-color: var(--palette-primary-500);
     --groupbox-section-separator: 0 solid transparent;
     --groupbox-column-separator: 1px solid color-mix(in srgb, var(--palette-dark) 13%, var(--palette-light));
+    --groupbox-content-gap: 0rem;
 
     --toolbar-background: unset;
     --toolbar-color: var(--ui-color);

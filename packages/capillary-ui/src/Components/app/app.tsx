@@ -92,6 +92,13 @@ export class CapillaryUiApp extends Component<CapillaryUiAppProps> {
             font-size: var(--font-size);
             line-height: var(--line-height);
         }
+
+        /* A direct shell header delegates content spacing to its navbar,
+         * toolbar, and branding rows. Keep the inherited island token intact. */
+        & > header.island,
+        & > cap-header.island {
+            padding: 0;
+        }
     `
 }
 

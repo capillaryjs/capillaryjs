@@ -94,19 +94,16 @@ export class GroupBox<
         }
 
         & > cap-content {
-            display: block;
+            display: flex;
+            flex-flow: column nowrap;
+            justify-content: flex-start;
+            align-content: flex-start;
+            align-items: flex-start;
+            gap: var(--groupbox-content-gap, .5rem);
             min-width: 0;
             min-height: 0;
             margin-left: var(--cap-groupbox-content-margin, .25em);
             flex: 1 1 auto;
-        }
-
-        & > cap-content > cap-layout {
-            gap: .5rem;
-            justify-content: flex-start;
-            align-content: flex-start;
-            justify-items: flex-start;
-            align-items: flex-start;
         }
 
         /* Presentation contexts: each marker sets the complete context-sensitive
@@ -204,6 +201,7 @@ export class GroupBox<
         &.cap-groupbox-section > cap-content {
             grid-column: 1 / -1;
             grid-row: 2;
+            flex-flow: row nowrap;
             margin-left: 0;
             padding-block: 0.75rem;
             min-width: 0;
@@ -264,6 +262,26 @@ export class GroupBox<
 
         &.cap-groupbox-column > cap-content {
             margin-left: 0;
+        }
+
+        /* A section's own content body is the ordinary horizontal column row.
+           Preserve the same stretch, edge padding, and separators formerly
+           provided when an application inserted a Layout just for that row. */
+        &.cap-groupbox-section > cap-content > cap-groupbox.cap-groupbox-column {
+            align-self: stretch;
+        }
+
+        &.cap-groupbox-section > cap-content > cap-groupbox.cap-groupbox-column
+            + cap-groupbox.cap-groupbox-column {
+            border-inline-start: var(--groupbox-column-separator);
+        }
+
+        &.cap-groupbox-section > cap-content > cap-groupbox.cap-groupbox-column:first-child {
+            padding-inline-start: 0;
+        }
+
+        &.cap-groupbox-section > cap-content > cap-groupbox.cap-groupbox-column:last-child {
+            padding-inline-end: 0;
         }
 
         .cap-layout-horizontal > &.cap-groupbox-column,

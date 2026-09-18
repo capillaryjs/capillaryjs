@@ -1,4 +1,5 @@
 import {expect, test} from '@playwright/test'
+import {screenshotPixels} from '../../../../packages/capillary-ui/test/browser/paint.js'
 
 test.use({baseURL: 'http://127.0.0.1:4175'})
 
@@ -7,6 +8,109 @@ test.beforeEach(async ({page}) => {
     await page.goto('/#/line-inputs')
     await page.locator('#gallery-line-inputs').waitFor()
 })
+
+for (const theme of ['shiny', 'capillary', 'soft', 'minimal', 'white']) {
+    test(`${theme}: sidebar and main panel chrome actually paints`, async ({page}, testInfo) => {
+        await page.getByRole('combobox', {name: 'Theme', exact: true}).selectOption(theme)
+        await page.waitForFunction(theme => {
+            const link = document.querySelector<HTMLLinkElement>('link[data-cap-stylesheet="theme"]')
+            return link?.dataset.capSelection === theme && link.sheet?.href === link.href
+        }, theme)
+        // Shell headers delegate spacing to their children in every theme,
+        // even when the theme gives ordinary islands nonzero padding.
+        await expect(page.locator('cap-app > header.island')).toHaveCSS('padding', '0px')
+        const surfaces = page.locator('.gallery-sidebar, #gallery-line-inputs')
+        const samples = await surfaces.evaluateAll((elements, theme) => elements.map(e => {
+            const r = e.getBoundingClientRect()
+            const s = getComputedStyle(e)
+            const y = Math.min(r.top + r.height / 2, innerHeight - 30)
+            return {
+                id: e.id,
+                style: e.getAttribute('style'),
+                shadow: s.boxShadow,
+                border: parseFloat(s.borderLeftWidth),
+                points: (theme === 'white' ? [] : [
+                    ...[1, 2, 3].map(d => ({x: r.left - d, y})),
+                    ...[0, 1, 2].map(d => ({x: r.right + d, y})),
+                    {x: r.left + 0.1, y}, {x: r.right - 0.1, y},
+                ]),
+            }
+        }), theme)
+        const points = samples.flatMap(s => s.points)
+        const painted = await screenshotPixels(page, points)
+        if (testInfo.project.name === 'chromium' && ['shiny', 'capillary'].includes(theme)) {
+            await page.screenshot({path: testInfo.outputPath(`${theme}-island-chrome.png`)})
+        }
+        try {
+            await surfaces.evaluateAll(elements => elements.forEach(e => {
+                (e as HTMLElement).style.setProperty('box-shadow', 'none', 'important');
+                (e as HTMLElement).style.setProperty('border-color', 'transparent', 'important')
+            }))
+            const bare = await screenshotPixels(page, points)
+            for (const [i, sample] of samples.entries()) {
+                const differences = sample.points.map((_, j) => Math.max(...painted[i * 8 + j]!
+                    .map((channel, k) => Math.abs(channel - bare[i * 8 + j]![k]!))))
+                if (['shiny', 'capillary', 'soft'].includes(theme)) {
+                    expect(sample.shadow, sample.id).not.toBe('none')
+                    expect(Math.max(...differences.slice(0, 3)), `${sample.id} left shadow pixels`).toBeGreaterThan(0)
+                    if (theme !== 'soft') {
+                        expect(Math.max(...differences.slice(3, 6)), `${sample.id} right shadow pixels`).toBeGreaterThan(0)
+                    }
+                }
+                if (['capillary', 'minimal'].includes(theme)) {
+                    expect(sample.border, sample.id).toBeGreaterThan(0)
+                    expect(differences[6], `${sample.id} left border pixels`).toBeGreaterThan(0)
+                    expect(differences[7], `${sample.id} right border pixels`).toBeGreaterThan(0)
+                }
+                if (theme === 'white') {
+                    expect(sample.shadow).toBe('none')
+                    expect(sample.border).toBe(0)
+                }
+            }
+        } finally {
+            await surfaces.evaluateAll((elements, samples) => elements.forEach((e, i) => {
+                const style = samples[i]!.style
+                if (style == null) e.removeAttribute('style')
+                else e.setAttribute('style', style)
+            }), samples)
+        }
+    })
+}
+
+for (const theme of ['shiny', 'capillary']) {
+    test(`${theme}: line-input columns share one comfortable row rhythm`, async ({page}, testInfo) => {
+        await page.getByRole('combobox', {name: 'Theme', exact: true}).selectOption(theme)
+        const rowHeight = theme === 'capillary' ? 39 : 30
+        const first = page.locator('#gallery-checkboxes cap-checkbox').first()
+        await expect(first).toHaveCSS('min-height', `${rowHeight}px`)
+        const rows = await page.locator('#gallery-line-inputs').evaluate(root => {
+            const tags = ['cap-textbox', 'cap-dropdown', 'cap-toggle', 'cap-button',
+                'cap-checkbox', 'cap-tricheckbox', 'cap-quadcheckbox', 'cap-radiobutton',
+                'cap-datepicker', 'cap-timepicker', 'cap-datetimepicker', 'cap-progressbar']
+            return [...root.querySelectorAll(tags.join(','))].map(e => {
+                const s = getComputedStyle(e)
+                return {tag: e.tagName, height: e.getBoundingClientRect().height,
+                    padding: parseFloat(s.paddingBlockStart)}
+            })
+        })
+        expect(rows.length).toBeGreaterThan(35)
+        for (const row of rows) {
+            expect(row.height, row.tag).toBeCloseTo(rowHeight, 1)
+            expect(row.padding, row.tag).toBeCloseTo(3, 1)
+        }
+        const radioCenters = await page.locator('#gallery-basic-inputs cap-radiobutton')
+            .evaluateAll(elements => elements.map(e => {
+                const rect = e.getBoundingClientRect()
+                return rect.top + rect.height / 2
+            }))
+        for (let i = 1; i < radioCenters.length; i++) {
+            expect(radioCenters[i]! - radioCenters[i - 1]!).toBeCloseTo(rowHeight, 1)
+        }
+        if (testInfo.project.name === 'chromium') {
+            await page.screenshot({path: testInfo.outputPath(`${theme}-row-spacing.png`)})
+        }
+    })
+}
 
 for (const variant of ['App shell', 'Website']) {
     test(`${variant}: shell and routed islands have one shared gutter`, async ({page}) => {
@@ -25,7 +129,8 @@ for (const variant of ['App shell', 'Website']) {
                 inset: parseFloat(style.paddingLeft),
                 distances: [sidebar.top - header.bottom, panel.top - header.bottom,
                     panel.left - sidebar.right, footer.top - body.bottom],
-                edges: [header.left - canvas.left, canvas.right - header.right],
+                edges: [header.left - canvas.left, canvas.right - header.right,
+                    sidebar.left - canvas.left, canvas.right - panel.right],
             }
         })
         expect(spacing.gap).toBeGreaterThan(0)
@@ -37,10 +142,44 @@ for (const variant of ['App shell', 'Website']) {
         await page.getByRole('radio', {name: variant, exact: true}).click()
         await expect(page.locator('.gallery-main cap-panel')).toHaveCount(1)
         await expect(page.locator('.gallery-main cap-toolbar')).toHaveCount(1)
-        for (const [id, count] of [['checkboxes', 3], ['basic-inputs', 6], ['date-time', 3]] as const) {
+        await expect(page.getByRole('toolbar', {name: 'Line input toolbar', exact: true})
+            .getByRole('radiogroup', {name: 'View', exact: true})).toBeVisible()
+        const sidebar = page.locator('.gallery-sidebar')
+        await expect(sidebar.locator('cap-optionsbox')).toHaveCount(2)
+        await expect(sidebar.getByRole('group', {name: 'Presentation', exact: true})).toBeVisible()
+        await expect(sidebar.getByRole('checkbox', {name: /^Active records/})).toBeVisible()
+        await expect(sidebar.getByRole('checkbox', {name: /^Assigned to me/})).toBeVisible()
+        await expect(sidebar.getByRole('checkbox', {name: /^Needs review/})).toBeVisible()
+        const optionGeometry = await sidebar.locator('cap-optionsbox').evaluateAll(boxes =>
+            boxes.map(box => {
+                const optionGroup = box.querySelector<HTMLElement>('cap-optiongroup > fieldset')
+                const radioGroup = box.querySelector<HTMLElement>('cap-radiogroup > fieldset')
+                const checkboxes = [...box.querySelectorAll<HTMLElement>(
+                    'cap-optiongroup > fieldset > cap-checkbox',
+                )]
+                const rects = checkboxes.map(checkbox => checkbox.getBoundingClientRect())
+                return {
+                    contentGap: getComputedStyle(box.querySelector('cap-content')!).gap,
+                    optionDisplay: optionGroup == null ? null : getComputedStyle(optionGroup).display,
+                    optionDirection: optionGroup == null ? null : getComputedStyle(optionGroup).flexDirection,
+                    optionGap: optionGroup == null ? null : getComputedStyle(optionGroup).gap,
+                    radioGap: radioGroup == null ? null : getComputedStyle(radioGroup).gap,
+                    checkboxGaps: rects.slice(1).map((rect, index) => rect.top - rects[index]!.bottom),
+                }
+            }),
+        )
+        expect(optionGeometry.map(({checkboxGaps, ...geometry}) => geometry)).toEqual([
+            {contentGap: '2px', optionDisplay: null, optionDirection: null, optionGap: null,
+                radioGap: '2px'},
+            {contentGap: '2px', optionDisplay: 'flex', optionDirection: 'column', optionGap: '2px',
+                radioGap: null},
+        ])
+        await expect(sidebar.locator('cap-optionsbox').first().locator('cap-optiongroup')).toHaveCount(0)
+        for (const gap of optionGeometry[1]!.checkboxGaps) expect(gap).toBeCloseTo(2, 2)
+        for (const [id, count] of [['checkboxes', 5], ['basic-inputs', 6], ['date-time', 3]] as const) {
             const section = page.locator(`#gallery-${id}`)
             await expect(section).toHaveCount(1)
-            await expect(section.locator(':scope > cap-content > cap-layout.gallery-group-row > cap-groupbox'))
+            await expect(section.locator(':scope > cap-content > cap-groupbox'))
                 .toHaveCount(count)
             if (id === 'basic-inputs') {
                 await expect(section.getByRole('combobox', {name: 'Display mode', exact: true}))
@@ -53,7 +192,7 @@ for (const variant of ['App shell', 'Website']) {
                     .toBeVisible()
             }
         }
-        const margins = await page.locator('.gallery-control-demo').evaluate((e) => {
+        const margins = await page.locator('.gallery-filter-demo').evaluate((e) => {
             const parent = e.getBoundingClientRect()
             const group = e.querySelector('cap-groupbox')!.getBoundingClientRect()
             return [group.left - parent.left, parent.right - group.right]
@@ -125,17 +264,33 @@ test('empty required controls show required-value chrome', async ({page}) => {
 test('section rules and natural columns retain usable control floors', async ({page}) => {
     await page.setViewportSize({width: 2000, height: 1100})
     const section = page.locator('#gallery-basic-inputs')
-    const groups = section.locator(':scope > cap-content > cap-layout.gallery-group-row > cap-groupbox')
+    const groups = section.locator(':scope > cap-content > cap-groupbox')
     const group = groups.first()
     const field = group.getByRole('textbox', {name: 'Long value', exact: true})
     expect((await field.boundingBox())!.width).toBeCloseTo(180, 1)
     expect((await section.getByRole('combobox', {name: 'Display mode', exact: true}).boundingBox())!.width)
         .toBeCloseTo(180, 1)
 
+    const rowAlignment = await group.evaluate((element) => {
+        const body = element.querySelector<HTMLElement>(':scope > cap-content')!
+        const row = element.querySelector<HTMLElement>('cap-textbox')!
+        const label = row.querySelector<HTMLElement>('label')!
+        const input = row.querySelector<HTMLInputElement>('input')!
+        const bodyBounds = body.getBoundingClientRect()
+        const labelBounds = label.getBoundingClientRect()
+        const inputBounds = input.getBoundingClientRect()
+        return {
+            labelOffset: labelBounds.left - bodyBounds.left,
+            inputEndOffset: bodyBounds.right - inputBounds.right,
+        }
+    })
+    expect(rowAlignment.labelOffset).toBeCloseTo(0, 1)
+    expect(rowAlignment.inputEndOffset).toBeCloseTo(0, 1)
+
     const chrome = await section.evaluate((element) => {
         const header = element.querySelector<HTMLElement>(':scope > cap-header')!
         const columns = element.querySelectorAll<HTMLElement>(
-            ':scope > cap-content > cap-layout > cap-groupbox',
+            ':scope > cap-content > cap-groupbox',
         )
         const firstHeader = columns[0]?.querySelector<HTMLElement>(':scope > cap-header')!
         const secondColumn = columns[1]!
@@ -162,10 +317,10 @@ test('section rules and natural columns retain usable control floors', async ({p
     expect(chrome.secondInlineStart).toBe('1px')
 
     const checkboxGroups = page.locator(
-        '#gallery-checkboxes > cap-content > cap-layout.gallery-group-row > cap-groupbox',
+        '#gallery-checkboxes > cap-content > cap-groupbox',
     )
     const checkboxWidths = await checkboxGroups
-        .evaluateAll((es) => es.map((e) => e.getBoundingClientRect().width))
+        .evaluateAll((es) => es.slice(0, 3).map((e) => e.getBoundingClientRect().width))
     expect(Math.max(...checkboxWidths)).toBeLessThan(180)
     await page.locator('#gallery-checkboxes').evaluate((e) => {
         e.style.setProperty('--groupbox-preferred-width', '18rem')
@@ -263,7 +418,7 @@ test('nested GroupBox rules transpose and span the parent Layout cross-axis', as
 })
 
 test('nearest context controls group headers and content is not height capped', async ({page}) => {
-    const sidebar = page.locator('.gallery-control-demo')
+    const sidebar = page.locator('.gallery-filter-demo')
     await sidebar.evaluate((e) => e.parentElement!.setAttribute('data-cap-context', 'form'))
     const header = sidebar.locator('cap-groupbox > cap-header')
     expect(await header.evaluate((e) => getComputedStyle(e).position)).toBe('static')

@@ -1,10 +1,11 @@
-import {Component, css} from '../component.js'
+import {css} from '../component.js'
 import type {ComponentProps} from '../component.js'
+import {LineControl} from './LineControl.js'
 
 /** Shared native-label and painted-shell contract for checkable inputs. */
 export abstract class CheckableControl<
     TProps extends ComponentProps = ComponentProps,
-> extends Component<TProps> {
+> extends LineControl<TProps> {
     static override css = css`
         & {
             display: inline-flex;
@@ -12,16 +13,13 @@ export abstract class CheckableControl<
             flex-flow: row wrap;
             align-items: center;
             align-content: center;
-            font-family: inherit;
-            font-size: var(--ui-font-size);
-            line-height: 1.2;
         }
 
         & > label {
             display: flex;
             flex-flow: row nowrap;
             position: relative;
-            min-height: 0rem;
+            min-height: var(--_cap-control-row-min);
             margin: 0;
             color: var(--ui-text-color);
             border-radius: var(--ui-border-radius);

@@ -1,4 +1,5 @@
-import {Component, css} from '../component.js'
+import {css} from '../component.js'
+import {LineControl} from '../lineinputs/LineControl.js'
 import type {ComponentProps, CapillaryUiChild, LivePropContract} from '../component.js'
 import {componentClass, controlId, invoke} from '../controlUtils.js'
 import {ErrorMessage} from '../status/statusPresentation.js'
@@ -23,7 +24,7 @@ export interface ButtonProps extends ComponentProps,
 }
 
 /** Native actionable button primitive. */
-export class Button extends Component<ButtonProps> {
+export class Button extends LineControl<ButtonProps> {
     static override liveProps = buttonLiveProps
     static override dependencies = [ErrorMessage]
     readonly errorId: string
@@ -110,9 +111,6 @@ export class Button extends Component<ButtonProps> {
             flex-flow: row wrap;
             align-items: center;
             align-content: center;
-            font-family: inherit;
-            font-size: var(--ui-font-size);
-            line-height: 1.2;
         }
 
         & > button:hover:not(:disabled, [aria-disabled="true"]) {

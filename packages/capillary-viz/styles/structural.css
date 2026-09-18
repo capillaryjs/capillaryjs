@@ -52,6 +52,12 @@
         }
 
         .cap-scroll {
+            /* Move the clip into the surrounding gutter without moving the
+             * content. The inherited allowance is owned by the parent layout,
+             * so local gaps and nested scrollports do not add extra spacing. */
+            --_cap-scroll-gutter: calc(var(--_cap-island-flow, 0) * var(--_cap-island-gutter, 0px));
+            margin: calc(-1 * var(--_cap-scroll-gutter));
+            padding: var(--_cap-scroll-gutter);
             overflow: auto;
             min-inline-size: 0;
             min-block-size: 0;
@@ -72,6 +78,17 @@
             --_cap-island-outer-inset: 0px;
         }
 
+        .cap-layout-horizontal > *,
+        .cap-layout-vertical > *,
+        .cap-island-layout > * {
+            --_cap-island-gutter: calc(var(--_cap-island-flow, 0) * var(--island-gap, 0px) / 2);
+        }
+
+        .cap-island-layout.cap-scroll {
+            padding: calc(var(--_cap-island-outer-inset, var(--island-inset, 0px))
+                + var(--_cap-scroll-gutter));
+        }
+
         .cap-island-layout-off {
             --_cap-island-flow: 0;
             --_cap-island-margin: initial;
@@ -81,6 +98,7 @@
         .cap-island-layout-off > *,
         .island > * {
             --_cap-island-outer-inset: initial;
+            --_cap-island-gutter: 0px;
         }
 
         .colored {
@@ -318,6 +336,19 @@ cap-blockgraph {
             }
         }
 
+cap-button,
+cap-checkbox {
+            --_cap-control-row-min: var(--_cap-control-compact-min,
+                max(var(--control-min-height, 2em), var(--control-row-min-height, 0px)));
+            min-height: calc(var(--_cap-control-row-min)
+                + 2 * var(--control-row-padding-block, .25em));
+            padding-block: var(--control-row-padding-block, .25em);
+            box-sizing: border-box;
+            font-family: inherit;
+            font-size: var(--ui-font-size);
+            line-height: 1.2;
+        }
+
 cap-button > button {
             display: inline-flex;
             align-items: center;
@@ -343,9 +374,6 @@ cap-button > button {
             flex-flow: row wrap;
             align-items: center;
             align-content: center;
-            font-family: inherit;
-            font-size: var(--ui-font-size);
-            line-height: 1.2;
         }
 
         cap-button > button:hover:not(:disabled, [aria-disabled="true"]) {
@@ -570,20 +598,16 @@ cap-groupbox {
 
         cap-categoryhidepanel > cap-content,
         cap-groupbox > cap-content {
-            display: block;
+            display: flex;
+            flex-flow: column nowrap;
+            justify-content: flex-start;
+            align-content: flex-start;
+            align-items: flex-start;
+            gap: var(--groupbox-content-gap, .5rem);
             min-width: 0;
             min-height: 0;
             margin-left: var(--cap-groupbox-content-margin, .25em);
             flex: 1 1 auto;
-        }
-
-        cap-categoryhidepanel > cap-content > cap-layout,
-        cap-groupbox > cap-content > cap-layout {
-            gap: .5rem;
-            justify-content: flex-start;
-            align-content: flex-start;
-            justify-items: flex-start;
-            align-items: flex-start;
         }
 
         /* Presentation contexts: each marker sets the complete context-sensitive
@@ -686,6 +710,7 @@ cap-groupbox {
         cap-groupbox.cap-groupbox-section > cap-content {
             grid-column: 1 / -1;
             grid-row: 2;
+            flex-flow: row nowrap;
             margin-left: 0;
             padding-block: 0.75rem;
             min-width: 0;
@@ -755,6 +780,34 @@ cap-groupbox {
             margin-left: 0;
         }
 
+        /* A section's own content body is the ordinary horizontal column row.
+           Preserve the same stretch, edge padding, and separators formerly
+           provided when an application inserted a Layout just for that row. */
+        cap-categoryhidepanel.cap-groupbox-section > cap-content > cap-groupbox.cap-groupbox-column,
+        /* A section's own content body is the ordinary horizontal column row.
+           Preserve the same stretch, edge padding, and separators formerly
+           provided when an application inserted a Layout just for that row. */
+        cap-groupbox.cap-groupbox-section > cap-content > cap-groupbox.cap-groupbox-column {
+            align-self: stretch;
+        }
+
+        cap-categoryhidepanel.cap-groupbox-section > cap-content > cap-groupbox.cap-groupbox-column
+            + cap-groupbox.cap-groupbox-column,
+        cap-groupbox.cap-groupbox-section > cap-content > cap-groupbox.cap-groupbox-column
+            + cap-groupbox.cap-groupbox-column {
+            border-inline-start: var(--groupbox-column-separator);
+        }
+
+        cap-categoryhidepanel.cap-groupbox-section > cap-content > cap-groupbox.cap-groupbox-column:first-child,
+        cap-groupbox.cap-groupbox-section > cap-content > cap-groupbox.cap-groupbox-column:first-child {
+            padding-inline-start: 0;
+        }
+
+        cap-categoryhidepanel.cap-groupbox-section > cap-content > cap-groupbox.cap-groupbox-column:last-child,
+        cap-groupbox.cap-groupbox-section > cap-content > cap-groupbox.cap-groupbox-column:last-child {
+            padding-inline-end: 0;
+        }
+
         .cap-layout-horizontal > cap-categoryhidepanel.cap-groupbox-column,
         .cap-layout-horizontal > cap-groupbox.cap-groupbox-column,
         .cap-layout-vertical > cap-categoryhidepanel.cap-groupbox-column,
@@ -798,15 +851,20 @@ cap-groupbox {
             padding-block-end: 0;
         }
 
-cap-categoryhidepanel > cap-content {
+cap-categoryhidepanel {
+            --_cap-control-compact-min: 0px;
+            --control-row-padding-block: 0px;
+        }
+
+        cap-categoryhidepanel > cap-content {
             display: flex;
             flex-direction: column;
             align-self: stretch;
             flex: 1 1 0;
-            gap: 1rem;
+            gap: 2px;
         }
 
-        cap-categoryhidepanel > cap-content * > fieldset > legend {
+        cap-categoryhidepanel > cap-content cap-optiongroup > fieldset > legend {
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -815,23 +873,30 @@ cap-categoryhidepanel > cap-content {
             color: var(--palette-neutral-950);
             gap: 0.5rem;
             width: 100%;
-            padding: 0 0 0.25rem;
-            margin-bottom: 0.25rem;
+            padding: 0 0 1px;
+            margin-bottom: 1px;
             border-bottom: 1px solid var(--ui-border-color);
             user-select: none;
         }
 
-        cap-categoryhidepanel > cap-content * > fieldset {
+        cap-categoryhidepanel > cap-content cap-optiongroup > fieldset {
             display: flex;
-            flex-flow: column;
+            flex-flow: column nowrap;
             justify-content: stretch;
             justify-items: stretch;
             align-items: stretch;
             align-content: stretch;
             box-sizing: border-box;
             width: 100%;
-            gap: .33rem;
-            padding: .25em 0 .5em 0;
+            gap: 2px;
+            padding: 1px 0 2px;
+        }
+
+        /* OptionsBox is deliberately a dense, vertical filter surface. Keep
+           RadioGroup in the same rhythm as checkbox options, regardless of
+           theme-level RadioGroup spacing. */
+        cap-categoryhidepanel > cap-content cap-radiogroup > fieldset {
+            gap: 2px;
         }
 
 cap-categoryhidepanel {
@@ -931,22 +996,87 @@ cap-header {
             font: inherit;
         }
 
+cap-optiongroup,
+cap-collapsibleoptiongroup {
+            display: block;
+            position: relative;
+            min-width: 0;
+        }
+
+        cap-optiongroup > fieldset,
+        cap-collapsibleoptiongroup > fieldset {
+            margin: 0;
+            padding: 0;
+            min-inline-size: 0;
+            border: 0;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        cap-optiongroup > fieldset > legend,
+        cap-collapsibleoptiongroup > fieldset > legend {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-sizing: border-box;
+            gap: 0.5rem;
+            width: 100%;
+            padding: 0 0 0.25em;
+            margin-bottom: 0.5em;
+            border-bottom: 1px solid var(--ui-border-color);
+            font: inherit;
+            user-select: none;
+        }
+
+        cap-optiongroup > fieldset > legend > span,
+        cap-collapsibleoptiongroup > fieldset > legend > span {
+            flex: 1;
+            min-width: 0;
+        }
+
+        cap-optiongroup > fieldset[aria-busy="true"]:not([aria-invalid="true"]),
+        cap-collapsibleoptiongroup > fieldset[aria-busy="true"]:not([aria-invalid="true"]) {
+            background-image: var(--working-background-image);
+            background-repeat: repeat;
+            background-size: 2rem 2rem;
+            animation: cap-working-progress .55s linear infinite;
+        }
+
+        cap-optiongroup > fieldset[aria-invalid="true"],
+        cap-collapsibleoptiongroup > fieldset[aria-invalid="true"] {
+            border: 1px solid var(--error-control-border);
+            border-radius: var(--ui-border-radius);
+            box-shadow: var(--error-control-shadow);
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            cap-optiongroup > fieldset[aria-busy="true"],
+            cap-collapsibleoptiongroup > fieldset[aria-busy="true"] {
+                animation: none !important;
+            }
+        }
+
+        @media (forced-colors: active) {
+            cap-optiongroup > fieldset[aria-invalid="true"],
+            cap-collapsibleoptiongroup > fieldset[aria-invalid="true"] {
+                outline: 2px solid Mark;
+                outline-offset: 1px;
+            }
+        }
+
 cap-checkbox {
             display: inline-flex;
             position: relative;
             flex-flow: row wrap;
             align-items: center;
             align-content: center;
-            font-family: inherit;
-            font-size: var(--ui-font-size);
-            line-height: 1.2;
         }
 
         cap-checkbox > label {
             display: flex;
             flex-flow: row nowrap;
             position: relative;
-            min-height: 0rem;
+            min-height: var(--_cap-control-row-min);
             margin: 0;
             color: var(--ui-text-color);
             border-radius: var(--ui-border-radius);
@@ -1061,66 +1191,6 @@ cap-checkbox {
 
         @media (forced-colors: active) {
             cap-checkbox > label > input[aria-invalid="true"] + cap-checkshell {
-                outline: 2px solid Mark;
-                outline-offset: 1px;
-            }
-        }
-
-cap-collapsibleoptiongroup {
-            display: block;
-            position: relative;
-            min-width: 0;
-        }
-
-        cap-collapsibleoptiongroup > fieldset {
-            margin: 0;
-            padding: 0;
-            min-inline-size: 0;
-            border: 0;
-            width: 100%;
-            box-sizing: border-box;
-        }
-
-        cap-collapsibleoptiongroup > fieldset > legend {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            box-sizing: border-box;
-            gap: 0.5rem;
-            width: 100%;
-            padding: 0 0 0.25em;
-            margin-bottom: 0.5em;
-            border-bottom: 1px solid var(--ui-border-color);
-            font: inherit;
-            user-select: none;
-        }
-
-        cap-collapsibleoptiongroup > fieldset > legend > span {
-            flex: 1;
-            min-width: 0;
-        }
-
-        cap-collapsibleoptiongroup > fieldset[aria-busy="true"]:not([aria-invalid="true"]) {
-            background-image: var(--working-background-image);
-            background-repeat: repeat;
-            background-size: 2rem 2rem;
-            animation: cap-working-progress .55s linear infinite;
-        }
-
-        cap-collapsibleoptiongroup > fieldset[aria-invalid="true"] {
-            border: 1px solid var(--error-control-border);
-            border-radius: var(--ui-border-radius);
-            box-shadow: var(--error-control-shadow);
-        }
-
-        @media (prefers-reduced-motion: reduce) {
-            cap-collapsibleoptiongroup > fieldset[aria-busy="true"] {
-                animation: none !important;
-            }
-        }
-
-        @media (forced-colors: active) {
-            cap-collapsibleoptiongroup > fieldset[aria-invalid="true"] {
                 outline: 2px solid Mark;
                 outline-offset: 1px;
             }

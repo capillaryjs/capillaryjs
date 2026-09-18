@@ -52,6 +52,12 @@
         }
 
         .cap-scroll {
+            /* Move the clip into the surrounding gutter without moving the
+             * content. The inherited allowance is owned by the parent layout,
+             * so local gaps and nested scrollports do not add extra spacing. */
+            --_cap-scroll-gutter: calc(var(--_cap-island-flow, 0) * var(--_cap-island-gutter, 0px));
+            margin: calc(-1 * var(--_cap-scroll-gutter));
+            padding: var(--_cap-scroll-gutter);
             overflow: auto;
             min-inline-size: 0;
             min-block-size: 0;
@@ -72,6 +78,17 @@
             --_cap-island-outer-inset: 0px;
         }
 
+        .cap-layout-horizontal > *,
+        .cap-layout-vertical > *,
+        .cap-island-layout > * {
+            --_cap-island-gutter: calc(var(--_cap-island-flow, 0) * var(--island-gap, 0px) / 2);
+        }
+
+        .cap-island-layout.cap-scroll {
+            padding: calc(var(--_cap-island-outer-inset, var(--island-inset, 0px))
+                + var(--_cap-scroll-gutter));
+        }
+
         .cap-island-layout-off {
             --_cap-island-flow: 0;
             --_cap-island-margin: initial;
@@ -81,6 +98,7 @@
         .cap-island-layout-off > *,
         .island > * {
             --_cap-island-outer-inset: initial;
+            --_cap-island-gutter: 0px;
         }
 
         .colored {
@@ -173,6 +191,29 @@ cap-breadcrumb {
             font-weight: var(--breadcrumb-current-font-weight, 600);
         }
 
+cap-button,
+cap-checkbox,
+cap-dropdown,
+cap-datepicker,
+cap-datetimepicker,
+cap-progressbar,
+cap-quadcheckbox,
+cap-radiobutton,
+cap-textbox,
+cap-timepicker,
+cap-toggle,
+cap-tricheckbox {
+            --_cap-control-row-min: var(--_cap-control-compact-min,
+                max(var(--control-min-height, 2em), var(--control-row-min-height, 0px)));
+            min-height: calc(var(--_cap-control-row-min)
+                + 2 * var(--control-row-padding-block, .25em));
+            padding-block: var(--control-row-padding-block, .25em);
+            box-sizing: border-box;
+            font-family: inherit;
+            font-size: var(--ui-font-size);
+            line-height: 1.2;
+        }
+
 cap-button > button {
             display: inline-flex;
             align-items: center;
@@ -198,9 +239,6 @@ cap-button > button {
             flex-flow: row wrap;
             align-items: center;
             align-content: center;
-            font-family: inherit;
-            font-size: var(--ui-font-size);
-            line-height: 1.2;
         }
 
         cap-button > button:hover:not(:disabled, [aria-disabled="true"]) {
@@ -350,9 +388,6 @@ cap-tricheckbox {
             flex-flow: row wrap;
             align-items: center;
             align-content: center;
-            font-family: inherit;
-            font-size: var(--ui-font-size);
-            line-height: 1.2;
         }
 
         cap-checkbox > label,
@@ -362,7 +397,7 @@ cap-tricheckbox {
             display: flex;
             flex-flow: row nowrap;
             position: relative;
-            min-height: 0rem;
+            min-height: var(--_cap-control-row-min);
             margin: 0;
             color: var(--ui-text-color);
             border-radius: var(--ui-border-radius);
@@ -529,15 +564,40 @@ cap-toggle {
             position: relative;
             align-items: center;
             gap: .5em;
-            min-height: var(--control-min-height, 2em);
             color: var(--ui-text-color);
-            font-family: inherit;
-            font-size: var(--ui-font-size);
-            line-height: 1.2;
-            box-sizing: border-box;
             user-select: none;
         }
 
+        /* GroupBox owns the ordinary body layout. Labeled controls fill its
+           direct body so their own grid/flex row keeps labels left and native
+           input surfaces right; an explicitly nested Layout remains supported
+           for non-standard arrangements. */
+        cap-groupbox > cap-content > cap-dropdown,
+        /* GroupBox owns the ordinary body layout. Labeled controls fill its
+           direct body so their own grid/flex row keeps labels left and native
+           input surfaces right; an explicitly nested Layout remains supported
+           for non-standard arrangements. */
+        cap-groupbox > cap-content > cap-datepicker,
+        /* GroupBox owns the ordinary body layout. Labeled controls fill its
+           direct body so their own grid/flex row keeps labels left and native
+           input surfaces right; an explicitly nested Layout remains supported
+           for non-standard arrangements. */
+        cap-groupbox > cap-content > cap-datetimepicker,
+        /* GroupBox owns the ordinary body layout. Labeled controls fill its
+           direct body so their own grid/flex row keeps labels left and native
+           input surfaces right; an explicitly nested Layout remains supported
+           for non-standard arrangements. */
+        cap-groupbox > cap-content > cap-textbox,
+        /* GroupBox owns the ordinary body layout. Labeled controls fill its
+           direct body so their own grid/flex row keeps labels left and native
+           input surfaces right; an explicitly nested Layout remains supported
+           for non-standard arrangements. */
+        cap-groupbox > cap-content > cap-timepicker,
+        /* GroupBox owns the ordinary body layout. Labeled controls fill its
+           direct body so their own grid/flex row keeps labels left and native
+           input surfaces right; an explicitly nested Layout remains supported
+           for non-standard arrangements. */
+        cap-groupbox > cap-content > cap-toggle,
         cap-groupbox > cap-content > cap-layout > cap-dropdown,
         cap-groupbox > cap-content > cap-layout > cap-datepicker,
         cap-groupbox > cap-content > cap-layout > cap-datetimepicker,
@@ -1218,6 +1278,13 @@ cap-app {
             line-height: var(--line-height);
         }
 
+        /* A direct shell header delegates content spacing to its navbar,
+         * toolbar, and branding rows. Keep the inherited island token intact. */
+        cap-app > header.island,
+        cap-app > cap-header.island {
+            padding: 0;
+        }
+
 cap-groupbox,
 cap-optionsbox {
             display: flex;
@@ -1259,20 +1326,16 @@ cap-optionsbox {
 
         cap-groupbox > cap-content,
         cap-optionsbox > cap-content {
-            display: block;
+            display: flex;
+            flex-flow: column nowrap;
+            justify-content: flex-start;
+            align-content: flex-start;
+            align-items: flex-start;
+            gap: var(--groupbox-content-gap, .5rem);
             min-width: 0;
             min-height: 0;
             margin-left: var(--cap-groupbox-content-margin, .25em);
             flex: 1 1 auto;
-        }
-
-        cap-groupbox > cap-content > cap-layout,
-        cap-optionsbox > cap-content > cap-layout {
-            gap: .5rem;
-            justify-content: flex-start;
-            align-content: flex-start;
-            justify-items: flex-start;
-            align-items: flex-start;
         }
 
         /* Presentation contexts: each marker sets the complete context-sensitive
@@ -1375,6 +1438,7 @@ cap-optionsbox {
         cap-optionsbox.cap-groupbox-section > cap-content {
             grid-column: 1 / -1;
             grid-row: 2;
+            flex-flow: row nowrap;
             margin-left: 0;
             padding-block: 0.75rem;
             min-width: 0;
@@ -1442,6 +1506,34 @@ cap-optionsbox {
         cap-groupbox.cap-groupbox-column > cap-content,
         cap-optionsbox.cap-groupbox-column > cap-content {
             margin-left: 0;
+        }
+
+        /* A section's own content body is the ordinary horizontal column row.
+           Preserve the same stretch, edge padding, and separators formerly
+           provided when an application inserted a Layout just for that row. */
+        cap-groupbox.cap-groupbox-section > cap-content > cap-groupbox.cap-groupbox-column,
+        /* A section's own content body is the ordinary horizontal column row.
+           Preserve the same stretch, edge padding, and separators formerly
+           provided when an application inserted a Layout just for that row. */
+        cap-optionsbox.cap-groupbox-section > cap-content > cap-groupbox.cap-groupbox-column {
+            align-self: stretch;
+        }
+
+        cap-groupbox.cap-groupbox-section > cap-content > cap-groupbox.cap-groupbox-column
+            + cap-groupbox.cap-groupbox-column,
+        cap-optionsbox.cap-groupbox-section > cap-content > cap-groupbox.cap-groupbox-column
+            + cap-groupbox.cap-groupbox-column {
+            border-inline-start: var(--groupbox-column-separator);
+        }
+
+        cap-groupbox.cap-groupbox-section > cap-content > cap-groupbox.cap-groupbox-column:first-child,
+        cap-optionsbox.cap-groupbox-section > cap-content > cap-groupbox.cap-groupbox-column:first-child {
+            padding-inline-start: 0;
+        }
+
+        cap-groupbox.cap-groupbox-section > cap-content > cap-groupbox.cap-groupbox-column:last-child,
+        cap-optionsbox.cap-groupbox-section > cap-content > cap-groupbox.cap-groupbox-column:last-child {
+            padding-inline-end: 0;
         }
 
         .cap-layout-horizontal > cap-groupbox.cap-groupbox-column,
@@ -1776,15 +1868,20 @@ cap-optiongroup {
             }
         }
 
-cap-optionsbox > cap-content {
+cap-optionsbox {
+            --_cap-control-compact-min: 0px;
+            --control-row-padding-block: 0px;
+        }
+
+        cap-optionsbox > cap-content {
             display: flex;
             flex-direction: column;
             align-self: stretch;
             flex: 1 1 0;
-            gap: 1rem;
+            gap: 2px;
         }
 
-        cap-optionsbox > cap-content * > fieldset > legend {
+        cap-optionsbox > cap-content cap-optiongroup > fieldset > legend {
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -1793,23 +1890,30 @@ cap-optionsbox > cap-content {
             color: var(--palette-neutral-950);
             gap: 0.5rem;
             width: 100%;
-            padding: 0 0 0.25rem;
-            margin-bottom: 0.25rem;
+            padding: 0 0 1px;
+            margin-bottom: 1px;
             border-bottom: 1px solid var(--ui-border-color);
             user-select: none;
         }
 
-        cap-optionsbox > cap-content * > fieldset {
+        cap-optionsbox > cap-content cap-optiongroup > fieldset {
             display: flex;
-            flex-flow: column;
+            flex-flow: column nowrap;
             justify-content: stretch;
             justify-items: stretch;
             align-items: stretch;
             align-content: stretch;
             box-sizing: border-box;
             width: 100%;
-            gap: .33rem;
-            padding: .25em 0 .5em 0;
+            gap: 2px;
+            padding: 1px 0 2px;
+        }
+
+        /* OptionsBox is deliberately a dense, vertical filter surface. Keep
+           RadioGroup in the same rhythm as checkbox options, regardless of
+           theme-level RadioGroup spacing. */
+        cap-optionsbox > cap-content cap-radiogroup > fieldset {
+            gap: 2px;
         }
 
 cap-panel {
@@ -1843,7 +1947,8 @@ cap-panel {
         }
 
 cap-progressbar {
-            display: block;
+            display: flex;
+            align-items: center;
         }
 
         cap-progressbar > label,
@@ -1984,7 +2089,7 @@ cap-tricheckbox > label > input[value="require"] + cap-checkshell {
 cap-radiogroup > fieldset {
             display: flex;
             flex-flow: column wrap;
-            gap: var(--radio-group-gap, .5rem);
+            gap: var(--radio-group-gap, 0px);
             margin: 0;
             padding: 0;
             min-inline-size: 0;
@@ -2045,17 +2150,10 @@ cap-routeoutlet {
             flex-direction: column;
             min-width: 0;
             min-height: 0;
-            overflow: hidden;
         }
 
         cap-routeoutlet > div {
-            display: flex;
             flex: 1 1 auto;
-            flex-direction: column;
-            gap: calc(var(--_cap-island-flow, 0) * var(--island-gap, 0px));
-            min-width: 0;
-            min-height: 0;
-            overflow: auto;
         }
 
         cap-routeoutlet > div[hidden] {
@@ -2092,7 +2190,10 @@ cap-splitview {
             flex: 1 1 auto;
             min-width: 0;
             min-height: 0;
-            overflow: hidden;
+        }
+
+        cap-splitview > * {
+            --_cap-island-gutter: calc(var(--_cap-island-flow, 0) * var(--island-gap, 0px) / 2);
         }
 
         cap-splitview.horizontal {
@@ -2109,6 +2210,13 @@ cap-splitview {
 
         cap-splitview > cap-secondary {
             flex: 1 1 0;
+        }
+
+        /* Pane sizes describe content allocation. The compensated scrollport
+         * padding must stay outside that size, even on an explicit islands scope. */
+        cap-splitview > cap-primary.cap-scroll:not(.island),
+        cap-splitview > cap-secondary.cap-scroll:not(.island) {
+            box-sizing: content-box;
         }
 
         cap-splitview.horizontal > cap-primary {
@@ -2376,7 +2484,6 @@ cap-textbox {
         }
 
 cap-toggle {
-            min-height: var(--control-min-height, 2em);
             display: flex;
             position: relative;
             flex-flow: row nowrap;

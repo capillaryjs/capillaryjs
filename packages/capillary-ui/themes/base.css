@@ -94,6 +94,8 @@
     --font-size: 12px;
     --line-height: normal;
     --control-min-height: 2em;
+    --control-row-min-height: 0px;
+    --control-row-padding-block: .25em;
     --space-xs: 0px;
     --space-sm: 6px;
     --space-md: 1rem;
@@ -185,6 +187,8 @@
     --groupbox-section-separator: 1px solid var(--ui-border-color);
     --groupbox-column-header-color: var(--ui-color);
     --groupbox-column-separator: 1px solid var(--ui-border-color);
+    /* Inner GroupBox content rhythm is deliberately separate from island gutters. */
+    --groupbox-content-gap: .5rem;
 
     --toolbar-background: var(--palette-neutral-100);
     --toolbar-color: var(--palette-neutral-950);
@@ -268,7 +272,7 @@
     --radio-box-shadow-checked: var(--checkbox-box-shadow-checked);
     --radio-symbol-color: var(--checkbox-symbol-color);
     --radio-symbol-size: .4em;
-    --radio-group-gap: .5rem;
+    --radio-group-gap: 0px;
     --checkable-label-color-disabled: #aaa;
     --toggle-button-background: var(--button-background);
     --toggle-button-background-checked: var(--palette-primary-700);

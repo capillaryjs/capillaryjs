@@ -163,12 +163,17 @@ test('errors mark controls and expose overlay details on icon hover or focus', a
     expect(new Set(paintedControls.map(({border}) => border)).size).toBe(1)
     expect(errorHalos.every((boxShadow) => boxShadow !== 'none')).toBe(true)
 
+    await page.mouse.move(0, 0)
+    await expect(firstMessage).toBeHidden()
     const compactAlert = root.locator('.compact-error cap-error')
     const compactText = compactAlert.locator('cap-errortext')
     await expect(compactText).toBeHidden()
     await compactAlert.focus()
     await expect(compactText).toBeVisible()
     await expect(compactText).toHaveText('Compact error details')
+    // Visibility becomes true at the start of the fade. Measure contrast only
+    // once the message is fully opaque, not against a transient blended color.
+    await expect(compactText).toHaveCSS('opacity', '1')
 
     const {violations} = await new AxeBuilder({page}).include('#status-root').analyze()
     expect(violations.filter(({impact}) => impact === 'serious' || impact === 'critical'))

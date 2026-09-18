@@ -111,6 +111,12 @@ undefined inherits. App defaults to vertical when explicitly enabled without
 `layout`. The native equivalents are `cap-island-layout` and
 `cap-island-layout-off`.
 
+A direct app-root island header (`cap-app > header.island` or
+`cap-app > cap-header.island`) has zero content padding, regardless of
+`--island-padding` or managed/legacy island mode. Its navbar, toolbar, and
+branding rows own their spacing. This does not change outer gutters, borders,
+shadows, nested header padding, or other island surfaces.
+
 TSX is the primary documented authoring syntax. TSX and `h()` lower to the
 same vnode representation. A readable emitter in child position owns a
 fine-grained binding range; normal props preserve the original object.
@@ -187,12 +193,21 @@ Notable public behavior:
   section with a larger legend/top rule; its `column` variant is a
   natural-sized inner group with normal-size, semi-bold heading text separated
   slightly from its contents and sibling dividers in horizontal Layouts.
+  Its body is itself the standard direct-child flex layout (vertical by
+  default, horizontal for a section), using `--groupbox-content-gap`; nest a
+  `Layout` only for a non-standard arrangement.
   Both variants transpose their rule/divider and fill the relevant cross-axis
   when the immediate Layout axis is reversed. GroupBox adds neither a synthetic preferred width nor an
   artificial size floor; fields retain their own floor before wrapping.
 - `OptionGroup` renders a labelled `fieldset`/`legend` shell and accepts an
-  `OptionGroupHeaderEnd` declarative region child.
-- `OptionsBox` extends `GroupBox` with a flex-column content area for `OptionGroup` children.
+  `OptionGroupHeaderEnd` declarative region child. Use it for a collection of
+  direct checkboxes or when its legend adds a distinct concept around several
+  controls.
+- `OptionsBox` extends `GroupBox` with a flex-column content area for compact
+  `OptionGroup` and/or `RadioGroup` children. A single mutually exclusive
+  choice belongs in a direct labelled `RadioGroup`; wrapping it in an
+  `OptionGroup` creates redundant nested fieldsets unless the outer legend has
+  separate semantic value.
 - `ContentMountPolicy` selects eager, lazy-retained, or active-only content
   lifetime for `TabPanel` and `RouteOutlet`; `TabPanelMountPolicy` remains an
   alias while tabs preserve semantic tabpanel shells.
@@ -322,12 +337,19 @@ status colors, not hue names; the neutral status color is distinct from the
 to error and success roles. Multi-state checkbox deny, require, and prefer
 states use negative, positive, and neutral status chrome respectively.
 
-Line controls use a `--control-min-height` default of `2em` (24px at 12px UI
-text), independent of general padding and text line height. Component CSS
-centers bodies and text; checkboxes/radio buttons keep compact 1.2em label
-rows and 1em painted controls. Field/button inline padding is 5px and toggle
-padding is 6px. Shiny retains the structural geometry; themes can explicitly
-override the minimum. Existing props and sizing variable names are unchanged.
+Line controls share a row minimum of
+`max(--control-min-height, --control-row-min-height)` plus twice
+`--control-row-padding-block`. Defaults are `2em`, `0px`, and `.25em`
+respectively: 30px rows at 12px UI text. Capillary sets the row floor to
+`2.75em` (39px rows) to accommodate its native temporal inputs. Component CSS
+centers existing bodies and text without enlarging checkbox/radio shapes;
+rich content may increase row height. OptionsBox establishes inherited
+compact rows without the common floor/padding. It owns a fixed `2px`, vertical
+rhythm for OptionGroup, checkbox, and RadioGroup descendants regardless of
+theme; RadioGroup's default `--radio-group-gap` outside an OptionsBox is
+`0px`, matching ordinary checkbox stacks, and explicit gaps remain supported.
+Field/button inline padding is 5px and toggle padding is 6px. Existing control
+props are unchanged.
 
 `NavigationBar` consumes its own `--navigation-bar-*` container and
 `--navigation-link-*` item variables. These defaults are text-link navigation,
@@ -363,13 +385,18 @@ keep the control presentation.
 `island` marks one explicit, non-nestable surface boundary. An outer
 `cap-island-layout` contributes one `--island-inset`; participating nested
 layouts and RouteOutlet content use `--island-gap` without repeating the inset.
-Managed islands have zero outer margin, with corresponding filled-root bounds.
-Surface contents and explicit opt-outs stop managed gaps. SplitView's separator
-occupies one gutter and retains an overlapping pointer target at zero gap;
-horizontal pointer and keyboard resizing follow RTL direction. Legacy
-`--island-margin` remains in effect outside managed scopes. Base defaults gap
-and inset to `1rem`; White makes both zero. This is layout ownership, not
-automatic adjacency measurement or responsive behavior.
+Managed scrollports use equal negative margin and positive padding to include
+half the surrounding gutter inside their clipping area without moving surfaces
+or increasing gaps. RouteOutlet and SplitView leave clipping to their content
+scrollports and panes; themes declare border/shadow chrome without a clearance
+token. Managed islands have zero outer margin, with corresponding filled-root
+bounds. Surface contents and explicit opt-outs stop managed gaps and scrollport
+extensions. SplitView's separator occupies one gutter
+and retains an overlapping pointer target at zero gap; horizontal pointer and
+keyboard resizing follow RTL direction. Legacy `--island-margin` remains in
+effect outside managed scopes. Base defaults gap and inset to `1rem`;
+White makes gap and inset zero. This is layout ownership,
+not automatic adjacency measurement or responsive behavior.
 
 `colored` consumes
 application-supplied `--c1`, `--c2`, and `--c3` values for a shared gradient

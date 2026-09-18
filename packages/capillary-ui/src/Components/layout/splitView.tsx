@@ -190,9 +190,7 @@ export class SplitView extends Component<SplitViewProps> {
         this.pointerResize = {
             pointerId: event.pointerId,
             startCoordinate: axis === 'horizontal' ? event.clientX : event.clientY,
-            startSize: axis === 'horizontal'
-                ? primary.getBoundingClientRect().width
-                : primary.getBoundingClientRect().height,
+            startSize: this.primaryExtent(primary),
         }
         event.currentTarget.setPointerCapture?.(event.pointerId)
         event.preventDefault()
@@ -264,7 +262,12 @@ export class SplitView extends Component<SplitViewProps> {
 
     private primaryExtent(primary: HTMLElement): number {
         const bounds = primary.getBoundingClientRect()
-        return this.axis() === 'horizontal' ? bounds.width : bounds.height
+        const style = primary.ownerDocument.defaultView?.getComputedStyle(primary)
+        // Scrollports can extend into a managed gutter. Resize the allocated
+        // pane, excluding that paint space, rather than its expanded clip box.
+        return this.axis() === 'horizontal'
+            ? bounds.width + (parseFloat(style?.marginLeft ?? '') || 0) + (parseFloat(style?.marginRight ?? '') || 0)
+            : bounds.height + (parseFloat(style?.marginTop ?? '') || 0) + (parseFloat(style?.marginBottom ?? '') || 0)
     }
 
     private updateSeparatorValue(): void {
@@ -324,7 +327,10 @@ export class SplitView extends Component<SplitViewProps> {
             flex: 1 1 auto;
             min-width: 0;
             min-height: 0;
-            overflow: hidden;
+        }
+
+        & > * {
+            --_cap-island-gutter: calc(var(--_cap-island-flow, 0) * var(--island-gap, 0px) / 2);
         }
 
         &.horizontal {
@@ -341,6 +347,13 @@ export class SplitView extends Component<SplitViewProps> {
 
         & > cap-secondary {
             flex: 1 1 0;
+        }
+
+        /* Pane sizes describe content allocation. The compensated scrollport
+         * padding must stay outside that size, even on an explicit islands scope. */
+        & > cap-primary.cap-scroll:not(.island),
+        & > cap-secondary.cap-scroll:not(.island) {
+            box-sizing: content-box;
         }
 
         &.horizontal > cap-primary {

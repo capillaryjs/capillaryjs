@@ -365,9 +365,9 @@ const view = new Emitter<'list' | 'grid'>('list')
 | --- | --- | --- |
 | `CapillaryUiApp` | Fixed `cap-app` application shell and theme-text boundary | `sizing`: `embedded`/viewport axes; `layout`: `horizontal`/`vertical`; `islands`: inherited surface spacing; `landmark`: `main`/`none`; content or overridden `renderContent()` |
 | `Header` | Styled native heading surface | `level` (1–6), `headingId`, content |
-| `GroupBox` | Labelled group; defaults to a bordered vertical-header group and may be a section or column | required `header`, content; optional `variant`: `section` or `column` |
-| `OptionGroup` | Labelled native fieldset for related controls | `label`/`ariaLabel`, `OptionGroupHeaderEnd` and ordinary content children, `disabled`, `required`, `busy`, `error`; state props are live |
-| `OptionsBox` | GroupBox specialization arranging option groups | required `header`, `OptionGroup` content |
+| `GroupBox` | Labelled group; defaults to a bordered vertical-header group and may be a section or column | required `header`, direct content arranged vertically (`section` arranges direct content horizontally); optional `variant`: `section` or `column` |
+| `OptionGroup` | Labelled native fieldset for related controls | `label`/`ariaLabel`, `OptionGroupHeaderEnd` and ordinary content children, `disabled`, `required`, `busy`, `error`; state props are live. Use for related direct checkboxes or multiple distinct controls. |
+| `OptionsBox` | GroupBox specialization arranging compact choice groups | required `header`, direct `OptionGroup` and/or `RadioGroup` content |
 | `Layout` | Presentation-only arrangement of arbitrary children | exactly one of `horizontal`/`vertical`; `allocation`, `scroll`, inherited `islands` spacing, optional accessible-region configuration |
 | `Panel` | Optional labelled, themed region composed over a Layout body | `header`, `horizontal`/`vertical`, `allocation`, `scroll`, `disabled`; `PanelToolbar` and ordinary content children; live: `disabled` |
 | `Sidebar` | Labelled complementary region with fixed header/toolbar and scrolling content | `header`, `ariaLabel`; `SidebarToolbar` and ordinary content children |
@@ -783,10 +783,23 @@ runtime selection.
 
 ### Line-control sizing
 
-Textbox, Dropdown, Toggle, and Button use `--control-min-height: 2em` by
-default: a 24px border-box minimum at the default 12px `--ui-font-size`.
-This minimum is independent of general UI padding and the text line height.
-Their labels and native controls inherit the font family and share a unitless
+All single-line controls reserve the same vertical row space: Textbox,
+Dropdown (including theme/color pickers), Toggle, Button, checkbox variants,
+RadioButton, date/time controls, and ProgressBar. Their existing painted
+bodies remain centered within that row; small checkbox/radio shapes do not
+grow to look like text fields.
+
+`--control-min-height: 2em` sets the body minimum (24px at the default 12px
+`--ui-font-size`). The row uses the greater of that minimum and
+`--control-row-min-height` (default `0px`), plus
+`--control-row-padding-block: .25em` on each side. Default rows are therefore
+30px with 3px above and below the body. Capillary supplies a `2.75em` row
+floor (39px including padding) to accommodate its roomier chrome and native
+temporal inputs while retaining its `6px 5px` control padding. Additional
+layout `gap` is optional and adds to this built-in breathing room.
+
+These are minimum sizes: multiline/rich content can grow without clipping.
+Labels and native controls inherit the font family and share a unitless
 1.2 authored text line height. Native single-line inputs may clamp the used
 line-height to platform font metrics (notably Firefox on Linux); their bodies
 and text remain centered. Larger content can increase the minimum-sized body.
@@ -794,6 +807,29 @@ Textbox and Dropdown retain their `--input-width: 15em` default and existing
 minimum-width/shrinking behavior. Field and button inline padding is 5px;
 toggle segments use 6px. General `--space-xs`/`--space-sm` no longer determine
 these line controls' padding.
+
+`OptionsBox` deliberately keeps compact descendants, including through nested
+`OptionGroup` and `Layout` wrappers: it removes the shared row floor and
+block padding while retaining each control's natural body size. Its checkbox
+and radio rows are normally 1.2em, or the theme's larger painted-shell size.
+OptionsBox owns a fixed 2px vertical option rhythm—between nested groups,
+checkboxes, and radio options—regardless of theme. Ordinary GroupBox and
+Toolbar do not opt into compact spacing. RadioGroup elsewhere adds no
+inter-option gap by default, so the same number of radio and checkbox rows
+occupies the same height (excluding any group legend). Set
+`--radio-group-gap` to add spacing explicitly outside OptionsBox.
+
+An `OptionGroup` and a labelled `RadioGroup` both produce a native
+`fieldset`/`legend`. For one mutually exclusive choice, put the `RadioGroup`
+directly in an `OptionsBox` and give it the one visible label. Use an
+`OptionGroup` for a collection of direct checkboxes (or when its legend adds a
+separate, meaningful concept around several controls). Do not wrap a single
+labelled `RadioGroup` in an `OptionGroup` merely for layout; that creates
+redundant legends and nested fieldsets.
+
+Maintained themes add chrome without text offsets. Shadows do not participate
+in centering. Toggle borders and selected overlap are painted independently
+of segment layout, so selection does not move text.
 
 Horizontal form `GroupBox` children use their natural content size: GroupBox
 does not contribute a synthetic preferred width or an artificial size floor.
@@ -823,14 +859,6 @@ the panel chrome sits flush to the data surface. Other panel bodies retain
 their normal inset. In this composition, omit a `DataTable` `caption`: the
 labelled Panel header supplies the surrounding data-region name. Application
 data-surface components can opt in by declaring the same static trait.
-
-Checkbox variants and RadioButton retain compact 1.2em label rows with 1em
-squares/circles. They center within stretched horizontal hosts without making
-vertical lists as tall as text fields. Date/time controls consume the same
-shared sizing rules. Maintained themes use the structural defaults and add
-chrome without text offsets. Shadows do not participate in centering. Toggle
-borders and selected overlap are painted independently of segment layout, so
-selection does not move text.
 
 ### Root sizing and typography
 
@@ -962,10 +990,28 @@ perimeter inset. Neither this mode nor nested layouts permit nested islands.
 
 Use `--island-gap` for gutters and `--island-inset` for the outer inset. Base
 defaults both to `1rem`; White uses zero. Override these on the composition,
-and optionally `--island-gap` on a nested Layout for a local gutter. `--island-padding`
-remains the padding **inside** each surface. `SplitView` inherits the mode and
-places its separator in one shared gutter; a zero gutter retains an overlapping
-drag target and keyboard resizing.
+and optionally `--island-gap` on a nested Layout for a local gutter.
+`--island-padding` remains the padding **inside** each surface, except a direct
+app-root header: `cap-app > header.island` and `cap-app > cap-header.island`
+have zero padding. These shell headers delegate internal spacing to their
+navbar, toolbar, and branding rows. Their border, shadow, outer inset, and
+gutter remain unchanged. Nested headers and non-island headings are unaffected;
+this rule also applies outside managed island mode. Use a native `<header
+className="island">` for a shell containing navigation/toolbars; `Header`
+remains the component for a native heading.
+
+`SplitView`
+inherits the mode and places its separator in one shared gutter; a zero gutter
+retains an overlapping drag target and keyboard resizing.
+
+Scrolling layouts automatically include surrounding gutter space in their
+scrollport, so an island's border and shadow can paint there. Equal padding
+and negative margin extend the clip by half a gutter without moving the
+surfaces or increasing their separation. Nested scrollports reuse this space;
+RouteOutlet and SplitView leave clipping to their content/panes. Themes only
+declare their ordinary borders and shadows: no clearance token is required.
+Surface contents and opt-outs retain ordinary scrolling behavior. A zero
+gutter deliberately leaves no paint space between adjacent surfaces.
 
 Native markup can use `cap-island-layout` and `cap-island-layout-off`. Combine
 them with a direction trait, or with your own `display: grid` rules. A wrapper

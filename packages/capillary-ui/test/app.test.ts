@@ -61,6 +61,7 @@ test('CapillaryUiApp renders a themed, landmarked cap-app shell', () => {
     assert.match(stylesheet.textContent, /cap-app\s*\{[^}]*font-family:\s*var\(--font-family\)/)
     assert.match(stylesheet.textContent, /cap-app\s*\{[^}]*font-size:\s*var\(--font-size\)/)
     assert.match(stylesheet.textContent, /cap-app\s*\{[^}]*line-height:\s*var\(--line-height\)/)
+    assert.match(stylesheet.textContent, /cap-app > header\.island,\s*cap-app > cap-header\.island\s*\{\s*padding:\s*0;/)
 
     app.destroy()
 })

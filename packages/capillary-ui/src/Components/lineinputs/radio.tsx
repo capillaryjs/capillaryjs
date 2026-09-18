@@ -221,7 +221,7 @@ export class RadioGroup<TValue extends Key = string>
         & > fieldset {
             display: flex;
             flex-flow: column wrap;
-            gap: var(--radio-group-gap, .5rem);
+            gap: var(--radio-group-gap, 0px);
             margin: 0;
             padding: 0;
             min-inline-size: 0;

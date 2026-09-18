@@ -8,6 +8,13 @@ Versioning.
 
 ### Fixed
 
+- Omit island content padding on direct app-root headers, letting their navbar
+  and toolbar own spacing. Preserve nested headers, other islands, outer
+  gutters, borders, and shadows across themes and managed/legacy layouts.
+- Keep island borders and shadows visible through nested scrollports by using
+  existing gutter space inside the clipping boundary. Preserve surface
+  alignment, shared gaps, and split resizing without theme clearance tokens.
+  Add browser pixel checks for painted borders/shadows and clipping regressions.
 - Publish only the maintained Capillary, Shiny, Soft, White, and Minimal themes.
   The former Glossy, Original, Java, Dark, and Sci-fi assets and picker entries
   are removed from the package and applications.
@@ -72,6 +79,13 @@ Versioning.
 
 ### Changed
 
+- Give all single-line controls the same minimum row footprint with symmetric
+  breathing room, including checkbox/radio variants, temporal inputs, and
+  ProgressBar. Add `--control-row-min-height` and `--control-row-padding-block`
+  without changing painted control shapes or Capillary's `6px 5px` padding.
+  Only OptionsBox retains compact rows and owns a fixed 2px vertical option
+  rhythm across themes; RadioGroup no longer adds a default gap on top of the
+  common row spacing elsewhere.
 - Empty required text, temporal, and dropdown controls now have a subtle
   themeable dashed required-value outline. The same outline appears on an
   unchecked two-state `Checkbox`; tri- and quad-state checkboxes intentionally
@@ -106,8 +120,8 @@ Versioning.
   `cap-header:has(+ cap-toolbar)` shadow override together with its
   `--section-header-with-toolbar-shadow` variable.
 - Normalize line-control sizing and text centering in structural CSS: 24px
-  default textbox, dropdown, toggle, and button bodies at 12px UI text, with
-  compact checkbox/radio rows. Remove Shiny's label/select text offsets and
+  default textbox, dropdown, toggle, and button bodies at 12px UI text.
+  Remove Shiny's label/select text offsets and
   prevent toggle border/selection changes from shifting segment text.
 - Refine Shiny's input depth, toolbar/table-header chrome, navigation-to-toolbar
   seam, and loading BlockGraph treatment without moving structural layout

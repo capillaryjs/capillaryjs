@@ -269,7 +269,8 @@ describe('style registry', () => {
         assert.match(stylesheet, /cap-navigationbar > nav > ul\s*\{[^}]*display:\s*flex[^}]*list-style:\s*none/)
         assert.match(stylesheet, /cap-navigationbar > nav > ul > li > a,\s*cap-navigationbar > nav > ul > li > span\[aria-disabled="true"\]\s*\{[^}]*color:\s*var\(--navigation-link-color\)[^}]*background:\s*var\(--navigation-link-background\)[^}]*border:\s*var\(--navigation-link-border\)/)
         assert.match(stylesheet, /cap-navigationbar > nav > ul > li > a\[aria-current="page"\]\s*\{[^}]*color:\s*var\(--navigation-link-color-current\)[^}]*background:\s*var\(--navigation-link-background-current\)[^}]*box-shadow:\s*var\(--navigation-link-shadow-current\)[^}]*font-weight:\s*var\(--navigation-link-font-weight-current\)/)
-        assert.match(stylesheet, /cap-routeoutlet\s*\{[^}]*display:\s*flex[^}]*overflow:\s*hidden/)
+        assert.match(stylesheet, /cap-routeoutlet\s*\{[^}]*display:\s*flex/)
+        assert.doesNotMatch(stylesheet, /cap-routeoutlet\s*\{[^}]*overflow:/)
         assert.match(stylesheet, /cap-routeoutlet > div\[hidden\]\s*\{[^}]*display:\s*none/)
         assert.doesNotMatch(stylesheet, /cap-tabline|role="tab"|data-part/)
     })
@@ -408,13 +409,28 @@ describe('style registry', () => {
         assert.doesNotMatch(stylesheet, /data-(?:kind|disabled|required|error)|cap-themepicker|cap-colorpicker|cap-treeview/)
     })
 
+    test('collects shared row geometry for every line-control family', () => {
+        for (const Control of [Textbox, Dropdown, Toggle, Button, Checkbox, TriCheckbox,
+            QuadCheckbox, RadioButton, DatePicker, TimePicker, DateTimePicker,
+            ThemePicker, ColorPicker, ProgressBar]) {
+            const runtime = createCapillaryUiRuntime()
+            runtime.registerStyles(Control)
+            const stylesheet = runtime.styleRegistry.generateCSS()
+            assert.match(stylesheet, /--_cap-control-row-min:\s*var\(--_cap-control-compact-min,\s*max\(var\(--control-min-height, 2em\), var\(--control-row-min-height, 0px\)\)\)/, Control.name)
+            assert.match(stylesheet, /min-height:\s*calc\(var\(--_cap-control-row-min\)\s*\+ 2 \* var\(--control-row-padding-block, \.25em\)\)/, Control.name)
+            assert.match(stylesheet, /padding-block:\s*var\(--control-row-padding-block, \.25em\)/, Control.name)
+            assert.match(stylesheet, /font-family:\s*inherit;\s*font-size:\s*var\(--ui-font-size\);\s*line-height:\s*1\.2/, Control.name)
+        }
+    })
+
     test('keeps checkbox controls separate from generic input and button treatment', () => {
         const runtime = createCapillaryUiRuntime()
         runtime.registerStyles(Checkbox)
         const stylesheet = runtime.styleRegistry.generateCSS()
 
-        assert.match(stylesheet, /cap-checkbox\s*\{[^}]*display:\s*inline-flex[^}]*line-height:\s*1/)
+        assert.match(stylesheet, /cap-checkbox\s*\{[^}]*display:\s*inline-flex/)
         assert.match(stylesheet, /cap-checkbox > label\s*\{[^}]*display:\s*flex/)
+        assert.match(stylesheet, /cap-checkbox > label\s*\{[^}]*min-height:\s*var\(--_cap-control-row-min\)/)
         assert.match(stylesheet, /input \+ cap-checkshell/)
         assert.match(stylesheet, /label:has\(> input:disabled\)\s*\{[^}]*color:\s*var\(--checkable-label-color-disabled\)[^}]*cursor:\s*not-allowed/)
         assert.match(stylesheet, /cap-checkshell\s*\{[^}]*width:\s*var\(--checkbox-box-size, 1em\)[^}]*height:\s*var\(--checkbox-box-size, 1em\)[^}]*border-radius:\s*var\(--checkbox-box-radius,[^}]*box-shadow:\s*var\(--checkbox-box-shadow\)/)
@@ -458,7 +474,7 @@ describe('style registry', () => {
         runtime.registerStyles(RadioGroup)
         const stylesheet = runtime.styleRegistry.generateCSS()
 
-        assert.match(stylesheet, /cap-radiogroup > fieldset\s*\{[^}]*display:\s*flex[^}]*flex-flow:\s*column wrap[^}]*gap:\s*var\(--radio-group-gap, \.5rem\)[^}]*min-inline-size:\s*0/)
+        assert.match(stylesheet, /cap-radiogroup > fieldset\s*\{[^}]*display:\s*flex[^}]*flex-flow:\s*column wrap[^}]*gap:\s*var\(--radio-group-gap, 0px\)[^}]*min-inline-size:\s*0/)
         assert.match(stylesheet, /cap-radiogroup > fieldset > legend\s*\{[^}]*flex:\s*0 0 100%[^}]*padding:\s*0/)
         assert.match(stylesheet, /cap-radiobutton > label > input\[type="radio"\] \+ cap-checkshell\s*\{[^}]*border-radius:\s*50%/)
         assert.doesNotMatch(stylesheet, /data-part|data-disabled|data-required|data-error|cap-options|cap-toggle/)
@@ -469,7 +485,7 @@ describe('style registry', () => {
         runtime.registerStyles(ProgressBar)
         const stylesheet = runtime.styleRegistry.generateCSS()
 
-        assert.match(stylesheet, /cap-progressbar\s*\{[^}]*display:\s*block/)
+        assert.match(stylesheet, /cap-progressbar\s*\{[^}]*display:\s*flex[^}]*align-items:\s*center/)
         assert.match(stylesheet, /cap-progressbar > label,[\s\S]*cap-progressbar > progress\s*\{[^}]*clip:\s*rect\(0 0 0 0\)/)
         assert.match(stylesheet, /cap-progressbar > cap-content\s*\{[^}]*background:\s*var\(--progress-track-background\)[^}]*box-shadow:\s*var\(--progress-track-shadow\)/)
         assert.match(stylesheet, /cap-progressbar > cap-content > cap-progress\s*\{[^}]*width:\s*var\(--progress-width, 0%\)[^}]*background:\s*var\(--progress-value-background\)[^}]*box-shadow:\s*var\(--progress-value-shadow\)/)
@@ -485,6 +501,7 @@ describe('style registry', () => {
         const stylesheet = runtime.styleRegistry.generateCSS()
 
         assert.match(stylesheet, /cap-textbox\s*\{[^}]*display:\s*flex/)
+        assert.match(stylesheet, /cap-groupbox > cap-content > cap-textbox,[\s\S]*?cap-groupbox > cap-content > cap-layout > cap-textbox\s*\{[^}]*align-self:\s*stretch/)
         assert.match(stylesheet, /cap-textbox > input\s*\{[^}]*background:\s*var\(--input-background\)/)
         assert.match(stylesheet, /cap-textbox > input\s*\{[^}]*cursor:\s*text/)
         assert.match(stylesheet, /cap-textbox > input:disabled\s*\{[^}]*cursor:\s*not-allowed/)
@@ -525,11 +542,14 @@ describe('style registry', () => {
         runtime.registerStyles(OptionsBox)
         const stylesheet = runtime.styleRegistry.generateCSS()
 
+        assert.match(stylesheet, /cap-optionsbox\s*\{[^}]*--_cap-control-compact-min:\s*0px[^}]*--control-row-padding-block:\s*0px/)
+        assert.match(stylesheet, /cap-optiongroup\s*\{[^}]*display:\s*block/)
         assert.match(stylesheet, /cap-optionsbox\s*\{[^}]*display:\s*flex[^}]*flex-flow:\s*var\(--cap-groupbox-flow, row nowrap\)[^}]*border:\s*var\(--cap-groupbox-border, 1px solid var\(--ui-border-color\)\)/)
         assert.match(stylesheet, /cap-optionsbox > cap-header\s*\{[^}]*place-items:\s*var\(--cap-groupbox-header-align, center\)[^}]*writing-mode:\s*var\(--cap-groupbox-header-writing, vertical-rl\)[^}]*transform:\s*var\(--cap-groupbox-header-transform, rotate\(180deg\)\)/)
-        assert.match(stylesheet, /cap-optionsbox > cap-content\s*\{[^}]*display:\s*flex[^}]*flex-direction:\s*column[^}]*gap:\s*1rem/)
-        assert.match(stylesheet, /cap-optionsbox > cap-content \* > fieldset > legend\s*\{[^}]*padding:\s*0 0 0\.25rem[^}]*margin-bottom:\s*0\.25rem/)
-        assert.match(stylesheet, /cap-optionsbox > cap-content \* > fieldset\s*\{[^}]*display:\s*flex[^}]*flex-flow:\s*column[^}]*gap:\s*\.33rem/)
+        assert.match(stylesheet, /cap-optionsbox > cap-content\s*\{[^}]*display:\s*flex[^}]*flex-direction:\s*column[^}]*gap:\s*2px/)
+        assert.match(stylesheet, /cap-optionsbox > cap-content cap-optiongroup > fieldset > legend\s*\{[^}]*padding:\s*0 0 1px[^}]*margin-bottom:\s*1px/)
+        assert.match(stylesheet, /cap-optionsbox > cap-content cap-optiongroup > fieldset\s*\{[^}]*display:\s*flex[^}]*flex-flow:\s*column nowrap[^}]*gap:\s*2px/)
+        assert.match(stylesheet, /cap-optionsbox > cap-content cap-radiogroup > fieldset\s*\{[^}]*gap:\s*2px/)
         assert.match(stylesheet, /cap-header\s*\{[^}]*background:\s*var\(--section-header-background\)/)
         assert.doesNotMatch(stylesheet, /cap-panel|cap-sidebar|cap-checkbox/)
     })
@@ -540,14 +560,18 @@ describe('style registry', () => {
         const stylesheet = runtime.styleRegistry.generateCSS()
 
         assert.match(stylesheet, /cap-groupbox\s*\{[^}]*display:\s*flex[^}]*flex-flow:\s*var\(--cap-groupbox-flow, row nowrap\)[^}]*gap:\s*var\(--cap-groupbox-gap, 0 0\.35rem\)[^}]*border:\s*var\(--cap-groupbox-border, 1px solid var\(--ui-border-color\)\)/)
+        assert.match(stylesheet, /cap-groupbox > cap-content\s*\{[^}]*display:\s*flex[^}]*flex-flow:\s*column nowrap[^}]*gap:\s*var\(--groupbox-content-gap, \.5rem\)/)
         assert.match(stylesheet, /cap-groupbox > cap-header\s*\{[^}]*place-items:\s*var\(--cap-groupbox-header-align, center\)[^}]*width:\s*var\(--cap-groupbox-header-width, 1\.7em\)[^}]*border-radius:\s*var\(--ui-border-radius\)/)
         assert.match(stylesheet, /cap-groupbox > cap-header\s*\{[^}]*color:\s*var\(--cap-groupbox-header-color, var\(--section-header-color\)\)[^}]*writing-mode:\s*var\(--cap-groupbox-header-writing, vertical-rl\)[^}]*transform:\s*var\(--cap-groupbox-header-transform, rotate\(180deg\)\)/)
         assert.match(stylesheet, /cap-groupbox\.cap-groupbox-section\s*\{[^}]*display:\s*grid[^}]*grid-template-columns:\s*max-content minmax\(0, 1fr\)[^}]*grid-template-rows:\s*max-content minmax\(max-content, 1fr\)[^}]*border:\s*0/)
         assert.match(stylesheet, /cap-groupbox\.cap-groupbox-section::before\s*\{[^}]*border-block-start:\s*var\(--groupbox-section-separator\)/)
         assert.match(stylesheet, /cap-groupbox\.cap-groupbox-section > cap-header\s*\{[^}]*color:\s*var\(--groupbox-section-header-color\)[^}]*font-size:\s*var\(--groupbox-section-font-size, 1\.2em\)[^}]*font-weight:\s*600/)
+        assert.match(stylesheet, /cap-groupbox\.cap-groupbox-section > cap-content\s*\{[^}]*flex-flow:\s*row nowrap/)
         assert.match(stylesheet, /cap-layout-horizontal > cap-groupbox\.cap-groupbox-section::before\s*\{[^}]*grid-column:\s*1[^}]*grid-row:\s*2[^}]*border-inline-end:\s*var\(--groupbox-section-separator\)/)
         assert.match(stylesheet, /cap-groupbox\.cap-groupbox-column\s*\{[^}]*gap:\s*0[^}]*border:\s*0[^}]*flex:\s*0 1 auto/)
         assert.match(stylesheet, /cap-groupbox\.cap-groupbox-column > cap-header[\s\S]*?margin-block-end:\s*0\.75rem[\s\S]*?font-size:\s*var\(--ui-font-size\)[\s\S]*?font-weight:\s*600/)
+        assert.match(stylesheet, /cap-groupbox\.cap-groupbox-section > cap-content > cap-groupbox\.cap-groupbox-column\s*\{[^}]*align-self:\s*stretch/)
+        assert.match(stylesheet, /cap-groupbox\.cap-groupbox-section > cap-content > cap-groupbox\.cap-groupbox-column\s*\+\s*cap-groupbox\.cap-groupbox-column\s*\{[^}]*border-inline-start:\s*var\(--groupbox-column-separator\)/)
         assert.match(stylesheet, /cap-layout-horizontal > cap-groupbox\.cap-groupbox-column,[\s\S]*?cap-layout-vertical > cap-groupbox\.cap-groupbox-column\s*\{[^}]*align-self:\s*stretch/)
         assert.match(stylesheet, /cap-layout-horizontal > cap-groupbox\.cap-groupbox-column \+ cap-groupbox\.cap-groupbox-column\s*\{[^}]*border-inline-start:\s*var\(--groupbox-column-separator\)/)
         assert.match(stylesheet, /cap-layout-vertical > cap-groupbox\.cap-groupbox-column \+ cap-groupbox\.cap-groupbox-column\s*\{[^}]*border-block-start:\s*var\(--groupbox-column-separator\)/)

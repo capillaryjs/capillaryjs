@@ -133,7 +133,7 @@ body {
     scroll-margin-block: 1rem;
 }
 
-.gallery-group-row {
+.gallery-group-row.cap-groupbox-section > cap-content {
     flex-wrap: wrap;
     align-items: stretch;
     gap: 1rem 0;

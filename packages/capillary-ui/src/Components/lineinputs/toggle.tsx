@@ -152,7 +152,6 @@ export class Toggle<TValue extends Key = string> extends LabeledInputControl<Tog
 
     static override css = css`
         & {
-            min-height: var(--control-min-height, 2em);
             display: flex;
             position: relative;
             flex-flow: row nowrap;

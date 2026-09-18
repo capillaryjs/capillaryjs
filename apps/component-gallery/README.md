@@ -50,10 +50,20 @@ Navigation uses the public router (`createBrowserRouter` +
 `createHashNavigation`), a `NavigationBar` of `RouteLink`s, and a `RouteOutlet`
 that mounts page content lazily.
 
+Line-input columns use the framework's shared control-row spacing, not
+gallery-specific gaps: checkboxes, radios, fields, buttons, and progress bars
+occupy equal-height rows with built-in vertical breathing room. OptionsBox
+is the deliberate compact exception. Browser tests cover the column rhythm
+in Shiny and Capillary as well as the shared control fixture across all themes.
+
 ## Commands
 
 The public workspace's `pnpm test:browser` includes this gallery in Chromium,
 Firefox, and WebKit, covering both layout variants and refresh transitions.
+It also samples rendered screenshot pixels at the sidebar/main-panel edges,
+so a defined but clipped shadow cannot pass as visible chrome. The shared
+island fixture checks borders and shadows through nested scrollports, at
+scroll endpoints, and in resizable split panes.
 
 ```bash
 pnpm --filter @sylwellsoftware/component-gallery dev        # http://127.0.0.1:3002

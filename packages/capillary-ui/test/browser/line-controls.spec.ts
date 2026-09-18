@@ -17,7 +17,7 @@ for (const theme of ['base', 'capillary', 'shiny', 'soft', 'white', 'minimal']) 
             }
         })
 
-        test('bodies, labels and compact checkboxes share a centered text line', async ({page}, testInfo) => {
+        test('bodies and labels stay centered while OptionsBox retains compact checkables', async ({page}, testInfo) => {
             // Capillary intentionally uses a roomier six-pixel vertical inset.
             // Native input controls retain their platform minimum line box, so
             // the themed controls naturally occupy either of the two adjacent
@@ -99,6 +99,43 @@ for (const theme of ['base', 'capillary', 'shiny', 'soft', 'white', 'minimal']) 
             if (theme === 'shiny') {
                 await page.screenshot({path: testInfo.outputPath('line-controls.png'), fullPage: true})
             }
+        })
+
+        test('all line controls occupy equal rows with breathing room and equal stack spacing', async ({page}) => {
+            const measure = () => page.locator('#stack > *').evaluateAll(elements => elements.map(e => {
+                const r = e.getBoundingClientRect()
+                const s = getComputedStyle(e)
+                const body = e.querySelector(':scope > input, :scope > cap-selectshell, :scope > cap-options, '
+                    + ':scope > label:has(cap-checkshell), :scope > button, :scope > cap-content')!
+                const b = body.getBoundingClientRect()
+                return {tag: e.tagName, top: r.top, bottom: r.bottom, height: r.height,
+                    font: parseFloat(s.fontSize), inset: parseFloat(s.paddingTop),
+                    before: b.top - r.top, after: r.bottom - b.bottom}
+            }))
+            for (const largeText of [false, true]) {
+                if (largeText) await page.locator('cap-app').evaluate(e => e.style.setProperty('--ui-font-size', '24px'))
+                const rows = await measure()
+                const expected = (theme === 'capillary' ? 3.25 : 2.5) * rows[0]!.font
+                for (const [index, row] of rows.entries()) {
+                    expect(row.height, row.tag).toBeCloseTo(expected, 1)
+                    expect(row.before, row.tag).toBeGreaterThanOrEqual(row.inset - .1)
+                    expect(row.after, row.tag).toBeGreaterThanOrEqual(row.inset - .1)
+                    expect(row.before, row.tag).toBeCloseTo(row.after, 1)
+                    if (index > 0) expect(row.top - rows[index - 1]!.bottom).toBeCloseTo(0, 1)
+                }
+                const checkboxes = await page.locator('#check-stack').boundingBox()
+                const radios = await page.locator('#radio-stack').boundingBox()
+                expect(radios!.height).toBeCloseTo(checkboxes!.height, 1)
+                await page.locator('#check-stack').evaluate(e => e.style.gap = '8px')
+                await page.locator('#radio-stack').evaluate(e => e.style.gap = '8px')
+                expect((await page.locator('#radio-stack').boundingBox())!.height)
+                    .toBeCloseTo((await page.locator('#check-stack').boundingBox())!.height, 1)
+                await page.locator('#check-stack').evaluate(e => e.style.removeProperty('gap'))
+                await page.locator('#radio-stack').evaluate(e => e.style.removeProperty('gap'))
+            }
+            await page.locator('cap-app').evaluate(e => e.style.removeProperty('--ui-font-size'))
+            await page.locator('#stack').evaluate(e => e.style.setProperty('--control-min-height', '48px'))
+            for (const row of await measure()) expect(row.height, row.tag).toBeCloseTo(54, 1)
         })
 
         test('state changes and focus do not move text or resize controls', async ({page}) => {

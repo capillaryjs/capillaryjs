@@ -97,6 +97,7 @@ export class RouteOutlet extends Component<RouteOutletProps> {
                 const active = selected != null && Object.is(selected.id, view.id)
                 return <div
                     key={String(view.id)}
+                    className="cap-layout-vertical cap-scroll"
                     hidden={!active}
                 >{mountedIds.has(view.id)
                         ? this.selection.scopedContent(view, view.content)
@@ -118,17 +119,10 @@ export class RouteOutlet extends Component<RouteOutletProps> {
             flex-direction: column;
             min-width: 0;
             min-height: 0;
-            overflow: hidden;
         }
 
         & > div {
-            display: flex;
             flex: 1 1 auto;
-            flex-direction: column;
-            gap: calc(var(--_cap-island-flow, 0) * var(--island-gap, 0px));
-            min-width: 0;
-            min-height: 0;
-            overflow: auto;
         }
 
         & > div[hidden] {
