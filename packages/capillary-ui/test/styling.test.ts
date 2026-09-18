@@ -799,7 +799,6 @@ describe('four-file styling contract', () => {
         assert.match(css, /--button-background-active:\s*var\(--capillary-active-background\)/)
         assert.match(css, /--toggle-button-background-checked:\s*var\(--capillary-active-background\)/)
         assert.match(css, /--checkbox-box-background-checked:\s*var\(--capillary-active-background\)/)
-        assert.match(css, /--checkbox-box-size:\s*1\.25em/)
         assert.match(css, /--checkbox-box-radius:\s*3px/)
         assert.match(css, /--radio-box-background-checked:\s*var\(--checkbox-box-background\)/)
         assert.match(css, /--radio-box-border-checked:\s*1px solid var\(--palette-primary\)/)

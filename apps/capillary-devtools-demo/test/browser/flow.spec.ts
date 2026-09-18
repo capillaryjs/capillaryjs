@@ -91,7 +91,7 @@ test('table rendering and captured row contents are inspectable without header r
     await expect(details).toContainText('Own renderer DOM writes')
     await expect(details).toContainText('Table body')
     await page.locator(`.trace-node[data-node-id="${query.id}"]`).click()
-    await details.locator('summary').filter({hasText: /^Value: Array/}).click()
+    await details.locator('summary').filter({hasText: /^Array/}).click()
     await details.locator('summary').filter({hasText: /^0: Object/}).click()
     await expect(details.getByText('title: "plumbing · first"', {exact: true})).toBeVisible()
 })

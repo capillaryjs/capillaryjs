@@ -27,6 +27,7 @@ export const semanticCheckboxCss = css`
     & > label > input[value="require"] + cap-checkshell {
         color: var(--checkbox-positive-color);
         background: var(--checkbox-positive-background);
+        background-color: var(--palette-status-positive);
         border: var(--checkbox-positive-border);
         box-shadow: var(--checkbox-positive-shadow);
     }
@@ -34,6 +35,7 @@ export const semanticCheckboxCss = css`
     & > label > input[value="deny"] + cap-checkshell {
         color: var(--checkbox-negative-color);
         background: var(--checkbox-negative-background);
+        background-color: var(--palette-status-negative);
         border: var(--checkbox-negative-border);
         box-shadow: var(--checkbox-negative-shadow);
     }
@@ -41,6 +43,7 @@ export const semanticCheckboxCss = css`
     & > label > input[value="prefer"] + cap-checkshell {
         color: var(--checkbox-neutral-color);
         background: var(--checkbox-neutral-background);
+        background-color: var(--palette-status-neutral);
         border: var(--checkbox-neutral-border);
         box-shadow: var(--checkbox-neutral-shadow);
     }

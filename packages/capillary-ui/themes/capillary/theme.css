@@ -4,7 +4,7 @@
 @layer theme {
   :root {
     color-scheme: only light;
-    --ui-control-padding: 7px 5px;
+    --ui-control-padding: 0.5px 5px;
     --font-family: Arial, Helvetica, sans-serif;
     --radius-sm: 6px;
     --radius-md: 10px;
@@ -81,7 +81,6 @@
     --checkbox-box-background: var(--palette-light);
     --checkbox-box-background-checked: var(--capillary-active-background);
     --checkbox-box-border-checked: var(--palette-primary-500);
-    --checkbox-box-size: 1.25em;
     --checkbox-box-radius: 3px;
     --checkbox-box-shadow: var(--input-shadow);
     --checkbox-box-shadow-checked: var(--capillary-active-shadow);

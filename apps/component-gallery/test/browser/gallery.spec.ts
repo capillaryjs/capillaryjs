@@ -105,7 +105,7 @@ test('section rules and natural columns retain usable control floors', async ({p
     const group = groups.first()
     const field = group.getByRole('textbox', {name: 'Long value', exact: true})
     expect((await field.boundingBox())!.width).toBeCloseTo(180, 1)
-    expect((await section.getByRole('combobox', {name: 'Choice', exact: true}).boundingBox())!.width)
+    expect((await section.getByRole('combobox', {name: 'Display mode', exact: true}).boundingBox())!.width)
         .toBeCloseTo(180, 1)
 
     const chrome = await section.evaluate((element) => {
