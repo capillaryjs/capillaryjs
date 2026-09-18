@@ -299,7 +299,7 @@ cap-button > button {
             color: var(--button-color);
             background: var(--button-background);
             border: var(--button-border);
-            border-radius: var(--radius-md);
+            border-radius: var(--ui-border-radius);
             box-shadow: var(--button-shadow);
             box-sizing: border-box;
             cursor: default;
@@ -417,7 +417,7 @@ cap-error {
             color: var(--ui-color);
             background: var(--error-bg-neutral, var(--application-background));
             border: 1px solid var(--error-color);
-            border-radius: var(--radius-md);
+            border-radius: var(--ui-border-radius);
             box-shadow: var(--ui-shadow);
             opacity: 0;
             overflow-wrap: anywhere;
@@ -1095,7 +1095,7 @@ cap-collapsibleoptiongroup {
 
         cap-collapsibleoptiongroup > fieldset[aria-invalid="true"] {
             border: 1px solid var(--error-color);
-            border-radius: var(--radius-md);
+            border-radius: var(--ui-border-radius);
         }
 
         @media (prefers-reduced-motion: reduce) {
