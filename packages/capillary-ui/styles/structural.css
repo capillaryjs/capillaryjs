@@ -331,7 +331,7 @@ cap-tricheckbox {
             display: flex;
             flex-flow: row nowrap;
             position: relative;
-            min-height: 1.2em;
+            min-height: 0rem;
             margin: 0;
             color: var(--ui-text-color);
             border-radius: var(--ui-border-radius);
@@ -373,16 +373,17 @@ cap-tricheckbox {
         cap-tricheckbox > label > input + cap-checkshell {
             position: relative;
             display: grid;
-            width: 1em;
-            height: 1em;
-            flex: 0 0 1em;
+            width: var(--checkbox-box-size, 1em);
+            height: var(--checkbox-box-size, 1em);
+            flex: 0 0 var(--checkbox-box-size, 1em);
             box-sizing: border-box;
             text-align: center;
             line-height: 1;
             color: var(--input-color, var(--ui-text-color, currentColor));
             background: var(--checkbox-box-background, var(--ui-input-bg, transparent));
             border: var(--checkbox-box-border, var(--cbx-o-border, 1px solid currentColor));
-            border-radius: var(--cbx-border-radius, var(--radius-sm, 0.2rem));
+            border-radius: var(--checkbox-box-radius,
+                var(--cbx-border-radius, var(--radius-sm, 0.2rem)));
             box-shadow: var(--checkbox-box-shadow);
             font-family: inherit;
             font-size: 1em;
@@ -397,6 +398,8 @@ cap-tricheckbox {
             color: var(--checkbox-symbol-color, var(--selection-color, currentColor));
             background: var(--checkbox-box-background-checked,
                 var(--selection-background, var(--ui-accent-color, Highlight)));
+            border: var(--checkbox-box-border-checked, var(--checkbox-box-border,
+                var(--cbx-o-border, 1px solid currentColor)));
             box-shadow: var(--checkbox-box-shadow-checked);
         }
 
@@ -488,30 +491,6 @@ cap-tricheckbox {
                 outline: 2px solid Mark;
                 outline-offset: 1px;
             }
-        }
-
-cap-checkbox > label > input[value="require"] + cap-checkshell,
-cap-quadcheckbox > label > input[value="require"] + cap-checkshell,
-cap-tricheckbox > label > input[value="require"] + cap-checkshell {
-            color: var(--palette-contrast-light);
-            background: var(--palette-status-positive);
-            box-shadow: var(--checkbox-box-shadow-checked);
-        }
-
-        cap-checkbox > label > input[value="deny"] + cap-checkshell,
-        cap-quadcheckbox > label > input[value="deny"] + cap-checkshell,
-        cap-tricheckbox > label > input[value="deny"] + cap-checkshell {
-            color: var(--palette-contrast-light);
-            background: var(--palette-status-negative);
-            box-shadow: var(--checkbox-box-shadow-checked);
-        }
-
-        cap-checkbox > label > input[value="prefer"] + cap-checkshell,
-        cap-quadcheckbox > label > input[value="prefer"] + cap-checkshell,
-        cap-tricheckbox > label > input[value="prefer"] + cap-checkshell {
-            color: var(--palette-contrast-light);
-            background: var(--palette-status-neutral);
-            box-shadow: var(--checkbox-box-shadow-checked);
         }
 
 cap-dropdown,
@@ -971,11 +950,13 @@ cap-datatable > table > thead > tr > th[aria-sort] {
 
 cap-filterpanel {
             position: absolute;
-            background: white;
-            border: 1px solid #ccc;
-            padding: 8px;
-            min-width: 180px;
-            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+            color: var(--filter-panel-color);
+            background: var(--filter-panel-background);
+            border: var(--filter-panel-border);
+            border-radius: var(--filter-panel-radius);
+            padding: var(--filter-panel-padding);
+            min-width: var(--filter-panel-min-width);
+            box-shadow: var(--filter-panel-shadow);
             z-index: 1000;
             display: flex;
             flex-flow: column nowrap;
@@ -1336,7 +1317,7 @@ cap-optionsbox {
             grid-column: 2;
             grid-row: 1;
             align-self: center;
-            border-block-start: 1px solid var(--ui-border-color);
+            border-block-start: var(--groupbox-section-separator);
         }
 
         cap-groupbox.cap-groupbox-section > cap-header,
@@ -1350,7 +1331,7 @@ cap-optionsbox {
             min-height: 0;
             padding: 0 0.5rem 0 0;
             border-radius: 0;
-            color: var(--text-color);
+            color: var(--groupbox-section-header-color);
             background: transparent;
             box-shadow: none;
             writing-mode: horizontal-tb;
@@ -1381,7 +1362,7 @@ cap-optionsbox {
             justify-self: stretch;
             align-self: stretch;
             border-block-start: 0;
-            border-inline-end: 1px solid var(--ui-border-color);
+            border-inline-end: var(--groupbox-section-separator);
         }
 
         .cap-layout-horizontal > cap-groupbox.cap-groupbox-section > cap-header,
@@ -1418,7 +1399,7 @@ cap-optionsbox {
             padding: 0;
             margin-block-end: 0.75rem;
             border-radius: 0;
-            color: var(--text-color);
+            color: var(--groupbox-column-header-color);
             background: transparent;
             box-shadow: none;
             writing-mode: horizontal-tb;
@@ -1441,7 +1422,7 @@ cap-optionsbox {
 
         .cap-layout-horizontal > cap-groupbox.cap-groupbox-column + cap-groupbox.cap-groupbox-column,
         .cap-layout-horizontal > cap-optionsbox.cap-groupbox-column + cap-optionsbox.cap-groupbox-column {
-            border-inline-start: 1px solid var(--ui-border-color);
+            border-inline-start: var(--groupbox-column-separator);
         }
 
         .cap-layout-horizontal > cap-groupbox.cap-groupbox-column:first-child,
@@ -1462,7 +1443,7 @@ cap-optionsbox {
 
         .cap-layout-vertical > cap-groupbox.cap-groupbox-column + cap-groupbox.cap-groupbox-column,
         .cap-layout-vertical > cap-optionsbox.cap-groupbox-column + cap-optionsbox.cap-groupbox-column {
-            border-block-start: 1px solid var(--ui-border-color);
+            border-block-start: var(--groupbox-column-separator);
         }
 
         .cap-layout-vertical > cap-groupbox.cap-groupbox-column:first-child,
@@ -1479,6 +1460,7 @@ cap-header {
             display: block;
             color: var(--section-header-color);
             font-size: var(--section-header-font-size);
+            font-weight: var(--section-header-font-weight);
             border-radius: var(--ui-border-radius) var(--ui-border-radius) 0 0;
             padding: .25em;
             background: var(--section-header-background);
@@ -1940,10 +1922,34 @@ cap-progressbar {
             }
         }
 
+cap-quadcheckbox > label > input[value="require"] + cap-checkshell,
+cap-tricheckbox > label > input[value="require"] + cap-checkshell {
+        color: var(--checkbox-positive-color);
+        background: var(--checkbox-positive-background);
+        border: var(--checkbox-positive-border);
+        box-shadow: var(--checkbox-positive-shadow);
+    }
+
+    cap-quadcheckbox > label > input[value="deny"] + cap-checkshell,
+    cap-tricheckbox > label > input[value="deny"] + cap-checkshell {
+        color: var(--checkbox-negative-color);
+        background: var(--checkbox-negative-background);
+        border: var(--checkbox-negative-border);
+        box-shadow: var(--checkbox-negative-shadow);
+    }
+
+    cap-quadcheckbox > label > input[value="prefer"] + cap-checkshell,
+    cap-tricheckbox > label > input[value="prefer"] + cap-checkshell {
+        color: var(--checkbox-neutral-color);
+        background: var(--checkbox-neutral-background);
+        border: var(--checkbox-neutral-border);
+        box-shadow: var(--checkbox-neutral-shadow);
+    }
+
 cap-radiogroup > fieldset {
             display: flex;
             flex-flow: column wrap;
-            gap: 0;
+            gap: var(--radio-group-gap, .5rem);
             margin: 0;
             padding: 0;
             min-inline-size: 0;
@@ -1979,14 +1985,26 @@ cap-radiogroup > fieldset {
 
 cap-radiobutton > label > input[type="radio"] + cap-checkshell {
             border-radius: 50%;
+            height: var(--checkbox-box-size, 1em);
+        }
+
+        /* Radios may keep their neutral ring when selected and paint only the
+           center dot; the generic checked checkbox treatment is the fallback. */
+        cap-radiobutton > label > input[type="radio"]:checked + cap-checkshell {
+            background: var(--radio-box-background-checked,
+                var(--checkbox-box-background-checked));
+            border: var(--radio-box-border-checked,
+                var(--checkbox-box-border-checked));
+            box-shadow: var(--radio-box-shadow-checked,
+                var(--checkbox-box-shadow-checked));
         }
 
         cap-radiobutton > label > input[type="radio"]:checked + cap-checkshell::after {
-            width: .4em;
-            height: .4em;
+            width: var(--radio-symbol-size, .4em);
+            height: var(--radio-symbol-size, .4em);
             content: "";
             border-radius: 50%;
-            background: var(--checkbox-symbol-color);
+            background: var(--radio-symbol-color, var(--checkbox-symbol-color));
         }
 
 cap-routeoutlet {

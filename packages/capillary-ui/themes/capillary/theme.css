@@ -9,7 +9,7 @@
     --radius-sm: 6px;
     --radius-md: 10px;
     --radius-lg: 18px;
-    --ui-border-radius: var(--radius-sm);
+    --ui-border-radius: 9px;
     --application-background: color-mix(in oklch, var(--palette-neutral-100) 52%, var(--palette-light));
     --ui-background: color-mix(in oklch, var(--palette-neutral-100) 34%, var(--palette-light));
     --ui-color: var(--palette-neutral-900);
@@ -17,24 +17,32 @@
     --ui-shadow: 0 0.4rem 1.25rem color-mix(in srgb, var(--palette-dark) 12%, transparent);
     --focus-ring: 0 0 0 2px color-mix(in oklch, var(--palette-primary) 36%, var(--palette-light));
     --focus-color: var(--palette-primary);
-    --panel-background: linear-gradient(
-      to bottom,
-      color-mix(in srgb, var(--palette-light) 86%, var(--ui-primary-bg-color)),
-      color-mix(in srgb, var(--palette-light) 22%, var(--ui-primary-bg-color))
-    );
+    --panel-background: linear-gradient(to bottom, #fafafa, #eee);
     --panel-color: var(--ui-color);
-    --panel-border: 1px solid color-mix(in srgb, var(--palette-dark) 11%, var(--palette-light));
+    --panel-border: 1px solid color-mix(in srgb, var(--palette-dark) 15%, var(--palette-light));
     --panel-shadow:
-      inset 0 1px 0 color-mix(in srgb, var(--palette-light) 88%, transparent),
-      inset 0 -1px 0 color-mix(in srgb, var(--palette-dark) 4%, transparent),
-      0 0.2rem 0.65rem color-mix(in srgb, var(--palette-dark) 10%, transparent);
+      inset 0 1px 0 color-mix(in srgb, var(--palette-light) 96%, transparent),
+      inset 0 -1px 0 color-mix(in srgb, var(--palette-dark) 8%, transparent),
+      0 0.125rem 0.4rem color-mix(in srgb, var(--palette-dark) 10%, transparent);
     --panel-radius: var(--radius-lg);
+    --filter-panel-radius: var(--radius-md);
+    --filter-panel-padding: 0.65rem 0.75rem;
+    --filter-panel-shadow:
+      inset 0 1px 0 color-mix(in srgb, var(--palette-light) 96%, transparent),
+      inset 0 -1px 0 color-mix(in srgb, var(--palette-dark) 8%, transparent),
+      0 0.3rem 0.85rem color-mix(in srgb, var(--palette-dark) 16%, transparent);
     --island-padding: 1rem;
     --header-background: transparent;
-    --header-color: var(--palette-primary-700);
+    --header-color: var(--palette-primary-500);
     --section-header-background: transparent;
-    --section-header-color: var(--palette-primary-700);
-    --section-header-font-size: 1.15rem;
+    --section-header-color: var(--palette-primary-500);
+    --section-header-font-size: 1.2rem;
+    --section-header-font-weight: 700;
+
+    --groupbox-section-font-size: 1.05rem;
+    --groupbox-section-header-color: var(--palette-primary-500);
+    --groupbox-section-separator: 0 solid transparent;
+    --groupbox-column-separator: 1px solid color-mix(in srgb, var(--palette-dark) 13%, var(--palette-light));
 
     --toolbar-background: unset;
     --toolbar-color: var(--ui-color);
@@ -60,21 +68,43 @@
     --dropdown-trigger-shadow-hover: none;
     --button-background: linear-gradient(to bottom, var(--palette-light), color-mix(in srgb, var(--palette-dark) 5%, var(--palette-light)));
     --button-background-hover: linear-gradient(to bottom, var(--palette-light), color-mix(in srgb, var(--palette-dark) 9%, var(--palette-light)));
-    --button-background-active: radial-gradient(120% 85% at 40% 5%, #fff7, #fff0 55%), linear-gradient(to bottom, var(--palette-primary-700), var(--palette-primary) 62%, var(--palette-primary-400));
+    --capillary-active-background: radial-gradient(120% 85% at 40% 5%, #fff7, #fff0 55%), linear-gradient(to bottom, var(--palette-primary-700), var(--palette-primary) 62%, var(--palette-primary-400));
+    --capillary-active-border: 1px solid color-mix(in srgb, var(--palette-primary-700) 72%, var(--palette-dark));
+    --capillary-active-shadow: inset 0 1px 0 #fff4, inset 0 -1px 0 color-mix(in srgb, var(--palette-primary-700) 38%, transparent), 0 1px 2px color-mix(in srgb, var(--palette-dark) 14%, transparent);
+    --button-background-active: var(--capillary-active-background);
     --button-background-disabled: var(--palette-neutral-100);
     --button-color: var(--ui-color);
     --button-border: 1px solid color-mix(in srgb, var(--palette-dark) 18%, var(--palette-light));
     --button-border-disabled: 1px solid color-mix(in srgb, var(--palette-dark) 9%, var(--palette-light));
     --button-shadow: 0 1px 2px color-mix(in srgb, var(--palette-dark) 12%, transparent);
-    --button-shadow-active: inset 0 1px 2px color-mix(in srgb, var(--palette-dark) 18%, transparent), 0 1px 2px color-mix(in srgb, var(--palette-dark) 14%, transparent);
+    --button-shadow-active: var(--capillary-active-shadow);
     --checkbox-box-background: var(--palette-light);
+    --checkbox-box-background-checked: var(--capillary-active-background);
+    --checkbox-box-border-checked: var(--capillary-active-border);
+    --checkbox-box-size: 1.25em;
+    --checkbox-box-radius: 3px;
     --checkbox-box-shadow: var(--input-shadow);
+    --checkbox-box-shadow-checked: var(--capillary-active-shadow);
+    --checkbox-negative-background: radial-gradient(120% 85% at 40% 5%, #fff6, #fff0 55%), linear-gradient(to bottom, color-mix(in srgb, var(--palette-status-negative) 84%, var(--palette-dark)), var(--palette-status-negative));
+    --checkbox-negative-border: 1px solid color-mix(in srgb, var(--palette-status-negative) 72%, var(--palette-dark));
+    --checkbox-negative-shadow: inset 0 1px 0 #fff4, inset 0 -1px 0 color-mix(in srgb, var(--palette-status-negative) 38%, transparent), 0 1px 2px color-mix(in srgb, var(--palette-dark) 14%, transparent);
+    --checkbox-positive-background: radial-gradient(120% 85% at 40% 5%, #fff6, #fff0 55%), linear-gradient(to bottom, color-mix(in srgb, var(--palette-status-positive) 84%, var(--palette-dark)), var(--palette-status-positive));
+    --checkbox-positive-border: 1px solid color-mix(in srgb, var(--palette-status-positive) 72%, var(--palette-dark));
+    --checkbox-positive-shadow: inset 0 1px 0 #fff4, inset 0 -1px 0 color-mix(in srgb, var(--palette-status-positive) 38%, transparent), 0 1px 2px color-mix(in srgb, var(--palette-dark) 14%, transparent);
+    --checkbox-neutral-background: radial-gradient(120% 85% at 40% 5%, #fff6, #fff0 55%), linear-gradient(to bottom, color-mix(in srgb, var(--palette-status-neutral) 84%, var(--palette-dark)), var(--palette-status-neutral));
+    --checkbox-neutral-border: 1px solid color-mix(in srgb, var(--palette-status-neutral) 72%, var(--palette-dark));
+    --checkbox-neutral-shadow: inset 0 1px 0 #fff4, inset 0 -1px 0 color-mix(in srgb, var(--palette-status-neutral) 38%, transparent), 0 1px 2px color-mix(in srgb, var(--palette-dark) 14%, transparent);
+    --radio-box-background-checked: var(--checkbox-box-background);
+    --radio-box-border-checked: 1px solid var(--palette-primary);
+    --radio-box-shadow-checked: var(--checkbox-box-shadow);
+    --radio-symbol-color: var(--palette-primary);
+    --radio-symbol-size: 0.5em;
 
-    --toggle-button-background-checked: radial-gradient(120% 85% at 40% 5%, #fff7, #fff0 55%), linear-gradient(to bottom, var(--palette-primary-700), var(--palette-primary) 62%, var(--palette-primary-400));
-    --toggle-button-border-checked: 0 solid transparent;
+    --toggle-button-background-checked: var(--capillary-active-background);
+    --toggle-button-border-checked: var(--palette-primary-50);
     --toggle-button-selected-inline-overlap: -1px;
     --toggle-button-selected-z-index: 1;
-    --toggle-button-shadow-checked: var(--button-shadow);
+    --toggle-button-shadow-checked: var(--capillary-active-shadow);
     --toggle-group-shadow: var(--button-shadow);
     --toggle-inactive-shared-border-color: transparent;
     --toggle-inactive-separator-background: #ddd;
@@ -106,6 +136,13 @@
     --progress-track-shadow: inset 0 1px 2px color-mix(in oklch, var(--palette-dark) 12%, transparent);
     --progress-value-background: linear-gradient(to bottom, var(--palette-primary-400), var(--palette-primary));
     --progress-value-shadow: inset 0 1px 1px color-mix(in oklch, var(--palette-light) 35%, transparent);
+    --colored-shadow:
+      inset 0 1px 0 color-mix(in srgb, var(--palette-light) 52%, transparent),
+      inset 0 -1px 0 color-mix(in srgb, var(--c1, var(--colored-dark)) 42%, transparent),
+      0 0.125rem 0.3rem color-mix(in srgb, var(--palette-dark) 16%, transparent);
+    --block-graph-block-border: 1px solid color-mix(in srgb,
+      var(--c1, var(--colored-dark)) 68%, var(--palette-light));
+    --block-graph-block-radius: var(--radius-sm);
   }
 }
 
@@ -157,6 +194,32 @@ cap-groupbox.cap-groupbox-section:not(cap-groupbox cap-groupbox) {
                   rgb(255 255 255 / 0.00) calc(58% + 2px)
           ),
 
+          radial-gradient(
+                  160% 115% at 95% 118%,
+                  rgb(255 255 255 / 0.00) 0%,
+                  rgb(255 255 255 / 0.02) 18%,
+                  rgb(255 255 255 / 0.05) 32%,
+                  rgb(255 255 255 / 0.09) 44%,
+                  rgb(255 255 255 / 0.14) 52%,
+                  rgb(255 255 255 / 0.20) calc(58% - 2px),
+                  rgb(255 255 255 / 0.96) calc(58% - 1px),
+                  rgb(255 255 255 / 0.99) 58%,
+                  rgb(255 255 255 / 0.00) calc(58% + 2px)
+          ),
+
+          radial-gradient(
+                  130% 185% at 145% 118%,
+                  rgb(255 255 255 / 0.00) 0%,
+                  rgb(255 255 255 / 0.02) 18%,
+                  rgb(255 255 255 / 0.05) 32%,
+                  rgb(255 255 255 / 0.09) 44%,
+                  rgb(255 255 255 / 0.14) 52%,
+                  rgb(255 255 255 / 0.20) calc(58% - 2px),
+                  rgb(255 255 255 / 0.96) calc(58% - 1px),
+                  rgb(255 255 255 / 0.99) 58%,
+                  rgb(255 255 255 / 0.00) calc(58% + 2px)
+          ),
+
             /*
              * Fold 2:
              * broad sweep across the lower-middle
@@ -180,6 +243,20 @@ cap-groupbox.cap-groupbox-section:not(cap-groupbox cap-groupbox) {
              */
           radial-gradient(
                   125% 155% at 138% -28%,
+                  rgb(255 255 255 / 0.00) 0%,
+                  rgb(255 255 255 / 0.01) 24%,
+                  rgb(255 255 255 / 0.03) 38%,
+                  rgb(255 255 255 / 0.07) 48%,
+                  rgb(255 255 255 / 0.12) 54%,
+                  rgb(255 255 255 / 0.20) calc(57% - 2px),
+                  rgb(255 255 255 / 0.55) calc(57% - 1px),
+                  rgb(255 255 255 / 0.62) 57%,
+                  rgb(255 255 255 / 0.00) calc(57% + 2px)
+          ),
+
+
+          radial-gradient(
+                  125% 155% at 0% -25%,
                   rgb(255 255 255 / 0.00) 0%,
                   rgb(255 255 255 / 0.01) 24%,
                   rgb(255 255 255 / 0.03) 38%,

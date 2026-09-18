@@ -48,6 +48,7 @@ export class Header extends Component<HeaderProps> {
             display: block;
             color: var(--section-header-color);
             font-size: var(--section-header-font-size);
+            font-weight: var(--section-header-font-weight);
             border-radius: var(--ui-border-radius) var(--ui-border-radius) 0 0;
             padding: .25em;
             background: var(--section-header-background);

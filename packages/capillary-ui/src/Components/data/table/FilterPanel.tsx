@@ -156,11 +156,13 @@ export class FilterPanel extends Component<FilterPanelProps> {
     static css = css`
         & {
             position: absolute;
-            background: white;
-            border: 1px solid #ccc;
-            padding: 8px;
-            min-width: 180px;
-            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+            color: var(--filter-panel-color);
+            background: var(--filter-panel-background);
+            border: var(--filter-panel-border);
+            border-radius: var(--filter-panel-radius);
+            padding: var(--filter-panel-padding);
+            min-width: var(--filter-panel-min-width);
+            box-shadow: var(--filter-panel-shadow);
             z-index: 1000;
             display: flex;
             flex-flow: column nowrap;

@@ -40,6 +40,8 @@ import {
     TimePicker,
     Toggle,
     Toolbar,
+    QuadCheckbox,
+    TriCheckbox,
     TreeView,
     createCapillaryUiRuntime,
     capillaryUiColorOptions,
@@ -356,7 +358,7 @@ describe('style registry', () => {
         runtime.registerStyles(FilterPanel)
         const stylesheet = runtime.styleRegistry.generateCSS()
 
-        assert.match(stylesheet, /cap-filterpanel\s*\{[^}]*position:\s*absolute[^}]*background:\s*white[^}]*border:\s*1px solid #ccc[^}]*padding:\s*8px[^}]*min-width:\s*180px[^}]*box-shadow:\s*0 2px 6px rgba\(0, 0, 0, 0\.15\)[^}]*left:\s*100%[^}]*top:\s*0/)
+        assert.match(stylesheet, /cap-filterpanel\s*\{[^}]*position:\s*absolute[^}]*color:\s*var\(--filter-panel-color\)[^}]*background:\s*var\(--filter-panel-background\)[^}]*border:\s*var\(--filter-panel-border\)[^}]*border-radius:\s*var\(--filter-panel-radius\)[^}]*padding:\s*var\(--filter-panel-padding\)[^}]*min-width:\s*var\(--filter-panel-min-width\)[^}]*box-shadow:\s*var\(--filter-panel-shadow\)[^}]*left:\s*100%[^}]*top:\s*0/)
         assert.match(stylesheet, /cap-filterpanel > p\s*\{[^}]*margin:\s*0/)
         assert.match(stylesheet, /cap-checkbox > label > input \+ cap-checkshell/)
         assert.doesNotMatch(stylesheet, /panellike|data-state|data-part|cap-table|cap-listview/)
@@ -415,13 +417,23 @@ describe('style registry', () => {
         assert.match(stylesheet, /cap-checkbox > label\s*\{[^}]*display:\s*flex/)
         assert.match(stylesheet, /input \+ cap-checkshell/)
         assert.match(stylesheet, /label:has\(> input:disabled\)\s*\{[^}]*color:\s*var\(--checkable-label-color-disabled\)[^}]*cursor:\s*not-allowed/)
-        assert.match(stylesheet, /cap-checkshell\s*\{[^}]*box-shadow:\s*var\(--checkbox-box-shadow\)/)
-        assert.match(stylesheet, /input:checked \+ cap-checkshell\s*\{[^}]*box-shadow:\s*var\(--checkbox-box-shadow-checked\)/)
-        assert.match(stylesheet, /input\[value="require"\] \+ cap-checkshell\s*\{[^}]*background:\s*var\(--palette-status-positive\)/)
-        assert.match(stylesheet, /input\[value="deny"\] \+ cap-checkshell\s*\{[^}]*background:\s*var\(--palette-status-negative\)/)
-        assert.match(stylesheet, /input\[value="prefer"\] \+ cap-checkshell\s*\{[^}]*background:\s*var\(--palette-status-neutral\)/)
+        assert.match(stylesheet, /cap-checkshell\s*\{[^}]*width:\s*var\(--checkbox-box-size, 1em\)[^}]*height:\s*var\(--checkbox-box-size, 1em\)[^}]*border-radius:\s*var\(--checkbox-box-radius,[^}]*box-shadow:\s*var\(--checkbox-box-shadow\)/)
+        assert.match(stylesheet, /input:checked \+ cap-checkshell\s*\{[^}]*border:\s*var\(--checkbox-box-border-checked,[^}]*box-shadow:\s*var\(--checkbox-box-shadow-checked\)/)
+        assert.doesNotMatch(stylesheet, /input\[value="(?:require|deny|prefer)"\]/)
         assert.match(stylesheet, /label:has\(> input\[type="checkbox"\]:required:invalid:not\(:disabled\):not\(\[aria-invalid="true"\]\)\)\s*\{[^}]*outline:\s*1px dashed var\(--required-color\)/)
         assert.doesNotMatch(stylesheet, /\.checkboxshell|\[data-(?:disabled|required|error|state)\]|cap-checkboxshell|cap-checkbox\s*\{[^}]*width:\s*var\(--input-width/)
+    })
+
+    test('keeps semantic checkbox state chrome out of ordinary checkboxes', () => {
+        const runtime = createCapillaryUiRuntime()
+        runtime.registerStyles(TriCheckbox)
+        runtime.registerStyles(QuadCheckbox)
+        const stylesheet = runtime.styleRegistry.generateCSS()
+
+        assert.match(stylesheet, /cap-(?:tri|quad)checkbox[^{}]*input\[value="require"\] \+ cap-checkshell\s*\{[^}]*background:\s*var\(--checkbox-positive-background\)/)
+        assert.match(stylesheet, /cap-(?:tri|quad)checkbox[^{}]*input\[value="deny"\] \+ cap-checkshell\s*\{[^}]*background:\s*var\(--checkbox-negative-background\)/)
+        assert.match(stylesheet, /cap-(?:tri|quad)checkbox[^{}]*input\[value="prefer"\] \+ cap-checkshell\s*\{[^}]*background:\s*var\(--checkbox-neutral-background\)/)
+        assert.doesNotMatch(stylesheet, /cap-checkbox > label > input\[value="(?:require|deny|prefer)"\]/)
     })
 
     test('collects RadioButton through its fixed shell and native state selectors', () => {
@@ -434,7 +446,8 @@ describe('style registry', () => {
         assert.match(stylesheet, /input \+ cap-checkshell\s*\{[^}]*background:\s*var\(--checkbox-box-background,[^}]*box-shadow:\s*var\(--checkbox-box-shadow\)/)
         assert.match(stylesheet, /input:checked \+ cap-checkshell\s*\{[^}]*background:\s*var\(--checkbox-box-background-checked,[^}]*box-shadow:\s*var\(--checkbox-box-shadow-checked\)/)
         assert.match(stylesheet, /input\[type="radio"\] \+ cap-checkshell\s*\{[^}]*border-radius:\s*50%/)
-        assert.match(stylesheet, /input\[type="radio"\]:checked \+ cap-checkshell::after\s*\{[^}]*border-radius:\s*50%[^}]*background:\s*var\(--checkbox-symbol-color\)/)
+        assert.match(stylesheet, /input\[type="radio"\]:checked \+ cap-checkshell\s*\{[^}]*background:\s*var\(--radio-box-background-checked,[^}]*border:\s*var\(--radio-box-border-checked,[^}]*box-shadow:\s*var\(--radio-box-shadow-checked,/)
+        assert.match(stylesheet, /input\[type="radio"\]:checked \+ cap-checkshell::after\s*\{[^}]*width:\s*var\(--radio-symbol-size, \.4em\)[^}]*border-radius:\s*50%[^}]*background:\s*var\(--radio-symbol-color, var\(--checkbox-symbol-color\)\)/)
         assert.match(stylesheet, /input:disabled \+ cap-checkshell\s*\{[^}]*opacity:\s*0\.6[^}]*filter:\s*saturate\(0\.6\)/)
         assert.match(stylesheet, /input:focus-visible \+ cap-checkshell\s*\{[^}]*outline:\s*2px solid var\(--focus-color,/)
         assert.doesNotMatch(stylesheet, /\.radioshell|data-disabled|data-required|data-error|cap-radioshell|cap-radiogroup/)
@@ -445,7 +458,7 @@ describe('style registry', () => {
         runtime.registerStyles(RadioGroup)
         const stylesheet = runtime.styleRegistry.generateCSS()
 
-        assert.match(stylesheet, /cap-radiogroup > fieldset\s*\{[^}]*display:\s*flex[^}]*flex-flow:\s*column wrap[^}]*gap:\s*0[^}]*min-inline-size:\s*0/)
+        assert.match(stylesheet, /cap-radiogroup > fieldset\s*\{[^}]*display:\s*flex[^}]*flex-flow:\s*column wrap[^}]*gap:\s*var\(--radio-group-gap, \.5rem\)[^}]*min-inline-size:\s*0/)
         assert.match(stylesheet, /cap-radiogroup > fieldset > legend\s*\{[^}]*flex:\s*0 0 100%[^}]*padding:\s*0/)
         assert.match(stylesheet, /cap-radiobutton > label > input\[type="radio"\] \+ cap-checkshell\s*\{[^}]*border-radius:\s*50%/)
         assert.doesNotMatch(stylesheet, /data-part|data-disabled|data-required|data-error|cap-options|cap-toggle/)
@@ -530,14 +543,14 @@ describe('style registry', () => {
         assert.match(stylesheet, /cap-groupbox > cap-header\s*\{[^}]*place-items:\s*var\(--cap-groupbox-header-align, center\)[^}]*width:\s*var\(--cap-groupbox-header-width, 1\.7em\)[^}]*border-radius:\s*var\(--ui-border-radius\)/)
         assert.match(stylesheet, /cap-groupbox > cap-header\s*\{[^}]*color:\s*var\(--cap-groupbox-header-color, var\(--section-header-color\)\)[^}]*writing-mode:\s*var\(--cap-groupbox-header-writing, vertical-rl\)[^}]*transform:\s*var\(--cap-groupbox-header-transform, rotate\(180deg\)\)/)
         assert.match(stylesheet, /cap-groupbox\.cap-groupbox-section\s*\{[^}]*display:\s*grid[^}]*grid-template-columns:\s*max-content minmax\(0, 1fr\)[^}]*grid-template-rows:\s*max-content minmax\(max-content, 1fr\)[^}]*border:\s*0/)
-        assert.match(stylesheet, /cap-groupbox\.cap-groupbox-section::before\s*\{[^}]*border-block-start:\s*1px solid var\(--ui-border-color\)/)
-        assert.match(stylesheet, /cap-groupbox\.cap-groupbox-section > cap-header\s*\{[^}]*font-size:\s*var\(--groupbox-section-font-size, 1\.2em\)[^}]*font-weight:\s*600/)
-        assert.match(stylesheet, /cap-layout-horizontal > cap-groupbox\.cap-groupbox-section::before\s*\{[^}]*grid-column:\s*1[^}]*grid-row:\s*2[^}]*border-inline-end:\s*1px solid var\(--ui-border-color\)/)
+        assert.match(stylesheet, /cap-groupbox\.cap-groupbox-section::before\s*\{[^}]*border-block-start:\s*var\(--groupbox-section-separator\)/)
+        assert.match(stylesheet, /cap-groupbox\.cap-groupbox-section > cap-header\s*\{[^}]*color:\s*var\(--groupbox-section-header-color\)[^}]*font-size:\s*var\(--groupbox-section-font-size, 1\.2em\)[^}]*font-weight:\s*600/)
+        assert.match(stylesheet, /cap-layout-horizontal > cap-groupbox\.cap-groupbox-section::before\s*\{[^}]*grid-column:\s*1[^}]*grid-row:\s*2[^}]*border-inline-end:\s*var\(--groupbox-section-separator\)/)
         assert.match(stylesheet, /cap-groupbox\.cap-groupbox-column\s*\{[^}]*gap:\s*0[^}]*border:\s*0[^}]*flex:\s*0 1 auto/)
         assert.match(stylesheet, /cap-groupbox\.cap-groupbox-column > cap-header[\s\S]*?margin-block-end:\s*0\.75rem[\s\S]*?font-size:\s*var\(--ui-font-size\)[\s\S]*?font-weight:\s*600/)
         assert.match(stylesheet, /cap-layout-horizontal > cap-groupbox\.cap-groupbox-column,[\s\S]*?cap-layout-vertical > cap-groupbox\.cap-groupbox-column\s*\{[^}]*align-self:\s*stretch/)
-        assert.match(stylesheet, /cap-layout-horizontal > cap-groupbox\.cap-groupbox-column \+ cap-groupbox\.cap-groupbox-column\s*\{[^}]*border-inline-start:\s*1px solid var\(--ui-border-color\)/)
-        assert.match(stylesheet, /cap-layout-vertical > cap-groupbox\.cap-groupbox-column \+ cap-groupbox\.cap-groupbox-column\s*\{[^}]*border-block-start:\s*1px solid var\(--ui-border-color\)/)
+        assert.match(stylesheet, /cap-layout-horizontal > cap-groupbox\.cap-groupbox-column \+ cap-groupbox\.cap-groupbox-column\s*\{[^}]*border-inline-start:\s*var\(--groupbox-column-separator\)/)
+        assert.match(stylesheet, /cap-layout-vertical > cap-groupbox\.cap-groupbox-column \+ cap-groupbox\.cap-groupbox-column\s*\{[^}]*border-block-start:\s*var\(--groupbox-column-separator\)/)
         assert.doesNotMatch(stylesheet, /groupbox-preferred-width|cap-groupbox-grow-preference/)
         assert.match(stylesheet, /cap-header\s*\{[^}]*background:\s*var\(--section-header-background\)[^}]*box-shadow:\s*var\(--section-header-shadow\)/)
         assert.doesNotMatch(stylesheet, /cap-panel|cap-sidebar|cap-checkbox/)
@@ -781,9 +794,20 @@ describe('four-file styling contract', () => {
         )
         assert.match(css, /--panel-radius:\s*var\(--radius-lg\)/)
         assert.match(css, /--panel-background:[\s\S]*linear-gradient\([\s\S]*var\(--ui-primary-bg-color\)/)
-        assert.match(css, /--panel-shadow:[\s\S]*inset 0 1px 0 color-mix\(in srgb, var\(--palette-light\) 88%, transparent\)[\s\S]*var\(--palette-dark\) 10%, transparent\)/)
-        assert.match(css, /--button-background-active:[\s\S]*radial-gradient[\s\S]*var\(--palette-primary-700\)/)
-        assert.match(css, /--toggle-button-background-checked:[\s\S]*radial-gradient[\s\S]*var\(--palette-primary-700\)/)
+        assert.match(css, /--panel-shadow:[\s\S]*inset 0 1px 0 color-mix\(in srgb, var\(--palette-light\) 96%, transparent\)[\s\S]*var\(--palette-dark\) 10%, transparent\)/)
+        assert.match(css, /--capillary-active-background:[\s\S]*radial-gradient[\s\S]*var\(--palette-primary-700\)/)
+        assert.match(css, /--button-background-active:\s*var\(--capillary-active-background\)/)
+        assert.match(css, /--toggle-button-background-checked:\s*var\(--capillary-active-background\)/)
+        assert.match(css, /--checkbox-box-background-checked:\s*var\(--capillary-active-background\)/)
+        assert.match(css, /--checkbox-box-size:\s*1\.25em/)
+        assert.match(css, /--checkbox-box-radius:\s*3px/)
+        assert.match(css, /--radio-box-background-checked:\s*var\(--checkbox-box-background\)/)
+        assert.match(css, /--radio-box-border-checked:\s*1px solid var\(--palette-primary\)/)
+        assert.match(css, /--radio-symbol-color:\s*var\(--palette-primary\)/)
+        assert.match(css, /--radio-symbol-size:\s*0\.5em/)
+        assert.match(css, /--colored-shadow:[\s\S]*inset 0 1px 0 color-mix\(in srgb, var\(--palette-light\) 52%, transparent\)[\s\S]*var\(--c1, var\(--colored-dark\)\) 42%/)
+        assert.match(css, /--block-graph-block-border:[\s\S]*var\(--c1, var\(--colored-dark\)\) 68%, var\(--palette-light\)/)
+        assert.match(css, /--checkbox-(?:negative|positive|neutral)-background:[\s\S]*var\(--palette-status-(?:negative|positive|neutral)\)/)
         assert.match(css, /--progress-value-background:[\s\S]*var\(--palette-primary-400\), var\(--palette-primary\)/)
         assert.match(css, /--dropdown-trigger-background:\s*transparent/)
         assert.match(css, /--dropdown-trigger-border:\s*0 solid transparent/)

@@ -179,7 +179,7 @@ export class GroupBox<
             grid-column: 2;
             grid-row: 1;
             align-self: center;
-            border-block-start: 1px solid var(--ui-border-color);
+            border-block-start: var(--groupbox-section-separator);
         }
 
         &.cap-groupbox-section > cap-header {
@@ -192,7 +192,7 @@ export class GroupBox<
             min-height: 0;
             padding: 0 0.5rem 0 0;
             border-radius: 0;
-            color: var(--text-color);
+            color: var(--groupbox-section-header-color);
             background: transparent;
             box-shadow: none;
             writing-mode: horizontal-tb;
@@ -220,7 +220,7 @@ export class GroupBox<
             justify-self: stretch;
             align-self: stretch;
             border-block-start: 0;
-            border-inline-end: 1px solid var(--ui-border-color);
+            border-inline-end: var(--groupbox-section-separator);
         }
 
         .cap-layout-horizontal > &.cap-groupbox-section > cap-header {
@@ -253,7 +253,7 @@ export class GroupBox<
             padding: 0;
             margin-block-end: 0.75rem;
             border-radius: 0;
-            color: var(--text-color);
+            color: var(--groupbox-column-header-color);
             background: transparent;
             box-shadow: none;
             writing-mode: horizontal-tb;
@@ -272,7 +272,7 @@ export class GroupBox<
         }
 
         .cap-layout-horizontal > &.cap-groupbox-column + &.cap-groupbox-column {
-            border-inline-start: 1px solid var(--ui-border-color);
+            border-inline-start: var(--groupbox-column-separator);
         }
 
         .cap-layout-horizontal > &.cap-groupbox-column:first-child {
@@ -289,7 +289,7 @@ export class GroupBox<
         }
 
         .cap-layout-vertical > &.cap-groupbox-column + &.cap-groupbox-column {
-            border-block-start: 1px solid var(--ui-border-color);
+            border-block-start: var(--groupbox-column-separator);
         }
 
         .cap-layout-vertical > &.cap-groupbox-column:first-child {

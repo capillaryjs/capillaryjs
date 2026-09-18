@@ -21,7 +21,7 @@ export abstract class CheckableControl<
             display: flex;
             flex-flow: row nowrap;
             position: relative;
-            min-height: 1.2em;
+            min-height: 0rem;
             margin: 0;
             color: var(--ui-text-color);
             border-radius: var(--ui-border-radius);
@@ -54,16 +54,17 @@ export abstract class CheckableControl<
         & > label > input + cap-checkshell {
             position: relative;
             display: grid;
-            width: 1em;
-            height: 1em;
-            flex: 0 0 1em;
+            width: var(--checkbox-box-size, 1em);
+            height: var(--checkbox-box-size, 1em);
+            flex: 0 0 var(--checkbox-box-size, 1em);
             box-sizing: border-box;
             text-align: center;
             line-height: 1;
             color: var(--input-color, var(--ui-text-color, currentColor));
             background: var(--checkbox-box-background, var(--ui-input-bg, transparent));
             border: var(--checkbox-box-border, var(--cbx-o-border, 1px solid currentColor));
-            border-radius: var(--cbx-border-radius, var(--radius-sm, 0.2rem));
+            border-radius: var(--checkbox-box-radius,
+                var(--cbx-border-radius, var(--radius-sm, 0.2rem)));
             box-shadow: var(--checkbox-box-shadow);
             font-family: inherit;
             font-size: 1em;
@@ -75,6 +76,8 @@ export abstract class CheckableControl<
             color: var(--checkbox-symbol-color, var(--selection-color, currentColor));
             background: var(--checkbox-box-background-checked,
                 var(--selection-background, var(--ui-accent-color, Highlight)));
+            border: var(--checkbox-box-border-checked, var(--checkbox-box-border,
+                var(--cbx-o-border, 1px solid currentColor)));
             box-shadow: var(--checkbox-box-shadow-checked);
         }
 

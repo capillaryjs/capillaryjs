@@ -125,6 +125,16 @@
     --panel-shadow: none;
     --panel-radius: var(--radius-md);
 
+    /* Floating table-filter surface. It inherits ordinary panel chrome by
+     * default, while themes can make this compact elevated surface distinct. */
+    --filter-panel-background: var(--panel-background);
+    --filter-panel-color: var(--panel-color);
+    --filter-panel-border: var(--panel-border);
+    --filter-panel-shadow: var(--panel-shadow);
+    --filter-panel-radius: var(--panel-radius);
+    --filter-panel-padding: 8px;
+    --filter-panel-min-width: 180px;
+
     /* Explicit island modifier; non-island themes keep its layout neutral. */
     --island-margin: 1rem;
     --island-padding: 0;
@@ -161,6 +171,11 @@
     --section-header-border: var(--header-border);
     --section-header-shadow: var(--header-shadow);
     --section-header-font-size: 1rem;
+    --section-header-font-weight: bold;
+    --groupbox-section-header-color: var(--section-header-color);
+    --groupbox-section-separator: 1px solid var(--ui-border-color);
+    --groupbox-column-header-color: var(--ui-color);
+    --groupbox-column-separator: 1px solid var(--ui-border-color);
 
     --toolbar-background: var(--palette-neutral-100);
     --toolbar-color: var(--palette-neutral-950);
@@ -221,9 +236,30 @@
     --checkbox-box-background: var(--input-background);
     --checkbox-box-background-checked: var(--selection-background);
     --checkbox-box-border: var(--input-border);
+    --checkbox-box-border-checked: var(--checkbox-box-border);
+    --checkbox-box-size: 1em;
+    --checkbox-box-radius: var(--radius-sm);
     --checkbox-box-shadow: none;
     --checkbox-box-shadow-checked: var(--checkbox-box-shadow);
     --checkbox-symbol-color: var(--selection-color);
+    --checkbox-negative-background: var(--palette-status-negative);
+    --checkbox-negative-color: var(--palette-contrast-light);
+    --checkbox-negative-border: var(--checkbox-box-border-checked);
+    --checkbox-negative-shadow: var(--checkbox-box-shadow-checked);
+    --checkbox-positive-background: var(--palette-status-positive);
+    --checkbox-positive-color: var(--palette-contrast-light);
+    --checkbox-positive-border: var(--checkbox-box-border-checked);
+    --checkbox-positive-shadow: var(--checkbox-box-shadow-checked);
+    --checkbox-neutral-background: var(--palette-status-neutral);
+    --checkbox-neutral-color: var(--palette-contrast-light);
+    --checkbox-neutral-border: var(--checkbox-box-border-checked);
+    --checkbox-neutral-shadow: var(--checkbox-box-shadow-checked);
+    --radio-box-background-checked: var(--checkbox-box-background-checked);
+    --radio-box-border-checked: var(--checkbox-box-border-checked);
+    --radio-box-shadow-checked: var(--checkbox-box-shadow-checked);
+    --radio-symbol-color: var(--checkbox-symbol-color);
+    --radio-symbol-size: .4em;
+    --radio-group-gap: .5rem;
     --checkable-label-color-disabled: #aaa;
     --toggle-button-background: var(--button-background);
     --toggle-button-background-checked: var(--palette-primary-700);

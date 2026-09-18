@@ -21,6 +21,15 @@
     --panel-color: var(--text-color);
     --panel-border: none;
     --panel-radius: 0px;
+    --filter-panel-background:
+      linear-gradient(to bottom, #fff 0%, var(--ui-primary-bg-color) 70%, var(--ui-medium-bg-color) 100%);
+    --filter-panel-color: var(--text-color);
+    --filter-panel-border: 1px solid color-mix(in srgb, var(--palette-primary) 52%, var(--palette-light));
+    --filter-panel-radius: var(--ui-border-radius);
+    --filter-panel-shadow:
+      inset 1px 1px 0 rgb(255 255 255 / 0.82),
+      inset -1px -1px 0 rgb(0 0 0 / 0.12),
+      0 2px 5px rgb(0 0 0 / 0.34);
     --island-border: 0px solid rgb(255 255 255 / 0.45);
     --island-shadow: 0px 1px 2.5px 0px var(--palette-neutral-600);
     --section-header-background: var(--shiny-background);
@@ -32,6 +41,7 @@
       inset 1px -1px 1px 0px #fff5,
       0px 1px 2px 0px #000a;
     --mini-shadow: 0px 1px 1px 0px #000a;
+    --groupbox-section-header-color: unset;
 
     --sidebar-background:
       linear-gradient(135deg, rgb(255 255 255 / 0.4), transparent 55%),

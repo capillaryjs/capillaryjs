@@ -1,6 +1,6 @@
 import {FilterMode} from '../../../util/filterMode.js'
 import type {FilterModeValue} from '../../../util/filterMode.js'
-import {Checkbox} from './Checkbox.js'
+import {Checkbox, semanticCheckboxCss} from './Checkbox.js'
 import type {CheckboxProps, CheckboxSymbol} from './Checkbox.js'
 
 export type QuadCheckboxProps = Omit<CheckboxProps<FilterModeValue>, 'symbols'>
@@ -11,6 +11,7 @@ export type QuadCheckboxProps = Omit<CheckboxProps<FilterModeValue>, 'symbols'>
 // Should have at least one [✓] (if any are marked [✓])
 export class QuadCheckbox extends Checkbox<FilterModeValue> {
     static override hostName = 'quadcheckbox'
+    static override css = semanticCheckboxCss
 
     static symbols = [
         ['×', FilterMode.Deny],

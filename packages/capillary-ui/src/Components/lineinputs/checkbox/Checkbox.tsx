@@ -19,6 +19,33 @@ export type CheckboxSymbol<TValue extends CheckboxValue = FilterModeValue> = rea
     value: TValue,
 ]
 
+/** Semantic-state paint belongs only to the tri- and quad-state controls.
+ * A two-state Checkbox also uses `prefer` for its checked value, but its
+ * selected surface is an ordinary theme selection, not a semantic-neutral
+ * filter state. */
+export const semanticCheckboxCss = css`
+    & > label > input[value="require"] + cap-checkshell {
+        color: var(--checkbox-positive-color);
+        background: var(--checkbox-positive-background);
+        border: var(--checkbox-positive-border);
+        box-shadow: var(--checkbox-positive-shadow);
+    }
+
+    & > label > input[value="deny"] + cap-checkshell {
+        color: var(--checkbox-negative-color);
+        background: var(--checkbox-negative-background);
+        border: var(--checkbox-negative-border);
+        box-shadow: var(--checkbox-negative-shadow);
+    }
+
+    & > label > input[value="prefer"] + cap-checkshell {
+        color: var(--checkbox-neutral-color);
+        background: var(--checkbox-neutral-background);
+        border: var(--checkbox-neutral-border);
+        box-shadow: var(--checkbox-neutral-shadow);
+    }
+`
+
 const checkboxLiveProps = ['disabled', 'required', 'busy', 'error'] as const
 
 export interface CheckboxProps<TValue extends CheckboxValue = FilterModeValue>
@@ -166,26 +193,6 @@ export class Checkbox<TValue extends CheckboxValue = FilterModeValue>
     }
 
     static override hostName = 'check-box'
-
-    static override css = css`
-        & > label > input[value="require"] + cap-checkshell {
-            color: var(--palette-contrast-light);
-            background: var(--palette-status-positive);
-            box-shadow: var(--checkbox-box-shadow-checked);
-        }
-
-        & > label > input[value="deny"] + cap-checkshell {
-            color: var(--palette-contrast-light);
-            background: var(--palette-status-negative);
-            box-shadow: var(--checkbox-box-shadow-checked);
-        }
-
-        & > label > input[value="prefer"] + cap-checkshell {
-            color: var(--palette-contrast-light);
-            background: var(--palette-status-neutral);
-            box-shadow: var(--checkbox-box-shadow-checked);
-        }
-    `
 
     private localizedStateName(semanticState: TValue, fallback: string): string {
         if (semanticState === FilterMode.Deny) return this.capillaryUiMessage('filterModeDenyLabel')

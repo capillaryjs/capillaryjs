@@ -139,11 +139,6 @@ body {
     gap: 1rem 0;
 }
 
-/* Each group stacks its control variants vertically. */
-.gallery-state-column {
-    gap: 0.5rem;
-}
-
 .gallery-data-grid {
     flex-wrap: wrap;
     align-items: stretch;

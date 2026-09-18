@@ -89,14 +89,26 @@ export class RadioButton extends CheckableControl<RadioButtonProps> {
     static override css = css`
         & > label > input[type="radio"] + cap-checkshell {
             border-radius: 50%;
+            height: var(--checkbox-box-size, 1em);
+        }
+
+        /* Radios may keep their neutral ring when selected and paint only the
+           center dot; the generic checked checkbox treatment is the fallback. */
+        & > label > input[type="radio"]:checked + cap-checkshell {
+            background: var(--radio-box-background-checked,
+                var(--checkbox-box-background-checked));
+            border: var(--radio-box-border-checked,
+                var(--checkbox-box-border-checked));
+            box-shadow: var(--radio-box-shadow-checked,
+                var(--checkbox-box-shadow-checked));
         }
 
         & > label > input[type="radio"]:checked + cap-checkshell::after {
-            width: .4em;
-            height: .4em;
+            width: var(--radio-symbol-size, .4em);
+            height: var(--radio-symbol-size, .4em);
             content: "";
             border-radius: 50%;
-            background: var(--checkbox-symbol-color);
+            background: var(--radio-symbol-color, var(--checkbox-symbol-color));
         }
     `
 }
@@ -209,7 +221,7 @@ export class RadioGroup<TValue extends Key = string>
         & > fieldset {
             display: flex;
             flex-flow: column wrap;
-            gap: 0;
+            gap: var(--radio-group-gap, .5rem);
             margin: 0;
             padding: 0;
             min-inline-size: 0;
