@@ -188,7 +188,7 @@
     --groupbox-column-header-color: var(--ui-color);
     --groupbox-column-separator: 1px solid var(--ui-border-color);
     /* Inner GroupBox content rhythm is deliberately separate from island gutters. */
-    --groupbox-content-gap: .5rem;
+    --groupbox-content-gap: 2px;
 
     --toolbar-background: var(--palette-neutral-100);
     --toolbar-color: var(--palette-neutral-950);
