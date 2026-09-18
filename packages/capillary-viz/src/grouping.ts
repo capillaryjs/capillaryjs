@@ -17,22 +17,30 @@ export interface CategoryColorVariables {
     readonly '--c1': string
     readonly '--c2': string
     readonly '--c3': string
-    readonly '--colored-dark': string
-    readonly '--colored-base': string
-    readonly '--colored-light': string
+    readonly '--colored-dark'?: string
+    readonly '--colored-base'?: string
+    readonly '--colored-light'?: string
 }
 
 export function categoryColorVariables(
     [dark, base, light]: CategoryColors,
 ): CategoryColorVariables {
+    // A category may deliberately inherit the theme's colored trait (for
+    // example `var(--colored-base)`). Re-declaring that exact alias on the
+    // element turns it into a self-reference and invalidates its background,
+    // border, and foreground. Preserve the inherited token in that case.
     return {
         '--c1': dark,
         '--c2': base,
         '--c3': light,
-        '--colored-dark': dark,
-        '--colored-base': base,
-        '--colored-light': light,
+        ...(isOwnColoredAlias(dark, '--colored-dark') ? {} : {'--colored-dark': dark}),
+        ...(isOwnColoredAlias(base, '--colored-base') ? {} : {'--colored-base': base}),
+        ...(isOwnColoredAlias(light, '--colored-light') ? {} : {'--colored-light': light}),
     }
+}
+
+function isOwnColoredAlias(value: string, property: '--colored-dark' | '--colored-base' | '--colored-light'): boolean {
+    return value.trim().replaceAll(' ', '') === `var(${property})`
 }
 export type CategoryVisibility = 'hidden' | 'visible'
 

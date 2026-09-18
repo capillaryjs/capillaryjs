@@ -5,6 +5,7 @@ import {Emitter, FetchState} from '@capillaryjs/capillary'
 
 import {
     GroupingCriterion,
+    categoryColorVariables,
     categoryCounts,
     createSplitSelection,
     derivedCriterion,
@@ -40,6 +41,18 @@ function stateCategories(openLabel = 'Open'): readonly Category<RecordItem>[] {
 }
 
 describe('grouping criteria', () => {
+    test('preserves inherited colored-trait aliases without a self-reference', () => {
+        assert.deepEqual(categoryColorVariables([
+            'var(--colored-dark)',
+            'var(--colored-base)',
+            'var(--colored-light)',
+        ]), {
+            '--c1': 'var(--colored-dark)',
+            '--c2': 'var(--colored-base)',
+            '--c3': 'var(--colored-light)',
+        })
+    })
+
     test('unifies static categories with sticky stable-key visibility state', () => {
         const source = new Emitter(stateCategories())
         const criterion = new GroupingCriterion({
