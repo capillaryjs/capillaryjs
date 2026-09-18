@@ -441,7 +441,9 @@ cap-tricheckbox {
         cap-radiobutton > label > input + cap-checkshell,
         cap-tricheckbox > label > input + cap-checkshell {
             position: relative;
-            display: grid;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             width: var(--checkbox-box-size, 1em);
             height: var(--checkbox-box-size, 1em);
             flex: 0 0 var(--checkbox-box-size, 1em);
@@ -457,7 +459,6 @@ cap-tricheckbox {
             font-family: inherit;
             font-size: 1em;
             user-select: none;
-            place-items: center;
         }
 
         cap-checkbox > label > input:checked + cap-checkshell,
@@ -473,14 +474,22 @@ cap-tricheckbox {
         }
 
 
-cap-checkbox > label:has(> input:required:invalid:not(:disabled):not([aria-invalid="true"])),
-cap-quadcheckbox > label:has(> input:required:invalid:not(:disabled):not([aria-invalid="true"])),
-cap-radiobutton > label:has(> input:required:invalid:not(:disabled):not([aria-invalid="true"])),
-cap-tricheckbox > label:has(> input:required:invalid:not(:disabled):not([aria-invalid="true"])) {
-    outline: 1px dashed var(--required-color);
-    outline-offset: 3px;
-    padding-inline-end: 1em;
+
+cap-checkbox > label:has(> input:required:invalid:not(:disabled):not([aria-invalid="true"]))::before,
+cap-quadcheckbox > label:has(> input:required:invalid:not(:disabled):not([aria-invalid="true"]))::before,
+cap-radiobutton > label:has(> input:required:invalid:not(:disabled):not([aria-invalid="true"]))::before,
+cap-tricheckbox > label:has(> input:required:invalid:not(:disabled):not([aria-invalid="true"]))::before {
+    content: "";
+    position: absolute;
+    z-index: 0;
+    inset-block: -4px;
+    inset-inline-start: -4px;
+    inset-inline-end: calc(-4px - 1em);
+    border: 1px dashed var(--required-color);
+    border-radius: inherit;
+    pointer-events: none;
 }
+
 
 cap-checkbox > label:has(> input:required:invalid:not(:disabled):not([aria-invalid="true"]))::after,
 cap-quadcheckbox > label:has(> input:required:invalid:not(:disabled):not([aria-invalid="true"]))::after,
@@ -490,11 +499,12 @@ cap-tricheckbox > label:has(> input:required:invalid:not(:disabled):not([aria-in
     position: absolute;
     z-index: 1;
     inset-block-start: -.5em;
-    inset-inline-end: 0;
-    display: grid;
+    inset-inline-end: -1em;
+    display: flex;
     inline-size: 1rem;
     block-size: 1rem;
-    place-items: center;
+    align-items: center;
+    justify-content: center;
     color: var(--required-indicator-color);
     background: var(--required-indicator-background);
     font-size: .75rem;
@@ -580,32 +590,32 @@ cap-toggle {
         }
 
         /* GroupBox owns the ordinary body layout. Labeled controls fill its
-           direct body so their own grid/flex row keeps labels left and native
+           direct body so their label/control row keeps labels left and native
            input surfaces right; an explicitly nested Layout remains supported
            for non-standard arrangements. */
         cap-groupbox > cap-content > cap-dropdown,
         /* GroupBox owns the ordinary body layout. Labeled controls fill its
-           direct body so their own grid/flex row keeps labels left and native
+           direct body so their label/control row keeps labels left and native
            input surfaces right; an explicitly nested Layout remains supported
            for non-standard arrangements. */
         cap-groupbox > cap-content > cap-datepicker,
         /* GroupBox owns the ordinary body layout. Labeled controls fill its
-           direct body so their own grid/flex row keeps labels left and native
+           direct body so their label/control row keeps labels left and native
            input surfaces right; an explicitly nested Layout remains supported
            for non-standard arrangements. */
         cap-groupbox > cap-content > cap-datetimepicker,
         /* GroupBox owns the ordinary body layout. Labeled controls fill its
-           direct body so their own grid/flex row keeps labels left and native
+           direct body so their label/control row keeps labels left and native
            input surfaces right; an explicitly nested Layout remains supported
            for non-standard arrangements. */
         cap-groupbox > cap-content > cap-textbox,
         /* GroupBox owns the ordinary body layout. Labeled controls fill its
-           direct body so their own grid/flex row keeps labels left and native
+           direct body so their label/control row keeps labels left and native
            input surfaces right; an explicitly nested Layout remains supported
            for non-standard arrangements. */
         cap-groupbox > cap-content > cap-timepicker,
         /* GroupBox owns the ordinary body layout. Labeled controls fill its
-           direct body so their own grid/flex row keeps labels left and native
+           direct body so their label/control row keeps labels left and native
            input surfaces right; an explicitly nested Layout remains supported
            for non-standard arrangements. */
         cap-groupbox > cap-content > cap-toggle,
@@ -696,9 +706,10 @@ cap-dropdown {
             z-index: 2;
             inset-block: 0;
             inset-inline-end: 0;
-            display: grid;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             inline-size: var(--dropdown-trigger-width);
-            place-items: center;
             color: var(--dropdown-trigger-color);
             background: var(--dropdown-trigger-background);
             border: var(--dropdown-trigger-border);
@@ -727,10 +738,12 @@ cap-dropdown {
         }
 
 
+
 cap-dropdown > cap-selectshell:has(> select:required:invalid:not(:disabled):not([aria-invalid="true"])) {
     outline: 1px dashed var(--required-color);
     outline-offset: 3px;
 }
+
 
 cap-dropdown:has(> cap-selectshell > select:required:invalid:not(:disabled):not([aria-invalid="true"]))::after {
     content: "✲";
@@ -738,10 +751,11 @@ cap-dropdown:has(> cap-selectshell > select:required:invalid:not(:disabled):not(
     z-index: 3;
     inset-block-start: max(calc(var(--control-row-padding-block, .25em) + .15em), .3em);
     inset-inline-end: calc(var(--dropdown-trigger-width) + .5em);
-    display: grid;
+    display: flex;
     inline-size: 1rem;
     block-size: 1rem;
-    place-items: center;
+    align-items: center;
+    justify-content: center;
     color: var(--required-indicator-color);
     background: var(--required-indicator-background);
     font-size: .75rem;
@@ -1116,12 +1130,14 @@ cap-timepicker {
         }
 
 
+
 cap-datepicker > input:required:invalid:not(:disabled):not([readonly]):not([aria-invalid="true"]),
 cap-datetimepicker > input:required:invalid:not(:disabled):not([readonly]):not([aria-invalid="true"]),
 cap-timepicker > input:required:invalid:not(:disabled):not([readonly]):not([aria-invalid="true"]) {
     outline: 1px dashed var(--required-color);
     outline-offset: 3px;
 }
+
 
 cap-datepicker:has(> input:required:invalid:not(:disabled):not([readonly]):not([aria-invalid="true"]))::after,
 cap-datetimepicker:has(> input:required:invalid:not(:disabled):not([readonly]):not([aria-invalid="true"]))::after,
@@ -1131,10 +1147,11 @@ cap-timepicker:has(> input:required:invalid:not(:disabled):not([readonly]):not([
     z-index: 3;
     inset-block-start: max(calc(var(--control-row-padding-block, .25em) + .15em), .3em);
     inset-inline-end: .35em;
-    display: grid;
+    display: flex;
     inline-size: 1rem;
     block-size: 1rem;
-    place-items: center;
+    align-items: center;
+    justify-content: center;
     color: var(--required-indicator-color);
     background: var(--required-indicator-background);
     font-size: .75rem;
@@ -1198,7 +1215,8 @@ cap-descriptionlist {
         }
 
         cap-descriptionlist > dl {
-            display: grid;
+            display: flex;
+            flex-flow: column nowrap;
             margin: 0;
         }
 
@@ -2457,10 +2475,12 @@ cap-textbox {
         }
 
 
+
 cap-textbox > input:required:invalid:not(:disabled):not([readonly]):not([aria-invalid="true"]) {
     outline: 1px dashed var(--required-color);
     outline-offset: 3px;
 }
+
 
 cap-textbox:has(> input:required:invalid:not(:disabled):not([readonly]):not([aria-invalid="true"]))::after {
     content: "✲";
@@ -2468,10 +2488,11 @@ cap-textbox:has(> input:required:invalid:not(:disabled):not([readonly]):not([ari
     z-index: 3;
     inset-block-start: max(calc(var(--control-row-padding-block, .25em) + .15em), .3em);
     inset-inline-end: .35em;
-    display: grid;
+    display: flex;
     inline-size: 1rem;
     block-size: 1rem;
-    place-items: center;
+    align-items: center;
+    justify-content: center;
     color: var(--required-indicator-color);
     background: var(--required-indicator-background);
     font-size: .75rem;
@@ -2717,8 +2738,9 @@ cap-treeview {
 
         cap-treeview > [role="tree"],
         cap-treeview > ul[aria-hidden="true"] {
-            display: grid;
-            align-content: start;
+            display: flex;
+            flex-flow: column nowrap;
+            align-items: stretch;
             margin: 0;
             padding: 0;
             list-style: none;

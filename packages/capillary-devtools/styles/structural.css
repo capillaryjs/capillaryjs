@@ -355,9 +355,9 @@ cap-traceactivity { display: block; min-width: 0; color: var(--cap-trace-text, #
         cap-traceactivity .trace-limit { border-inline-start: 3px solid var(--cap-trace-warning, #ae6500); padding-inline-start: .7rem; }
 
 cap-traceinspector .trace-workbench { display: grid; grid-template-columns: minmax(12rem, 17rem) minmax(0, 1fr); gap: 1rem; }
-        cap-traceinspector .trace-stack { display: grid; gap: 1rem; min-width: 0; }
+        cap-traceinspector .trace-stack { display: flex; flex-flow: column nowrap; gap: 1rem; min-width: 0; }
         cap-traceinspector .trace-columns { display: grid; grid-template-columns: minmax(0, 1fr) minmax(14rem, .7fr); gap: 1rem; }
-        cap-traceinspector .trace-roots { display: grid; gap: .4rem; padding: 0; list-style: none; }
+        cap-traceinspector .trace-roots { display: flex; flex-flow: column nowrap; gap: .4rem; padding: 0; list-style: none; }
         cap-traceinspector .trace-roots button { width: 100%; }
         cap-traceinspector select { max-width: 18rem; }
         @media (max-width: 900px) { cap-traceinspector .trace-workbench, cap-traceinspector .trace-columns { grid-template-columns: minmax(0, 1fr); } cap-traceinspector .trace-roots { max-height: 12rem; overflow: auto; } }

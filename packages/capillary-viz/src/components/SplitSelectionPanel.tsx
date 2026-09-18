@@ -103,7 +103,8 @@ extends Component<SplitSelectionPanelProps<TItem>> {
 
     static css = css`
         & {
-            display: grid;
+            display: flex;
+            flex-flow: column nowrap;
             gap: var(--viz-space, 0.6rem);
             min-width: 0;
             user-select: none;
@@ -131,10 +132,10 @@ extends Component<SplitSelectionPanelProps<TItem>> {
         }
 
         & > cap-groupbox > cap-content > cap-presets {
-            display: grid;
+            display: flex;
+            flex-flow: column nowrap;
             gap: 0.35rem;
-            align-content: stretch;
-            justify-content: stretch;
+            align-items: stretch;
         }
 
         & > cap-groupbox > cap-content > cap-presets > cap-button {
@@ -144,7 +145,8 @@ extends Component<SplitSelectionPanelProps<TItem>> {
         }
 
         & ol {
-            display: grid;
+            display: flex;
+            flex-flow: column nowrap;
             gap: .33rem;
             padding: 0;
             list-style: none;

@@ -293,7 +293,7 @@ describe('style registry', () => {
         const stylesheet = runtime.styleRegistry.generateCSS()
 
         assert.match(stylesheet, /cap-descriptionlist\s*\{[^}]*display:\s*block/)
-        assert.match(stylesheet, /cap-descriptionlist > dl\s*\{[^}]*display:\s*grid[^}]*margin:\s*0/)
+        assert.match(stylesheet, /cap-descriptionlist > dl\s*\{[^}]*display:\s*flex[^}]*flex-flow:\s*column nowrap[^}]*margin:\s*0/)
         assert.doesNotMatch(stylesheet, /(?:^|\n)dl:has\(|data-cap-component|cap-panel|cap-sidebar/)
     })
 
@@ -349,7 +349,7 @@ describe('style registry', () => {
         const stylesheet = runtime.styleRegistry.generateCSS()
 
         assert.match(stylesheet, /cap-treeview\s*\{[^}]*flex:\s*1 1 auto[^}]*min-block-size:\s*0[^}]*max-block-size:\s*100%[^}]*overflow:\s*auto/)
-        assert.match(stylesheet, /cap-treeview > \[role="tree"\],[\s\S]*cap-treeview > ul\[aria-hidden="true"\]\s*\{[^}]*list-style:\s*none/)
+        assert.match(stylesheet, /cap-treeview > \[role="tree"\],[\s\S]*cap-treeview > ul\[aria-hidden="true"\]\s*\{[^}]*display:\s*flex[^}]*flex-flow:\s*column nowrap[^}]*list-style:\s*none/)
         assert.match(stylesheet, /cap-treeview \[role="treeitem"\]:hover\s*\{[^}]*background:\s*var\(--button-background-hover\)/)
         assert.match(stylesheet, /cap-treeview \[role="treeitem"\]:focus-visible\s*\{[^}]*box-shadow:\s*var\(--focus-ring\)/)
         assert.match(stylesheet, /cap-treeview \[role="treeitem"\]\[aria-selected="true"\]\s*\{[^}]*color:\s*var\(--ui-select-text-color\)[^}]*background:\s*var\(--ui-select-bg\)/)
@@ -440,7 +440,7 @@ describe('style registry', () => {
         assert.match(stylesheet, /cap-checkshell\s*\{[^}]*width:\s*var\(--checkbox-box-size, 1em\)[^}]*height:\s*var\(--checkbox-box-size, 1em\)[^}]*border-radius:\s*var\(--checkbox-box-radius,[^}]*box-shadow:\s*var\(--checkbox-box-shadow\)/)
         assert.match(stylesheet, /input:checked \+ cap-checkshell\s*\{[^}]*border:\s*var\(--checkbox-box-border-checked,[^}]*box-shadow:\s*var\(--checkbox-box-shadow-checked\)/)
         assert.doesNotMatch(stylesheet, /input\[value="(?:require|deny|prefer)"\]/)
-        assert.match(stylesheet, /label:has\(> input:required:invalid:not\(:disabled\):not\(\[aria-invalid="true"\]\)\)\s*\{[^}]*outline:\s*1px dashed var\(--required-color\)[^}]*padding-inline-end:\s*1em/)
+        assert.match(stylesheet, /label:has\(> input:required:invalid:not\(:disabled\):not\(\[aria-invalid="true"\]\)\)::before\s*\{[^}]*position:\s*absolute[^}]*inset-inline-end:\s*calc\(-4px - 1em\)[^}]*border:\s*1px dashed var\(--required-color\)/)
         assert.doesNotMatch(stylesheet, /\.checkboxshell|\[data-(?:disabled|required|error|state)\]|cap-checkboxshell|cap-checkbox\s*\{[^}]*width:\s*var\(--input-width/)
     })
 
@@ -463,6 +463,7 @@ describe('style registry', () => {
 
         assert.match(stylesheet, /cap-radiobutton\s*\{[^}]*display:\s*inline-flex/)
         assert.match(stylesheet, /cap-radiobutton > label:has\(> input:disabled\)\s*\{[^}]*color:\s*var\(--checkable-label-color-disabled\)[^}]*cursor:\s*not-allowed/)
+        assert.match(stylesheet, /input \+ cap-checkshell\s*\{[^}]*display:\s*flex[^}]*align-items:\s*center[^}]*justify-content:\s*center/)
         assert.match(stylesheet, /input \+ cap-checkshell\s*\{[^}]*background:\s*var\(--checkbox-box-background,[^}]*box-shadow:\s*var\(--checkbox-box-shadow\)/)
         assert.match(stylesheet, /input:checked \+ cap-checkshell\s*\{[^}]*background:\s*var\(--checkbox-box-background-checked,[^}]*box-shadow:\s*var\(--checkbox-box-shadow-checked\)/)
         assert.match(stylesheet, /input\[type="radio"\] \+ cap-checkshell\s*\{[^}]*border-radius:\s*50%/)

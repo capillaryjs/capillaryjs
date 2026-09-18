@@ -44,7 +44,8 @@ export class DescriptionList extends Component<DescriptionListProps> {
         }
 
         & > dl {
-            display: grid;
+            display: flex;
+            flex-flow: column nowrap;
             margin: 0;
         }
     `

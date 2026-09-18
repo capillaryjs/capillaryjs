@@ -88,8 +88,9 @@ extends OptionsBox<CategoryHidePanelProps<TItem>> {
         }
 
         & > cap-content > cap-categoryhidecontent {
-            display: grid;
-            align-content: start;
+            display: flex;
+            flex-flow: column nowrap;
+            align-items: stretch;
             gap: var(--viz-space, 0.6rem);
             min-width: 0;
         }
@@ -101,7 +102,8 @@ extends OptionsBox<CategoryHidePanelProps<TItem>> {
         }
 
         & > cap-content > cap-categoryhidecontent > cap-criteriongroups {
-            display: grid;
+            display: flex;
+            flex-flow: column nowrap;
             gap: 1em;
             min-width: 0;
         }

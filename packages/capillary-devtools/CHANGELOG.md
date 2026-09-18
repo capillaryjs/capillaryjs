@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+### Changed
+
+- Use flexbox for the inspector's single-axis stacks and root list, retaining
+  grid for the responsive multi-column workbench layout.
+
 ### Added
 
 - Add opt-in bounded, immutable nested value snapshots and expandable value/input/

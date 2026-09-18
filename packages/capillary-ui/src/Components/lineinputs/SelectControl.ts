@@ -75,9 +75,10 @@ export abstract class SelectControl<
             z-index: 2;
             inset-block: 0;
             inset-inline-end: 0;
-            display: grid;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             inline-size: var(--dropdown-trigger-width);
-            place-items: center;
             color: var(--dropdown-trigger-color);
             background: var(--dropdown-trigger-background);
             border: var(--dropdown-trigger-border);

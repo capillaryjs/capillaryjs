@@ -9,7 +9,8 @@ Versioning.
 ### Fixed
 
 - Render unfilled required controls with a transparent negative ✲ marker:
-  inside native input surfaces and beside a deliberately extended checkable label outline.
+  inside native input surfaces and beside a pseudo-element checkable outline
+  extension that does not change the label's layout width.
 - Place checkbox and radio validation halos around the complete labelled
   choice while retaining the error border on the painted shell.
 - Keep busy buttons visually normal and layer only the working animation over
@@ -89,6 +90,9 @@ Versioning.
 
 ### Changed
 
+- Use flexbox for single-axis component stacks and simple centered chrome,
+  retaining grid only where its track model is needed. This does not change the
+  public DOM or layout contract.
 - Give all single-line controls the same minimum row footprint with symmetric
   breathing room, including checkbox/radio variants, temporal inputs, and
   ProgressBar. Add `--control-row-min-height` and `--control-row-padding-block`

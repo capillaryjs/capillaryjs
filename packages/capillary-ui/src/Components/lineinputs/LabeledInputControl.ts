@@ -18,7 +18,7 @@ export abstract class LabeledInputControl<
         }
 
         /* GroupBox owns the ordinary body layout. Labeled controls fill its
-           direct body so their own grid/flex row keeps labels left and native
+           direct body so their label/control row keeps labels left and native
            input surfaces right; an explicitly nested Layout remains supported
            for non-standard arrangements. */
         cap-groupbox > cap-content > &,

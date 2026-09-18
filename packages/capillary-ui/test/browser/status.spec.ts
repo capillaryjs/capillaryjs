@@ -226,6 +226,43 @@ test('required controls use base negative markers in their intended positions', 
                 right: Number.parseFloat(style.right),
             }
         }
+        const requiredCheckableLayout = (input: HTMLInputElement) => {
+            const checkbox = input.closest('cap-checkbox')
+            if (checkbox == null || checkbox.parentElement == null) {
+                throw new Error('Missing required-checkbox fixture host')
+            }
+            const parent = checkbox.parentElement
+            const row = document.createElement('div')
+            row.style.display = 'flex'
+            row.style.gap = '11px'
+
+            const adjacent = document.createElement('span')
+            adjacent.textContent = 'Adjacent control'
+            parent.insertBefore(row, checkbox)
+            row.append(checkbox, adjacent)
+
+            const bounds = () => ({
+                checkboxRight: checkbox.getBoundingClientRect().right,
+                adjacentLeft: adjacent.getBoundingClientRect().left,
+            })
+            input.required = false
+            const before = bounds()
+            input.required = true
+            const after = bounds()
+            const outline = getComputedStyle(checkbox.querySelector('label')!, '::before')
+            row.replaceWith(checkbox)
+
+            return {
+                before,
+                after,
+                outline: {
+                    content: outline.content,
+                    position: outline.position,
+                    borderRightStyle: outline.borderRightStyle,
+                    right: Number.parseFloat(outline.right),
+                },
+            }
+        }
         const text = required<HTMLInputElement>('#accessibility-root cap-textbox > input')
         text.value = ''
         text.required = true
@@ -269,8 +306,9 @@ test('required controls use base negative markers in their intended positions', 
             negativeColor,
             text: pseudo(textHost),
             select: pseudo(selectHost),
-            checkbox: {...pseudo(checkboxLabel), paddingRight: getComputedStyle(checkboxLabel).paddingRight},
-            radio: {...pseudo(radioLabel), paddingRight: getComputedStyle(radioLabel).paddingRight},
+            checkbox: pseudo(checkboxLabel),
+            radio: pseudo(radioLabel),
+            requiredCheckableLayout: requiredCheckableLayout(checkbox),
             textInputTop: textInput.top - textHostBounds.top,
             selectInputTop: selectShellBounds.top - selectHostBounds.top,
             selectTriggerWidth: Number.parseFloat(
@@ -296,9 +334,14 @@ test('required controls use base negative markers in their intended positions', 
     expect(presentation.select.right).toBeGreaterThan(presentation.selectTriggerWidth)
     for (const marker of [presentation.checkbox, presentation.radio]) {
         expect(marker.top).toBeLessThan(0)
-        expect(marker.right).toBe(0)
-        expect(Number.parseFloat(marker.paddingRight)).toBeGreaterThan(0)
+        expect(marker.right).toBeLessThan(0)
     }
+    expect(presentation.requiredCheckableLayout.before)
+        .toEqual(presentation.requiredCheckableLayout.after)
+    expect(presentation.requiredCheckableLayout.outline.content).toBe('""')
+    expect(presentation.requiredCheckableLayout.outline.position).toBe('absolute')
+    expect(presentation.requiredCheckableLayout.outline.borderRightStyle).toBe('dashed')
+    expect(presentation.requiredCheckableLayout.outline.right).toBeLessThan(0)
 })
 
 test('status presentation respects reduced motion', async ({page}) => {

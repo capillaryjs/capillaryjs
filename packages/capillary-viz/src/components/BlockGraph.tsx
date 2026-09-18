@@ -211,9 +211,8 @@ export class BlockGraph<TItem = unknown> extends Component<BlockGraphProps<TItem
             inset-block-start: 0;
             inset-inline-start: 0;
             box-sizing: border-box;
-            display: grid;
-            grid-template-columns: minmax(0, 1fr) auto;
-            grid-template-areas: "label count";
+            display: flex;
+            flex-flow: row nowrap;
             align-items: center;
             gap: 0 0.35rem;
             width: 100%;
@@ -237,9 +236,9 @@ export class BlockGraph<TItem = unknown> extends Component<BlockGraphProps<TItem
         }
 
         & cap-blocklabel > cap-blockname {
-            grid-area: label;
-            display: grid;
-            grid-template-columns: auto minmax(0, 1fr);
+            display: flex;
+            flex: 1 1 auto;
+            flex-flow: row nowrap;
             align-items: baseline;
             gap: 0.2rem;
             min-width: 0;
@@ -248,6 +247,7 @@ export class BlockGraph<TItem = unknown> extends Component<BlockGraphProps<TItem
         }
 
         & cap-blockname > small {
+            flex: 0 1 auto;
             overflow: hidden;
             font-size: 0.68rem;
             opacity: 0.82;
@@ -256,6 +256,7 @@ export class BlockGraph<TItem = unknown> extends Component<BlockGraphProps<TItem
         }
 
         & cap-blockname > strong {
+            flex: 1 1 auto;
             min-width: 0;
             overflow: hidden;
             text-overflow: ellipsis;
@@ -263,7 +264,7 @@ export class BlockGraph<TItem = unknown> extends Component<BlockGraphProps<TItem
         }
 
         & cap-blocklabel > data {
-            grid-area: count;
+            flex: 0 0 auto;
             align-self: center;
             font-weight: 750;
         }

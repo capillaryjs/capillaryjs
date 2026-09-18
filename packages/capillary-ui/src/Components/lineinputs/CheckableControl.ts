@@ -52,7 +52,9 @@ export abstract class CheckableControl<
 
         & > label > input + cap-checkshell {
             position: relative;
-            display: grid;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             width: var(--checkbox-box-size, 1em);
             height: var(--checkbox-box-size, 1em);
             flex: 0 0 var(--checkbox-box-size, 1em);
@@ -68,7 +70,6 @@ export abstract class CheckableControl<
             font-family: inherit;
             font-size: 1em;
             user-select: none;
-            place-items: center;
         }
 
         & > label > input:checked + cap-checkshell {
@@ -85,8 +86,8 @@ ${requiredPresentationCss({
             indicatorSelector: `& > label:has(> input${requiredControlInvalidSelector})`,
             indicatorZIndex: 1,
             indicatorInsetBlockStart: '-.5em',
-            indicatorInsetInlineEnd: '0',
-            outlinePaddingInlineEnd: '1em',
+            indicatorInsetInlineEnd: '-1em',
+            outlineInlineEndExtension: '1em',
         })}
         & > label:has(> input[aria-invalid="true"]) {
             box-shadow: var(--error-control-shadow);

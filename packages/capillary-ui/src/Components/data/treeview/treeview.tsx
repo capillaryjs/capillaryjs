@@ -223,8 +223,9 @@ export class TreeView<TValue = unknown> extends Component<TreeViewProps<TValue>>
 
         & > [role="tree"],
         & > ul[aria-hidden="true"] {
-            display: grid;
-            align-content: start;
+            display: flex;
+            flex-flow: column nowrap;
+            align-items: stretch;
             margin: 0;
             padding: 0;
             list-style: none;

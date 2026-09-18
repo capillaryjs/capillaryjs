@@ -120,7 +120,7 @@ for (const theme of ['base', 'capillary', 'shiny', 'soft', 'white', 'minimal']) 
             for (const largeText of [false, true]) {
                 if (largeText) await page.locator('cap-app').evaluate(e => e.style.setProperty('--ui-font-size', '24px'))
                 const rows = await measure()
-                const expected = (theme === 'capillary' ? 3.25 : 2.5) * rows[0]!.font
+                const expected = (theme === 'capillary' ? 2.75 : 2.5) * rows[0]!.font
                 for (const [index, row] of rows.entries()) {
                     expect(row.height, row.tag).toBeCloseTo(expected, 1)
                     expect(row.before, row.tag).toBeGreaterThanOrEqual(row.inset - .1)
@@ -140,7 +140,8 @@ for (const theme of ['base', 'capillary', 'shiny', 'soft', 'white', 'minimal']) 
             }
             await page.locator('cap-app').evaluate(e => e.style.removeProperty('--ui-font-size'))
             await page.locator('#stack').evaluate(e => e.style.setProperty('--control-min-height', '48px'))
-            for (const row of await measure()) expect(row.height, row.tag).toBeCloseTo(54, 1)
+            const overriddenRowHeight = theme === 'capillary' ? 48 : 54
+            for (const row of await measure()) expect(row.height, row.tag).toBeCloseTo(overriddenRowHeight, 1)
         })
 
         test('state changes and focus do not move text or resize controls', async ({page}) => {

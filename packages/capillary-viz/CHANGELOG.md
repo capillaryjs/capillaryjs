@@ -6,6 +6,11 @@ and Semantic Versioning.
 
 ## Unreleased
 
+### Changed
+
+- Use flexbox for single-axis selection-panel stacks and BlockGraph label
+  composition, retaining grid only where its track model is required.
+
 ## 1.0.0 - 2026-09-14
 
 ### Changed

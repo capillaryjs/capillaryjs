@@ -16,9 +16,9 @@ export class TraceInspector extends TraceView {
         TraceTimelineView, TracePlaybackControls, ActivityOverviewView]
     static override css = `
         & .trace-workbench { display: grid; grid-template-columns: minmax(12rem, 17rem) minmax(0, 1fr); gap: 1rem; }
-        & .trace-stack { display: grid; gap: 1rem; min-width: 0; }
+        & .trace-stack { display: flex; flex-flow: column nowrap; gap: 1rem; min-width: 0; }
         & .trace-columns { display: grid; grid-template-columns: minmax(0, 1fr) minmax(14rem, .7fr); gap: 1rem; }
-        & .trace-roots { display: grid; gap: .4rem; padding: 0; list-style: none; }
+        & .trace-roots { display: flex; flex-flow: column nowrap; gap: .4rem; padding: 0; list-style: none; }
         & .trace-roots button { width: 100%; }
         & select { max-width: 18rem; }
         @media (max-width: 900px) { & .trace-workbench, & .trace-columns { grid-template-columns: minmax(0, 1fr); } & .trace-roots { max-height: 12rem; overflow: auto; } }
