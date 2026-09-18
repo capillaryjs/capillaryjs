@@ -354,6 +354,7 @@ describe('choice controls', () => {
         const value = new Emitter('all')
         const disabled = new Emitter(false)
         const required = new Emitter(false)
+        const readOnly = new Emitter(false)
         const error = new Emitter<string | null>(null)
         class DropdownOwner extends Component {
             render() {
@@ -366,6 +367,7 @@ describe('choice controls', () => {
                     ],
                     disabled: live(disabled),
                     required: live(required),
+                    readOnly: live(readOnly),
                     error: live(error),
                 })
             }
@@ -381,6 +383,14 @@ describe('choice controls', () => {
         assert.equal(select.disabled, false)
         assert.equal(select.required, false)
 
+        readOnly.set(true)
+        assert.equal(select.disabled, false)
+        assert.equal(select.getAttribute('aria-readonly'), 'true')
+        select.value = 'Critical'
+        select.dispatchEvent(new Event('change', {bubbles: true}))
+        assert.equal(value.get(), 'all')
+        assert.equal(select.value, 'all')
+
         disabled.set(true)
         required.set(true)
         error.set('Choose a permitted risk focus')
@@ -393,6 +403,86 @@ describe('choice controls', () => {
         const alert = requiredQuery<HTMLElement>('[role="alert"]', host)
         assert.equal(select.getAttribute('aria-describedby'), alert.id)
         assert.equal(alert.textContent, 'Choose a permitted risk focus')
+    })
+
+    test('read-only choice controls preserve their current value without becoming disabled', () => {
+        const dropdownValue = new Emitter('all')
+        let dropdownChanges = 0
+        Dropdown.new({
+            label: 'Risk',
+            options: [{value: 'all', label: 'All'}, {value: 'critical', label: 'Critical'}],
+            valueEmitter: dropdownValue,
+            readOnly: true,
+            onChange: () => dropdownChanges += 1,
+        }).attachTo(document.body)
+        const select = requiredQuery<HTMLSelectElement>('select')
+        assert.equal(select.disabled, false)
+        assert.equal(select.getAttribute('aria-readonly'), 'true')
+        select.value = 'critical'
+        select.dispatchEvent(new Event('change', {bubbles: true}))
+        assert.equal(dropdownValue.get(), 'all')
+        assert.equal(select.value, 'all')
+        assert.equal(dropdownChanges, 0)
+
+        document.body.replaceChildren()
+        const checkbox = Checkbox.new({label: 'Archived', readOnly: true})
+            .attachTo(document.body)
+        const checkboxInput = requiredQuery<HTMLInputElement>('input[type="checkbox"]')
+        checkboxInput.checked = true
+        checkboxInput.dispatchEvent(new Event('change', {bubbles: true}))
+        assert.equal(checkboxInput.getAttribute('aria-readonly'), 'true')
+        assert.equal(checkbox.valueEmitter.get(), FilterMode.Neutral)
+        assert.equal(checkboxInput.checked, false)
+
+        document.body.replaceChildren()
+        let radioChanges = 0
+        RadioButton.new({
+            label: 'Enabled',
+            name: 'setting',
+            value: 'enabled',
+            checked: false,
+            readOnly: true,
+            onChange: () => radioChanges += 1,
+        }).attachTo(document.body)
+        const radioInput = requiredQuery<HTMLInputElement>('input[type="radio"]')
+        radioInput.click()
+        assert.equal(radioInput.getAttribute('aria-readonly'), 'true')
+        assert.equal(radioInput.checked, false)
+        assert.equal(radioChanges, 0)
+
+        document.body.replaceChildren()
+        const radioValue = new Emitter('list')
+        RadioGroup.new({
+            label: 'View',
+            options: [['list', 'List'], ['grid', 'Grid']],
+            valueEmitter: radioValue,
+            readOnly: true,
+        }).attachTo(document.body)
+        const fieldset = requiredQuery<HTMLFieldSetElement>('fieldset')
+        const radios = [...fieldset.querySelectorAll<HTMLInputElement>('input[type="radio"]')]
+        const gridRadio = requiredAt(radios, 1)
+        gridRadio.checked = true
+        gridRadio.dispatchEvent(new Event('change', {bubbles: true}))
+        assert.equal(fieldset.disabled, false)
+        assert.equal(fieldset.getAttribute('aria-readonly'), 'true')
+        assert.equal(radioValue.get(), 'list')
+        assert.equal(requiredAt(radios, 0).checked, true)
+        assert.equal(gridRadio.checked, false)
+
+        document.body.replaceChildren()
+        const toggleValue = new Emitter('list')
+        Toggle.new({
+            label: 'View',
+            options: [['list', 'List'], ['grid', 'Grid']],
+            valueEmitter: toggleValue,
+            readOnly: true,
+        }).attachTo(document.body)
+        const options = requiredQuery<HTMLElement>('cap-options')
+        const toggleRadios = [...options.querySelectorAll<HTMLButtonElement>('[role="radio"]')]
+        requiredAt(toggleRadios, 1).click()
+        assert.equal(options.getAttribute('aria-readonly'), 'true')
+        assert.equal(toggleValue.get(), 'list')
+        assert.equal(requiredAt(toggleRadios, 0).getAttribute('aria-checked'), 'true')
     })
 
     test('Dropdown retains an empty selection when required becomes live', () => {
@@ -490,6 +580,7 @@ describe('choice controls', () => {
     test('Toggle follows live availability and validation state through native semantics', () => {
         const disabled = new Emitter(false)
         const required = new Emitter(false)
+        const readOnly = new Emitter(false)
         const busy = new Emitter(false)
         const error = new Emitter<unknown>(null)
         class ToggleOwner extends Component {
@@ -499,6 +590,7 @@ describe('choice controls', () => {
                     options: [['all', 'All'], ['active', 'Active']],
                     disabled: live(disabled),
                     required: live(required),
+                    readOnly: live(readOnly),
                     busy: live(busy),
                     error: live(error),
                 })
@@ -512,6 +604,10 @@ describe('choice controls', () => {
         assert.equal(host.hasAttribute('data-disabled'), false)
         assert.equal(host.hasAttribute('data-error'), false)
         assert.equal(radiogroup.getAttribute('aria-required'), null)
+
+        readOnly.set(true)
+        assert.equal(radiogroup.getAttribute('aria-readonly'), 'true')
+        assert.equal(radios.every((radio) => !radio.disabled), true)
 
         disabled.set(true)
         required.set(true)
@@ -553,6 +649,7 @@ describe('choice controls', () => {
     test('RadioGroup binds only its declared live boolean props', () => {
         const disabled = new Emitter(false)
         const required = new Emitter(false)
+        const readOnly = new Emitter(false)
         const busy = new Emitter(false)
         const error = new Emitter<unknown>(null)
         let parentRenders = 0
@@ -565,6 +662,7 @@ describe('choice controls', () => {
                     options: [['list', 'List'], ['grid', 'Grid']],
                     disabled: live(disabled),
                     required: live(required),
+                    readOnly: live(readOnly),
                     busy: live(busy),
                     error: live(error),
                 })
@@ -582,6 +680,10 @@ describe('choice controls', () => {
         assert.equal(host.hasAttribute('data-error'), false)
         assert.equal(fieldset.disabled, false)
         assert.equal(fieldset.getAttribute('aria-required'), null)
+
+        readOnly.set(true)
+        assert.equal(fieldset.getAttribute('aria-readonly'), 'true')
+        assert.equal(fieldset.disabled, false)
 
         disabled.set(true)
         required.set(true)

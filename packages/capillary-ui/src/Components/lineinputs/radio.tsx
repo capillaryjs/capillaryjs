@@ -21,8 +21,8 @@ export type RadioOption<TValue extends Key = string> = readonly [
     label: CapillaryUiChild,
 ]
 
-const radioButtonLiveProps = ['checked', 'disabled', 'required', 'busy', 'error'] as const
-const radioGroupLiveProps = ['disabled', 'required', 'busy', 'error'] as const
+const radioButtonLiveProps = ['checked', 'disabled', 'required', 'readOnly', 'busy', 'error'] as const
+const radioGroupLiveProps = ['disabled', 'required', 'readOnly', 'busy', 'error'] as const
 
 export interface RadioButtonProps extends ComponentProps,
     LivePropContract<(typeof radioButtonLiveProps)[number]> {
@@ -33,6 +33,8 @@ export interface RadioButtonProps extends ComponentProps,
     checked?: boolean
     disabled?: boolean
     required?: boolean
+    /** Keeps the radio focusable while preventing selection changes. */
+    readOnly?: boolean
     busy?: boolean
     error?: unknown
     onChange?: (checked: boolean, event: Event) => void
@@ -57,6 +59,7 @@ export class RadioButton extends CheckableControl<RadioButtonProps> {
             checked = false,
             disabled = false,
             required = false,
+            readOnly = false,
             busy = false,
             error = null,
         } = this.props
@@ -71,11 +74,21 @@ export class RadioButton extends CheckableControl<RadioButtonProps> {
                     checked={checked}
                     disabled={disabled}
                     required={required}
+                    aria-readonly={readOnly ? 'true' : null}
                     aria-busy={busy ? 'true' : null}
                     aria-invalid={error == null ? null : 'true'}
                     aria-describedby={error == null ? null : this.errorId}
-                    onChange={(event: Event) => invoke(this.props.onChange,
-                        (event.currentTarget as HTMLInputElement).checked, event)}
+                    onClick={(event: MouseEvent) => {
+                        if (readOnly) event.preventDefault()
+                    }}
+                    onChange={(event: Event) => {
+                        const input = event.currentTarget as HTMLInputElement
+                        if (readOnly) {
+                            input.checked = checked
+                            return
+                        }
+                        invoke(this.props.onChange, input.checked, event)
+                    }}
                 />
                 <cap-checkshell aria-hidden="true" />
                 {label}
@@ -126,6 +139,8 @@ export interface RadioGroupProps<TValue extends Key = string>
     disabled?: boolean
     /** Accepts a boolean or `live(booleanEmitter)` in JSX/`h()` templates. */
     required?: boolean
+    /** Keeps the selected value focusable while preventing user changes. */
+    readOnly?: boolean
     /** Loading presentation; does not disable the group. */
     busy?: boolean
     /** Validation error; accepts an ordinary value or `live(errorEmitter)`. */
@@ -167,6 +182,10 @@ export class RadioGroup<TValue extends Key = string>
 
     selectOption(value: TValue, event: Event | null = null): void {
         if (this.props.disabled) return
+        if (this.props.readOnly) {
+            this.restoreNativeSelection()
+            return
+        }
         this.valueEmitter.set(value, 'radio option selected')
         invoke(this.props.onChange, value, event)
     }
@@ -177,6 +196,7 @@ export class RadioGroup<TValue extends Key = string>
             label,
             disabled = false,
             required = false,
+            readOnly = false,
             busy = false,
             error = null,
         } = this.props
@@ -189,11 +209,15 @@ export class RadioGroup<TValue extends Key = string>
             <fieldset
                 id={this.groupId}
                 disabled={disabled}
+                aria-readonly={readOnly ? 'true' : null}
                 aria-label={label == null ? this.props.ariaLabel : null}
                 aria-required={required ? 'true' : null}
                 aria-busy={busy ? 'true' : null}
                 aria-invalid={error == null ? null : 'true'}
                 aria-describedby={error == null ? null : this.errorId}
+                onClick={(event: MouseEvent) => {
+                    if (readOnly) event.preventDefault()
+                }}
             >
                 {label == null ? null : <legend>{label}</legend>}
                 {options.map(([value, optionLabel], index) => <RadioButton
@@ -245,6 +269,17 @@ export class RadioGroup<TValue extends Key = string>
             box-shadow: var(--error-control-shadow);
         }
 
+        /* RadioGroup owns changes for its child buttons, so the readonly
+           presentation is applied here rather than to each child input. */
+        & > fieldset[aria-readonly="true"] > cap-radiobutton {
+            --_cap-checkable-label-color: var(--checkable-label-color-readonly);
+            --_cap-checkable-cursor: default;
+            --_cap-checkable-box-background: var(--checkbox-box-background-readonly);
+            --_cap-checkable-box-border: var(--checkbox-box-border-readonly);
+            --_cap-checkable-box-shadow: var(--checkbox-box-shadow-readonly);
+            --_cap-checkable-box-filter: saturate(.78);
+        }
+
         @media (forced-colors: active) {
             & > fieldset[aria-invalid="true"] {
                 outline: 2px solid Mark;
@@ -257,6 +292,14 @@ export class RadioGroup<TValue extends Key = string>
         if (!options.some(([value]) => Object.is(value, this.valueEmitter.get()))) {
             this.valueEmitter.set(options[0]?.[0] ?? null as unknown as TValue,
                 'radio group options changed')
+        }
+    }
+
+    private restoreNativeSelection(): void {
+        if (!(this.dom instanceof Element)) return
+        const selectedValue = this.valueEmitter.get()
+        for (const input of this.dom.querySelectorAll<HTMLInputElement>('input[type="radio"]')) {
+            input.checked = String(selectedValue) === input.value
         }
     }
 }

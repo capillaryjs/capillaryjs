@@ -54,6 +54,11 @@ export abstract class SelectControl<
             white-space: nowrap;
         }
 
+        & > cap-selectshell > select[aria-readonly="true"]:not(:disabled) {
+            color: var(--input-color-readonly);
+            cursor: default;
+        }
+
         & > cap-selectshell::after {
             content: var(--dropdown-underlay-content);
             position: absolute;
@@ -90,7 +95,7 @@ export abstract class SelectControl<
             pointer-events: none;
         }
 
-        & > cap-selectshell:has(> select:hover:not(:disabled))::before {
+        & > cap-selectshell:has(> select:hover:not(:disabled):not([aria-readonly="true"]))::before {
             background: var(--dropdown-trigger-background-hover);
             box-shadow: var(--dropdown-trigger-shadow-hover);
         }
@@ -104,6 +109,19 @@ export abstract class SelectControl<
         & > cap-selectshell:has(> select:disabled)::after {
             background: var(--dropdown-underlay-background-disabled);
             border: var(--dropdown-underlay-border-disabled);
+        }
+
+        & > cap-selectshell:has(> select[aria-readonly="true"]:not(:disabled))::before {
+            color: var(--dropdown-trigger-color-readonly);
+            background: var(--dropdown-trigger-background-readonly);
+            border: var(--dropdown-trigger-border-readonly);
+            box-shadow: var(--dropdown-trigger-shadow-readonly);
+        }
+
+        & > cap-selectshell:has(> select[aria-readonly="true"]:not(:disabled))::after {
+            background: var(--dropdown-underlay-background-readonly);
+            border: var(--dropdown-underlay-border-readonly);
+            box-shadow: var(--dropdown-underlay-shadow-readonly);
         }
 
 ${requiredPresentationCss({
@@ -130,6 +148,12 @@ ${requiredPresentationCss({
             background-repeat: repeat, no-repeat;
             background-size: 2rem 2rem, 100% 100%;
             animation: cap-working-progress .55s linear infinite;
+        }
+
+        & > cap-selectshell:has(> select[aria-readonly="true"][aria-busy="true"]:not([aria-invalid="true"]))::after {
+            background: var(--working-background-image), var(--dropdown-underlay-background-readonly);
+            background-repeat: repeat, no-repeat;
+            background-size: 2rem 2rem, 100% 100%;
         }
 
         & > cap-selectshell:has(> select[aria-invalid="true"])::before,

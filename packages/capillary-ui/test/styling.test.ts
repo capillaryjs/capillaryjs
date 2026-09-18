@@ -175,7 +175,7 @@ describe('style registry', () => {
         const stylesheet = runtime.styleRegistry.generateCSS()
 
         assert.match(stylesheet, /cap-checkbox > label,\s*cap-radiobutton > label\s*\{[^}]*display:\s*flex/)
-        assert.match(stylesheet, /cap-checkbox > label > input \+ cap-checkshell,\s*cap-radiobutton > label > input \+ cap-checkshell\s*\{[^}]*box-shadow:\s*var\(--checkbox-box-shadow\)/)
+        assert.match(stylesheet, /cap-checkbox > label > input \+ cap-checkshell,\s*cap-radiobutton > label > input \+ cap-checkshell\s*\{[^}]*box-shadow:\s*var\(--_cap-checkable-box-shadow\)/)
     })
 
     test('collects one semantic loading/error system across controls and data views', () => {
@@ -437,7 +437,8 @@ describe('style registry', () => {
         assert.match(stylesheet, /cap-checkbox > label\s*\{[^}]*min-height:\s*var\(--_cap-control-row-min\)/)
         assert.match(stylesheet, /input \+ cap-checkshell/)
         assert.match(stylesheet, /label:has\(> input:disabled\)\s*\{[^}]*color:\s*var\(--checkable-label-color-disabled\)[^}]*cursor:\s*not-allowed/)
-        assert.match(stylesheet, /cap-checkshell\s*\{[^}]*width:\s*var\(--checkbox-box-size, 1em\)[^}]*height:\s*var\(--checkbox-box-size, 1em\)[^}]*border-radius:\s*var\(--checkbox-box-radius,[^}]*box-shadow:\s*var\(--checkbox-box-shadow\)/)
+        assert.match(stylesheet, /label:has\(> input\[aria-readonly="true"\]:not\(:disabled\)\)\s*\{[^}]*--_cap-checkable-cursor:\s*default[^}]*--_cap-checkable-box-filter:\s*saturate\(\.78\)/)
+        assert.match(stylesheet, /cap-checkshell\s*\{[^}]*width:\s*var\(--checkbox-box-size, 1em\)[^}]*height:\s*var\(--checkbox-box-size, 1em\)[^}]*border-radius:\s*var\(--checkbox-box-radius,[^}]*box-shadow:\s*var\(--_cap-checkable-box-shadow\)[^}]*filter:\s*var\(--_cap-checkable-box-filter\)/)
         assert.match(stylesheet, /input:checked \+ cap-checkshell\s*\{[^}]*border:\s*var\(--checkbox-box-border-checked,[^}]*box-shadow:\s*var\(--checkbox-box-shadow-checked\)/)
         assert.doesNotMatch(stylesheet, /input\[value="(?:require|deny|prefer)"\]/)
         assert.match(stylesheet, /label:has\(> input:required:invalid:not\(:disabled\):not\(\[aria-invalid="true"\]\)\)::before\s*\{[^}]*position:\s*absolute[^}]*inset-inline-end:\s*calc\(-4px - 1em\)[^}]*border:\s*1px dashed var\(--required-color\)/)
@@ -464,7 +465,7 @@ describe('style registry', () => {
         assert.match(stylesheet, /cap-radiobutton\s*\{[^}]*display:\s*inline-flex/)
         assert.match(stylesheet, /cap-radiobutton > label:has\(> input:disabled\)\s*\{[^}]*color:\s*var\(--checkable-label-color-disabled\)[^}]*cursor:\s*not-allowed/)
         assert.match(stylesheet, /input \+ cap-checkshell\s*\{[^}]*display:\s*flex[^}]*align-items:\s*center[^}]*justify-content:\s*center/)
-        assert.match(stylesheet, /input \+ cap-checkshell\s*\{[^}]*background:\s*var\(--checkbox-box-background,[^}]*box-shadow:\s*var\(--checkbox-box-shadow\)/)
+        assert.match(stylesheet, /input \+ cap-checkshell\s*\{[^}]*background:\s*var\(--_cap-checkable-box-background\)[^}]*box-shadow:\s*var\(--_cap-checkable-box-shadow\)/)
         assert.match(stylesheet, /input:checked \+ cap-checkshell\s*\{[^}]*background:\s*var\(--checkbox-box-background-checked,[^}]*box-shadow:\s*var\(--checkbox-box-shadow-checked\)/)
         assert.match(stylesheet, /input\[type="radio"\] \+ cap-checkshell\s*\{[^}]*border-radius:\s*50%/)
         assert.match(stylesheet, /input\[type="radio"\]:checked \+ cap-checkshell\s*\{[^}]*background:\s*var\(--radio-box-background-checked,[^}]*border:\s*var\(--radio-box-border-checked,[^}]*box-shadow:\s*var\(--radio-box-shadow-checked,/)
@@ -673,6 +674,9 @@ describe('style registry', () => {
         assert.match(stylesheet, /button\[role="radio"\]\[aria-checked="true"\]::before\s*\{[^}]*box-shadow:\s*var\(--toggle-button-shadow-checked\)/)
         assert.match(stylesheet, /button\[role="radio"\]\[aria-checked="false"\]\s*\+\s*\[role="radio"\]\[aria-checked="false"\]::after/)
         assert.match(stylesheet, /button\[role="radio"\]:disabled\s*\{[^}]*cursor:\s*not-allowed/)
+        assert.match(stylesheet, /cap-options\[aria-readonly="true"\]\s*>\s*button\[role="radio"\]:not\(:disabled\)\s*\{[^}]*cursor:\s*default/)
+        assert.match(stylesheet, /cap-options\[aria-readonly="true"\][\s\S]*?button\[role="radio"\]:not\(:disabled\)\[aria-checked\]::before\s*\{[^}]*border-inline:\s*none/)
+        assert.match(stylesheet, /cap-options\[aria-readonly="true"\][\s\S]*?\[aria-checked="false"\]\s*\+\s*\[role="radio"\]\[aria-checked="false"\]::after\s*\{[^}]*display:\s*none/)
         assert.doesNotMatch(stylesheet, /fieldset|\.options|data-part|data-disabled|cap-panel|cap-sidebar|cap-dropdown/)
     })
 

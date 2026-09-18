@@ -100,15 +100,18 @@ export class Textbox extends LabeledInputControl<TextboxProps> {
                 aria-invalid={error == null ? null : 'true'}
                 aria-describedby={error == null ? null : this.errorId}
                 onInput={(event: Event) => {
+                    if (readOnly) {
+                        ;(event.currentTarget as HTMLInputElement).value = value
+                        return
+                    }
                     const nextValue = eventValue(event, 'textbox input')
                     this.valueEmitter.set(nextValue, 'textbox input')
                     invoke(onInput, nextValue, event)
                 }}
-                onChange={(event: Event) => invoke(
-                    onChange,
-                    eventValue(event, 'textbox change'),
-                    event,
-                )}
+                onChange={(event: Event) => {
+                    if (readOnly) return
+                    invoke(onChange, eventValue(event, 'textbox change'), event)
+                }}
             />
             {error == null ? null : <ErrorMessage id={this.errorId} error={error} />}
         </Host>
@@ -157,6 +160,14 @@ export class Textbox extends LabeledInputControl<TextboxProps> {
             cursor: not-allowed;
         }
 
+        & > input[readonly]:not(:disabled) {
+            color: var(--input-color-readonly);
+            background: var(--input-background-readonly);
+            border: var(--input-border-readonly);
+            box-shadow: var(--input-shadow-readonly);
+            cursor: text;
+        }
+
 ${requiredPresentationCss({
             outlineSelector: `& > input${requiredInputInvalidSelector}`,
             indicatorSelector: `&:has(> input${requiredInputInvalidSelector})`,
@@ -178,6 +189,12 @@ ${requiredPresentationCss({
 
         & > input:disabled[aria-busy="true"]:not([aria-invalid="true"]) {
             background: var(--working-background-image), var(--input-background-disabled);
+            background-repeat: repeat, no-repeat;
+            background-size: 2rem 2rem, 100% 100%;
+        }
+
+        & > input[readonly]:not(:disabled)[aria-busy="true"]:not([aria-invalid="true"]) {
+            background: var(--working-background-image), var(--input-background-readonly);
             background-repeat: repeat, no-repeat;
             background-size: 2rem 2rem, 100% 100%;
         }

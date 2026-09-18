@@ -18,11 +18,12 @@ import type {
 } from '../../styling/theme.js'
 
 export interface StylesheetPickerProps extends ValueControlProps<string>,
-    LivePropContract<'disabled'> {
+    LivePropContract<'disabled' | 'readOnly'> {
     id?: string | number | null
     label?: CapillaryUiChild
     ariaLabel?: string
     disabled?: boolean
+    readOnly?: boolean
     options?: readonly CapillaryUiStylesheetOption[]
     targetDocument?: Document
     onChange?: (value: string, option: CapillaryUiStylesheetOption, event: Event) => void

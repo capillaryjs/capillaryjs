@@ -207,6 +207,11 @@
     --required-indicator-color: var(--negative-color);
     --input-background-disabled: var(--ui-medium-bg-color);
     --input-color-disabled: #777;
+    /* Read-only values remain readable and focusable; they are not disabled. */
+    --input-background-readonly: var(--ui-primary-bg-color);
+    --input-color-readonly: var(--input-color);
+    --input-border-readonly: var(--input-border);
+    --input-shadow-readonly: var(--input-shadow);
     --dropdown-appearance: none;
     --dropdown-padding-inline-end: 1.75em;
     --dropdown-select-background: transparent;
@@ -215,20 +220,27 @@
     --dropdown-underlay-content: "";
     --dropdown-underlay-background: var(--input-background);
     --dropdown-underlay-background-disabled: var(--input-background-disabled);
+    --dropdown-underlay-background-readonly: var(--input-background-readonly);
     --dropdown-underlay-border: var(--input-border);
     --dropdown-underlay-border-disabled: var(--ui-input-border-disabled);
+    --dropdown-underlay-border-readonly: var(--input-border-readonly);
     --dropdown-underlay-shadow: var(--input-shadow);
+    --dropdown-underlay-shadow-readonly: var(--input-shadow-readonly);
     --dropdown-underlay-start-radius: var(--ui-border-radius);
     --dropdown-trigger-content: '\25BE';
     --dropdown-trigger-width: calc(var(--dd-btn-width) - 1px);
     --dropdown-trigger-color: var(--button-color);
+    --dropdown-trigger-color-readonly: var(--input-color-readonly);
     --dropdown-trigger-background: var(--button-background);
     --dropdown-trigger-background-hover: var(--button-background-hover);
     --dropdown-trigger-background-disabled: var(--button-background-disabled);
+    --dropdown-trigger-background-readonly: var(--input-background-readonly);
     --dropdown-trigger-border: var(--button-border);
     --dropdown-trigger-border-disabled: var(--button-border-disabled);
+    --dropdown-trigger-border-readonly: var(--input-border-readonly);
     --dropdown-trigger-end-radius: var(--ui-border-radius);
     --dropdown-trigger-shadow: var(--button-shadow);
+    --dropdown-trigger-shadow-readonly: var(--input-shadow-readonly);
     --dropdown-trigger-shadow-hover: var(--button-shadow);
 
     /* Action components */
@@ -247,12 +259,15 @@
     --selection-background: var(--palette-primary);
     --selection-color: var(--palette-contrast-light);
     --checkbox-box-background: var(--input-background);
+    --checkbox-box-background-readonly: var(--input-background-readonly);
     --checkbox-box-background-checked: var(--selection-background);
     --checkbox-box-border: var(--input-border);
+    --checkbox-box-border-readonly: var(--input-border-readonly);
     --checkbox-box-border-checked: var(--checkbox-box-border);
     --checkbox-box-size: 1em;
     --checkbox-box-radius: var(--radius-sm);
     --checkbox-box-shadow: none;
+    --checkbox-box-shadow-readonly: var(--input-shadow-readonly);
     --checkbox-box-shadow-checked: var(--checkbox-box-shadow);
     --checkbox-symbol-color: var(--selection-color);
     --checkbox-negative-background: var(--palette-status-negative);
@@ -274,12 +289,16 @@
     --radio-symbol-size: .4em;
     --radio-group-gap: 0px;
     --checkable-label-color-disabled: #aaa;
+    --checkable-label-color-readonly: var(--input-color-readonly);
     --toggle-button-background: var(--button-background);
+    --toggle-button-background-readonly: var(--input-background-readonly);
     --toggle-button-background-checked: var(--palette-primary-700);
     --toggle-button-border-checked: var(--button-border);
+    --toggle-button-border-readonly: var(--input-border-readonly);
     --toggle-button-selected-inline-overlap: 0;
     --toggle-button-selected-z-index: 0;
     --toggle-button-shadow: none;
+    --toggle-button-shadow-readonly: none;
     --toggle-button-shadow-checked: none;
     --toggle-group-shadow: none;
     --toggle-inactive-shared-border-color: var(--palette-neutral-500);

@@ -115,16 +115,14 @@ export class LineInputsPage extends Component<GalleryPageProps> {
                             <Checkbox label="Checkbox" {...this.flags()} />
                             <TriCheckbox label="Tri" {...this.flags()} />
                             <QuadCheckbox label="Quad" {...this.flags()} />
-                            <Textbox label="Name" placeholder="Text"
-                                {...this.flags()} readOnly={live(model.componentReadOnly)} />
+                            <Textbox label="Name" placeholder="Text" {...this.flags()} />
                             <Dropdown label="Choice" options={dropdownOptions} {...this.flags()} />
                             <Toggle label="View" options={toggleOptions} {...this.flags()} />
                             <Button label="Action"
                                 disabled={live(model.componentDisabled)}
                                 busy={live(model.componentBusy)}
                                 error={live(model.componentError)} />
-                            <DatePicker label="Date"
-                                {...this.flags()} readOnly={live(model.componentReadOnly)} />
+                            <DatePicker label="Date" {...this.flags()} />
                             <TimePicker label="Time" {...this.flags()} />
                         </Toolbar>
                     </PanelToolbar>
@@ -140,6 +138,7 @@ export class LineInputsPage extends Component<GalleryPageProps> {
     private flags(): {
         disabled: LiveBinding<boolean>
         required: LiveBinding<boolean>
+        readOnly: LiveBinding<boolean>
         busy: LiveBinding<boolean>
         error: LiveBinding<string | null>
     } {
@@ -147,13 +146,13 @@ export class LineInputsPage extends Component<GalleryPageProps> {
         return {
             disabled: live(model.componentDisabled),
             required: live(model.componentRequired),
+            readOnly: live(model.componentReadOnly),
             busy: live(model.componentBusy),
             error: live(model.componentError),
         }
     }
 
     private renderCheckboxRow(): CapillaryUiChild {
-        const model = this.props.model
         return <GroupBox id="gallery-checkboxes" header="Checkboxes" variant="section"
             className="gallery-section gallery-group-row">
                 <GroupBox header="Checkbox" variant="column">
@@ -180,13 +179,11 @@ export class LineInputsPage extends Component<GalleryPageProps> {
                         initialSemanticState={FilterMode.Require} {...this.flags()} />
                 </GroupBox>
                 <GroupBox header="Textbox" variant="column">
-                    <Textbox label="Empty" placeholder="Placeholder"
-                             {...this.flags()} readOnly={live(model.componentReadOnly)} />
-                    <Textbox label="Filled" defaultValue="Ada Lovelace"
-                             {...this.flags()} readOnly={live(model.componentReadOnly)} />
+                    <Textbox label="Empty" placeholder="Placeholder" {...this.flags()} />
+                    <Textbox label="Filled" defaultValue="Ada Lovelace" {...this.flags()} />
                     <Textbox label="Long value"
                              defaultValue="A value long enough to overflow the available inline space"
-                             {...this.flags()} readOnly={live(model.componentReadOnly)} />
+                             {...this.flags()} />
                 </GroupBox>
                 <GroupBox header="Dropdown" variant="column">
                     <Dropdown label="Empty" options={dropdownOptions} defaultValue=""
@@ -204,13 +201,11 @@ export class LineInputsPage extends Component<GalleryPageProps> {
         return <GroupBox id="gallery-basic-inputs" header="Basic inputs" variant="section"
             className="gallery-section gallery-group-row">
                 <GroupBox header="Textbox" variant="column">
-                    <Textbox label="Empty" placeholder="Placeholder"
-                        {...this.flags()} readOnly={live(model.componentReadOnly)} />
-                    <Textbox label="Filled" defaultValue="Ada Lovelace"
-                        {...this.flags()} readOnly={live(model.componentReadOnly)} />
+                    <Textbox label="Empty" placeholder="Placeholder" {...this.flags()} />
+                    <Textbox label="Filled" defaultValue="Ada Lovelace" {...this.flags()} />
                     <Textbox label="Long value"
                         defaultValue="A value long enough to overflow the available inline space"
-                        {...this.flags()} readOnly={live(model.componentReadOnly)} />
+                        {...this.flags()} />
                 </GroupBox>
                 <GroupBox header="Dropdown" variant="column">
                     <Dropdown label="Empty" options={dropdownOptions} defaultValue=""
@@ -252,16 +247,11 @@ export class LineInputsPage extends Component<GalleryPageProps> {
     }
 
     private renderDateTimeRow(): CapillaryUiChild {
-        const model = this.props.model
         return <GroupBox id="gallery-date-time" header="Date and time" variant="section"
             className="gallery-section gallery-group-row">
                 <GroupBox header="DatePicker" variant="column">
-                    <DatePicker label="Empty"
-                        {...this.flags()}
-                        readOnly={live(model.componentReadOnly)} />
-                    <DatePicker label="Filled" defaultValue="2026-09-13"
-                        {...this.flags()}
-                        readOnly={live(model.componentReadOnly)} />
+                    <DatePicker label="Empty" {...this.flags()} />
+                    <DatePicker label="Filled" defaultValue="2026-09-13" {...this.flags()} />
                 </GroupBox>
                 <GroupBox header="TimePicker" variant="column">
                     <TimePicker label="Empty" {...this.flags()} />

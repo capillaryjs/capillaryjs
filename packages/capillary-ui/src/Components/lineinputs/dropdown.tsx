@@ -20,7 +20,7 @@ export interface DropdownOption<TValue extends DropdownValue = string> {
     disabled?: boolean
 }
 
-const dropdownLiveProps = ['disabled', 'required', 'busy', 'error'] as const
+const dropdownLiveProps = ['disabled', 'required', 'readOnly', 'busy', 'error'] as const
 
 export interface DropdownProps<TValue extends DropdownValue = string>
     extends ValueControlProps<TValue>, LivePropContract<(typeof dropdownLiveProps)[number]> {
@@ -31,6 +31,8 @@ export interface DropdownProps<TValue extends DropdownValue = string>
     name?: string
     disabled?: boolean
     required?: boolean
+    /** Keeps the current selection focusable while preventing user changes. */
+    readOnly?: boolean
     busy?: boolean
     error?: unknown
     placeholder?: CapillaryUiChild
@@ -80,6 +82,7 @@ export class Dropdown<TValue extends DropdownValue = string>
             name,
             disabled = false,
             required = false,
+            readOnly = false,
             busy = false,
             error = null,
             placeholder = this.capillaryUiMessage('dropdownPlaceholder'),
@@ -112,10 +115,19 @@ export class Dropdown<TValue extends DropdownValue = string>
                     value={currentValue == null ? '' : String(currentValue)}
                     disabled={disabled}
                     required={required}
+                    aria-readonly={readOnly ? 'true' : null}
                     aria-label={label == null ? ariaLabel : null}
                     aria-busy={isBusy ? 'true' : null}
                     aria-invalid={displayedError == null ? null : 'true'}
                     aria-describedby={displayedError == null ? null : this.errorId}
+                    onMouseDown={(event: MouseEvent) => {
+                        if (!readOnly) return
+                        event.preventDefault()
+                        ;(event.currentTarget as HTMLSelectElement).focus()
+                    }}
+                    onKeyDown={(event: KeyboardEvent) => {
+                        if (readOnly && event.key !== 'Tab') event.preventDefault()
+                    }}
                     onChange={(event: Event) => this.selectOption(event)}
                 >
                     {currentValue == null || currentValue === ''
@@ -154,6 +166,11 @@ export class Dropdown<TValue extends DropdownValue = string>
 
     /** Handle a native select change: resolve the option, update the value, emit. */
     protected selectOption(event: Event): void {
+        if (this.props.readOnly) {
+            const select = event.currentTarget as HTMLSelectElement
+            select.value = this.valueEmitter.get() == null ? '' : String(this.valueEmitter.get())
+            return
+        }
         const raw = eventValue(event, 'dropdown change')
         const options = this.optionsEmitter.get() ?? []
         const option = options.find(({value}) => String(value) === raw)

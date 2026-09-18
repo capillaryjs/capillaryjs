@@ -321,11 +321,11 @@ the tables below denotes that TypeScript type parameter.
 | `Toolbar` | Named action group | `label`, `orientation` |
 | `Label` | Native label for rich or live text | `text`, `htmlFor`; live: `text` |
 | `Textbox` | Labelled native text input with validation | `label`, `valueEmitter`, `defaultValue`, `type`, `name`, `placeholder`, `disabled`, `required`, `readOnly`, `busy`, `error`, native text constraints, `inputRef`, `onInput`, `onChange`; live: availability, `busy`, and `error` |
-| `Dropdown<T>` | Labelled native select | `options`, `label`, `valueEmitter`, `defaultValue`, `placeholder`, `disabled`, `required`, `busy`, `error`, `onChange`; `options` may be static or a readable emitter whose fetch state supplies loading/error feedback |
-| `RadioButton` | Standalone native radio and label | `label`, `name`, `value`, `checked`, `disabled`, `required`, `busy`, `error`, `onChange`; live: state, availability, `busy`, `error` |
-| `RadioGroup<T>` | Named native-radio fieldset owning one value | `options` as `[value, label]` tuples, `label`, `valueEmitter`, `defaultValue`, `disabled`, `required`, `busy`, `error`, `onChange`; options are ordinary render data |
-| `Toggle<T>` | ARIA radio group rendered as toggle buttons | `options` as `[value, label]` tuples, `label`, `valueEmitter`, `defaultValue`, `disabled`, `required`, `busy`, `error`, `onChange` |
-| `Checkbox<T>` | Configurable keyboard-operable semantic state cycle | `symbols` as `[content, value]` tuples, `label`/`ariaLabel`, `valueEmitter`, `defaultValue`, `disabled`, `required`, `busy`, `error`, `onChange` |
+| `Dropdown<T>` | Labelled native select | `options`, `label`, `valueEmitter`, `defaultValue`, `placeholder`, `disabled`, `required`, `readOnly`, `busy`, `error`, `onChange`; `readOnly` retains focusability and restores the selected value after attempted changes; `options` may be static or a readable emitter whose fetch state supplies loading/error feedback |
+| `RadioButton` | Standalone native radio and label | `label`, `name`, `value`, `checked`, `disabled`, `required`, `readOnly`, `busy`, `error`, `onChange`; live: state, availability, `busy`, `error` |
+| `RadioGroup<T>` | Named native-radio fieldset owning one value | `options` as `[value, label]` tuples, `label`, `valueEmitter`, `defaultValue`, `disabled`, `required`, `readOnly`, `busy`, `error`, `onChange`; options are ordinary render data |
+| `Toggle<T>` | ARIA radio group rendered as toggle buttons | `options` as `[value, label]` tuples, `label`, `valueEmitter`, `defaultValue`, `disabled`, `required`, `readOnly`, `busy`, `error`, `onChange` |
+| `Checkbox<T>` | Configurable keyboard-operable semantic state cycle | `symbols` as `[content, value]` tuples, `label`/`ariaLabel`, `valueEmitter`, `defaultValue`, `disabled`, `required`, `readOnly`, `busy`, `error`, `onChange` |
 | `TriCheckbox` | Neutral/prefer/deny `FilterMode` cycle | Same public props as `Checkbox`, except fixed symbols |
 | `QuadCheckbox` | Neutral/prefer/require/deny `FilterMode` cycle | Same public props as `Checkbox`, except fixed symbols |
 | `DatePicker` (experimental) | Native `<input type="date">` | `CivilDate` value props, `label`/`ariaLabel`, `name`, `autoComplete`, `disabled`, `required`, `readOnly`, `busy`, `error`, `min`/`max`/`step`, `inputRef`, input/change callbacks |

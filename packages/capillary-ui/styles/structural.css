@@ -391,6 +391,14 @@ cap-tricheckbox {
             flex-flow: row wrap;
             align-items: center;
             align-content: center;
+            --_cap-checkable-label-color: var(--ui-text-color);
+            --_cap-checkable-cursor: pointer;
+            --_cap-checkable-box-background: var(--checkbox-box-background,
+                var(--ui-input-bg, transparent));
+            --_cap-checkable-box-border: var(--checkbox-box-border,
+                var(--cbx-o-border, 1px solid currentColor));
+            --_cap-checkable-box-shadow: var(--checkbox-box-shadow);
+            --_cap-checkable-box-filter: none;
         }
 
         cap-checkbox > label,
@@ -402,12 +410,12 @@ cap-tricheckbox {
             position: relative;
             min-height: var(--_cap-control-row-min);
             margin: 0;
-            color: var(--ui-text-color);
+            color: var(--_cap-checkable-label-color);
             border-radius: var(--ui-border-radius);
             box-sizing: border-box;
             align-items: center;
             gap: .3em;
-            cursor: pointer;
+            cursor: var(--_cap-checkable-cursor);
             user-select: none;
         }
 
@@ -417,6 +425,18 @@ cap-tricheckbox {
         cap-tricheckbox > label:has(> input:disabled) {
             color: var(--checkable-label-color-disabled);
             cursor: not-allowed;
+        }
+
+        cap-checkbox > label:has(> input[aria-readonly="true"]:not(:disabled)),
+        cap-quadcheckbox > label:has(> input[aria-readonly="true"]:not(:disabled)),
+        cap-radiobutton > label:has(> input[aria-readonly="true"]:not(:disabled)),
+        cap-tricheckbox > label:has(> input[aria-readonly="true"]:not(:disabled)) {
+            --_cap-checkable-label-color: var(--checkable-label-color-readonly);
+            --_cap-checkable-cursor: default;
+            --_cap-checkable-box-background: var(--checkbox-box-background-readonly);
+            --_cap-checkable-box-border: var(--checkbox-box-border-readonly);
+            --_cap-checkable-box-shadow: var(--checkbox-box-shadow-readonly);
+            --_cap-checkable-box-filter: saturate(.78);
         }
 
         cap-checkbox > label > input,
@@ -451,11 +471,12 @@ cap-tricheckbox {
             text-align: center;
             line-height: 1;
             color: var(--input-color, var(--ui-text-color, currentColor));
-            background: var(--checkbox-box-background, var(--ui-input-bg, transparent));
-            border: var(--checkbox-box-border, var(--cbx-o-border, 1px solid currentColor));
+            background: var(--_cap-checkable-box-background);
+            border: var(--_cap-checkable-box-border);
             border-radius: var(--checkbox-box-radius,
                 var(--cbx-border-radius, var(--radius-sm, 0.2rem)));
-            box-shadow: var(--checkbox-box-shadow);
+            box-shadow: var(--_cap-checkable-box-shadow);
+            filter: var(--_cap-checkable-box-filter);
             font-family: inherit;
             font-size: 1em;
             user-select: none;
@@ -685,6 +706,11 @@ cap-dropdown {
             white-space: nowrap;
         }
 
+        cap-dropdown > cap-selectshell > select[aria-readonly="true"]:not(:disabled) {
+            color: var(--input-color-readonly);
+            cursor: default;
+        }
+
         cap-dropdown > cap-selectshell::after {
             content: var(--dropdown-underlay-content);
             position: absolute;
@@ -721,7 +747,7 @@ cap-dropdown {
             pointer-events: none;
         }
 
-        cap-dropdown > cap-selectshell:has(> select:hover:not(:disabled))::before {
+        cap-dropdown > cap-selectshell:has(> select:hover:not(:disabled):not([aria-readonly="true"]))::before {
             background: var(--dropdown-trigger-background-hover);
             box-shadow: var(--dropdown-trigger-shadow-hover);
         }
@@ -735,6 +761,19 @@ cap-dropdown {
         cap-dropdown > cap-selectshell:has(> select:disabled)::after {
             background: var(--dropdown-underlay-background-disabled);
             border: var(--dropdown-underlay-border-disabled);
+        }
+
+        cap-dropdown > cap-selectshell:has(> select[aria-readonly="true"]:not(:disabled))::before {
+            color: var(--dropdown-trigger-color-readonly);
+            background: var(--dropdown-trigger-background-readonly);
+            border: var(--dropdown-trigger-border-readonly);
+            box-shadow: var(--dropdown-trigger-shadow-readonly);
+        }
+
+        cap-dropdown > cap-selectshell:has(> select[aria-readonly="true"]:not(:disabled))::after {
+            background: var(--dropdown-underlay-background-readonly);
+            border: var(--dropdown-underlay-border-readonly);
+            box-shadow: var(--dropdown-underlay-shadow-readonly);
         }
 
 
@@ -782,6 +821,12 @@ cap-dropdown:has(> cap-selectshell > select:required:invalid:not(:disabled):not(
             background-repeat: repeat, no-repeat;
             background-size: 2rem 2rem, 100% 100%;
             animation: cap-working-progress .55s linear infinite;
+        }
+
+        cap-dropdown > cap-selectshell:has(> select[aria-readonly="true"][aria-busy="true"]:not([aria-invalid="true"]))::after {
+            background: var(--working-background-image), var(--dropdown-underlay-background-readonly);
+            background-repeat: repeat, no-repeat;
+            background-size: 2rem 2rem, 100% 100%;
         }
 
         cap-dropdown > cap-selectshell:has(> select[aria-invalid="true"])::before,
@@ -1119,14 +1164,21 @@ cap-timepicker {
 
         cap-datepicker > input:disabled,
         cap-datetimepicker > input:disabled,
-        cap-timepicker > input:disabled,
-        cap-datepicker > input[readonly],
-        cap-datetimepicker > input[readonly],
-        cap-timepicker > input[readonly] {
+        cap-timepicker > input:disabled {
             color: var(--input-color-disabled);
             background: var(--input-background-disabled);
             border-color: var(--ui-input-border-disabled);
             cursor: not-allowed;
+        }
+
+        cap-datepicker > input[readonly]:not(:disabled),
+        cap-datetimepicker > input[readonly]:not(:disabled),
+        cap-timepicker > input[readonly]:not(:disabled) {
+            color: var(--input-color-readonly);
+            background: var(--input-background-readonly);
+            border: var(--input-border-readonly);
+            box-shadow: var(--input-shadow-readonly);
+            cursor: default;
         }
 
 
@@ -1181,6 +1233,14 @@ cap-timepicker:has(> input:required:invalid:not(:disabled):not([readonly]):not([
         cap-datetimepicker > input:disabled[aria-busy="true"]:not([aria-invalid="true"]),
         cap-timepicker > input:disabled[aria-busy="true"]:not([aria-invalid="true"]) {
             background: var(--working-background-image), var(--input-background-disabled);
+            background-repeat: repeat, no-repeat;
+            background-size: 2rem 2rem, 100% 100%;
+        }
+
+        cap-datepicker > input[readonly]:not(:disabled)[aria-busy="true"]:not([aria-invalid="true"]),
+        cap-datetimepicker > input[readonly]:not(:disabled)[aria-busy="true"]:not([aria-invalid="true"]),
+        cap-timepicker > input[readonly]:not(:disabled)[aria-busy="true"]:not([aria-invalid="true"]) {
+            background: var(--working-background-image), var(--input-background-readonly);
             background-repeat: repeat, no-repeat;
             background-size: 2rem 2rem, 100% 100%;
         }
@@ -2146,6 +2206,17 @@ cap-radiogroup > fieldset {
             box-shadow: var(--error-control-shadow);
         }
 
+        /* RadioGroup owns changes for its child buttons, so the readonly
+           presentation is applied here rather than to each child input. */
+        cap-radiogroup > fieldset[aria-readonly="true"] > cap-radiobutton {
+            --_cap-checkable-label-color: var(--checkable-label-color-readonly);
+            --_cap-checkable-cursor: default;
+            --_cap-checkable-box-background: var(--checkbox-box-background-readonly);
+            --_cap-checkable-box-border: var(--checkbox-box-border-readonly);
+            --_cap-checkable-box-shadow: var(--checkbox-box-shadow-readonly);
+            --_cap-checkable-box-filter: saturate(.78);
+        }
+
         @media (forced-colors: active) {
             cap-radiogroup > fieldset[aria-invalid="true"] {
                 outline: 2px solid Mark;
@@ -2474,6 +2545,14 @@ cap-textbox {
             cursor: not-allowed;
         }
 
+        cap-textbox > input[readonly]:not(:disabled) {
+            color: var(--input-color-readonly);
+            background: var(--input-background-readonly);
+            border: var(--input-border-readonly);
+            box-shadow: var(--input-shadow-readonly);
+            cursor: text;
+        }
+
 
 
 cap-textbox > input:required:invalid:not(:disabled):not([readonly]):not([aria-invalid="true"]) {
@@ -2516,6 +2595,12 @@ cap-textbox:has(> input:required:invalid:not(:disabled):not([readonly]):not([ari
 
         cap-textbox > input:disabled[aria-busy="true"]:not([aria-invalid="true"]) {
             background: var(--working-background-image), var(--input-background-disabled);
+            background-repeat: repeat, no-repeat;
+            background-size: 2rem 2rem, 100% 100%;
+        }
+
+        cap-textbox > input[readonly]:not(:disabled)[aria-busy="true"]:not([aria-invalid="true"]) {
+            background: var(--working-background-image), var(--input-background-readonly);
             background-repeat: repeat, no-repeat;
             background-size: 2rem 2rem, 100% 100%;
         }
@@ -2602,7 +2687,8 @@ cap-toggle {
             box-shadow: var(--toggle-button-shadow);
         }
 
-        cap-toggle > cap-options > button[role="radio"]:hover:not(:disabled)[aria-checked="false"]::before {
+        cap-toggle > cap-options:not([aria-readonly="true"])
+        > button[role="radio"]:hover:not(:disabled)[aria-checked="false"]::before {
             background: var(--button-background-hover);
         }
 
@@ -2654,6 +2740,51 @@ cap-toggle {
         cap-toggle > cap-options > button[role="radio"]:disabled::before {
             background: var(--button-background-disabled);
             border: var(--button-border-disabled);
+        }
+
+        cap-toggle > cap-options[aria-readonly="true"] > button[role="radio"]:not(:disabled) {
+            cursor: default;
+        }
+
+        cap-toggle > cap-options[aria-readonly="true"] > button[role="radio"]:not(:disabled)::before {
+            filter: saturate(.78);
+        }
+
+        cap-toggle > cap-options[aria-readonly="true"]
+        > button[role="radio"][aria-checked="false"]
+        + [role="radio"][aria-checked="false"]::before {
+            border-inline-start: none;
+        }
+
+        cap-toggle > cap-options[aria-readonly="true"]
+        > button[role="radio"][aria-checked="false"]
+        + [role="radio"][aria-checked="false"]::after {
+            display: none;
+        }
+
+        cap-toggle > cap-options[aria-readonly="true"]
+        > button[role="radio"]:not(:disabled)[aria-checked="false"]::before {
+            background: var(--toggle-button-background-readonly);
+            border: var(--toggle-button-border-readonly);
+            box-shadow: var(--toggle-button-shadow-readonly);
+        }
+
+        /* A fixed choice is one contiguous surface. Retain the outer outline,
+           but do not draw segment seams. This follows the inactive border
+           rule so it also clears that rule's inline borders. */
+        cap-toggle > cap-options[aria-readonly="true"]
+        > button[role="radio"]:not(:disabled)[aria-checked]::before {
+            border-inline: none;
+        }
+
+        cap-toggle > cap-options[aria-readonly="true"]
+        > button[role="radio"][aria-checked]:first-of-type::before {
+            border-inline-start: var(--toggle-button-border-readonly);
+        }
+
+        cap-toggle > cap-options[aria-readonly="true"]
+        > button[role="radio"][aria-checked]:last-of-type::before {
+            border-inline-end: var(--toggle-button-border-readonly);
         }
 
         cap-toggle > cap-options[aria-busy="true"]:not([aria-invalid="true"])

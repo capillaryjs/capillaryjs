@@ -241,6 +241,52 @@ test('Website variant grows the document and scrolls the page, not an inner regi
     expect(metrics.mainInternalScroll).toBe(false)
 })
 
+test('Read-only keeps value controls focusable and prevents value changes', async ({page}) => {
+    await page.getByText('Read-only', {exact: true}).click()
+
+    const textbox = page.locator('#gallery-basic-inputs cap-textbox input').nth(1)
+    const dropdown = page.locator('#gallery-basic-inputs cap-dropdown select').nth(1)
+    const checkbox = page.locator('#gallery-checkboxes cap-checkbox input').first()
+    const radioGroup = page.locator('#gallery-basic-inputs cap-radiogroup fieldset')
+    const toggle = page.locator('#gallery-basic-inputs cap-toggle cap-options').first()
+    const temporalInputs = page.locator(
+        '#gallery-date-time cap-datepicker input, #gallery-date-time cap-timepicker input, #gallery-date-time cap-datetimepicker input',
+    )
+
+    await expect(textbox).toHaveJSProperty('readOnly', true)
+    await expect(dropdown).toHaveAttribute('aria-readonly', 'true')
+    await expect(checkbox).toHaveAttribute('aria-readonly', 'true')
+    await expect(radioGroup).toHaveAttribute('aria-readonly', 'true')
+    await expect(toggle).toHaveAttribute('aria-readonly', 'true')
+    await expect(temporalInputs).toHaveCount(6)
+    for (const input of await temporalInputs.all()) await expect(input).toHaveJSProperty('readOnly', true)
+
+    const textboxValue = await textbox.inputValue()
+    await textbox.evaluate((input, value) => {
+        input.value = `${value} changed`
+        input.dispatchEvent(new Event('input', {bubbles: true}))
+    }, textboxValue)
+    await expect(textbox).toHaveValue(textboxValue)
+
+    const dropdownValue = await dropdown.inputValue()
+    await dropdown.focus()
+    await expect(dropdown).toBeFocused()
+    await page.keyboard.press('ArrowDown')
+    await expect(dropdown).toHaveValue(dropdownValue)
+    await dropdown.selectOption({index: 1})
+    await expect(dropdown).toHaveValue(dropdownValue)
+
+    const selectedToggle = toggle.getByRole('radio', {checked: true})
+    const alternateToggle = toggle.getByRole('radio', {checked: false}).first()
+    const toggleSeams = await toggle.getByRole('radio').evaluateAll(radios => radios.map(radio => {
+        const chrome = getComputedStyle(radio, '::before')
+        return {left: chrome.borderLeftWidth, right: chrome.borderRightWidth}
+    }))
+    expect(toggleSeams).toEqual([{left: '1px', right: '0px'}, {left: '0px', right: '1px'}])
+    await alternateToggle.click()
+    await expect(selectedToggle).toHaveAttribute('aria-checked', 'true')
+})
+
 test('empty required controls show required-value chrome', async ({page}) => {
     await page.getByText('Required', {exact: true}).click()
 

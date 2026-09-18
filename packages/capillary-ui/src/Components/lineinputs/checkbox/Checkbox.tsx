@@ -49,7 +49,7 @@ export const semanticCheckboxCss = css`
     }
 `
 
-const checkboxLiveProps = ['disabled', 'required', 'busy', 'error'] as const
+const checkboxLiveProps = ['disabled', 'required', 'readOnly', 'busy', 'error'] as const
 
 export interface CheckboxProps<TValue extends CheckboxValue = FilterModeValue>
     extends ValueControlProps<TValue>, LivePropContract<(typeof checkboxLiveProps)[number]> {
@@ -61,6 +61,8 @@ export interface CheckboxProps<TValue extends CheckboxValue = FilterModeValue>
     ariaLabel?: string
     disabled?: boolean
     required?: boolean
+    /** Keeps the checkbox focusable while preventing state changes. */
+    readOnly?: boolean
     busy?: boolean
     error?: unknown
     name?: string
@@ -112,7 +114,7 @@ export class Checkbox<TValue extends CheckboxValue = FilterModeValue>
     }
 
     cycleState(direction = 1, event: Event | null = null): void {
-        if (this.props.disabled) return
+        if (this.props.disabled || this.props.readOnly) return
         const currentIndex = this.symbols.findIndex(([, state]) =>
             Object.is(state, this.valueEmitter.get()))
         const baseIndex = currentIndex < 0 ? 0 : currentIndex
@@ -128,6 +130,7 @@ export class Checkbox<TValue extends CheckboxValue = FilterModeValue>
             ariaLabel,
             disabled = false,
             required = false,
+            readOnly = false,
             busy = false,
             error = null,
         } = this.props
@@ -159,6 +162,7 @@ export class Checkbox<TValue extends CheckboxValue = FilterModeValue>
                     checked={checked}
                     disabled={disabled}
                     required={nativeRequired}
+                    aria-readonly={readOnly ? 'true' : null}
                     name={this.props.name}
                     value={String(semanticState)}
                     aria-busy={busy ? 'true' : null}
@@ -167,6 +171,9 @@ export class Checkbox<TValue extends CheckboxValue = FilterModeValue>
                         : this.capillaryUiMessage('checkboxStateLabel')(textLabel, localizedStateName)}
                     aria-invalid={error == null ? null : 'true'}
                     aria-describedby={error == null ? null : this.errorId}
+                    onClick={(event: MouseEvent) => {
+                        if (readOnly) event.preventDefault()
+                    }}
                     onChange={(event: Event) => {
                         this.cycleState(1, event)
                         // A native checkbox toggles its binary checked property before

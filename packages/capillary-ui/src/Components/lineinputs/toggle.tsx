@@ -16,7 +16,7 @@ export type ToggleOption<TValue extends Key = string> = readonly [
     label: CapillaryUiChild,
 ]
 
-const toggleLiveProps = ['disabled', 'required', 'busy', 'error'] as const
+const toggleLiveProps = ['disabled', 'required', 'readOnly', 'busy', 'error'] as const
 
 export interface ToggleProps<TValue extends Key = string>
     extends ValueControlProps<TValue>, LivePropContract<(typeof toggleLiveProps)[number]> {
@@ -26,6 +26,8 @@ export interface ToggleProps<TValue extends Key = string>
     ariaLabel?: string
     disabled?: boolean
     required?: boolean
+    /** Keeps the selected option focusable while preventing user changes. */
+    readOnly?: boolean
     busy?: boolean
     error?: unknown
     onChange?: (value: TValue, event: Event | null) => void
@@ -72,7 +74,7 @@ export class Toggle<TValue extends Key = string> extends LabeledInputControl<Tog
     }
 
     selectOption(value: TValue, event: Event | null = null): void {
-        if (this.props.disabled) return
+        if (this.props.disabled || this.props.readOnly) return
         this.valueEmitter.set(value, 'toggle option selected')
         invoke(this.props.onChange, value, event)
     }
@@ -83,6 +85,7 @@ export class Toggle<TValue extends Key = string> extends LabeledInputControl<Tog
             label,
             disabled = false,
             required = false,
+            readOnly = false,
             busy = false,
             error = null,
         } = this.props
@@ -99,6 +102,7 @@ export class Toggle<TValue extends Key = string> extends LabeledInputControl<Tog
                 aria-label={label == null ? this.props.ariaLabel : null}
                 aria-labelledby={label == null ? null : this.legendId}
                 aria-required={required ? 'true' : null}
+                aria-readonly={readOnly ? 'true' : null}
                 aria-busy={busy ? 'true' : null}
                 aria-invalid={error == null ? null : 'true'}
                 aria-describedby={error == null ? null : this.errorId}
@@ -215,7 +219,8 @@ export class Toggle<TValue extends Key = string> extends LabeledInputControl<Tog
             box-shadow: var(--toggle-button-shadow);
         }
 
-        & > cap-options > button[role="radio"]:hover:not(:disabled)[aria-checked="false"]::before {
+        & > cap-options:not([aria-readonly="true"])
+        > button[role="radio"]:hover:not(:disabled)[aria-checked="false"]::before {
             background: var(--button-background-hover);
         }
 
@@ -267,6 +272,51 @@ export class Toggle<TValue extends Key = string> extends LabeledInputControl<Tog
         & > cap-options > button[role="radio"]:disabled::before {
             background: var(--button-background-disabled);
             border: var(--button-border-disabled);
+        }
+
+        & > cap-options[aria-readonly="true"] > button[role="radio"]:not(:disabled) {
+            cursor: default;
+        }
+
+        & > cap-options[aria-readonly="true"] > button[role="radio"]:not(:disabled)::before {
+            filter: saturate(.78);
+        }
+
+        & > cap-options[aria-readonly="true"]
+        > button[role="radio"][aria-checked="false"]
+        + [role="radio"][aria-checked="false"]::before {
+            border-inline-start: none;
+        }
+
+        & > cap-options[aria-readonly="true"]
+        > button[role="radio"][aria-checked="false"]
+        + [role="radio"][aria-checked="false"]::after {
+            display: none;
+        }
+
+        & > cap-options[aria-readonly="true"]
+        > button[role="radio"]:not(:disabled)[aria-checked="false"]::before {
+            background: var(--toggle-button-background-readonly);
+            border: var(--toggle-button-border-readonly);
+            box-shadow: var(--toggle-button-shadow-readonly);
+        }
+
+        /* A fixed choice is one contiguous surface. Retain the outer outline,
+           but do not draw segment seams. This follows the inactive border
+           rule so it also clears that rule's inline borders. */
+        & > cap-options[aria-readonly="true"]
+        > button[role="radio"]:not(:disabled)[aria-checked]::before {
+            border-inline: none;
+        }
+
+        & > cap-options[aria-readonly="true"]
+        > button[role="radio"][aria-checked]:first-of-type::before {
+            border-inline-start: var(--toggle-button-border-readonly);
+        }
+
+        & > cap-options[aria-readonly="true"]
+        > button[role="radio"][aria-checked]:last-of-type::before {
+            border-inline-end: var(--toggle-button-border-readonly);
         }
 
         & > cap-options[aria-busy="true"]:not([aria-invalid="true"])

@@ -326,6 +326,25 @@ describe('DatePicker', () => {
         assert.equal(requiredQuery<HTMLElement>('[role="alert"]', input.closest('cap-datepicker')!).textContent,
             'Choose a date')
     })
+
+    test('readOnly preserves the date value while retaining a focusable native input', () => {
+        const value = new Emitter<string | null>('2026-09-10')
+        const inputs: (string | null)[] = []
+        DatePicker.new({
+            valueEmitter: value,
+            readOnly: true,
+            onInput: (next) => inputs.push(next),
+        }).attachTo(document.body)
+        const input = requiredQuery<HTMLInputElement>('input')
+
+        assert.equal(input.disabled, false)
+        assert.equal(input.readOnly, true)
+        input.value = '2026-09-15'
+        input.dispatchEvent(new Event('input', {bubbles: true}))
+        assert.equal(input.value, '2026-09-10')
+        assert.equal(value.get(), '2026-09-10')
+        assert.deepEqual(inputs, [])
+    })
 })
 
 describe('TimePicker', () => {

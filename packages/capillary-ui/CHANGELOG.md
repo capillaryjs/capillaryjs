@@ -58,6 +58,13 @@ Versioning.
 
 ### Added
 
+- Add a live `readOnly` state to Dropdown, checkbox variants, RadioButton,
+  RadioGroup, Toggle, and stylesheet pickers. Read-only value controls stay
+  focusable and readable, expose native `readonly` or `aria-readonly` as
+  appropriate, and reject attempted user changes without becoming disabled.
+- Add palette-derived base read-only chrome tokens for inputs, dropdowns,
+  checkables, and toggles. Themes can override the tokens but no longer need to
+  reproduce disabled styling to represent a fixed value.
 - Add inherited `islands` layout mode to `CapillaryUiApp` and `Layout`, with
   native `cap-island-layout` / `cap-island-layout-off` traits. One outer inset
   and shared gutters replace accumulated island margins inside opt-in scopes;

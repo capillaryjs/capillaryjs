@@ -14,6 +14,14 @@ export abstract class CheckableControl<
             flex-flow: row wrap;
             align-items: center;
             align-content: center;
+            --_cap-checkable-label-color: var(--ui-text-color);
+            --_cap-checkable-cursor: pointer;
+            --_cap-checkable-box-background: var(--checkbox-box-background,
+                var(--ui-input-bg, transparent));
+            --_cap-checkable-box-border: var(--checkbox-box-border,
+                var(--cbx-o-border, 1px solid currentColor));
+            --_cap-checkable-box-shadow: var(--checkbox-box-shadow);
+            --_cap-checkable-box-filter: none;
         }
 
         & > label {
@@ -22,18 +30,27 @@ export abstract class CheckableControl<
             position: relative;
             min-height: var(--_cap-control-row-min);
             margin: 0;
-            color: var(--ui-text-color);
+            color: var(--_cap-checkable-label-color);
             border-radius: var(--ui-border-radius);
             box-sizing: border-box;
             align-items: center;
             gap: .3em;
-            cursor: pointer;
+            cursor: var(--_cap-checkable-cursor);
             user-select: none;
         }
 
         & > label:has(> input:disabled) {
             color: var(--checkable-label-color-disabled);
             cursor: not-allowed;
+        }
+
+        & > label:has(> input[aria-readonly="true"]:not(:disabled)) {
+            --_cap-checkable-label-color: var(--checkable-label-color-readonly);
+            --_cap-checkable-cursor: default;
+            --_cap-checkable-box-background: var(--checkbox-box-background-readonly);
+            --_cap-checkable-box-border: var(--checkbox-box-border-readonly);
+            --_cap-checkable-box-shadow: var(--checkbox-box-shadow-readonly);
+            --_cap-checkable-box-filter: saturate(.78);
         }
 
         & > label > input {
@@ -62,11 +79,12 @@ export abstract class CheckableControl<
             text-align: center;
             line-height: 1;
             color: var(--input-color, var(--ui-text-color, currentColor));
-            background: var(--checkbox-box-background, var(--ui-input-bg, transparent));
-            border: var(--checkbox-box-border, var(--cbx-o-border, 1px solid currentColor));
+            background: var(--_cap-checkable-box-background);
+            border: var(--_cap-checkable-box-border);
             border-radius: var(--checkbox-box-radius,
                 var(--cbx-border-radius, var(--radius-sm, 0.2rem)));
-            box-shadow: var(--checkbox-box-shadow);
+            box-shadow: var(--_cap-checkable-box-shadow);
+            filter: var(--_cap-checkable-box-filter);
             font-family: inherit;
             font-size: 1em;
             user-select: none;

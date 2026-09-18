@@ -81,6 +81,11 @@ export abstract class TemporalInput<
 
     private handleEvent(event: Event): void {
         const input = event.currentTarget as HTMLInputElement
+        if (this.props.readOnly) {
+            const value = this.valueEmitter.get()
+            input.value = value == null ? '' : String(value)
+            return
+        }
         const raw = input.value
         // An empty or domain-valid entry updates the emitter; an invalid
         // in-progress entry is reported as null without touching the emitter,
@@ -174,12 +179,19 @@ export abstract class TemporalInput<
             font: inherit;
         }
 
-        & > input:disabled,
-        & > input[readonly] {
+        & > input:disabled {
             color: var(--input-color-disabled);
             background: var(--input-background-disabled);
             border-color: var(--ui-input-border-disabled);
             cursor: not-allowed;
+        }
+
+        & > input[readonly]:not(:disabled) {
+            color: var(--input-color-readonly);
+            background: var(--input-background-readonly);
+            border: var(--input-border-readonly);
+            box-shadow: var(--input-shadow-readonly);
+            cursor: default;
         }
 
 ${requiredPresentationCss({
@@ -203,6 +215,12 @@ ${requiredPresentationCss({
 
         & > input:disabled[aria-busy="true"]:not([aria-invalid="true"]) {
             background: var(--working-background-image), var(--input-background-disabled);
+            background-repeat: repeat, no-repeat;
+            background-size: 2rem 2rem, 100% 100%;
+        }
+
+        & > input[readonly]:not(:disabled)[aria-busy="true"]:not([aria-invalid="true"]) {
+            background: var(--working-background-image), var(--input-background-readonly);
             background-repeat: repeat, no-repeat;
             background-size: 2rem 2rem, 100% 100%;
         }
