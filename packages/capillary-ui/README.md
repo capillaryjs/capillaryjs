@@ -771,12 +771,10 @@ be placed after the `@layer theme` block: component CSS is injected as an
 unlayered `<style>` element prepended to `<head>`, so unlayered theme rules win
 by document order while layered ones would always lose.
 
-The built-in theme options are Shiny, Glossy, Original, Soft, White, Java,
-Minimal, Dark, and Sci-fi. Dark and Sci-fi are fixed dark treatments; Minimal
-is adaptive; the remaining options are fixed light treatments. The legacy
-Original, Sci-fi, Soft, Dark, Glossy, and White appearances are semantic ports:
-they retain their characteristic colors, depth, and geometry through current
-variables rather than relying on their former DOM selectors.
+The built-in theme options are Capillary, Shiny, Soft, White, and Minimal.
+Capillary is a bright, compact card treatment with restrained elevation and
+palette-primary selections. Minimal is adaptive; the other options are fixed
+light treatments.
 
 `capillaryUiThemeVariableCatalog` describes the supported palette and semantic
 variable hierarchy. `findCapillaryUiStylesheetOption`, `replaceCapillaryUiStylesheet`,
@@ -829,10 +827,10 @@ data-surface components can opt in by declaring the same static trait.
 Checkbox variants and RadioButton retain compact 1.2em label rows with 1em
 squares/circles. They center within stretched horizontal hosts without making
 vertical lists as tall as text fields. Date/time controls consume the same
-shared sizing rules. Themes may deliberately override the minimum (Java does),
-but Shiny uses the structural defaults and adds chrome without text offsets.
-Shadows do not participate in centering. Toggle borders and selected overlap
-are painted independently of segment layout, so selection does not move text.
+shared sizing rules. Maintained themes use the structural defaults and add
+chrome without text offsets. Shadows do not participate in centering. Toggle
+borders and selected overlap are painted independently of segment layout, so
+selection does not move text.
 
 ### Root sizing and typography
 

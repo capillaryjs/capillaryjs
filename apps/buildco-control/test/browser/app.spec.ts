@@ -95,9 +95,9 @@ test("issue and delay commands create, edit, resolve and refresh shared register
 test("theme picker exposes and loads every built-in theme", async ({ page }) => {
   await page.goto("/?profile=small#/overview");
   const picker = page.getByLabel("Theme", { exact: true });
-  await expect(picker.locator("option")).toHaveCount(9);
-  expect(await picker.locator("option").evaluateAll(options => options.map(option => option.getAttribute("value")))).toEqual(["minimal", "java", "shiny", "original", "scifi", "soft", "dark", "glossy", "white"]);
-  for (const theme of ["minimal", "java", "shiny", "original", "scifi", "soft", "dark", "glossy", "white"]) {
+  await expect(picker.locator("option")).toHaveCount(5);
+  expect(await picker.locator("option").evaluateAll(options => options.map(option => option.getAttribute("value")))).toEqual(["capillary", "shiny", "soft", "white", "minimal"]);
+  for (const theme of ["capillary", "shiny", "soft", "white", "minimal"]) {
     await picker.selectOption(theme);
     await expect(page.locator('link[data-cap-stylesheet="theme"]')).toHaveAttribute("href", new RegExp(theme));
   }
@@ -112,7 +112,7 @@ test("charts, theme controls, forced states, and mobile layout remain usable", a
   await page.getByLabel("Metric group", { exact: true }).selectOption("cost"); await settled(page);
   await expect(page.locator(".trends")).toContainText("Actual direct cost");
   await page.getByText("Demo controls", { exact: true }).click();
-  for (const theme of ["java", "shiny", "minimal", "original", "scifi", "soft", "dark", "glossy", "white"]) { await page.getByLabel("Theme", { exact: true }).selectOption(theme); await expect(page.locator('link[data-cap-stylesheet="theme"]')).toHaveAttribute("href", new RegExp(theme)); }
+  for (const theme of ["capillary", "shiny", "soft", "white", "minimal"]) { await page.getByLabel("Theme", { exact: true }).selectOption(theme); await expect(page.locator('link[data-cap-stylesheet="theme"]')).toHaveAttribute("href", new RegExp(theme)); }
   await page.getByLabel("Palette", { exact: true }).selectOption("purple");
   await page.getByLabel("Fetch state", { exact: true }).selectOption("error"); await expect(page.locator(".query-feedback > [role=alert]")).toContainText("Simulated error");
   await page.getByRole("button", { name: "Retry", exact: true }).click(); await settled(page);

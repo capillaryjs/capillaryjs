@@ -150,11 +150,11 @@ cap-button > button {
             justify-content: center;
             min-height: var(--control-min-height, 2em);
             margin: 0;
-            padding: 0 5px;
+            padding: var(--ui-control-padding);
             color: var(--button-color);
             background: var(--button-background);
             border: var(--button-border);
-            border-radius: var(--radius-md);
+            border-radius: var(--ui-border-radius);
             box-shadow: var(--button-shadow);
             box-sizing: border-box;
             cursor: default;
@@ -272,7 +272,7 @@ cap-error {
             color: var(--ui-color);
             background: var(--error-bg-neutral, var(--application-background));
             border: 1px solid var(--error-color);
-            border-radius: var(--radius-md);
+            border-radius: var(--ui-border-radius);
             box-shadow: var(--ui-shadow);
             opacity: 0;
             overflow-wrap: anywhere;
@@ -609,12 +609,12 @@ cap-dropdown {
             max-width: 100%;
             min-width: var(--input-min-width, 6rem);
             margin: 0;
-            padding: 0 5px;
+            padding: var(--ui-control-padding);
             padding-inline-end: var(--dropdown-padding-inline-end);
             color: var(--input-color);
             background: var(--dropdown-select-background);
             border: var(--dropdown-select-border);
-            border-radius: var(--radius-md);
+            border-radius: var(--ui-border-radius);
             box-shadow: var(--dropdown-select-shadow);
             box-sizing: border-box;
             font: inherit;
@@ -1035,11 +1035,11 @@ cap-timepicker {
             min-width: var(--input-min-width, 6rem);
             margin: 0;
             margin-left: auto;
-            padding: 0 5px;
+            padding: var(--ui-control-padding);
             color: var(--input-color);
             background: var(--input-background);
             border: var(--input-border);
-            border-radius: var(--radius-md);
+            border-radius: var(--ui-border-radius);
             box-shadow: var(--input-shadow);
             box-sizing: border-box;
             font: inherit;
@@ -1746,7 +1746,7 @@ cap-optiongroup {
 
         cap-optiongroup > fieldset[aria-invalid="true"] {
             border: 1px solid var(--error-color);
-            border-radius: var(--radius-md);
+            border-radius: var(--ui-border-radius);
         }
 
         @media (prefers-reduced-motion: reduce) {
@@ -2141,7 +2141,7 @@ cap-tabline {
             color: var(--button-color);
             background: var(--tab-button-background);
             border: none;
-            border-radius: var(--radius-md) var(--radius-md) 0 0;
+            border-radius: var(--ui-border-radius) var(--ui-border-radius) 0 0;
             box-shadow: var(--tab-button-shadow);
             box-sizing: border-box;
             align-self: flex-end;
@@ -2231,11 +2231,11 @@ cap-textbox {
             max-width: 100%;
             min-width: var(--input-min-width, 6rem);
             margin: 0;
-            padding: 0 5px;
+            padding: var(--ui-control-padding);
             color: var(--input-color);
             background: var(--input-background);
             border: var(--input-border);
-            border-radius: var(--radius-md);
+            border-radius: var(--ui-border-radius);
             box-shadow: var(--input-shadow);
             box-sizing: border-box;
             font: inherit;
@@ -2315,7 +2315,7 @@ cap-toggle {
         cap-toggle > cap-options {
             display: flex;
             min-height: var(--control-min-height, 2em);
-            border-radius: var(--radius-md);
+            border-radius: var(--ui-border-radius);
             box-shadow: var(--toggle-group-shadow);
             box-sizing: border-box;
             cursor: pointer;
@@ -2330,7 +2330,7 @@ cap-toggle {
             min-height: var(--control-min-height, 2em);
             min-width: 2em;
             margin: 0;
-            padding: 0 6px;
+            padding: var(--ui-control-padding);
             position: relative;
             isolation: isolate;
             font: inherit;
@@ -2365,7 +2365,7 @@ cap-toggle {
         }
 
         cap-toggle > cap-options > button[role="radio"]:first-of-type {
-            border-radius: var(--radius-md) 0 0 var(--radius-md);
+            border-radius: var(--ui-border-radius) 0 0 var(--ui-border-radius);
         }
 
         cap-toggle > cap-options > button[role="radio"]:first-of-type::before {
@@ -2374,11 +2374,11 @@ cap-toggle {
         }
 
         cap-toggle > cap-options > button[role="radio"]:last-of-type {
-            border-radius: 0 var(--radius-md) var(--radius-md) 0;
+            border-radius: 0 var(--ui-border-radius) var(--ui-border-radius) 0;
         }
 
         cap-toggle > cap-options > button[role="radio"]:only-of-type {
-            border-radius: var(--radius-md);
+            border-radius: var(--ui-border-radius);
         }
 
         cap-toggle > cap-options > button[role="radio"]:last-of-type::before {
@@ -2400,7 +2400,7 @@ cap-toggle {
         cap-toggle > cap-options > button[role="radio"][aria-checked="true"]::before {
             background: var(--toggle-button-background-checked);
             border: var(--toggle-button-border-checked);
-            box-shadow: none;
+            box-shadow: var(--toggle-button-shadow-checked);
             inset-inline: var(--toggle-button-selected-inline-overlap);
         }
 

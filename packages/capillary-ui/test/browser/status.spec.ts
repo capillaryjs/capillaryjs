@@ -4,7 +4,7 @@ import {readFile} from 'node:fs/promises'
 import {fileURLToPath} from 'node:url'
 
 const baseThemePath = fileURLToPath(new URL('../../themes/base.css', import.meta.url))
-const themePaths = ['minimal', 'java', 'shiny', 'original', 'scifi', 'soft', 'dark', 'glossy', 'white'].map((name) => ({
+const themePaths = ['capillary', 'shiny', 'soft', 'white', 'minimal'].map((name) => ({
     name,
     path: fileURLToPath(new URL(`../../themes/${name}/theme.css`, import.meta.url)),
 }))

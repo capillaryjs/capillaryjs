@@ -8,6 +8,13 @@ Versioning.
 
 ### Fixed
 
+- Publish only the maintained Capillary, Shiny, Soft, White, and Minimal themes.
+  The former Glossy, Original, Java, Dark, and Sci-fi assets and picker entries
+  are removed from the package and applications.
+- Make named-theme surfaces, text, borders, and fills palette-derived. In
+  particular, Shiny progress chrome now follows the muted surface and primary
+  ramps instead of fixed Ice blue stops. Neutral black/white gloss and shadow
+  overlays remain intentionally literal.
 - Replace hue-named palette status primitives with semantic negative, positive,
   and neutral status colors. Error and success aliases follow the negative and
   positive colors; multi-state checkbox deny, require, and prefer chrome uses
@@ -18,9 +25,6 @@ Versioning.
   uses relative HSL colors and sRGB mixing; existing UI aliases remain overridable.
 - Add palette-level `--palette-primary-surface-saturation`: `0` removes primary
   hue from the three chrome surfaces, `1` retains their calibrated default.
-- Add semantic ports of the legacy Original, Sci-fi, Soft, Dark, Glossy, and
-  White themes to the public selectable theme catalog. The old selectors are
-  not carried forward; the ports use the current semantic variable contract.
 - Keep unchanged DataTable headers out of row-update renders and avoid redundant
   renderer marker, attribute, dataset, and style writes.
 - Preserve table-part names after minification and identify header cells by column.
@@ -36,6 +40,8 @@ Versioning.
 
 ### Added
 
+- Add the light `capillary` theme: bright rounded cards, restrained neutral
+  elevation, compact controls, and palette-primary selected states.
 - Add an overridable instance diagnostic label and a named table-body consumer.
   Consumer facts report render triggers/passes and own renderer DOM-write counts,
   distinguishing execution from DOM work without changing update scheduling.

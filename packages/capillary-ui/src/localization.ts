@@ -42,7 +42,7 @@ export interface CapillaryUiMessageOverrides {
     readonly tabLineLabel?: string
     readonly tableFilterColumnLabel?: (label: string) => string
     readonly tableSortColumnLabel?: (label: string) => string
-    readonly themeOptionJavaLabel?: string
+    readonly themeOptionCapillaryLabel?: string
     readonly themeOptionMinimalLabel?: string
     readonly themeOptionShinyLabel?: string
     readonly toolbarLabel?: string
@@ -111,7 +111,7 @@ const englishCapillaryUiMessages = Object.freeze({
     tabLineLabel: 'Sections',
     tableFilterColumnLabel: (label: string) => `Filter ${label}`,
     tableSortColumnLabel: (label: string) => `Sort ${label}`,
-    themeOptionJavaLabel: 'Java',
+    themeOptionCapillaryLabel: 'Capillary',
     themeOptionMinimalLabel: 'Minimal',
     themeOptionShinyLabel: 'Shiny',
     toolbarLabel: 'Actions',

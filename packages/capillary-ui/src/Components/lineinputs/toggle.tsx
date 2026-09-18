@@ -171,7 +171,7 @@ export class Toggle<TValue extends Key = string> extends LabeledInputControl<Tog
         & > cap-options {
             display: flex;
             min-height: var(--control-min-height, 2em);
-            border-radius: var(--radius-md);
+            border-radius: var(--ui-border-radius);
             box-shadow: var(--toggle-group-shadow);
             box-sizing: border-box;
             cursor: pointer;
@@ -186,7 +186,7 @@ export class Toggle<TValue extends Key = string> extends LabeledInputControl<Tog
             min-height: var(--control-min-height, 2em);
             min-width: 2em;
             margin: 0;
-            padding: 0 6px;
+            padding: var(--ui-control-padding);
             position: relative;
             isolation: isolate;
             font: inherit;
@@ -221,7 +221,7 @@ export class Toggle<TValue extends Key = string> extends LabeledInputControl<Tog
         }
 
         & > cap-options > button[role="radio"]:first-of-type {
-            border-radius: var(--radius-md) 0 0 var(--radius-md);
+            border-radius: var(--ui-border-radius) 0 0 var(--ui-border-radius);
         }
 
         & > cap-options > button[role="radio"]:first-of-type::before {
@@ -230,11 +230,11 @@ export class Toggle<TValue extends Key = string> extends LabeledInputControl<Tog
         }
 
         & > cap-options > button[role="radio"]:last-of-type {
-            border-radius: 0 var(--radius-md) var(--radius-md) 0;
+            border-radius: 0 var(--ui-border-radius) var(--ui-border-radius) 0;
         }
 
         & > cap-options > button[role="radio"]:only-of-type {
-            border-radius: var(--radius-md);
+            border-radius: var(--ui-border-radius);
         }
 
         & > cap-options > button[role="radio"]:last-of-type::before {
@@ -256,7 +256,7 @@ export class Toggle<TValue extends Key = string> extends LabeledInputControl<Tog
         & > cap-options > button[role="radio"][aria-checked="true"]::before {
             background: var(--toggle-button-background-checked);
             border: var(--toggle-button-border-checked);
-            box-shadow: none;
+            box-shadow: var(--toggle-button-shadow-checked);
             inset-inline: var(--toggle-button-selected-inline-overlap);
         }
 

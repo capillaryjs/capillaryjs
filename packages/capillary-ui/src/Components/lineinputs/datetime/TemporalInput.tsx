@@ -163,11 +163,11 @@ export abstract class TemporalInput<
             min-width: var(--input-min-width, 6rem);
             margin: 0;
             margin-left: auto;
-            padding: 0 5px;
+            padding: var(--ui-control-padding);
             color: var(--input-color);
             background: var(--input-background);
             border: var(--input-border);
-            border-radius: var(--radius-md);
+            border-radius: var(--ui-border-radius);
             box-shadow: var(--input-shadow);
             box-sizing: border-box;
             font: inherit;

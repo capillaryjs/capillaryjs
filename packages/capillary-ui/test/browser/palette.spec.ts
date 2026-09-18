@@ -43,7 +43,7 @@ test('muted surfaces follow every palette in every theme and preserve exact Ice 
     async ({page}) => {
         // The base alone uses the same primary/light reference anchors.
         expect(await surfaceColors(page)).toEqual(legacySurfaces)
-        for (const theme of ['minimal', 'java', 'shiny', 'original', 'scifi', 'soft', 'dark', 'glossy', 'white']) {
+        for (const theme of ['capillary', 'shiny', 'soft', 'white', 'minimal']) {
             const themeStyle = await page.addStyleTag({content: await stylesheet(`themes/${theme}/theme.css`)})
             const distinct = uiAliases.map(() => new Set<string>())
             for (const color of colors) {

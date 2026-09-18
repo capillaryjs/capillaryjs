@@ -25,9 +25,11 @@ Published themes are:
 
 | Theme | Appearance capability | Intent |
 | --- | --- | --- |
-| `minimal` | Adaptive (`light`, `dark`, or system) | Restrained platform-oriented treatment |
-| `java` | Light | Desktop control treatment inspired by classic Java interfaces |
+| `capillary` | Light | Bright, compact card treatment with restrained elevation and palette-primary selection |
 | `shiny` | Light | Gloss, depth, and chromed graphical surfaces |
+| `soft` | Light | Soft, rounded treatment |
+| `white` | Light | Airy, rounded treatment |
+| `minimal` | Adaptive (`light`, `dark`, or system) | Restrained platform-oriented treatment |
 
 Custom properties are the primary instrument. A theme declares them on `:root`
 inside `@layer theme`, and `color-scheme` is the only ordinary property that
@@ -77,6 +79,11 @@ instance of a component.
 Themes still must not `@import`, must not declare `--palette-*` anchors, which
 belong to `colors/<name>/colors.css`, and must not restate a value already set
 by `base.css`.
+
+Theme chrome that establishes a surface, text, border, or fill must derive from
+the appropriate palette role or a shared UI role. Literal black and white may
+remain in translucent gloss and shadow overlays: those effects are deliberately
+neutral and must not tint the underlying palette-derived surface.
 
 `capillaryUiThemeVariableCatalog` is the machine-readable public contract. Its
 fallback chain runs from palette roles through global UI roles and shared

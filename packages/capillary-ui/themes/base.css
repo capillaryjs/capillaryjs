@@ -307,6 +307,7 @@
     --ui-padding: 8px;
     --ui-padding-h: 8px;
     --ui-padding-v: 0px;
+    --ui-control-padding: 0 5px;
     --ui-margin: 1px;
     --ui-border-radius: 3px;
     --ui-text-color: var(--ui-color);

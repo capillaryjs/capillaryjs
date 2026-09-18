@@ -140,7 +140,7 @@ export class TabLine extends Component<TabLineProps> {
             color: var(--button-color);
             background: var(--tab-button-background);
             border: none;
-            border-radius: var(--radius-md) var(--radius-md) 0 0;
+            border-radius: var(--ui-border-radius) var(--ui-border-radius) 0 0;
             box-shadow: var(--tab-button-shadow);
             box-sizing: border-box;
             align-self: flex-end;

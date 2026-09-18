@@ -294,11 +294,11 @@ Presentation loads as base variables, structural CSS, color anchors, then
 theme overrides. Applications can collect structural CSS from declared root
 dependencies instead of loading the complete artifact.
 
-Built-in theme options are `shiny`, `glossy`, `original`, `soft`, `white`,
-`java`, `minimal`, `dark`, and `scifi`. Dark and Sci-fi are fixed dark
-treatments; Minimal is adaptive; the rest are fixed light treatments. The six
-legacy named treatments are ports through current semantic variables, not
-legacy component selectors.
+Built-in theme options are `capillary`, `shiny`, `soft`, `white`, and `minimal`.
+Capillary is a fixed light card treatment; Minimal is adaptive; the remaining
+themes are fixed light treatments. Theme surfaces, text, borders, and fills
+derive from palette or shared UI roles; neutral black/white gloss and shadow
+overlays remain literal by design.
 
 `--palette-primary-surface-light`, `--palette-primary-surface-medium`, and
 `--palette-primary-surface-dark` are muted surface tones derived in the base

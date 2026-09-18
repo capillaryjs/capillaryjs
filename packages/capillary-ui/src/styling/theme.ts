@@ -211,15 +211,11 @@ export const capillaryUiThemeVariableCatalog = Object.freeze([
 ] satisfies readonly CapillaryUiThemeVariableDefinition[])
 
 export const capillaryUiThemeOptions = Object.freeze([
+    themeOption('capillary', 'Capillary', distributedAssetUrl('themes/capillary/theme.css'), 'light'),
     themeOption('shiny', 'Shiny', distributedAssetUrl('themes/shiny/theme.css'), 'light'),
-    themeOption('glossy', 'Glossy', distributedAssetUrl('themes/glossy/theme.css'), 'light'),
-    themeOption('original', 'Original', distributedAssetUrl('themes/original/theme.css'), 'light'),
     themeOption('soft', 'Soft', distributedAssetUrl('themes/soft/theme.css'), 'light'),
     themeOption('white', 'White', distributedAssetUrl('themes/white/theme.css'), 'light'),
-    themeOption('java', 'Java', distributedAssetUrl('themes/java/theme.css'), 'light'),
     themeOption('minimal', 'Minimal', distributedAssetUrl('themes/minimal/theme.css'), 'adaptive'),
-    themeOption('dark', 'Dark', distributedAssetUrl('themes/dark/theme.css'), 'dark'),
-    themeOption('scifi', 'Sci-fi', distributedAssetUrl('themes/scifi/theme.css'), 'dark'),
 ])
 
 export const capillaryUiColorOptions = Object.freeze([

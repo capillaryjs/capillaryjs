@@ -22,7 +22,7 @@
     --panel-border: none;
     --panel-radius: 0px;
     --island-border: 0px solid rgb(255 255 255 / 0.45);
-    --island-shadow: 0px 1px 2.5px 0px #666;
+    --island-shadow: 0px 1px 2.5px 0px var(--palette-neutral-600);
     --section-header-background: var(--shiny-background);
     --section-header-color: var(--palette-contrast-light);
     --section-header-shadow:
@@ -49,11 +49,11 @@
     --button-background: var(--ui-gradient-2);
     --button-background-hover: var(--ui-gradient);
     --button-background-active: var(--ui-gradient);
-    --button-border: 1px solid #fff;
+    --button-border: 1px solid var(--palette-light);
     --button-shadow-active: var(--button-shadow-pressed);
 
     --cbx-x-bg: radial-gradient(140% 75% at 30% 10%, #fff5, #fff4 47%, #fff0 55%, #fff0), linear-gradient(to bottom, color-mix(in oklch, var(--palette-status-negative) 55%, #000) 0%, var(--palette-status-negative) 65%, color-mix(in oklch, var(--palette-status-negative) 82%, #fff) 100%);
-    --cbx-x-color: #fff;
+    --cbx-x-color: var(--palette-contrast-light);
     --cbx-x-border: 0px solid rgba(0,0,0,0);
     --cbx-x-shadow: inset 1px -1px 1px 0px #fffa, inset -1px 2px 3px -1px #0002, -1px 1px 2px 0px #0005;
     --cbx-o-bg: linear-gradient(to bottom, #ffffffd5 0%, #ffffffe5 100%), linear-gradient(to bottom, var(--palette-status-neutral) 0%, var(--palette-status-neutral) 100%);
@@ -61,11 +61,11 @@
     --cbx-o-border: 0px solid rgba(0,0,0,0);
     --cbx-o-shadow: inset 1px -1px 1px 0px #ffff, inset -1px 2px 3px -1px #0002, -1px 1px 2px 0px #0005;
     --cbx-c-bg: var(--checkbox-box-background-checked);
-    --cbx-c-color: #fff;
+    --cbx-c-color: var(--palette-contrast-light);
     --cbx-c-border: 0px solid rgba(0,0,0,0);
     --cbx-c-shadow: inset 1px -1px 1px 0px #fff9, inset -1px 2px 3px -1px #0002, -1px 1px 2px 0px #0005;
     --cbx-r-bg: radial-gradient(140% 75% at 30% 10%, #fff5, #fff4 47%, #fff0 55%, #fff0), linear-gradient(to bottom, color-mix(in oklch, var(--palette-status-positive) 55%, #000) 0%, var(--palette-status-positive) 65%, color-mix(in oklch, var(--palette-status-positive) 82%, #fff) 100%);
-    --cbx-r-color: #fff;
+    --cbx-r-color: var(--palette-contrast-light);
     --cbx-r-border: 0px solid rgba(0,0,0,0);
     --cbx-r-shadow: inset 1px -1px 1px 0px #fff8, inset -1px 2px 3px -1px #0002, -1px 1px 2px 0px #0005;
 
@@ -103,9 +103,9 @@
     --navigation-bar-background: var(--ui-gradient-2);
     --navigation-bar-color: var(--text-color);
     --navigation-bar-shadow: var(--panel-shadow);
-    --navigation-link-color-current: white;
+    --navigation-link-color-current: var(--palette-contrast-light);
     --navigation-link-background-hover: var(--section-header-background);
-    --navigation-link-color-hover: white;
+    --navigation-link-color-hover: var(--palette-contrast-light);
     --navigation-link-background-current: var(--section-header-background);
     --navigation-link-shadow-current: var(--mini-shadow);
     --tabline-background: var(--shiny-ui-gradient-2);
@@ -117,10 +117,10 @@
     --tab-button-inactive-bottom-shadow: 0px 1px 3px 0px #000a;
 
     /* Status and graphical components */
-    --progress-track-background: linear-gradient(0deg, var(--ui-dark-bg-color) 0%, #f0f0f0 100%);
+    --progress-track-background: linear-gradient(0deg, var(--ui-dark-bg-color) 0%, var(--ui-primary-bg-color) 100%);
     --progress-value-background:
       radial-gradient(100% 50% at 40% 10%, #fff0, #fff0 30%, #ffffff15 110%, #fff0 120%, #fff0 calc(120% + 1%)),
-      linear-gradient(15deg, #1e5799 0%, var(--palette-primary) 65%, var(--palette-primary) 65%, #7db9e8 100%);
+      linear-gradient(15deg, var(--palette-primary-800) 0%, var(--palette-primary) 65%, var(--palette-primary) 65%, var(--palette-primary-300) 100%);
     --progress-value-shadow:
       inset -1px 1px 3px 0 #0003,
       inset 1px -1px 3px 0 #fff5,
@@ -160,6 +160,13 @@ cap-datatable > table > thead > tr > th[aria-sort] > button.sort {
 }
 
 cap-navigationbar + cap-toolbar {
-  border-top: 2px groove #fff;
+  border-top: 2px groove var(--palette-light);
   background: var(--ui-gradient);
+}
+
+cap-toggle > cap-options > button[role="radio"][aria-checked="true"]::before {
+  background: var(--toggle-button-background-checked);
+  border: var(--toggle-button-border-checked);
+  box-shadow: none;
+  inset-inline: var(--toggle-button-selected-inline-overlap);
 }

@@ -5,7 +5,7 @@ const packageRoot = new URL('../../', import.meta.url)
 const bodies = 'cap-textbox > input, cap-dropdown > cap-selectshell, '
     + 'cap-toggle > cap-options > button, cap-button > button'
 
-for (const theme of ['base', 'minimal', 'shiny', 'java', 'original', 'scifi', 'soft', 'dark', 'glossy', 'white']) {
+for (const theme of ['base', 'capillary', 'shiny', 'soft', 'white', 'minimal']) {
     test.describe(theme, () => {
         test.beforeEach(async ({page}) => {
             await page.setViewportSize({width: 1600, height: 1000})
@@ -18,7 +18,7 @@ for (const theme of ['base', 'minimal', 'shiny', 'java', 'original', 'scifi', 's
         })
 
         test('bodies, labels and compact checkboxes share a centered text line', async ({page}, testInfo) => {
-            const height = theme === 'java' ? 28 : 24
+            const height = 24
             for (const id of ['toolbar', 'layout', 'panel', 'tall', 'disabled', 'busy', 'error']) {
                 const row = page.locator(`#${id}`)
                 const metrics = await row.evaluate((root, selector) => {
@@ -162,8 +162,8 @@ for (const theme of ['base', 'minimal', 'shiny', 'java', 'original', 'scifi', 's
             })
             const heights = await page.locator('#layout').locator(bodies).evaluateAll((elements) =>
                 elements.map((e) => e.getBoundingClientRect().height))
-            // Java deliberately keeps its rem-sized minimum; ordinary content can grow.
-            if (theme !== 'java') for (const height of heights) expect(height).toBe(48)
+            // Theme chrome must not change the structural, font-scaled minimum.
+            for (const height of heights) expect(height).toBe(48)
             await page.locator('cap-app').evaluate((e) => {
                 e.style.setProperty('--control-min-height', '60px')
                 e.style.setProperty('zoom', '2')

@@ -68,7 +68,7 @@ abstract class StylesheetPicker extends Dropdown<string> {
     protected override optionLabel(option: DropdownOption<string>): CapillaryUiChild {
         if (this.customOptions) return super.optionLabel(option)
         switch (`${this.kind}:${option.value}`) {
-            case 'theme:java': return this.capillaryUiMessage('themeOptionJavaLabel')
+            case 'theme:capillary': return this.capillaryUiMessage('themeOptionCapillaryLabel')
             case 'theme:minimal': return this.capillaryUiMessage('themeOptionMinimalLabel')
             case 'theme:shiny': return this.capillaryUiMessage('themeOptionShinyLabel')
             case 'colors:gray': return this.capillaryUiMessage('colorOptionGrayLabel')

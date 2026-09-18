@@ -91,11 +91,11 @@ export class Button extends Component<ButtonProps> {
             justify-content: center;
             min-height: var(--control-min-height, 2em);
             margin: 0;
-            padding: 0 5px;
+            padding: var(--ui-control-padding);
             color: var(--button-color);
             background: var(--button-background);
             border: var(--button-border);
-            border-radius: var(--radius-md);
+            border-radius: var(--ui-border-radius);
             box-shadow: var(--button-shadow);
             box-sizing: border-box;
             cursor: default;

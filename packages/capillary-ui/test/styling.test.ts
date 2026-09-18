@@ -628,6 +628,7 @@ describe('style registry', () => {
         assert.match(stylesheet, /cap-toggle\s*\{[^}]*display:\s*flex[^}]*flex-flow:\s*row nowrap[^}]*align-items:\s*center/)
         assert.match(stylesheet, /cap-toggle > cap-options\s*\{[^}]*display:\s*flex[^}]*box-shadow:\s*var\(--toggle-group-shadow\)/)
         assert.match(stylesheet, /button\[role="radio"\]\[aria-checked="true"\]/)
+        assert.match(stylesheet, /button\[role="radio"\]\[aria-checked="true"\]::before\s*\{[^}]*box-shadow:\s*var\(--toggle-button-shadow-checked\)/)
         assert.match(stylesheet, /button\[role="radio"\]\[aria-checked="false"\]\s*\+\s*\[role="radio"\]\[aria-checked="false"\]::after/)
         assert.match(stylesheet, /button\[role="radio"\]:disabled\s*\{[^}]*cursor:\s*not-allowed/)
         assert.doesNotMatch(stylesheet, /fieldset|\.options|data-part|data-disabled|cap-panel|cap-sidebar|cap-dropdown/)
@@ -753,23 +754,42 @@ describe('four-file styling contract', () => {
         assert.match(css, /--text-color:\s*var\(--palette-primary-900\)/)
         assert.match(css, /--ui-color:\s*var\(--text-color\)/)
         assert.match(css, /--island-border:\s*0px solid rgb\(255 255 255 \/ 0\.45\)/)
-        assert.match(css, /--island-shadow:\s*0px 1px 2\.5px 0px #666/)
+        assert.match(css, /--island-shadow:\s*0px 1px 2\.5px 0px var\(--palette-neutral-600\)/)
         assert.match(css, /--shiny-background:[\s\S]*radial-gradient\(140% 75% at 30% 10%, #fff2, #fff3 47%, #fff0 55%, #fff0\)[\s\S]*linear-gradient\(to bottom, var\(--palette-primary-900\) 0%, var\(--palette-primary\) 65%, var\(--palette-primary\) 66%, var\(--palette-primary-400\) 100%\)/)
         assert.match(css, /--section-header-background:\s*var\(--shiny-background\)/)
         assert.match(css, /--navigation-bar-background:\s*var\(--ui-gradient-2\)/)
         assert.match(css, /--navigation-bar-color:\s*var\(--text-color\)/)
-        assert.match(css, /--navigation-link-color-current:\s*white/)
+        assert.match(css, /--navigation-link-color-current:\s*var\(--palette-contrast-light\)/)
         assert.match(css, /--navigation-link-background-current:\s*var\(--section-header-background\)/)
         const {unlayered} = splitThemeLayer(css)
         assert.match(unlayered, /\.colored\s*\{[^}]*background:\s*radial-gradient/)
         assert.match(unlayered, /^nav > ul > li\s*\{[^}]*border-radius:/m)
         assert.match(unlayered, /^cap-navigationbar nav > ul > li > a\s*\{[^}]*line-height:\s*1\.7em/m)
         assert.doesNotMatch(css, /--panel-shadow:/)
-        assert.match(css, /--progress-value-background:[\s\S]*radial-gradient/)
+        assert.match(css, /--progress-track-background:\s*linear-gradient\(0deg, var\(--ui-dark-bg-color\) 0%, var\(--ui-primary-bg-color\) 100%\)/)
+        assert.match(css, /--progress-value-background:[\s\S]*radial-gradient[\s\S]*linear-gradient\(15deg, var\(--palette-primary-800\) 0%, var\(--palette-primary\) 65%, var\(--palette-primary\) 65%, var\(--palette-primary-300\) 100%\)/)
         assert.match(css, /--progress-value-shadow:[\s\S]*inset -1px 1px 3px 0 #0003/)
         assert.match(css, /--block-graph-block-border:\s*none/)
         assert.match(css, /--colored-shadow:[\s\S]*inset -2px 2px 2px 0px #0006,[\s\S]*inset 2px -2px 2px 0px #fff5,[\s\S]*-3px 3px 4px 0px #0006/)
         assert.doesNotMatch(css, /--block-graph-block-shadow:/)
+    })
+
+    test('Capillary defines compact, palette-derived card chrome', async () => {
+        const css = await readFile(
+            fileURLToPath(new URL('../themes/capillary/theme.css', import.meta.url)),
+            'utf8',
+        )
+        assert.match(css, /--panel-radius:\s*var\(--radius-lg\)/)
+        assert.match(css, /--panel-background:[\s\S]*linear-gradient\([\s\S]*var\(--ui-primary-bg-color\)/)
+        assert.match(css, /--panel-shadow:[\s\S]*inset 0 1px 0 color-mix\(in srgb, var\(--palette-light\) 88%, transparent\)[\s\S]*var\(--palette-dark\) 10%, transparent\)/)
+        assert.match(css, /--button-background-active:[\s\S]*radial-gradient[\s\S]*var\(--palette-primary-700\)/)
+        assert.match(css, /--toggle-button-background-checked:[\s\S]*radial-gradient[\s\S]*var\(--palette-primary-700\)/)
+        assert.match(css, /--progress-value-background:[\s\S]*var\(--palette-primary-400\), var\(--palette-primary\)/)
+        assert.match(css, /--dropdown-trigger-background:\s*transparent/)
+        assert.match(css, /--dropdown-trigger-border:\s*0 solid transparent/)
+        assert.match(css, /cap-button > button\[aria-pressed="true"\][\s\S]*color:\s*var\(--palette-contrast-light\)/)
+        assert.match(css, /cap-dropdown > cap-selectshell::after\s*\{[^}]*border-radius:\s*var\(--ui-border-radius\)/)
+        assert.match(css, /cap-groupbox\.cap-groupbox-section:not\(cap-groupbox cap-groupbox\)[\s\S]*box-shadow:\s*var\(--panel-shadow\)/)
     })
 
     test('base BlockGraph tokens retain flat semantic category colors', async () => {
@@ -811,15 +831,11 @@ describe('four-file styling contract', () => {
         assert.deepEqual(
             capillaryUiThemeOptions.map(({value, appearance}) => [value, appearance]),
             [
+                ['capillary', 'light'],
                 ['shiny', 'light'],
-                ['glossy', 'light'],
-                ['original', 'light'],
                 ['soft', 'light'],
                 ['white', 'light'],
-                ['java', 'light'],
                 ['minimal', 'adaptive'],
-                ['dark', 'dark'],
-                ['scifi', 'dark'],
             ],
         )
     })

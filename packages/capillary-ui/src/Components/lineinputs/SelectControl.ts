@@ -38,12 +38,12 @@ export abstract class SelectControl<
             max-width: 100%;
             min-width: var(--input-min-width, 6rem);
             margin: 0;
-            padding: 0 5px;
+            padding: var(--ui-control-padding);
             padding-inline-end: var(--dropdown-padding-inline-end);
             color: var(--input-color);
             background: var(--dropdown-select-background);
             border: var(--dropdown-select-border);
-            border-radius: var(--radius-md);
+            border-radius: var(--ui-border-radius);
             box-shadow: var(--dropdown-select-shadow);
             box-sizing: border-box;
             font: inherit;

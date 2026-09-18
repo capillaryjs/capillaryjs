@@ -90,7 +90,7 @@ export class ErrorMessage extends Component<ErrorMessageProps> {
             color: var(--ui-color);
             background: var(--error-bg-neutral, var(--application-background));
             border: 1px solid var(--error-color);
-            border-radius: var(--radius-md);
+            border-radius: var(--ui-border-radius);
             box-shadow: var(--ui-shadow);
             opacity: 0;
             overflow-wrap: anywhere;

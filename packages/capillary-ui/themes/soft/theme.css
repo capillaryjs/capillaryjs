@@ -6,9 +6,9 @@
     color-scheme: only light;
     --font-family: Arial, Helvetica, sans-serif;
     --panel-background: var(--ui-medium-bg-color);
-    --panel-color: #373737;
+    --panel-color: var(--palette-neutral-900);
     --panel-border: 0 solid transparent;
-    --panel-shadow: -1px 1px 1px #aaa;
+    --panel-shadow: -1px 1px 1px var(--palette-neutral-400);
     --panel-radius: 4px;
     --island-border: 0 solid transparent;
     --header-background: var(--palette-primary-600);
