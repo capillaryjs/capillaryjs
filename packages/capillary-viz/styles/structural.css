@@ -628,7 +628,7 @@ cap-groupbox {
             grid-column: 2;
             grid-row: 1;
             align-self: center;
-            border-block-start: 1px solid var(--ui-border-color);
+            border-block-start: var(--groupbox-section-separator);
         }
 
         cap-categoryhidepanel.cap-groupbox-section > cap-header,
@@ -642,7 +642,7 @@ cap-groupbox {
             min-height: 0;
             padding: 0 0.5rem 0 0;
             border-radius: 0;
-            color: var(--text-color);
+            color: var(--groupbox-section-header-color);
             background: transparent;
             box-shadow: none;
             writing-mode: horizontal-tb;
@@ -673,7 +673,7 @@ cap-groupbox {
             justify-self: stretch;
             align-self: stretch;
             border-block-start: 0;
-            border-inline-end: 1px solid var(--ui-border-color);
+            border-inline-end: var(--groupbox-section-separator);
         }
 
         .cap-layout-horizontal > cap-categoryhidepanel.cap-groupbox-section > cap-header,
@@ -710,7 +710,7 @@ cap-groupbox {
             padding: 0;
             margin-block-end: 0.75rem;
             border-radius: 0;
-            color: var(--text-color);
+            color: var(--groupbox-column-header-color);
             background: transparent;
             box-shadow: none;
             writing-mode: horizontal-tb;
@@ -733,7 +733,7 @@ cap-groupbox {
 
         .cap-layout-horizontal > cap-categoryhidepanel.cap-groupbox-column + cap-categoryhidepanel.cap-groupbox-column,
         .cap-layout-horizontal > cap-groupbox.cap-groupbox-column + cap-groupbox.cap-groupbox-column {
-            border-inline-start: 1px solid var(--ui-border-color);
+            border-inline-start: var(--groupbox-column-separator);
         }
 
         .cap-layout-horizontal > cap-categoryhidepanel.cap-groupbox-column:first-child,
@@ -754,7 +754,7 @@ cap-groupbox {
 
         .cap-layout-vertical > cap-categoryhidepanel.cap-groupbox-column + cap-categoryhidepanel.cap-groupbox-column,
         .cap-layout-vertical > cap-groupbox.cap-groupbox-column + cap-groupbox.cap-groupbox-column {
-            border-block-start: 1px solid var(--ui-border-color);
+            border-block-start: var(--groupbox-column-separator);
         }
 
         .cap-layout-vertical > cap-categoryhidepanel.cap-groupbox-column:first-child,
@@ -881,6 +881,7 @@ cap-header {
             display: block;
             color: var(--section-header-color);
             font-size: var(--section-header-font-size);
+            font-weight: var(--section-header-font-weight);
             border-radius: var(--ui-border-radius) var(--ui-border-radius) 0 0;
             padding: .25em;
             background: var(--section-header-background);
@@ -914,7 +915,7 @@ cap-checkbox {
             display: flex;
             flex-flow: row nowrap;
             position: relative;
-            min-height: 1.2em;
+            min-height: 0rem;
             margin: 0;
             color: var(--ui-text-color);
             border-radius: var(--ui-border-radius);
@@ -947,16 +948,17 @@ cap-checkbox {
         cap-checkbox > label > input + cap-checkshell {
             position: relative;
             display: grid;
-            width: 1em;
-            height: 1em;
-            flex: 0 0 1em;
+            width: var(--checkbox-box-size, 1em);
+            height: var(--checkbox-box-size, 1em);
+            flex: 0 0 var(--checkbox-box-size, 1em);
             box-sizing: border-box;
             text-align: center;
             line-height: 1;
             color: var(--input-color, var(--ui-text-color, currentColor));
             background: var(--checkbox-box-background, var(--ui-input-bg, transparent));
             border: var(--checkbox-box-border, var(--cbx-o-border, 1px solid currentColor));
-            border-radius: var(--cbx-border-radius, var(--radius-sm, 0.2rem));
+            border-radius: var(--checkbox-box-radius,
+                var(--cbx-border-radius, var(--radius-sm, 0.2rem)));
             box-shadow: var(--checkbox-box-shadow);
             font-family: inherit;
             font-size: 1em;
@@ -968,6 +970,8 @@ cap-checkbox {
             color: var(--checkbox-symbol-color, var(--selection-color, currentColor));
             background: var(--checkbox-box-background-checked,
                 var(--selection-background, var(--ui-accent-color, Highlight)));
+            border: var(--checkbox-box-border-checked, var(--checkbox-box-border,
+                var(--cbx-o-border, 1px solid currentColor)));
             box-shadow: var(--checkbox-box-shadow-checked);
         }
 
@@ -1032,24 +1036,6 @@ cap-checkbox {
                 outline: 2px solid Mark;
                 outline-offset: 1px;
             }
-        }
-
-cap-checkbox > label > input[value="require"] + cap-checkshell {
-            color: var(--palette-contrast-light);
-            background: var(--palette-status-positive);
-            box-shadow: var(--checkbox-box-shadow-checked);
-        }
-
-        cap-checkbox > label > input[value="deny"] + cap-checkshell {
-            color: var(--palette-contrast-light);
-            background: var(--palette-status-negative);
-            box-shadow: var(--checkbox-box-shadow-checked);
-        }
-
-        cap-checkbox > label > input[value="prefer"] + cap-checkshell {
-            color: var(--palette-contrast-light);
-            background: var(--palette-status-neutral);
-            box-shadow: var(--checkbox-box-shadow-checked);
         }
 
 cap-collapsibleoptiongroup {

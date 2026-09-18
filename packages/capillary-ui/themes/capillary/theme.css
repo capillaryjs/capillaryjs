@@ -207,25 +207,13 @@ cap-groupbox.cap-groupbox-section:not(cap-groupbox cap-groupbox) {
                   rgb(255 255 255 / 0.00) calc(58% + 2px)
           ),
 
-          radial-gradient(
-                  130% 185% at 145% 118%,
-                  rgb(255 255 255 / 0.00) 0%,
-                  rgb(255 255 255 / 0.02) 18%,
-                  rgb(255 255 255 / 0.05) 32%,
-                  rgb(255 255 255 / 0.09) 44%,
-                  rgb(255 255 255 / 0.14) 52%,
-                  rgb(255 255 255 / 0.20) calc(58% - 2px),
-                  rgb(255 255 255 / 0.96) calc(58% - 1px),
-                  rgb(255 255 255 / 0.99) 58%,
-                  rgb(255 255 255 / 0.00) calc(58% + 2px)
-          ),
 
             /*
              * Fold 2:
              * broad sweep across the lower-middle
              */
           radial-gradient(
-                  170% 120% at -38% 132%,
+                  130% 210% at -48% 82%,
                   rgb(255 255 255 / 0.00) 0%,
                   rgb(255 255 255 / 0.02) 24%,
                   rgb(255 255 255 / 0.05) 40%,
@@ -278,7 +266,7 @@ cap-groupbox.cap-groupbox-section:not(cap-groupbox cap-groupbox) {
                   rgb(0 0 0 / 0.025) 100%
           ),
 
-          #ddd;
+          #cfcfcf;
 
   background-attachment: fixed;
 }
