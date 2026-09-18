@@ -33,10 +33,18 @@ for (const theme of ['shiny', 'capillary', 'soft', 'minimal', 'white']) {
             const link = document.querySelector<HTMLLinkElement>('link[data-cap-stylesheet="theme"]')
             return link?.dataset.capSelection === theme && link.sheet?.href === link.href
         }, theme)
+        const surfaces = page.locator('.gallery-sidebar, #gallery-line-inputs')
+        // WebKit can expose the replacement stylesheet before it has applied
+        // its layered declarations. Wait for the chrome this test is about to
+        // inspect, rather than treating that brief transition as missing paint.
+        if (['shiny', 'capillary', 'soft'].includes(theme)) {
+            await expect.poll(() => surfaces.evaluateAll(elements =>
+                elements.every(element => getComputedStyle(element).boxShadow !== 'none'),
+            )).toBe(true)
+        }
         // Shell headers delegate spacing to their children in every theme,
         // even when the theme gives ordinary islands nonzero padding.
         await expect(page.locator('cap-app > header.island')).toHaveCSS('padding', '0px')
-        const surfaces = page.locator('.gallery-sidebar, #gallery-line-inputs')
         const samples = await surfaces.evaluateAll((elements, theme) => elements.map(e => {
             const r = e.getBoundingClientRect()
             const s = getComputedStyle(e)
