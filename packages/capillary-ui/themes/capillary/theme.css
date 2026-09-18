@@ -49,7 +49,7 @@
     --toolbar-border: unset;
     --toolbar-shadow: unset;
 
-    --input-background: linear-gradient(to bottom, var(--palette-light), color-mix(in srgb, var(--palette-dark) 3%, var(--palette-light)));
+    --input-background: #fefefe;
     --input-color: var(--ui-color);
     --input-border: 1px solid color-mix(in srgb, var(--palette-dark) 18%, var(--palette-light));
     --input-shadow: inset 0 1px 1px color-mix(in srgb, var(--palette-dark) 8%, transparent), 0 1px 2px color-mix(in srgb, var(--palette-dark) 7%, transparent);
@@ -284,4 +284,12 @@ body {
 
 cap-app {
     background: none;
+}
+
+cap-listview,
+cap-treeview,
+cap-datatable {
+    border: var(--input-border);
+    box-shadow: var(--input-shadow);
+    border-radius: var(--ui-border-radius);
 }
