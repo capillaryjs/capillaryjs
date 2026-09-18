@@ -6,7 +6,7 @@
       --palette-dark: #111827;
       --palette-contrast-light: var(--palette-light);
       --palette-contrast-dark: var(--palette-dark);
-      --palette-status-negative: #b3261e;
+      --palette-status-negative: #ff4400;
       --palette-status-positive: #287a3c;
       --palette-status-neutral: #64748b;
 

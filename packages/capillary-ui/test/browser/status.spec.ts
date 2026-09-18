@@ -123,9 +123,14 @@ test('errors mark controls and expose overlay details on icon hover or focus', a
     await firstAlert.locator('cap-erroricon').hover()
     await expect(firstMessage).toBeVisible()
 
-    const errorColor = await root.locator('.error-controls cap-erroricon').first()
-        .evaluate((element) => getComputedStyle(element).borderColor)
-    const paintedEdges = await root.evaluate(() => {
+    const errorIcon = root.locator('.error-controls cap-erroricon').first()
+    const [errorBadge, paintedControls, errorHalos] = await Promise.all([
+        errorIcon.evaluate((element) => ({
+            background: getComputedStyle(element).backgroundColor,
+            border: getComputedStyle(element).borderColor,
+            boxShadow: getComputedStyle(element).boxShadow,
+        })),
+        root.evaluate(() => {
         const selectors = [
             '.error-controls cap-button > button',
             '.error-controls cap-textbox > input',
@@ -135,11 +140,28 @@ test('errors mark controls and expose overlay details on icon hover or focus', a
         return selectors.map((selector) => {
             const element = document.querySelector(selector)
             if (element == null) throw new Error(`Missing error surface: ${selector}`)
-            return getComputedStyle(element).borderColor
+            return {
+                border: getComputedStyle(element).borderColor,
+                boxShadow: getComputedStyle(element).boxShadow,
+            }
         })
-    })
-    expect(errorColor).not.toBe('')
-    expect(new Set(paintedEdges)).toEqual(new Set([errorColor]))
+        }),
+        root.evaluate(() => [
+            '.error-controls cap-button > button',
+            '.error-controls cap-textbox > input',
+            '.error-controls cap-dropdown > cap-selectshell',
+            '.error-controls cap-checkbox cap-checkshell',
+        ].map((selector) => {
+            const element = document.querySelector(selector)
+            if (element == null) throw new Error(`Missing error halo: ${selector}`)
+            return getComputedStyle(element).boxShadow
+        })),
+    ])
+    expect(errorBadge.background).not.toBe('')
+    expect(errorBadge.border).not.toBe(errorBadge.background)
+    expect(errorBadge.boxShadow).not.toBe('none')
+    expect(new Set(paintedControls.map(({border}) => border)).size).toBe(1)
+    expect(errorHalos.every((boxShadow) => boxShadow !== 'none')).toBe(true)
 
     const compactAlert = root.locator('.compact-error cap-error')
     const compactText = compactAlert.locator('cap-errortext')
@@ -194,12 +216,14 @@ test('busy and error presentation remains active across shipped themes', async (
                 animation: getComputedStyle(busy).animationName,
                 background: getComputedStyle(busy).backgroundImage,
                 border: getComputedStyle(invalid).borderColor,
-                error: getComputedStyle(icon).borderColor,
+                error: getComputedStyle(icon).backgroundColor,
+                halo: getComputedStyle(invalid).boxShadow,
             }
         })
         expect(presentation.animation, name).toContain('cap-working-progress')
         expect(presentation.background, name).not.toBe('none')
-        expect(presentation.border, name).toBe(presentation.error)
+        expect(presentation.border, name).not.toBe(presentation.error)
+        expect(presentation.halo, name).not.toBe('none')
         await theme.evaluate((element) => element.parentNode?.removeChild(element))
     }
 })

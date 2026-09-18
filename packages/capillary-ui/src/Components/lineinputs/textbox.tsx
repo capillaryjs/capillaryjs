@@ -181,7 +181,8 @@ export class Textbox extends LabeledInputControl<TextboxProps> {
         }
 
         & > input[aria-invalid="true"] {
-            border-color: var(--error-color);
+            border-color: var(--error-control-border);
+            box-shadow: var(--error-control-shadow);
         }
 
         @media (prefers-reduced-motion: reduce) {

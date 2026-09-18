@@ -65,8 +65,9 @@ export class ErrorMessage extends Component<ErrorMessageProps> {
             height: 1.25em;
             color: var(--error-contrast);
             background: var(--error-color);
-            border: 1px solid var(--error-color);
+            border: var(--error-icon-border);
             border-radius: 50%;
+            box-shadow: var(--error-icon-shadow);
             box-sizing: border-box;
             font-weight: 700;
             line-height: 1;
@@ -89,7 +90,7 @@ export class ErrorMessage extends Component<ErrorMessageProps> {
             padding: var(--space-xs) var(--space-sm);
             color: var(--ui-color);
             background: var(--error-bg-neutral, var(--application-background));
-            border: 1px solid var(--error-color);
+            border: 1px solid var(--error-control-border);
             border-radius: var(--ui-border-radius);
             box-shadow: var(--ui-shadow);
             opacity: 0;

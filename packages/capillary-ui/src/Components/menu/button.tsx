@@ -148,7 +148,8 @@ export class Button extends Component<ButtonProps> {
         }
 
         & > button[aria-invalid="true"] {
-            border-color: var(--error-color);
+            border-color: var(--error-control-border);
+            box-shadow: var(--error-control-shadow);
         }
 
         @media (prefers-reduced-motion: reduce) {

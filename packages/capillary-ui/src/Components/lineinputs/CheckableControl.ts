@@ -123,12 +123,9 @@ export abstract class CheckableControl<
             animation: cap-working-progress .55s linear infinite;
         }
 
-        & > label:has(> input[aria-invalid="true"]) {
-            color: var(--error-color);
-        }
-
         & > label > input[aria-invalid="true"] + cap-checkshell {
-            border-color: var(--error-color);
+            border-color: var(--error-control-border);
+            box-shadow: var(--error-control-shadow);
         }
 
         @media (prefers-reduced-motion: reduce) {

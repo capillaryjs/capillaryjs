@@ -80,7 +80,7 @@
     --button-shadow-active: var(--capillary-active-shadow);
     --checkbox-box-background: var(--palette-light);
     --checkbox-box-background-checked: var(--capillary-active-background);
-    --checkbox-box-border-checked: var(--capillary-active-border);
+    --checkbox-box-border-checked: var(--palette-primary-500);
     --checkbox-box-size: 1.25em;
     --checkbox-box-radius: 3px;
     --checkbox-box-shadow: var(--input-shadow);
@@ -268,5 +268,20 @@ cap-groupbox.cap-groupbox-section:not(cap-groupbox cap-groupbox) {
 
           #cfcfcf;
 
-  background-attachment: fixed;
+  background-attachment: local;
+}
+
+html {
+    min-height: 100vh;
+    height: 100%;
+}
+
+body {
+    background: var(--application-background) no-repeat;
+    min-height: 100vh;
+    height: 100%;
+}
+
+cap-app {
+    background: none;
 }

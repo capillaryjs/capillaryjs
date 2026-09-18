@@ -207,7 +207,8 @@ cap-button > button {
         }
 
         cap-button > button[aria-invalid="true"] {
-            border-color: var(--error-color);
+            border-color: var(--error-control-border);
+            box-shadow: var(--error-control-shadow);
         }
 
         @media (prefers-reduced-motion: reduce) {
@@ -247,8 +248,9 @@ cap-error {
             height: 1.25em;
             color: var(--error-contrast);
             background: var(--error-color);
-            border: 1px solid var(--error-color);
+            border: var(--error-icon-border);
             border-radius: 50%;
+            box-shadow: var(--error-icon-shadow);
             box-sizing: border-box;
             font-weight: 700;
             line-height: 1;
@@ -271,7 +273,7 @@ cap-error {
             padding: var(--space-xs) var(--space-sm);
             color: var(--ui-color);
             background: var(--error-bg-neutral, var(--application-background));
-            border: 1px solid var(--error-color);
+            border: 1px solid var(--error-control-border);
             border-radius: var(--ui-border-radius);
             box-shadow: var(--ui-shadow);
             opacity: 0;
@@ -460,18 +462,12 @@ cap-tricheckbox {
             animation: cap-working-progress .55s linear infinite;
         }
 
-        cap-checkbox > label:has(> input[aria-invalid="true"]),
-        cap-quadcheckbox > label:has(> input[aria-invalid="true"]),
-        cap-radiobutton > label:has(> input[aria-invalid="true"]),
-        cap-tricheckbox > label:has(> input[aria-invalid="true"]) {
-            color: var(--error-color);
-        }
-
         cap-checkbox > label > input[aria-invalid="true"] + cap-checkshell,
         cap-quadcheckbox > label > input[aria-invalid="true"] + cap-checkshell,
         cap-radiobutton > label > input[aria-invalid="true"] + cap-checkshell,
         cap-tricheckbox > label > input[aria-invalid="true"] + cap-checkshell {
-            border-color: var(--error-color);
+            border-color: var(--error-control-border);
+            box-shadow: var(--error-control-shadow);
         }
 
         @media (prefers-reduced-motion: reduce) {
@@ -701,7 +697,12 @@ cap-dropdown {
         cap-dropdown > cap-selectshell:has(> select[aria-invalid="true"])::before,
         cap-dropdown > cap-selectshell:has(> select[aria-invalid="true"])::after,
         cap-dropdown > cap-selectshell > select[aria-invalid="true"] {
-            border-color: var(--error-color);
+            border-color: var(--error-control-border);
+        }
+
+        cap-dropdown > cap-selectshell:has(> select[aria-invalid="true"]) {
+            border-radius: var(--ui-border-radius);
+            box-shadow: var(--error-control-shadow);
         }
 
         @media (prefers-reduced-motion: reduce) {
@@ -1073,7 +1074,8 @@ cap-timepicker {
         cap-datepicker > input[aria-invalid="true"],
         cap-datetimepicker > input[aria-invalid="true"],
         cap-timepicker > input[aria-invalid="true"] {
-            border-color: var(--error-color);
+            border-color: var(--error-control-border);
+            box-shadow: var(--error-control-shadow);
         }
 
         @media (prefers-reduced-motion: reduce) {
@@ -1727,8 +1729,9 @@ cap-optiongroup {
         }
 
         cap-optiongroup > fieldset[aria-invalid="true"] {
-            border: 1px solid var(--error-color);
+            border: 1px solid var(--error-control-border);
             border-radius: var(--ui-border-radius);
+            box-shadow: var(--error-control-shadow);
         }
 
         @media (prefers-reduced-motion: reduce) {
@@ -1969,11 +1972,8 @@ cap-radiogroup > fieldset {
         }
 
         cap-radiogroup > fieldset[aria-invalid="true"] cap-checkshell {
-            border-color: var(--error-color);
-        }
-
-        cap-radiogroup > fieldset[aria-invalid="true"] cap-radiobutton > label {
-            color: var(--error-color);
+            border-color: var(--error-control-border);
+            box-shadow: var(--error-control-shadow);
         }
 
         @media (forced-colors: active) {
@@ -2297,7 +2297,8 @@ cap-textbox {
         }
 
         cap-textbox > input[aria-invalid="true"] {
-            border-color: var(--error-color);
+            border-color: var(--error-control-border);
+            box-shadow: var(--error-control-shadow);
         }
 
         @media (prefers-reduced-motion: reduce) {
@@ -2448,7 +2449,12 @@ cap-toggle {
         }
 
         cap-toggle > cap-options[aria-invalid="true"] > button[role="radio"]::before {
-            border-color: var(--error-color);
+            border-color: var(--error-control-border);
+        }
+
+        cap-toggle > cap-options[aria-invalid="true"] {
+            border-radius: var(--ui-border-radius);
+            box-shadow: var(--error-control-shadow);
         }
 
         cap-toggle > cap-options > button[role="radio"][aria-checked="false"]

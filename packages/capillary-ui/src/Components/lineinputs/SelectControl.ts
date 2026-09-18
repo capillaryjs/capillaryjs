@@ -151,7 +151,12 @@ export abstract class SelectControl<
         & > cap-selectshell:has(> select[aria-invalid="true"])::before,
         & > cap-selectshell:has(> select[aria-invalid="true"])::after,
         & > cap-selectshell > select[aria-invalid="true"] {
-            border-color: var(--error-color);
+            border-color: var(--error-control-border);
+        }
+
+        & > cap-selectshell:has(> select[aria-invalid="true"]) {
+            border-radius: var(--ui-border-radius);
+            box-shadow: var(--error-control-shadow);
         }
 
         @media (prefers-reduced-motion: reduce) {

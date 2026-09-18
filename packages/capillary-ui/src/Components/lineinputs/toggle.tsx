@@ -286,7 +286,12 @@ export class Toggle<TValue extends Key = string> extends LabeledInputControl<Tog
         }
 
         & > cap-options[aria-invalid="true"] > button[role="radio"]::before {
-            border-color: var(--error-color);
+            border-color: var(--error-control-border);
+        }
+
+        & > cap-options[aria-invalid="true"] {
+            border-radius: var(--ui-border-radius);
+            box-shadow: var(--error-control-shadow);
         }
 
         & > cap-options > button[role="radio"][aria-checked="false"]

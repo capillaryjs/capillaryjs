@@ -216,7 +216,7 @@ describe('style registry', () => {
         assert.match(stylesheet, /cap-error > cap-erroricon\s*\{[^}]*position:\s*absolute/)
         assert.match(stylesheet, /cap-error > cap-errortext\s*\{[^}]*position:\s*absolute[^}]*visibility:\s*hidden/)
         assert.match(stylesheet, /cap-error > cap-erroricon:hover \+ cap-errortext/)
-        assert.match(stylesheet, /\[aria-invalid="true"\][^{]*\{[^}]*border-color:\s*var\(--error-color\)/)
+        assert.match(stylesheet, /\[aria-invalid="true"\][^{]*\{[^}]*border-color:\s*var\(--error-control-border\)[^}]*box-shadow:\s*var\(--error-control-shadow\)/)
         assert.match(stylesheet, /@media \(prefers-reduced-motion: reduce\)[\s\S]*animation:\s*none/)
         assert.match(stylesheet, /@media \(forced-colors: active\)[\s\S]*(?:Mark|Highlight)/)
     })

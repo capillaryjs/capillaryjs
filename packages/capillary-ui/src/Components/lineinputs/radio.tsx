@@ -241,11 +241,8 @@ export class RadioGroup<TValue extends Key = string>
         }
 
         & > fieldset[aria-invalid="true"] cap-checkshell {
-            border-color: var(--error-color);
-        }
-
-        & > fieldset[aria-invalid="true"] cap-radiobutton > label {
-            color: var(--error-color);
+            border-color: var(--error-control-border);
+            box-shadow: var(--error-control-shadow);
         }
 
         @media (forced-colors: active) {

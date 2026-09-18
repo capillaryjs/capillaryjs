@@ -126,8 +126,9 @@ export class OptionGroup<TProps extends OptionGroupBaseProps = OptionGroupBasePr
         }
 
         & > fieldset[aria-invalid="true"] {
-            border: 1px solid var(--error-color);
+            border: 1px solid var(--error-control-border);
             border-radius: var(--ui-border-radius);
+            box-shadow: var(--error-control-shadow);
         }
 
         @media (prefers-reduced-motion: reduce) {

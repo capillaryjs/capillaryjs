@@ -100,6 +100,11 @@ export const capillaryUiThemeVariableCatalog = Object.freeze([
     variable('--neutral-status-color', 'theme', 'status', 'color', 'Neutral status color', '--palette-status-neutral'),
     variable('--error-color', 'theme', 'status', 'color', 'Error state color'),
     variable('--error-contrast', 'theme', 'status', 'color', 'Content on an error surface'),
+    variable('--error-control-border', 'theme', 'status', 'border', 'Error control edge'),
+    variable('--error-control-underlay', 'theme', 'status', 'color', 'Error control outer halo'),
+    variable('--error-control-shadow', 'theme', 'status', 'shadow', 'Error control outer halo shadow'),
+    variable('--error-icon-border', 'theme', 'status', 'border', 'Error badge contrasting edge'),
+    variable('--error-icon-shadow', 'theme', 'status', 'shadow', 'Error badge elevation'),
     variable('--success-color', 'theme', 'status', 'color', 'Success state color'),
 
     variable('--panel-background', 'theme', 'panel', 'background', 'Panel surface', '--ui-background'),
