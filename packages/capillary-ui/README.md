@@ -363,12 +363,12 @@ const view = new Emitter<'list' | 'grid'>('list')
 
 | Component | Purpose | Key props and state |
 | --- | --- | --- |
-| `CapillaryUiApp` | Fixed `cap-app` application shell and theme-text boundary | `sizing`: `embedded`/viewport axes; `layout`: `horizontal`/`vertical`; `landmark`: `main`/`none`; content or overridden `renderContent()` |
+| `CapillaryUiApp` | Fixed `cap-app` application shell and theme-text boundary | `sizing`: `embedded`/viewport axes; `layout`: `horizontal`/`vertical`; `islands`: inherited surface spacing; `landmark`: `main`/`none`; content or overridden `renderContent()` |
 | `Header` | Styled native heading surface | `level` (1–6), `headingId`, content |
 | `GroupBox` | Labelled group; defaults to a bordered vertical-header group and may be a section or column | required `header`, content; optional `variant`: `section` or `column` |
 | `OptionGroup` | Labelled native fieldset for related controls | `label`/`ariaLabel`, `OptionGroupHeaderEnd` and ordinary content children, `disabled`, `required`, `busy`, `error`; state props are live |
 | `OptionsBox` | GroupBox specialization arranging option groups | required `header`, `OptionGroup` content |
-| `Layout` | Presentation-only arrangement of arbitrary children | exactly one of `horizontal`/`vertical`; `allocation`, `scroll`, optional accessible-region configuration |
+| `Layout` | Presentation-only arrangement of arbitrary children | exactly one of `horizontal`/`vertical`; `allocation`, `scroll`, inherited `islands` spacing, optional accessible-region configuration |
 | `Panel` | Optional labelled, themed region composed over a Layout body | `header`, `horizontal`/`vertical`, `allocation`, `scroll`, `disabled`; `PanelToolbar` and ordinary content children; live: `disabled` |
 | `Sidebar` | Labelled complementary region with fixed header/toolbar and scrolling content | `header`, `ariaLabel`; `SidebarToolbar` and ordinary content children |
 | `SplitView` | Resizable two-pane layout | required `SplitPrimary` and `SplitSecondary` Layout panes; `horizontal`/`vertical`, `allocation`, initial/minimum sizes, separator label, `onResize` |
@@ -867,7 +867,7 @@ semantics.
 Applications may explicitly opt native elements into Capillary UI presentation and
 layout contracts by applying public Capillary UI traits such as `island`,
 `cap-layout-horizontal`, `cap-layout-vertical`, `cap-size-natural`,
-`cap-size-flexible`, and `cap-scroll`. These traits are intentionally
+`cap-size-flexible`, `cap-scroll`, and `cap-island-layout`. These traits are intentionally
 element-agnostic and may style application-owned native markup as well as
 Capillary UI-owned hosts.
 
@@ -922,6 +922,67 @@ provide breakpoint variants.
 `island={true}` to a wrapped component or use the class on application-owned
 native markup. Capillary UI rejects nested component islands; application markup must
 preserve the same one-layer invariant.
+
+### Composing islands without margin doubling
+
+Enable `islands` once on the app or the Layout that contains the composition:
+
+```tsx
+<CapillaryUiApp sizing="viewport" islands>
+    <Header island>Application header</Header>
+    <Layout horizontal allocation="flexible">
+        <Sidebar island header="Navigation">...</Sidebar>
+        <Layout vertical allocation="flexible">
+            <Panel island header="Overview">...</Panel>
+            <Panel island header="Results" allocation="flexible">...</Panel>
+        </Layout>
+    </Layout>
+    <footer className="island cap-size-natural">Status</footer>
+</CapillaryUiApp>
+```
+
+`islands` is a **layout mode**; `island` still marks each **surface**. The
+outermost enabled container gets one perimeter inset. Participating layouts
+then place a single shared gutter between their children, with no island
+margins to add up. Nested Layouts inherit the mode automatically, including
+through ordinary wrappers and `RouteOutlet`. Repeating `islands` on an already
+enabled nested Layout does not add another inset. An app with `islands` and no
+explicit `layout` defaults to vertical; Layout still requires an axis.
+
+The public `CapillaryUiIslandLayoutProps` contract is static `islands?: boolean`:
+
+- `true` enables managed composition;
+- omitted or `undefined` inherits the surrounding mode;
+- `false` stops inheritance and restores legacy spacing in that subtree.
+
+Surface boundaries stop managed layout gaps from reaching controls inside
+them. Panel padding, toolbar gaps, and other internal spacing keep their own
+contracts. A later explicit enabled scope below an opt-out starts a fresh
+perimeter inset. Neither this mode nor nested layouts permit nested islands.
+
+Use `--island-gap` for gutters and `--island-inset` for the outer inset. Base
+defaults both to `1rem`; White uses zero. Override these on the composition,
+and optionally `--island-gap` on a nested Layout for a local gutter. `--island-padding`
+remains the padding **inside** each surface. `SplitView` inherits the mode and
+places its separator in one shared gutter; a zero gutter retains an overlapping
+drag target and keyboard resizing.
+
+Native markup can use `cap-island-layout` and `cap-island-layout-off`. Combine
+them with a direction trait, or with your own `display: grid` rules. A wrapper
+around one region needs no new trait. A native wrapper arranging multiple
+regions must opt into a layout: inheritance does not turn arbitrary elements
+into flex/grid containers. Axes, dimensions, responsive wrapping, allocation,
+and scroll ownership remain explicit application choices.
+
+Migration is opt-in. Existing layouts outside managed scopes keep
+`--island-margin` and their former behavior. When enabling a scope, remove
+margin-cancellation selectors and redundant gap rules, and move any intended
+spacing override to `--island-gap`/`--island-inset` on the layout. A direct CSS
+`margin` or `gap` override still wins through the normal cascade; the framework
+does not measure or rewrite application styles. `islands={false}` can isolate
+a legacy region during incremental migration.
+
+### Semantic category color
 
 `colored` consumes an explicit `--c1`, `--c2`, `--c3` triplet for the shared
 gradient and `--colored-shadow` treatment. It does not choose semantic colors

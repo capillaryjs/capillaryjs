@@ -1,8 +1,8 @@
 import {Component, css} from '../component.js'
 import type {ComponentDependency, ComponentProps, CapillaryUiChild} from '../component.js'
 import {CapillaryUiRuntime} from '../../runtime.js'
-import {layoutDirectionClassName} from '../layout/layoutTraits.js'
-import type {CapillaryUiLayoutDirection} from '../layout/layoutTraits.js'
+import {islandLayoutClassName, layoutDirectionClassName} from '../layout/layoutTraits.js'
+import type {CapillaryUiIslandLayoutProps, CapillaryUiLayoutDirection} from '../layout/layoutTraits.js'
 
 /** Viewport sizing policy for a Capillary UI application root. */
 export type CapillaryUiAppSizing =
@@ -14,13 +14,13 @@ export type CapillaryUiAppSizing =
 /** Landmark policy for a Capillary UI application root. */
 export type CapillaryUiAppLandmark = 'main' | 'none'
 
-export interface CapillaryUiAppProps extends ComponentProps {
+export interface CapillaryUiAppProps extends ComponentProps, CapillaryUiIslandLayoutProps {
     /**
      * Select the viewport axes claimed by the application shell. Embedded is
      * sizing-neutral; the other values use Capillary UI's public fill traits.
      */
     sizing?: CapillaryUiAppSizing
-    /** Arrange application-owned root children on the bounded host. */
+    /** Arrange root children on the bounded host. Defaults to vertical with islands enabled. */
     layout?: CapillaryUiLayoutDirection
     /**
      * `main` exposes the app as the document's primary-content landmark.
@@ -58,15 +58,18 @@ export class CapillaryUiApp extends Component<CapillaryUiAppProps> {
             island: _island,
             sizing = 'embedded',
             layout,
+            islands,
             landmark = 'main',
             ...hostProps
         } = this.props
         const Host = this.Host
+        const direction = layout ?? (islands === true ? 'vertical' : undefined)
         const rootClassName = mergeClassNames(
             classAlias,
             className,
             sizingClassName(sizing),
-            layout == null ? undefined : layoutDirectionClassName(layout),
+            direction == null ? undefined : layoutDirectionClassName(direction),
+            islandLayoutClassName(islands),
         )
         return <Host
             {...hostProps}

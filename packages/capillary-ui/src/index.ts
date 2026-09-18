@@ -17,6 +17,7 @@ export * from './Components/layout/sidebar.js'
 export * from './Components/layout/declarativeRegion.js'
 export * from './Components/layout/splitView.js'
 export type {
+    CapillaryUiIslandLayoutProps,
     CapillaryUiLayoutAllocation,
     CapillaryUiLayoutDirection,
     CapillaryUiLayoutDirectionProps,

@@ -9,6 +9,30 @@ test.beforeEach(async ({page}) => {
 })
 
 for (const variant of ['App shell', 'Website']) {
+    test(`${variant}: shell and routed islands have one shared gutter`, async ({page}) => {
+        await page.getByRole('radio', {name: variant, exact: true}).click()
+        const spacing = await page.evaluate(() => {
+            const root = document.querySelector('.gallery-root')!
+            const header = document.querySelector('.gallery-masthead')!.getBoundingClientRect()
+            const sidebar = document.querySelector('.gallery-sidebar')!.getBoundingClientRect()
+            const body = document.querySelector('.gallery-page')!.getBoundingClientRect()
+            const panel = document.querySelector('#gallery-line-inputs')!.getBoundingClientRect()
+            const footer = document.querySelector('.gallery-footer')!.getBoundingClientRect()
+            const canvas = root.getBoundingClientRect()
+            const style = getComputedStyle(root)
+            return {
+                gap: parseFloat(style.gap),
+                inset: parseFloat(style.paddingLeft),
+                distances: [sidebar.top - header.bottom, panel.top - header.bottom,
+                    panel.left - sidebar.right, footer.top - body.bottom],
+                edges: [header.left - canvas.left, canvas.right - header.right],
+            }
+        })
+        expect(spacing.gap).toBeGreaterThan(0)
+        for (const distance of spacing.distances) expect(distance).toBeCloseTo(spacing.gap, 1)
+        for (const edge of spacing.edges) expect(edge).toBeCloseTo(spacing.inset, 1)
+    })
+
     test(`${variant}: one island, one toolbar, three navigable rows and centered sidebar`, async ({page}) => {
         await page.getByRole('radio', {name: variant, exact: true}).click()
         await expect(page.locator('.gallery-main cap-panel')).toHaveCount(1)

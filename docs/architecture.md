@@ -175,6 +175,12 @@ Application CSS owns page composition and decides whether the root fills a
 viewport. Theme and color selection is application policy even when Capillary UI's
 pickers are used.
 
+For island compositions, `CapillaryUiApp` or `Layout` can opt into inherited
+`islands` spacing: the framework supplies shared gutters and one outer inset,
+stopping at each surface boundary. Applications still choose surface boundaries,
+axes, allocation, responsive rules, and scroll owners. Legacy margin-based
+spacing remains available outside enabled scopes or behind an explicit opt-out.
+
 ## Transport test seam
 
 The repository's `dummy-server` workspace package provides browser-safe Fetch

@@ -204,7 +204,7 @@ export class SplitView extends Component<SplitViewProps> {
         const resize = this.pointerResize
         if (resize == null || resize.pointerId !== event.pointerId) return
         const coordinate = this.axis() === 'horizontal' ? event.clientX : event.clientY
-        this.resizeTo(resize.startSize + coordinate - resize.startCoordinate, event)
+        this.resizeTo(resize.startSize + (coordinate - resize.startCoordinate) * this.axisSign(), event)
         event.preventDefault()
     }
 
@@ -218,8 +218,9 @@ export class SplitView extends Component<SplitViewProps> {
         event: KeyboardEvent & {currentTarget: HTMLElement},
     ): void => {
         const axis = this.axis()
-        const decreaseKey = axis === 'horizontal' ? 'ArrowLeft' : 'ArrowUp'
-        const increaseKey = axis === 'horizontal' ? 'ArrowRight' : 'ArrowDown'
+        const reversed = this.axisSign() < 0
+        const decreaseKey = axis === 'horizontal' ? (reversed ? 'ArrowRight' : 'ArrowLeft') : 'ArrowUp'
+        const increaseKey = axis === 'horizontal' ? (reversed ? 'ArrowLeft' : 'ArrowRight') : 'ArrowDown'
         const primary = this.primaryElement()
         if (primary == null) return
         let next: number
@@ -243,8 +244,9 @@ export class SplitView extends Component<SplitViewProps> {
         const separator = this.separatorElement()
         if (host == null || separator == null) return
         const horizontal = this.axis() === 'horizontal'
-        const extent = horizontal ? host.clientWidth : host.clientHeight
-        const separatorExtent = horizontal ? separator.offsetWidth : separator.offsetHeight
+        const extent = this.contentExtent(host)
+        const separatorBounds = separator.getBoundingClientRect()
+        const separatorExtent = horizontal ? separatorBounds.width : separatorBounds.height
         const primaryMin = this.props.primaryMinSize ?? 96
         const secondaryMin = this.props.secondaryMinSize ?? 96
         const maximum = Math.max(primaryMin, extent - separatorExtent - secondaryMin)
@@ -271,8 +273,9 @@ export class SplitView extends Component<SplitViewProps> {
         const separator = this.separatorElement()
         if (host == null || primary == null || separator == null) return
         const horizontal = this.axis() === 'horizontal'
-        const total = (horizontal ? host.clientWidth : host.clientHeight)
-            - (horizontal ? separator.offsetWidth : separator.offsetHeight)
+        const separatorBounds = separator.getBoundingClientRect()
+        const total = this.contentExtent(host)
+            - (horizontal ? separatorBounds.width : separatorBounds.height)
         if (total <= 0) return
         const percentage = Math.round((this.primaryExtent(primary) / total) * 100)
         separator.setAttribute('aria-valuenow', String(percentage))
@@ -285,6 +288,19 @@ export class SplitView extends Component<SplitViewProps> {
             this.props.direction ?? 'horizontal',
             'SplitView',
         )
+    }
+
+    private axisSign(): number {
+        const host = this.hostElement()
+        return this.axis() === 'horizontal' && host != null
+            && host.ownerDocument.defaultView?.getComputedStyle(host).direction === 'rtl' ? -1 : 1
+    }
+
+    private contentExtent(host: HTMLElement): number {
+        const style = host.ownerDocument.defaultView?.getComputedStyle(host)
+        return this.axis() === 'horizontal'
+            ? host.clientWidth - (parseFloat(style?.paddingLeft ?? '') || 0) - (parseFloat(style?.paddingRight ?? '') || 0)
+            : host.clientHeight - (parseFloat(style?.paddingTop ?? '') || 0) - (parseFloat(style?.paddingBottom ?? '') || 0)
     }
 
     private hostElement(): HTMLElement | null {
@@ -347,9 +363,17 @@ export class SplitView extends Component<SplitViewProps> {
             position: relative;
             flex: none;
             box-sizing: border-box;
-            background: var(--ui-border-color);
+            background: var(--_cap-island-separator-background, var(--ui-border-color));
             touch-action: none;
             user-select: none;
+            z-index: 1;
+        }
+
+        /* Keep a pointer target even when a flush theme gives the track zero
+         * size. This area overlaps pane edges and never changes allocation. */
+        & > cap-separator::before {
+            content: '';
+            position: absolute;
         }
 
         & > cap-separator::after {
@@ -366,23 +390,43 @@ export class SplitView extends Component<SplitViewProps> {
         }
 
         &.horizontal > cap-separator {
-            inline-size: .45rem;
+            inline-size: calc((1 - var(--_cap-island-flow, 0)) * .45rem
+                + var(--_cap-island-flow, 0) * var(--island-gap, 0px));
             cursor: col-resize;
+        }
+
+        &.horizontal > cap-separator::before {
+            inset-block: 0;
+            left: 50%;
+            width: max(100%, .45rem);
+            transform: translateX(-50%);
         }
 
         &.horizontal > cap-separator::after {
             inset-block: 35%;
-            inset-inline: 1px;
+            left: 50%;
+            width: 3px;
+            transform: translateX(-50%);
         }
 
         &.vertical > cap-separator {
-            block-size: .45rem;
+            block-size: calc((1 - var(--_cap-island-flow, 0)) * .45rem
+                + var(--_cap-island-flow, 0) * var(--island-gap, 0px));
             cursor: row-resize;
+        }
+
+        &.vertical > cap-separator::before {
+            inset-inline: 0;
+            top: 50%;
+            height: max(100%, .45rem);
+            transform: translateY(-50%);
         }
 
         &.vertical > cap-separator::after {
             inset-inline: 35%;
-            inset-block: 1px;
+            top: 50%;
+            height: 3px;
+            transform: translateY(-50%);
         }
 
         &[data-resizable="false"] > cap-separator {

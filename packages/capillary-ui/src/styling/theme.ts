@@ -120,6 +120,8 @@ export const capillaryUiThemeVariableCatalog = Object.freeze([
     variable('--filter-panel-padding', 'theme', 'filter-panel', 'dimension', 'Floating table-filter inner spacing', '--space-md'),
     variable('--filter-panel-min-width', 'theme', 'filter-panel', 'dimension', 'Floating table-filter minimum width'),
     variable('--island-margin', 'theme', 'island', 'dimension', 'Outer spacing around an explicit island'),
+    variable('--island-gap', 'theme', 'island', 'dimension', 'Shared gutter between managed island regions'),
+    variable('--island-inset', 'theme', 'island', 'dimension', 'Perimeter inset of an island layout', '--island-gap'),
     variable('--island-padding', 'theme', 'island', 'dimension', 'Inner spacing within an explicit island'),
     variable('--island-background', 'theme', 'island', 'background', 'Explicit island surface', '--panel-background'),
     variable('--island-border', 'theme', 'island', 'border', 'Explicit island edge', '--panel-border'),

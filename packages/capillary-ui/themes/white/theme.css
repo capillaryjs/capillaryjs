@@ -15,6 +15,7 @@
     --panel-border: 0 solid transparent;
     --panel-radius: 0;
     --island-margin: 0;
+    --island-gap: 0px;
     --island-padding: 1rem;
     --island-border: 0 solid transparent;
     --header-background: transparent;

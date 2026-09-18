@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Island layout fixture</title>
+  <style>
+    html, body { margin: 0; }
+    :root {
+      --island-margin: 16px;
+      --island-padding: 0px;
+    }
+    #heading { height: 40px; flex: none; }
+    #footer { height: 30px; flex: none; }
+    #sidebar, #details { width: 100px; flex: none; }
+    #overview { height: 80px; flex: none; }
+    #inner > span { height: 20px; }
+    .test-split { min-height: 0; }
+  </style>
+</head>
+<body>
+  <script type="module" src="./islands.tsx"></script>
+</body>
+</html>

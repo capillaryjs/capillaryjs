@@ -1,6 +1,7 @@
 import {Emitter} from '@capillaryjs/capillary'
 import {
     Button,
+    CapillaryUiApp,
     Layout,
     NavigationBar,
     Panel,
@@ -22,6 +23,12 @@ const tree = <Panel header="Automatic"><Button label="Save" /></Panel>
 const input = <input aria-label="Name" ref={{current: null} as {current: HTMLInputElement | null}} />
 const sidebar = <Sidebar header="Requests">Request one</Sidebar>
 const layout = <Layout vertical scroll>Content</Layout>
+const islandLayout = <CapillaryUiApp islands>
+    <Layout horizontal><Panel island header="Surface" /></Layout>
+    <Layout vertical islands={false}>Ordinary spacing</Layout>
+</CapillaryUiApp>
+// @ts-expect-error Island layout is a static boolean policy.
+const invalidIslandLayout = <Layout vertical islands="automatic" />
 const split = <SplitView>
     <SplitPrimary>Navigation</SplitPrimary>
     <SplitSecondary>Content</SplitSecondary>
@@ -60,6 +67,8 @@ void tree
 void input
 void sidebar
 void layout
+void islandLayout
+void invalidIslandLayout
 void split
 void progress
 void tabs

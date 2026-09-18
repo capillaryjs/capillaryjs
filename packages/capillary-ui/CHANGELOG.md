@@ -40,6 +40,13 @@ Versioning.
 
 ### Added
 
+- Add inherited `islands` layout mode to `CapillaryUiApp` and `Layout`, with
+  native `cap-island-layout` / `cap-island-layout-off` traits. One outer inset
+  and shared gutters replace accumulated island margins inside opt-in scopes;
+  ordinary island content and legacy layouts keep their existing spacing.
+  The `--island-gap` and `--island-inset` tokens support theme/application
+  overrides, RouteOutlet carries the mode, and SplitView puts its accessible
+  separator in one gutter, including zero-gap and RTL resizing.
 - Add the light `capillary` theme: bright rounded cards, restrained neutral
   elevation, compact controls, and palette-primary selected states.
 - Add an overridable instance diagnostic label and a named table-body consumer.

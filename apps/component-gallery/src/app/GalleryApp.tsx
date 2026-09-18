@@ -24,6 +24,7 @@ export class GalleryApp extends Component {
         return <CapillaryUiApp
             sizing={variant === 'shell' ? 'viewport' : 'embedded'}
             layout="vertical"
+            islands
             className={`gallery-root gallery-${variant}`}
             data-variant={variant}
         >

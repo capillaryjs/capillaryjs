@@ -5,6 +5,7 @@ import {Window} from 'happy-dom'
 import {
     Button,
     CapillaryUiApp,
+    Layout,
     createCapillaryUiRuntime,
     h,
     mountCapillaryUiApp,
@@ -109,4 +110,24 @@ test('CapillaryUiApp rejects unsupported sizing and landmark policies', () => {
         () => CapillaryUiApp.new({layout: 'grid' as never}),
         /Layout direction must be horizontal or vertical/,
     )
+})
+
+test('island layout is an inherited static policy with explicit opt-out and app direction default', () => {
+    const runtime = createCapillaryUiRuntime()
+    const app = mountCapillaryUiApp(runtime, CapillaryUiApp, document.body, {
+        islands: true,
+        children: h(Layout, {horizontal: true, islands: false}, 'Local layout'),
+    })
+    const root = requiredQuery<HTMLElement>('cap-app')
+    assert.ok(root.classList.contains('cap-island-layout'))
+    assert.ok(root.classList.contains('cap-layout-vertical'))
+    assert.equal(root.hasAttribute('islands'), false)
+    assert.ok(requiredQuery('cap-layout').classList.contains('cap-island-layout-off'))
+    app.setProps({layout: 'horizontal', islands: false})
+    assert.ok(root.classList.contains('cap-island-layout-off'))
+    assert.ok(root.classList.contains('cap-layout-horizontal'))
+    assert.equal(root.classList.contains('cap-island-layout'), false)
+    app.destroy()
+    assert.throws(() => CapillaryUiApp.new({islands: 'yes' as never}), /must be a boolean/)
+    assert.throws(() => Layout.new({vertical: true, islands: 'yes' as never}), /must be a boolean/)
 })

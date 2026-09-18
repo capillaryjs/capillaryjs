@@ -30,3 +30,9 @@ interface CapillaryUiBrowserTestAPI {
 
 declare var capillaryUiTest: CapillaryUiBrowserTestAPI
 declare var capillaryUiTestReady: boolean
+
+declare var capillaryUiIslandTest: {
+    showDetails(value: boolean): void
+    selectRoute(value: string): void
+    setMode(value: boolean | undefined): void
+}

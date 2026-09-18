@@ -125,6 +125,7 @@ export class RouteOutlet extends Component<RouteOutletProps> {
             display: flex;
             flex: 1 1 auto;
             flex-direction: column;
+            gap: calc(var(--_cap-island-flow, 0) * var(--island-gap, 0px));
             min-width: 0;
             min-height: 0;
             overflow: auto;

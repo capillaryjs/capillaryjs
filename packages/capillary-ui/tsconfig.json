@@ -15,5 +15,5 @@
     "noEmit": true,
     "strict": true
   },
-  "include": ["src/**/*.ts", "src/**/*.tsx", "test/**/*.ts", "test-types/*.ts", "test-types/*.tsx"]
+  "include": ["src/**/*.ts", "src/**/*.tsx", "test/**/*.ts", "test/**/*.tsx", "test-types/*.ts", "test-types/*.tsx"]
 }

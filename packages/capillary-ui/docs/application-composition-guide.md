@@ -415,13 +415,13 @@ content. The frame remains present through those states.
 ```tsx
 class RecordsView extends Component {
     render() {
-        return <Layout horizontal allocation="flexible"
+        return <Layout horizontal allocation="flexible" islands
             className="records-workspace" ariaLabel="Find records">
             <aside className="record-filters island cap-size-natural cap-scroll"
                 aria-label="Record filters" tabIndex={0}>
                 <RecordFilters />
             </aside>
-            <Panel allocation="flexible" header="Matching records" scroll={false}>
+            <Panel island allocation="flexible" header="Matching records" scroll={false}>
                 <PanelToolbar>
                     <Toolbar allocation="natural" label="Result actions">
                         <button type="button" onClick={exportRecords}>Export</button>
@@ -439,11 +439,12 @@ class RecordsView extends Component {
 }
 ```
 
-`exportRecords` is an application action. Application CSS supplies dimensions
-and spacing, for example:
+`exportRecords` is an application action. `islands` supplies one shared gutter
+and an outer inset, without doubling surface margins. When already inside an
+enabled app/layout, this nested scope inherits that composition without another
+inset. Application CSS still supplies dimensions, for example:
 
 ```css
-.records-workspace { gap: 1rem; }
 .record-filters { inline-size: 18rem; }
 .record-navigation { inline-size: 18rem; }
 ```
@@ -790,6 +791,22 @@ placement. A reusable inner component should normally leave that choice to
 its caller. The `island` prop or class supplies surface treatment, not space
 allocation or the intended scroll owner. A `GroupBox` inside an island can
 retain its ordinary group chrome without itself being another island.
+
+Enable `islands` once on the surrounding `CapillaryUiApp` or `Layout` to make
+the framework own surface spacing. Its outer container gets `--island-inset`,
+participating descendant layouts use `--island-gap`, and surfaces have no outer
+margin. Nested layouts and routed pages inherit this automatically; controls
+inside an island do not. A descendant `islands={false}` isolates legacy layout.
+The native equivalents are `cap-island-layout` / `cap-island-layout-off` with
+a direction trait or application-owned grid. Layouts and surface islands are
+different boundaries: layouts may nest, islands may not.
+
+When migrating existing compositions, remove compensating margin rules and
+move the desired spacing to the layout's `--island-gap` / `--island-inset`.
+Do not change every island's padding or cancel margins with negative margins.
+Outside enabled scopes, legacy `--island-margin` is unchanged. See
+[managed island layout](../README.md#composing-islands-without-margin-doubling)
+for a complete example and inheritance rules.
 
 Use native elements for native semantics. Apply Capillary UI's public traits directly
 to those elements when they participate in Capillary UI layout or presentation. For

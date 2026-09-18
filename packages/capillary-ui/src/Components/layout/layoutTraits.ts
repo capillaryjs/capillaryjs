@@ -9,6 +9,19 @@ export interface CapillaryUiLayoutParticipantProps {
     allocation?: CapillaryUiLayoutAllocation
 }
 
+/** Shared surface spacing; omission inherits the enclosing island layout. */
+export interface CapillaryUiIslandLayoutProps {
+    /** Enable shared island gutters; false stops inheritance, undefined inherits. */
+    islands?: boolean | undefined
+}
+
+export function islandLayoutClassName(islands: boolean | undefined): string | undefined {
+    if (islands === undefined) return undefined
+    if (islands === true) return 'cap-island-layout'
+    if (islands === false) return 'cap-island-layout-off'
+    throw new TypeError('Island layout islands must be a boolean')
+}
+
 /** Concise, mutually exclusive direction modifiers for intentional layout components. */
 export type CapillaryUiLayoutDirectionProps =
     | {horizontal: boolean, vertical?: never}

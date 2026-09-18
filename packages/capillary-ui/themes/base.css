@@ -142,8 +142,10 @@
     --filter-panel-padding: 8px;
     --filter-panel-min-width: 180px;
 
-    /* Explicit island modifier; non-island themes keep its layout neutral. */
+    /* Explicit surfaces; managed layouts own shared gutters and the perimeter. */
     --island-margin: 1rem;
+    --island-gap: 1rem;
+    --island-inset: var(--island-gap);
     --island-padding: 0;
     --island-background: var(--panel-background);
     --island-border: var(--panel-border);

@@ -29,6 +29,7 @@
             align-items: stretch;
             min-inline-size: 0;
             min-block-size: 0;
+            gap: calc(var(--_cap-island-flow, 0) * var(--island-gap, 0px));
         }
 
         .cap-layout-horizontal {
@@ -55,6 +56,32 @@
             min-block-size: 0;
         }
 
+        /* The mode crosses wrappers; each layout resolves its own public gap.
+         * Only the first enabled scope contributes a perimeter inset. */
+        .cap-island-layout {
+            --_cap-island-flow: 1;
+            --_cap-island-margin: 0px;
+            --_cap-island-separator-background: transparent;
+            box-sizing: border-box;
+            padding: var(--_cap-island-outer-inset, var(--island-inset, 0px));
+            gap: calc(var(--_cap-island-flow, 0) * var(--island-gap, 0px));
+        }
+
+        .cap-island-layout > * {
+            --_cap-island-outer-inset: 0px;
+        }
+
+        .cap-island-layout-off {
+            --_cap-island-flow: 0;
+            --_cap-island-margin: initial;
+            --_cap-island-separator-background: initial;
+        }
+
+        .cap-island-layout-off > *,
+        .island > * {
+            --_cap-island-outer-inset: initial;
+        }
+
         .colored {
             --colored-base-bg:
                     linear-gradient(
@@ -72,10 +99,12 @@
 
         .app-footer.island,
         .island {
+            --_cap-island-flow: 0;
+            --_cap-island-separator-background: initial;
             box-sizing: border-box;
             min-width: 0;
             min-height: 0;
-            margin: var(--island-margin);
+            margin: var(--_cap-island-margin, var(--island-margin));
             padding: var(--island-padding);
             background: var(--island-background);
             border: var(--island-border);
@@ -85,13 +114,13 @@
 
         .cap-fill-horizontal.island,
         .cap-fill-horizontal .island {
-            max-width: calc(100% - (2 * var(--island-margin)));
+            max-width: calc(100% - (2 * var(--_cap-island-margin, var(--island-margin))));
             overflow-x: auto;
         }
 
         .cap-fill-vertical.island,
         .cap-fill-vertical .island {
-            max-height: calc(100% - (2 * var(--island-margin)));
+            max-height: calc(100% - (2 * var(--_cap-island-margin, var(--island-margin))));
             overflow-y: auto;
         }
 

@@ -142,7 +142,6 @@ body {
 .gallery-data-grid {
     flex-wrap: wrap;
     align-items: stretch;
-    gap: 1rem;
 }
 
 .gallery-data-grid > * {

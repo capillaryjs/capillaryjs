@@ -2,11 +2,13 @@ import {Component} from '../component.js'
 import type {ComponentProps, CapillaryUiChild} from '../component.js'
 import {classNames, componentClass} from '../controlUtils.js'
 import {
+    islandLayoutClassName,
     layoutAllocationClassName,
     layoutDirectionClassName,
     layoutDirectionFromProps,
 } from './layoutTraits.js'
 import type {
+    CapillaryUiIslandLayoutProps,
     CapillaryUiLayoutDirection,
     CapillaryUiLayoutDirectionProps,
     CapillaryUiOptionalLayoutDirectionProps,
@@ -18,6 +20,7 @@ export type LayoutContainerProps = ComponentProps
 & CapillaryUiOptionalLayoutDirectionProps
 & CapillaryUiLayoutParticipantProps
 & CapillaryUiPresentationContextProps
+& CapillaryUiIslandLayoutProps
 & {
     id?: string
     role?: string
@@ -72,6 +75,7 @@ export class Layout<TProps extends LayoutContainerProps = LayoutProps> extends C
                 componentClass(this.props),
                 layoutDirectionClassName(direction),
                 layoutAllocationClassName(this.props.allocation),
+                islandLayoutClassName(this.props.islands),
                 scroll ? 'cap-scroll' : undefined,
             ) || null}
         >{this.props.children ?? []}</Host>

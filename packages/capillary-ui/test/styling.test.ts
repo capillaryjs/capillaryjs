@@ -96,7 +96,7 @@ describe('style registry', () => {
         assert.doesNotMatch(second.textContent, /\.cap-(?:layout|size|scroll)[^{]*\{[^}]*!important/)
         assert.doesNotMatch(second.textContent, /\.cap-fill-(?:horizontal|vertical) \[data-cap\]/)
         assert.match(second.textContent, /\.colored\s*\{[^}]*--colored-base-bg:[\s\S]*linear-gradient\([^}]*background:\s*var\(--colored-base-bg\)[^}]*box-shadow:\s*var\(--colored-shadow\)/)
-        assert.match(second.textContent, /\.island\s*\{[^}]*margin:\s*var\(--island-margin\)/)
+        assert.match(second.textContent, /\.island\s*\{[^}]*margin:\s*var\(--_cap-island-margin, var\(--island-margin\)\)/)
         assert.match(second.textContent, /\.cap-fill-horizontal \.island\s*\{[^}]*max-width:[^}]*overflow-x:\s*auto/)
         assert.match(second.textContent, /\.cap-fill-vertical \.island\s*\{[^}]*max-height:[^}]*overflow-y:\s*auto/)
         assert.equal((second.textContent.match(/^\s*\.island\s*\{/gm) ?? []).length, 1)

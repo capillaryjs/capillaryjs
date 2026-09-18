@@ -33,7 +33,11 @@ The header island carries the page navbar and a control toolbar below it:
 
 Both layout variants render the same island structure: a header island with
 the navbar and control toolbar, a routed page body, and a footer island with
-the status line.
+the status line. The app enables `islands` once: nested page layouts and the
+RouteOutlet inherit shared `--island-gap` gutters, while the app contributes
+one `--island-inset`. Island margins no longer accumulate between these regions;
+controls inside each surface retain their component/application spacing. White
+keeps the whole composition flush through its zero gap token.
 
 ## Pages
 

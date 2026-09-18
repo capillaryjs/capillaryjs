@@ -95,7 +95,7 @@ an EventBubble and explicit otherwise; prop reconciliation supplies parent/depen
 See the [diagnostics contract](diagnostics.md).
 
 The root exports `CapillaryUiLayoutDirection`, `CapillaryUiLayoutAllocation`, direction-prop
-contracts, and `CapillaryUiLayoutParticipantProps`. Public structural classes provide horizontal or
+contracts, `CapillaryUiLayoutParticipantProps`, and `CapillaryUiIslandLayoutProps`. Public structural classes provide horizontal or
 vertical direct-child arrangement, natural or flexible main-axis allocation,
 and explicit bounded scrolling. `CapillaryUiApp.layout` targets the bounded root;
 `Layout`, `Header`, `NavigationBar`, `Panel`, `Sidebar`, `SplitView`, and
@@ -104,7 +104,12 @@ component; Panel composes it as a themed content body; SplitPrimary and
 SplitSecondary specialize it as the required panes around SplitView's
 accessible resizable separator. Application-owned semantic elements may use
 the same classes directly. Breakpoints, persisted split sizes, exact dimensions,
-ratios, and gaps remain application policy.
+ratios, and ordinary content gaps remain application policy. `CapillaryUiApp`
+and `Layout` (including SplitPrimary/Secondary) accept static `islands?: boolean`:
+true enables inherited managed island spacing, false stops it, omission or
+undefined inherits. App defaults to vertical when explicitly enabled without
+`layout`. The native equivalents are `cap-island-layout` and
+`cap-island-layout-off`.
 
 TSX is the primary documented authoring syntax. TSX and `h()` lower to the
 same vnode representation. A readable emitter in child position owns a
@@ -355,7 +360,18 @@ inherited `--cap-<component>-*` custom properties whose complete set each
 marker defines, so the nearest marked ancestor wins and unmarked containers
 keep the control presentation.
 
-`island` marks one explicit, non-nestable surface boundary. `colored` consumes
+`island` marks one explicit, non-nestable surface boundary. An outer
+`cap-island-layout` contributes one `--island-inset`; participating nested
+layouts and RouteOutlet content use `--island-gap` without repeating the inset.
+Managed islands have zero outer margin, with corresponding filled-root bounds.
+Surface contents and explicit opt-outs stop managed gaps. SplitView's separator
+occupies one gutter and retains an overlapping pointer target at zero gap;
+horizontal pointer and keyboard resizing follow RTL direction. Legacy
+`--island-margin` remains in effect outside managed scopes. Base defaults gap
+and inset to `1rem`; White makes both zero. This is layout ownership, not
+automatic adjacency measurement or responsive behavior.
+
+`colored` consumes
 application-supplied `--c1`, `--c2`, and `--c3` values for a shared gradient
 and `--colored-shadow`. Themes may change the values consumed by these traits
 but do not own their selectors.
