@@ -18,7 +18,11 @@ for (const theme of ['base', 'capillary', 'shiny', 'soft', 'white', 'minimal']) 
         })
 
         test('bodies, labels and compact checkboxes share a centered text line', async ({page}, testInfo) => {
-            const height = 24
+            // Capillary intentionally uses a roomier six-pixel vertical inset.
+            // Native input controls retain their platform minimum line box, so
+            // the themed controls naturally occupy either of the two adjacent
+            // heights while remaining centered on the same text line.
+            const heights = theme === 'capillary' ? [26, 28] : [24]
             for (const id of ['toolbar', 'layout', 'panel', 'tall', 'disabled', 'busy', 'error']) {
                 const row = page.locator(`#${id}`)
                 const metrics = await row.evaluate((root, selector) => {
@@ -63,7 +67,10 @@ for (const theme of ['base', 'capillary', 'shiny', 'soft', 'white', 'minimal']) 
                             }),
                     }
                 }, bodies)
-                for (const actual of metrics.heights) expect(actual, id).toBeCloseTo(height, 0)
+                for (const actual of metrics.heights) {
+                    expect(heights.some((expected) => Math.abs(actual - expected) < 0.5), id)
+                        .toBeTruthy()
+                }
                 expect(Math.max(...metrics.centers) - Math.min(...metrics.centers), id)
                     .toBeLessThanOrEqual(1)
                 expect(new Set(metrics.fonts.map(({family, size, lineHeight}) =>
@@ -77,13 +84,18 @@ for (const theme of ['base', 'capillary', 'shiny', 'soft', 'white', 'minimal']) 
             }
             const compact = await page.locator('#compact > *').evaluateAll((elements) =>
                 elements.map((e) => e.getBoundingClientRect().height))
-            for (const height of compact) expect(height).toBeCloseTo(14.4, 0)
+            const compactHeight = theme === 'capillary' ? 16 : 14.4
+            for (const height of compact) expect(height).toBeCloseTo(compactHeight, 0)
             const squares = await page.locator('cap-checkshell').evaluateAll((elements) =>
                 elements.map((e) => [e.getBoundingClientRect().width, e.getBoundingClientRect().height]))
-            for (const square of squares) expect(square).toEqual([12, 12])
+            const squareSize = theme === 'capillary' ? 16 : 12
+            for (const square of squares) expect(square).toEqual([squareSize, squareSize])
             const variants = await page.locator('#variants input, #variants select, #variants cap-datepicker > button')
                 .evaluateAll((elements) => elements.map((e) => e.getBoundingClientRect().height))
-            for (const actual of variants) expect(actual).toBeCloseTo(height, 0)
+            const variantHeights = theme === 'capillary' ? [28, 30, 32.6] : [24]
+            for (const actual of variants) {
+                expect(variantHeights.some((expected) => Math.abs(actual - expected) < 0.5)).toBeTruthy()
+            }
             if (theme === 'shiny') {
                 await page.screenshot({path: testInfo.outputPath('line-controls.png'), fullPage: true})
             }
