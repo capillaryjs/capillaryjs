@@ -86,6 +86,11 @@ for (const theme of ['base', 'capillary', 'shiny', 'soft', 'white', 'minimal']) 
                 elements.map((e) => e.getBoundingClientRect().height))
             const compactHeight = theme === 'capillary' ? 16 : 14.4
             for (const height of compact) expect(height).toBeCloseTo(compactHeight, 0)
+            const stackWidth = await page.locator('#stack').evaluate((element) =>
+                element.getBoundingClientRect().width)
+            const progressWidth = await page.locator('#stack cap-progressbar > cap-content')
+                .evaluate((element) => element.getBoundingClientRect().width)
+            expect(progressWidth).toBeCloseTo(stackWidth, 1)
             const squares = await page.locator('cap-checkshell').evaluateAll((elements) =>
                 elements.map((e) => [e.getBoundingClientRect().width, e.getBoundingClientRect().height]))
             const squareSize = theme === 'capillary' ? 16 : 12

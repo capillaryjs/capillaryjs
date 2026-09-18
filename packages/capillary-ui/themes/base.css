@@ -123,7 +123,7 @@
     --error-control-border: color-mix(in oklch, var(--error-color) 76%, var(--palette-dark));
     --error-control-underlay: color-mix(in srgb, var(--error-color) 20%, transparent);
     --error-control-shadow: 0 0 0 3px var(--error-control-underlay);
-    --error-icon-border: 1px solid color-mix(in srgb, var(--error-contrast) 72%, var(--error-color));
+    --error-icon-border: none;
     --error-icon-shadow: 0 1px 2px color-mix(in srgb, var(--palette-dark) 24%, transparent);
     --success-color: var(--positive-color);
 

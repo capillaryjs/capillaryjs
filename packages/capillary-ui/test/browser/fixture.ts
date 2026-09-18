@@ -397,6 +397,9 @@ if (fixtureOptions.get('status') === 'true') {
         fetchState: FetchState.Error,
         error: new Error('Status data unavailable'),
     })
+    const busyProgress = new Emitter<number | null>(null, {
+        fetchState: FetchState.Loading,
+    })
 
     Panel.new({
         id: 'status-form',
@@ -405,6 +408,7 @@ if (fixtureOptions.get('status') === 'true') {
         children: [
             h('section', {className: 'busy-controls', 'aria-label': 'Busy controls'}, [
                 h(Button, {label: 'Busy action', busy: true}),
+                h(Button, {label: 'Normal action'}),
                 h(Textbox, {label: 'Busy text', busy: true}),
                 h(Dropdown, {
                     label: 'Busy select',
@@ -412,7 +416,8 @@ if (fixtureOptions.get('status') === 'true') {
                     options: [{value: 'one', label: 'One'}],
                 }),
                 h(Checkbox, {label: 'Busy check', busy: true}),
-                h(ProgressBar, {label: 'Busy progress', value: null}),
+                h(ProgressBar, {label: 'Busy progress', valueEmitter: busyProgress}),
+                h(ProgressBar, {label: 'Idle progress', value: null}),
             ]),
             h('section', {className: 'error-controls', 'aria-label': 'Error controls'}, [
                 h(Button, {label: 'Failed action', error: 'Action failed'}),

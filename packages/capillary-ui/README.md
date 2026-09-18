@@ -338,7 +338,12 @@ the native forward cycle.
 
 `busy` is presentational state: it sets native/ARIA busy semantics and paints
 the theme's moving working texture without disabling an input or choice.
-`Button` remains the exception: a busy action is unavailable until it settles.
+`Button` remains the exception: a busy action is unavailable until it settles,
+but keeps its normal button colors, border, and elevation with the working
+texture layered on top. `ProgressBar` only paints that working texture when it
+has a `valueEmitter` whose fetch state is `Loading`; this applies to both
+determinate and indeterminate bars. A literal `value={null}` is simply an
+unfilled indeterminate bar.
 When `error` is also present, error presentation wins over the animation.
 Every error-bearing control describes its native surface with a focusable
 `role="alert"` overlay. Its icon and initially hidden message are absolutely
@@ -536,7 +541,7 @@ virtualization, and server-specific wire policy remain application concerns.
 | Component | Purpose | Key props and state |
 | --- | --- | --- |
 | `Dialog` | Controlled native modal with focus containment and restoration | `title`, `description`, `DialogActions` and ordinary content children, `valueEmitter`/`defaultValue`, `closeLabel`, `showCloseButton`, `initialFocusRef`, `onClose` |
-| `ProgressBar` | Labelled native progress with visual track | required `label`, `value` or `valueEmitter`, `max`, `valueText`; `null` is indeterminate |
+| `ProgressBar` | Labelled native progress with visual track | required `label`, `value` or `valueEmitter`, `max`, `valueText`; fills its available width; `null` is indeterminate; emitter-backed busy chrome (including determinate bars) requires `FetchState.Loading` |
 | `ThemePicker` | Select and replace a Capillary UI theme link | value props, `options`, `label`/`ariaLabel`, `disabled`, `targetDocument`, `onChange` |
 | `ColorPicker` | Select and replace a Capillary UI color link | same contract as `ThemePicker` |
 

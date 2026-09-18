@@ -157,8 +157,12 @@ Notable public behavior:
   continuously controlled prop.
 - `busy` is live presentation state on actions, input/choice controls, date/time
   controls, and `OptionGroup`; it does not disable inputs, while a busy
-  `Button` remains unavailable. Application commands and lifecycle stay in
-  Capillary/application code.
+  `Button` remains unavailable but retains normal button chrome beneath the
+  working texture. Application commands and lifecycle stay in Capillary/
+  application code.
+- `ProgressBar` only paints busy chrome for an emitter-backed indeterminate
+  value whose `getFetchState()` is `FetchState.Loading`; a literal `null` value
+  remains static.
 - Error-capable controls connect their native surface to a focusable
   `role="alert"` overlay. Its icon and hidden message are absolutely positioned
   in every context, and hover or focus reveals the details without changing

@@ -9,6 +9,23 @@ test.beforeEach(async ({page}) => {
     await page.locator('#gallery-line-inputs').waitFor()
 })
 
+test('loading emitter modes animate determinate and indeterminate progress examples', async ({page}) => {
+    const partial = page.locator('#gallery-basic-inputs cap-progressbar progress').nth(1)
+    const partialSurface = page.locator('#gallery-basic-inputs cap-progressbar').nth(1).locator('cap-content')
+    const indeterminate = page.locator('#gallery-basic-inputs cap-progressbar progress').nth(3)
+    const surface = page.locator('#gallery-basic-inputs cap-progressbar').nth(3).locator('cap-content')
+
+    for (const mode of ['Loading (refresh)', 'Loading (replace)']) {
+        await page.getByRole('radio', {name: mode, exact: true}).click()
+        await expect(partial).toHaveAttribute('aria-busy', 'true')
+        expect(await partialSurface.evaluate((element) => getComputedStyle(element, '::after').animationName))
+            .toContain('cap-working-progress')
+        await expect(indeterminate).toHaveAttribute('aria-busy', 'true')
+        expect(await surface.evaluate((element) => getComputedStyle(element, '::after').animationName))
+            .toContain('cap-working-progress')
+    }
+})
+
 for (const theme of ['shiny', 'capillary', 'soft', 'minimal', 'white']) {
     test(`${theme}: sidebar and main panel chrome actually paints`, async ({page}, testInfo) => {
         await page.getByRole('combobox', {name: 'Theme', exact: true}).selectOption(theme)

@@ -89,6 +89,11 @@ export class GalleryModel {
         owner: this,
         purpose: 'gallery data-component items',
     })
+    /** Progress examples retain their own values while mirroring data fetch state. */
+    readonly progressValues = [0, 40, 100, null].map((value, index) => new Emitter<number | null>(value, {
+        owner: this,
+        purpose: `gallery progress ${index}`,
+    }))
     /** Block selection needs an array value, while collection views accept an absent loading value. */
     readonly blockItems = new DerivedEmitter(
         [this.dataItems] as const,
@@ -179,6 +184,10 @@ export class GalleryModel {
             } else {
                 this.dataItems.setWithState(galleryData, FetchState.Ready)
             }
+            const progressState = state === 'loading-replace' ? FetchState.Loading : state
+            for (const progress of this.progressValues) {
+                progress.setWithState(progress.get(), progressState, this.dataItems.getError())
+            }
         })
         const retryableQuery = Object.assign(this.dataItems, {
             retry: (cause?: unknown) => {
@@ -203,6 +212,7 @@ export class GalleryModel {
             this.lastAction,
             this.dataState,
             this.dataItems,
+            ...this.progressValues,
             this.blockItems,
             this.componentDisabled,
             this.componentRequired,

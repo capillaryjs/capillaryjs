@@ -257,8 +257,8 @@ cap-button > button {
             box-shadow: var(--focus-ring);
         }
 
-        cap-button > button:disabled,
-        cap-button > button[aria-disabled="true"] {
+        cap-button > button:disabled:not([aria-busy="true"]),
+        cap-button > button[aria-disabled="true"]:not([aria-busy="true"]) {
             color: var(--input-color-disabled);
             background: var(--button-background-disabled);
             border-color: var(--button-border-disabled);
@@ -267,7 +267,9 @@ cap-button > button {
         }
 
         cap-button > button[aria-busy="true"]:not([aria-invalid="true"]) {
-            background: var(--working-background-image), var(--button-background-disabled);
+            /* Busy is unavailable for activation, but remains a normal button
+             * surface with the loading texture layered on top. */
+            background: var(--working-background-image), var(--button-background);
             background-repeat: repeat, no-repeat;
             background-size: 2rem 2rem, 100% 100%;
             animation: cap-working-progress .55s linear infinite;
@@ -1949,6 +1951,8 @@ cap-panel {
 cap-progressbar {
             display: flex;
             align-items: center;
+            width: 100%;
+            min-width: 0;
         }
 
         cap-progressbar > label,
@@ -2014,17 +2018,17 @@ cap-progressbar {
             white-space: nowrap;
         }
 
-        cap-progressbar:has(> progress:indeterminate) > cap-content > cap-progress {
+        cap-progressbar:has(> progress:indeterminate[aria-busy="true"]) > cap-content > cap-progress {
             display: none;
         }
 
-        cap-progressbar:has(> progress:indeterminate) > cap-content > cap-label {
+        cap-progressbar:has(> progress:indeterminate[aria-busy="true"]) > cap-content > cap-label {
             z-index: 2;
         }
 
-        cap-progressbar:has(> progress:indeterminate) > cap-content::after {
+        cap-progressbar:has(> progress[aria-busy="true"]) > cap-content::after {
             position: absolute;
-            z-index: 1;
+            z-index: 2;
             inset: 1px;
             content: "";
             border-radius: inherit;
@@ -2033,10 +2037,15 @@ cap-progressbar {
             background-size: 2rem 2rem;
             animation: cap-working-progress .55s linear infinite;
             opacity: .5;
+            pointer-events: none;
+        }
+
+        cap-progressbar:has(> progress[aria-busy="true"]) > cap-content > cap-label {
+            z-index: 3;
         }
 
         @media (prefers-reduced-motion: reduce) {
-            cap-progressbar:has(> progress:indeterminate) > cap-content::after {
+            cap-progressbar:has(> progress[aria-busy="true"]) > cap-content::after {
                 animation: none !important;
             }
         }

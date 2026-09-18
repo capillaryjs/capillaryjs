@@ -19,23 +19,33 @@ test.beforeEach(async ({page}) => {
 test('busy controls animate their painted surface without disabling inputs', async ({page}) => {
     const root = page.locator('#status-root')
     const button = root.getByRole('button', {name: 'Busy action'})
+    const normalButton = root.getByRole('button', {name: 'Normal action'})
     const textbox = root.getByRole('textbox', {name: 'Busy text'})
     const select = root.getByRole('combobox', {name: 'Busy select'})
     const checkbox = root.getByRole('checkbox', {name: /Busy check/})
+    const progressBars = root.locator('.busy-controls cap-progressbar')
 
     await expect(button).toHaveAttribute('aria-busy', 'true')
     await expect(button).toBeDisabled()
+    const buttonChrome = await Promise.all(['color', 'borderTopColor', 'borderRadius', 'boxShadow']
+        .map((property) => Promise.all([
+            button.evaluate((element, name) => getComputedStyle(element).getPropertyValue(name), property),
+            normalButton.evaluate((element, name) => getComputedStyle(element).getPropertyValue(name), property),
+        ])))
+    for (const [busyValue, normalValue] of buttonChrome) {
+        expect(busyValue, 'busy button keeps normal button chrome').toBe(normalValue)
+    }
     for (const control of [textbox, select, checkbox]) {
         await expect(control).toHaveAttribute('aria-busy', 'true')
         await expect(control).toBeEnabled()
     }
 
     const animatedSurfaces = [
-        {selector: '.busy-controls cap-button > button'},
+        {selector: '.busy-controls cap-button:first-of-type > button'},
         {selector: '.busy-controls cap-textbox > input'},
         {selector: '.busy-controls cap-dropdown > cap-selectshell > select'},
         {selector: '.busy-controls cap-checkbox cap-checkshell'},
-        {selector: '.busy-controls cap-progressbar > cap-content', pseudo: '::after'},
+        {selector: '.busy-controls cap-progressbar:nth-of-type(1) > cap-content', pseudo: '::after'},
     ]
     for (const {selector, pseudo} of animatedSurfaces) {
         const presentation = await root.locator(selector).evaluate((element, pseudoElement) => {
@@ -45,6 +55,12 @@ test('busy controls animate their painted surface without disabling inputs', asy
         expect(presentation.animationName, selector).toContain('cap-working-progress')
         expect(presentation.backgroundImage, selector).not.toBe('none')
     }
+    await expect(progressBars.nth(0).locator('progress')).toHaveAttribute('aria-busy', 'true')
+    await expect(progressBars.nth(1).locator('progress')).not.toHaveAttribute('aria-busy')
+    expect(await progressBars.nth(1).locator('cap-content').evaluate((element) => ({
+        animation: getComputedStyle(element, '::after').animationName,
+        background: getComputedStyle(element, '::after').backgroundImage,
+    }))).toEqual({animation: 'none', background: 'none'})
 })
 
 test('data components replace initial data but retain rows during background loading', async ({page}) => {

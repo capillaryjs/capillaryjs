@@ -129,8 +129,8 @@ export class Button extends LineControl<ButtonProps> {
             box-shadow: var(--focus-ring);
         }
 
-        & > button:disabled,
-        & > button[aria-disabled="true"] {
+        & > button:disabled:not([aria-busy="true"]),
+        & > button[aria-disabled="true"]:not([aria-busy="true"]) {
             color: var(--input-color-disabled);
             background: var(--button-background-disabled);
             border-color: var(--button-border-disabled);
@@ -139,7 +139,9 @@ export class Button extends LineControl<ButtonProps> {
         }
 
         & > button[aria-busy="true"]:not([aria-invalid="true"]) {
-            background: var(--working-background-image), var(--button-background-disabled);
+            /* Busy is unavailable for activation, but remains a normal button
+             * surface with the loading texture layered on top. */
+            background: var(--working-background-image), var(--button-background);
             background-repeat: repeat, no-repeat;
             background-size: 2rem 2rem, 100% 100%;
             animation: cap-working-progress .55s linear infinite;

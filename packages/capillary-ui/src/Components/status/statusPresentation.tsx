@@ -44,8 +44,8 @@ export class ErrorMessage extends Component<ErrorMessageProps> {
         & {
             position: absolute;
             z-index: 1200;
-            inset-block-start: -.35em;
-            inset-inline-end: -.35em;
+            inset-block-start: -.5rem;
+            inset-inline-end: -.5rem;
             display: block;
             width: 1.25em;
             height: 1.25em;
@@ -57,21 +57,22 @@ export class ErrorMessage extends Component<ErrorMessageProps> {
             box-sizing: border-box;
         }
 
-        & > cap-erroricon {
+        cap-error > cap-erroricon {
             position: absolute;
-            inset: 0;
-            display: grid;
-            width: 1.25em;
-            height: 1.25em;
+            display: flex;
+            width: 1rem;
+            height: 1rem;
+            font-size: .9rem;
             color: var(--error-contrast);
             background: var(--error-color);
             border: var(--error-icon-border);
             border-radius: 50%;
             box-shadow: var(--error-icon-shadow);
             box-sizing: border-box;
-            font-weight: 700;
-            line-height: 1;
-            place-items: center;
+            font-weight: bold;
+            justify-content: center;
+            align-items: center;
+
         }
 
         & > cap-erroricon::before {

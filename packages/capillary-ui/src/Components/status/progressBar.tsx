@@ -1,4 +1,5 @@
 import type {ReadableEmitter} from '@capillaryjs/capillary'
+import {FetchState} from '@capillaryjs/capillary'
 
 import {css} from '../component.js'
 import {LineControl} from '../lineinputs/LineControl.js'
@@ -34,9 +35,11 @@ export class ProgressBar extends LineControl<ProgressBarProps> {
         if (!Number.isFinite(max) || max <= 0) {
             throw new RangeError('ProgressBar max must be a positive finite number')
         }
-        const sourceValue = this.props.valueEmitter == null
+        const valueEmitter = this.props.valueEmitter
+        const sourceValue = valueEmitter == null
             ? (this.props.value ?? null)
-            : this.read(this.props.valueEmitter)
+            : this.read(valueEmitter)
+        const busy = valueEmitter != null && valueEmitter.getFetchState() === FetchState.Loading
         if (sourceValue != null && (!Number.isFinite(sourceValue) || sourceValue < 0)) {
             throw new RangeError('ProgressBar value must be null or a non-negative finite number')
         }
@@ -52,6 +55,7 @@ export class ProgressBar extends LineControl<ProgressBarProps> {
                 id={this.progressId}
                 value={value == null ? undefined : value}
                 max={max}
+                aria-busy={busy ? 'true' : null}
                 aria-valuetext={valueText}
             >{valueText}</progress>
             <cap-content aria-hidden="true">
@@ -72,6 +76,8 @@ export class ProgressBar extends LineControl<ProgressBarProps> {
         & {
             display: flex;
             align-items: center;
+            width: 100%;
+            min-width: 0;
         }
 
         & > label,
@@ -137,17 +143,17 @@ export class ProgressBar extends LineControl<ProgressBarProps> {
             white-space: nowrap;
         }
 
-        &:has(> progress:indeterminate) > cap-content > cap-progress {
+        &:has(> progress:indeterminate[aria-busy="true"]) > cap-content > cap-progress {
             display: none;
         }
 
-        &:has(> progress:indeterminate) > cap-content > cap-label {
+        &:has(> progress:indeterminate[aria-busy="true"]) > cap-content > cap-label {
             z-index: 2;
         }
 
-        &:has(> progress:indeterminate) > cap-content::after {
+        &:has(> progress[aria-busy="true"]) > cap-content::after {
             position: absolute;
-            z-index: 1;
+            z-index: 2;
             inset: 1px;
             content: "";
             border-radius: inherit;
@@ -156,10 +162,15 @@ export class ProgressBar extends LineControl<ProgressBarProps> {
             background-size: 2rem 2rem;
             animation: cap-working-progress .55s linear infinite;
             opacity: .5;
+            pointer-events: none;
+        }
+
+        &:has(> progress[aria-busy="true"]) > cap-content > cap-label {
+            z-index: 3;
         }
 
         @media (prefers-reduced-motion: reduce) {
-            &:has(> progress:indeterminate) > cap-content::after {
+            &:has(> progress[aria-busy="true"]) > cap-content::after {
                 animation: none !important;
             }
         }

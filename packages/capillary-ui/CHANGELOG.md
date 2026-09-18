@@ -8,6 +8,12 @@ Versioning.
 
 ### Fixed
 
+- Keep busy buttons visually normal and layer only the working animation over
+  their ordinary chrome. Gate ProgressBar's busy animation on an emitter-backed
+  `FetchState.Loading` state, applying the working texture to both determinate
+  and indeterminate bars so literal indeterminate values remain static.
+- Make ProgressBar fill its available inline width while remaining shrinkable
+  inside constrained layouts.
 - Omit island content padding on direct app-root headers, letting their navbar
   and toolbar own spacing. Preserve nested headers, other islands, outer
   gutters, borders, and shadows across themes and managed/legacy layouts.

@@ -243,10 +243,10 @@ export class LineInputsPage extends Component<GalleryPageProps> {
                         error={live(model.componentError)} />
                 </GroupBox>
                 <GroupBox header="Progress" variant="column">
-                    <ProgressBar label="Empty" value={0} />
-                    <ProgressBar label="Partial" value={40} />
-                    <ProgressBar label="Complete" value={100} />
-                    <ProgressBar label="Indeterminate" value={null} />
+                    <ProgressBar label="Empty" valueEmitter={model.progressValues[0]!} />
+                    <ProgressBar label="Partial" valueEmitter={model.progressValues[1]!} />
+                    <ProgressBar label="Complete" valueEmitter={model.progressValues[2]!} />
+                    <ProgressBar label="Indeterminate" valueEmitter={model.progressValues[3]!} />
                 </GroupBox>
         </GroupBox>
     }
