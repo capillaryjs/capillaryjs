@@ -1,6 +1,7 @@
 import {css} from '../component.js'
 import type {ComponentProps} from '../component.js'
 import {LineControl} from './LineControl.js'
+import {requiredControlInvalidSelector, requiredPresentationCss} from './requiredPresentation.js'
 
 /** Shared native-label and painted-shell contract for checkable inputs. */
 export abstract class CheckableControl<
@@ -79,28 +80,16 @@ export abstract class CheckableControl<
             box-shadow: var(--checkbox-box-shadow-checked);
         }
 
-        & > label:has(> input[type="checkbox"]:required:invalid:not(:disabled):not([aria-invalid="true"])) {
-            outline: 1px dashed var(--required-color);
-            outline-offset: 3px;
-        }
-
-        & > label:has(> input[type="checkbox"]:required:invalid:not(:disabled):not([aria-invalid="true"]))::after {
-            content: "!";
-            position: absolute;
-            z-index: 1;
-            inset-block-start: -.5em;
-            inset-inline-end: -.5em;
-            display: grid;
-            inline-size: 1em;
-            block-size: 1em;
-            place-items: center;
-            color: var(--required-indicator-color);
-            background: var(--required-indicator-background);
-            border-radius: 50%;
-            font-size: .75em;
-            font-weight: 700;
-            line-height: 1;
-            pointer-events: none;
+${requiredPresentationCss({
+            outlineSelector: `& > label:has(> input${requiredControlInvalidSelector})`,
+            indicatorSelector: `& > label:has(> input${requiredControlInvalidSelector})`,
+            indicatorZIndex: 1,
+            indicatorInsetBlockStart: '-.5em',
+            indicatorInsetInlineEnd: '0',
+            outlinePaddingInlineEnd: '1em',
+        })}
+        & > label:has(> input[aria-invalid="true"]) {
+            box-shadow: var(--error-control-shadow);
         }
 
         & > label > input:focus-visible + cap-checkshell {
@@ -123,7 +112,7 @@ export abstract class CheckableControl<
 
         & > label > input[aria-invalid="true"] + cap-checkshell {
             border-color: var(--error-control-border);
-            box-shadow: var(--error-control-shadow);
+            box-shadow: none;
         }
 
         @media (prefers-reduced-motion: reduce) {
@@ -133,7 +122,7 @@ export abstract class CheckableControl<
         }
 
         @media (forced-colors: active) {
-            & > label > input[aria-invalid="true"] + cap-checkshell {
+            & > label:has(> input[aria-invalid="true"]) {
                 outline: 2px solid Mark;
                 outline-offset: 1px;
             }

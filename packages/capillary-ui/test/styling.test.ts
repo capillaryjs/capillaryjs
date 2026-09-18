@@ -219,6 +219,8 @@ describe('style registry', () => {
         assert.match(stylesheet, /cap-error > cap-errortext\s*\{[^}]*position:\s*absolute[^}]*visibility:\s*hidden/)
         assert.match(stylesheet, /cap-error > cap-erroricon:hover \+ cap-errortext/)
         assert.match(stylesheet, /\[aria-invalid="true"\][^{]*\{[^}]*border-color:\s*var\(--error-control-border\)[^}]*box-shadow:\s*var\(--error-control-shadow\)/)
+        assert.match(stylesheet, /cap-checkbox > label:has\(> input\[aria-invalid="true"\]\),[\s\S]*box-shadow:\s*var\(--error-control-shadow\)/)
+        assert.match(stylesheet, /cap-checkbox > label > input\[aria-invalid="true"\] \+ cap-checkshell[\s\S]*box-shadow:\s*none/)
         assert.match(stylesheet, /@media \(prefers-reduced-motion: reduce\)[\s\S]*animation:\s*none/)
         assert.match(stylesheet, /@media \(forced-colors: active\)[\s\S]*(?:Mark|Highlight)/)
     })
@@ -438,7 +440,7 @@ describe('style registry', () => {
         assert.match(stylesheet, /cap-checkshell\s*\{[^}]*width:\s*var\(--checkbox-box-size, 1em\)[^}]*height:\s*var\(--checkbox-box-size, 1em\)[^}]*border-radius:\s*var\(--checkbox-box-radius,[^}]*box-shadow:\s*var\(--checkbox-box-shadow\)/)
         assert.match(stylesheet, /input:checked \+ cap-checkshell\s*\{[^}]*border:\s*var\(--checkbox-box-border-checked,[^}]*box-shadow:\s*var\(--checkbox-box-shadow-checked\)/)
         assert.doesNotMatch(stylesheet, /input\[value="(?:require|deny|prefer)"\]/)
-        assert.match(stylesheet, /label:has\(> input\[type="checkbox"\]:required:invalid:not\(:disabled\):not\(\[aria-invalid="true"\]\)\)\s*\{[^}]*outline:\s*1px dashed var\(--required-color\)/)
+        assert.match(stylesheet, /label:has\(> input:required:invalid:not\(:disabled\):not\(\[aria-invalid="true"\]\)\)\s*\{[^}]*outline:\s*1px dashed var\(--required-color\)[^}]*padding-inline-end:\s*1em/)
         assert.doesNotMatch(stylesheet, /\.checkboxshell|\[data-(?:disabled|required|error|state)\]|cap-checkboxshell|cap-checkbox\s*\{[^}]*width:\s*var\(--input-width/)
     })
 
@@ -728,6 +730,9 @@ describe('four-file styling contract', () => {
         assert.doesNotMatch(css, /--palette-(?:red|green):/)
         assert.match(css, /--error-color:\s*var\(--negative-color\)/)
         assert.match(css, /--success-color:\s*var\(--positive-color\)/)
+        assert.match(css, /--required-color:\s*var\(--negative-color\)/)
+        assert.match(css, /--required-indicator-color:\s*var\(--negative-color\)/)
+        assert.match(css, /--required-indicator-background:\s*transparent/)
         for (const {name, fallback} of capillaryUiThemeVariableCatalog) {
             if (fallback == null) assert.match(css, new RegExp(`${name}:`))
         }
@@ -777,6 +782,8 @@ describe('four-file styling contract', () => {
                 `${option.value} must keep ordinary rules outside @layer theme`)
 
             assert.doesNotMatch(css, /^\s*--palette-[a-z0-9-]+\s*:/m)
+            assert.doesNotMatch(css, /^\s*--required-[a-z0-9-]+\s*:/m,
+                `${option.value} must retain the base required-state treatment`)
             for (const [name, value] of oneLineCustomProperties(css)) {
                 assert.notEqual(value, baseDeclarations.get(name),
                     `${option.value} repeats the base value for ${name}`)

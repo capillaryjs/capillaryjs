@@ -8,6 +8,10 @@ Versioning.
 
 ### Fixed
 
+- Render unfilled required controls with a transparent negative ✲ marker:
+  inside native input surfaces and beside a deliberately extended checkable label outline.
+- Place checkbox and radio validation halos around the complete labelled
+  choice while retaining the error border on the painted shell.
 - Keep busy buttons visually normal and layer only the working animation over
   their ordinary chrome. Gate ProgressBar's busy animation on an emitter-backed
   `FetchState.Loading` state, applying the working texture to both determinate

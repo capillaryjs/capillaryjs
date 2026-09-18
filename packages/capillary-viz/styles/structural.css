@@ -392,8 +392,8 @@ cap-button > button {
             box-shadow: var(--focus-ring);
         }
 
-        cap-button > button:disabled,
-        cap-button > button[aria-disabled="true"] {
+        cap-button > button:disabled:not([aria-busy="true"]),
+        cap-button > button[aria-disabled="true"]:not([aria-busy="true"]) {
             color: var(--input-color-disabled);
             background: var(--button-background-disabled);
             border-color: var(--button-border-disabled);
@@ -402,7 +402,9 @@ cap-button > button {
         }
 
         cap-button > button[aria-busy="true"]:not([aria-invalid="true"]) {
-            background: var(--working-background-image), var(--button-background-disabled);
+            /* Busy is unavailable for activation, but remains a normal button
+             * surface with the loading texture layered on top. */
+            background: var(--working-background-image), var(--button-background);
             background-repeat: repeat, no-repeat;
             background-size: 2rem 2rem, 100% 100%;
             animation: cap-working-progress .55s linear infinite;
@@ -429,8 +431,8 @@ cap-button > button {
 cap-error {
             position: absolute;
             z-index: 1200;
-            inset-block-start: -.35em;
-            inset-inline-end: -.35em;
+            inset-block-start: -.5rem;
+            inset-inline-end: -.5rem;
             display: block;
             width: 1.25em;
             height: 1.25em;
@@ -444,19 +446,20 @@ cap-error {
 
         cap-error > cap-erroricon {
             position: absolute;
-            inset: 0;
-            display: grid;
-            width: 1.25em;
-            height: 1.25em;
+            display: flex;
+            width: 1rem;
+            height: 1rem;
+            font-size: .9rem;
             color: var(--error-contrast);
             background: var(--error-color);
             border: var(--error-icon-border);
             border-radius: 50%;
             box-shadow: var(--error-icon-shadow);
             box-sizing: border-box;
-            font-weight: 700;
-            line-height: 1;
-            place-items: center;
+            font-weight: bold;
+            justify-content: center;
+            align-items: center;
+
         }
 
         cap-error > cap-erroricon::before {
@@ -1136,28 +1139,33 @@ cap-checkbox {
             box-shadow: var(--checkbox-box-shadow-checked);
         }
 
-        cap-checkbox > label:has(> input[type="checkbox"]:required:invalid:not(:disabled):not([aria-invalid="true"])) {
-            outline: 1px dashed var(--required-color);
-            outline-offset: 3px;
-        }
 
-        cap-checkbox > label:has(> input[type="checkbox"]:required:invalid:not(:disabled):not([aria-invalid="true"]))::after {
-            content: "!";
-            position: absolute;
-            z-index: 1;
-            inset-block-start: -.5em;
-            inset-inline-end: -.5em;
-            display: grid;
-            inline-size: 1em;
-            block-size: 1em;
-            place-items: center;
-            color: var(--required-indicator-color);
-            background: var(--required-indicator-background);
-            border-radius: 50%;
-            font-size: .75em;
-            font-weight: 700;
-            line-height: 1;
-            pointer-events: none;
+cap-checkbox > label:has(> input:required:invalid:not(:disabled):not([aria-invalid="true"])) {
+    outline: 1px dashed var(--required-color);
+    outline-offset: 3px;
+    padding-inline-end: 1em;
+}
+
+cap-checkbox > label:has(> input:required:invalid:not(:disabled):not([aria-invalid="true"]))::after {
+    content: "✲";
+    position: absolute;
+    z-index: 1;
+    inset-block-start: -.5em;
+    inset-inline-end: 0;
+    display: grid;
+    inline-size: 1rem;
+    block-size: 1rem;
+    place-items: center;
+    color: var(--required-indicator-color);
+    background: var(--required-indicator-background);
+    font-size: .75rem;
+    font-weight: 700;
+    line-height: 1;
+    pointer-events: none;
+}
+
+        cap-checkbox > label:has(> input[aria-invalid="true"]) {
+            box-shadow: var(--error-control-shadow);
         }
 
         cap-checkbox > label > input:focus-visible + cap-checkshell {
@@ -1180,7 +1188,7 @@ cap-checkbox {
 
         cap-checkbox > label > input[aria-invalid="true"] + cap-checkshell {
             border-color: var(--error-control-border);
-            box-shadow: var(--error-control-shadow);
+            box-shadow: none;
         }
 
         @media (prefers-reduced-motion: reduce) {
@@ -1190,7 +1198,7 @@ cap-checkbox {
         }
 
         @media (forced-colors: active) {
-            cap-checkbox > label > input[aria-invalid="true"] + cap-checkshell {
+            cap-checkbox > label:has(> input[aria-invalid="true"]) {
                 outline: 2px solid Mark;
                 outline-offset: 1px;
             }

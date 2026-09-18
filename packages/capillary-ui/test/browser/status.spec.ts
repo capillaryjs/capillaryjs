@@ -116,6 +116,7 @@ test('errors mark controls and expose overlay details on icon hover or focus', a
         root.getByRole('textbox', {name: 'Invalid text'}),
         root.getByRole('combobox', {name: 'Invalid select'}),
         root.getByRole('checkbox', {name: /Invalid check/}),
+        root.getByRole('radio', {name: 'Invalid radio'}),
     ]
     for (const control of invalidControls) {
         await expect(control).toHaveAttribute('aria-invalid', 'true')
@@ -126,7 +127,7 @@ test('errors mark controls and expose overlay details on icon hover or focus', a
 
     const overlayAlerts = root.locator('.error-controls cap-error')
     const overlayMessages = overlayAlerts.locator('cap-errortext')
-    await expect(overlayMessages).toHaveCount(4)
+    await expect(overlayMessages).toHaveCount(5)
     for (const message of await overlayMessages.all()) await expect(message).toBeHidden()
     const firstAlert = overlayAlerts.first()
     const firstMessage = firstAlert.locator('cap-errortext')
@@ -166,7 +167,6 @@ test('errors mark controls and expose overlay details on icon hover or focus', a
             '.error-controls cap-button > button',
             '.error-controls cap-textbox > input',
             '.error-controls cap-dropdown > cap-selectshell',
-            '.error-controls cap-checkbox cap-checkshell',
         ].map((selector) => {
             const element = document.querySelector(selector)
             if (element == null) throw new Error(`Missing error halo: ${selector}`)
@@ -178,6 +178,16 @@ test('errors mark controls and expose overlay details on icon hover or focus', a
     expect(errorBadge.boxShadow).not.toBe('none')
     expect(new Set(paintedControls.map(({border}) => border)).size).toBe(1)
     expect(errorHalos.every((boxShadow) => boxShadow !== 'none')).toBe(true)
+
+    const labelHalos = await root.evaluate(() => [
+        '.error-controls cap-checkbox > label',
+        '.error-controls cap-radiobutton > label',
+    ].map((selector) => {
+        const element = document.querySelector(selector)
+        if (element == null) throw new Error(`Missing error label halo: ${selector}`)
+        return getComputedStyle(element).boxShadow
+    }))
+    expect(labelHalos.every((boxShadow) => boxShadow !== 'none')).toBe(true)
 
     await page.mouse.move(0, 0)
     await expect(firstMessage).toBeHidden()
@@ -194,6 +204,101 @@ test('errors mark controls and expose overlay details on icon hover or focus', a
     const {violations} = await new AxeBuilder({page}).include('#status-root').analyze()
     expect(violations.filter(({impact}) => impact === 'serious' || impact === 'critical'))
         .toEqual([])
+})
+
+test('required controls use base negative markers in their intended positions', async ({page}) => {
+    const presentation = await page.evaluate(() => {
+        const required = <T extends Element>(selector: string): T => {
+            const element = document.querySelector<T>(selector)
+            if (element == null) throw new Error(`Missing required-control fixture: ${selector}`)
+            return element
+        }
+        const pseudo = (element: Element) => {
+            const style = getComputedStyle(element, '::after')
+            return {
+                content: style.content,
+                color: style.color,
+                backgroundColor: style.backgroundColor,
+                width: style.width,
+                height: style.height,
+                fontSize: style.fontSize,
+                top: Number.parseFloat(style.top),
+                right: Number.parseFloat(style.right),
+            }
+        }
+        const text = required<HTMLInputElement>('#accessibility-root cap-textbox > input')
+        text.value = ''
+        text.required = true
+
+        const select = required<HTMLSelectElement>(
+            '#accessibility-root cap-dropdown > cap-selectshell > select')
+        const placeholder = document.createElement('option')
+        placeholder.value = ''
+        placeholder.selected = true
+        select.prepend(placeholder)
+        select.required = true
+        select.value = ''
+
+        const checkbox = required<HTMLInputElement>('#accessibility-root cap-checkbox > label > input')
+        checkbox.required = true
+        checkbox.checked = false
+
+        const radio = required<HTMLInputElement>('#status-root cap-radiobutton > label > input')
+        radio.removeAttribute('aria-invalid')
+        radio.name = 'required-radio-probe'
+        radio.required = true
+        radio.checked = false
+
+        const negativeProbe = document.createElement('span')
+        negativeProbe.style.color = 'var(--negative-color)'
+        document.body.append(negativeProbe)
+        const negativeColor = getComputedStyle(negativeProbe).color
+        negativeProbe.remove()
+
+        const textHost = required('cap-textbox')
+        const selectHost = required('cap-dropdown')
+        const checkboxLabel = required('cap-checkbox > label')
+        const radioLabel = required('cap-radiobutton > label')
+        const textInput = text.getBoundingClientRect()
+        const textHostBounds = textHost.getBoundingClientRect()
+        const selectShellBounds = required('cap-dropdown > cap-selectshell').getBoundingClientRect()
+        const selectHostBounds = selectHost.getBoundingClientRect()
+
+        return {
+            validities: [text, select, checkbox, radio].map((input) => input.matches(':invalid')),
+            negativeColor,
+            text: pseudo(textHost),
+            select: pseudo(selectHost),
+            checkbox: {...pseudo(checkboxLabel), paddingRight: getComputedStyle(checkboxLabel).paddingRight},
+            radio: {...pseudo(radioLabel), paddingRight: getComputedStyle(radioLabel).paddingRight},
+            textInputTop: textInput.top - textHostBounds.top,
+            selectInputTop: selectShellBounds.top - selectHostBounds.top,
+            selectTriggerWidth: Number.parseFloat(
+                getComputedStyle(required('cap-dropdown > cap-selectshell'), '::before').width),
+        }
+    })
+
+    expect(presentation.validities).toEqual([true, true, true, true])
+    for (const marker of [presentation.text, presentation.select,
+        presentation.checkbox, presentation.radio]) {
+        expect(marker.content).toBe('"✲"')
+        expect(marker.color).toBe(presentation.negativeColor)
+        expect(marker.backgroundColor).toBe('rgba(0, 0, 0, 0)')
+        expect([marker.width, marker.height, marker.fontSize]).toEqual([
+            presentation.text.width,
+            presentation.text.height,
+            presentation.text.fontSize,
+        ])
+    }
+    expect(presentation.text.top).toBeGreaterThanOrEqual(presentation.textInputTop)
+    expect(presentation.text.right).toBeGreaterThan(0)
+    expect(presentation.select.top).toBeGreaterThanOrEqual(presentation.selectInputTop)
+    expect(presentation.select.right).toBeGreaterThan(presentation.selectTriggerWidth)
+    for (const marker of [presentation.checkbox, presentation.radio]) {
+        expect(marker.top).toBeLessThan(0)
+        expect(marker.right).toBe(0)
+        expect(Number.parseFloat(marker.paddingRight)).toBeGreaterThan(0)
+    }
 })
 
 test('status presentation respects reduced motion', async ({page}) => {

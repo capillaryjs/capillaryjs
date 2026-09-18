@@ -9,6 +9,7 @@ import {
 import type {ValueControlProps, ValueEmitter} from '../../controlUtils.js'
 import {ErrorMessage} from '../../status/statusPresentation.js'
 import {LabeledInputControl} from '../LabeledInputControl.js'
+import {requiredInputInvalidSelector, requiredPresentationCss} from '../requiredPresentation.js'
 
 const temporalInputLiveProps = ['disabled', 'required', 'readOnly', 'busy', 'error'] as const
 
@@ -181,11 +182,12 @@ export abstract class TemporalInput<
             cursor: not-allowed;
         }
 
-        & > input:required:invalid:not(:disabled):not([readonly]):not([aria-invalid="true"]) {
-            outline: 1px dashed var(--required-color);
-            outline-offset: 3px;
-        }
-
+${requiredPresentationCss({
+            outlineSelector: `& > input${requiredInputInvalidSelector}`,
+            indicatorSelector: `&:has(> input${requiredInputInvalidSelector})`,
+            indicatorInsetBlockStart: 'max(calc(var(--control-row-padding-block, .25em) + .15em), .3em)',
+            indicatorInsetInlineEnd: '.35em',
+        })}
         & > input:focus-visible {
             outline: 2px solid transparent;
             outline-offset: 1px;

@@ -19,6 +19,7 @@ import {
     NavigationBar,
     Panel,
     ProgressBar,
+    RadioButton,
     RouteOutlet,
     Sidebar,
     SidebarToolbar,
@@ -164,6 +165,7 @@ FormsProbe.new().attachTo(requiredElement('#forms-root'))
 
 Button.registerStyles()
 Checkbox.registerStyles()
+RadioButton.registerStyles()
 DatePicker.registerStyles()
 DateTimePicker.registerStyles()
 Dropdown.registerStyles()
@@ -428,6 +430,7 @@ if (fixtureOptions.get('status') === 'true') {
                     options: [{value: 'one', label: 'One'}],
                 }),
                 h(Checkbox, {label: 'Invalid check', error: 'Confirm this value'}),
+                h(RadioButton, {label: 'Invalid radio', error: 'Choose this value'}),
             ]),
             h('section', {className: 'initial-data', 'aria-label': 'Initial data'}, [
                 h(DataTable, {
