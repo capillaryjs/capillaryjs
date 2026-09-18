@@ -97,7 +97,8 @@ for (const theme of ['shiny', 'capillary', 'soft', 'minimal', 'white']) {
 for (const theme of ['shiny', 'capillary']) {
     test(`${theme}: line-input columns share one comfortable row rhythm`, async ({page}, testInfo) => {
         await page.getByRole('combobox', {name: 'Theme', exact: true}).selectOption(theme)
-        const rowHeight = theme === 'capillary' ? 39 : 30
+        const rowHeight = theme === 'capillary' ? 33 : 30
+        const rowPadding = theme === 'capillary' ? 0 : 3
         const first = page.locator('#gallery-checkboxes cap-checkbox').first()
         await expect(first).toHaveCSS('min-height', `${rowHeight}px`)
         const rows = await page.locator('#gallery-line-inputs').evaluate(root => {
@@ -113,7 +114,7 @@ for (const theme of ['shiny', 'capillary']) {
         expect(rows.length).toBeGreaterThan(35)
         for (const row of rows) {
             expect(row.height, row.tag).toBeCloseTo(rowHeight, 1)
-            expect(row.padding, row.tag).toBeCloseTo(3, 1)
+            expect(row.padding, row.tag).toBeCloseTo(rowPadding, 1)
         }
         const radioCenters = await page.locator('#gallery-basic-inputs cap-radiobutton')
             .evaluateAll(elements => elements.map(e => {
@@ -313,15 +314,15 @@ test('empty required controls show required-value chrome', async ({page}) => {
             },
             checkbox: {
                 missing: checkbox.validity.valueMissing,
-                outline: getComputedStyle(checkbox.closest('label')!).outlineStyle,
+                outline: getComputedStyle(checkbox.closest('label')!, '::before').borderStyle,
                 indicator: getComputedStyle(checkbox.closest('label')!, '::after').content,
             },
         }
     })
 
-    expect(requiredChrome.textbox).toEqual({missing: true, outline: 'dashed', indicator: '"!"'})
-    expect(requiredChrome.dropdown).toEqual({missing: true, outline: 'dashed', indicator: '"!"'})
-    expect(requiredChrome.checkbox).toEqual({missing: true, outline: 'dashed', indicator: '"!"'})
+    expect(requiredChrome.textbox).toEqual({missing: true, outline: 'dashed', indicator: '"✲"'})
+    expect(requiredChrome.dropdown).toEqual({missing: true, outline: 'dashed', indicator: '"✲"'})
+    expect(requiredChrome.checkbox).toEqual({missing: true, outline: 'dashed', indicator: '"✲"'})
 })
 
 test('section rules and natural columns retain usable control floors', async ({page}) => {
