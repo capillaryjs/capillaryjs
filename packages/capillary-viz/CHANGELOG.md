@@ -6,6 +6,8 @@ and Semantic Versioning.
 
 ## Unreleased
 
+## 1.1.0 - 2026-09-18
+
 ### Changed
 
 - Use flexbox for single-axis selection-panel stacks and BlockGraph label

@@ -6,6 +6,8 @@ Versioning.
 
 ## Unreleased
 
+## 1.3.0 - 2026-09-18
+
 ### Added
 
 - Add optional `DiagnosticConsumerDetails` to protocol-v1 events, reporting UI

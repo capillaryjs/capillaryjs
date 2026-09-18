@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 1.1.0 - 2026-09-18
+
 ### Changed
 
 - Use flexbox for the inspector's single-axis stacks and root list, retaining
