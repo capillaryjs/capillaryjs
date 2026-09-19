@@ -117,6 +117,7 @@ jobs:
         run: >-
           node scripts/stage-release.mjs stage
           --release-plan "$RELEASE_PLAN"
+          --recover-existing
 
       - name: Record human promotion instructions
         run: |

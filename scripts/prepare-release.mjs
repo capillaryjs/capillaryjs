@@ -15,10 +15,10 @@ import {
 const root = resolve(fileURLToPath(new URL('..', import.meta.url)))
 
 try {
-    const {command, releasePlan} = parseArguments(process.argv.slice(2))
+    const {command, releasePlan, corrections} = parseArguments(process.argv.slice(2))
     const plan = parseReleasePlan(releasePlan)
-    assert(command === 'prepare', 'command must be prepare')
-    const result = prepare(plan)
+    assert(['prepare', 'plan', 'check'].includes(command), 'command must be prepare, plan or check')
+    const result = prepare(plan, command, corrections)
     console.log(JSON.stringify(result))
 } catch (error) {
     console.error(`[prepare-release] ${error instanceof Error ? error.message : String(error)}`)
@@ -28,16 +28,18 @@ try {
 function parseArguments(args) {
     const command = args.shift()
     let releasePlan
+    let corrections = false
     while (args.length > 0) {
         const flag = args.shift()
+        if (flag === '--include-corrections') { corrections = true; continue }
         assert(flag === '--release-plan', `unknown option: ${flag}`)
         releasePlan = args.shift()
         assert(releasePlan, '--release-plan requires a value')
     }
-    return {command, releasePlan}
+    return {command, releasePlan, corrections}
 }
 
-function prepare(plan) {
+function prepare(plan, command, corrections) {
     const selectedByKey = new Map(plan.packages.map((entry) => [entry.key, entry]))
     const manifests = new Map(plan.packages.map((entry) => [entry.key, readManifest(entry)]))
     const allManifests = new Map(['capillary', 'capillaryUi', ...plan.packages.map(({key}) => key)].map((key) => {
@@ -48,26 +50,35 @@ function prepare(plan) {
         `packages/${directory}/package.json`, changelog,
     ])
     const initialChanges = changedPaths()
-    assert(initialChanges.every((path) => allowedPaths.includes(path)),
+    assert(corrections || initialChanges.every((path) => allowedPaths.includes(path)),
         `framework has unrelated changes: ${initialChanges.filter((path) => !allowedPaths.includes(path)).join(', ')}`)
 
     const desired = desiredMetadata(plan, allManifests)
+    const edits = [...desired].filter(([path, after]) => readFile(path) !== after)
+        .map(([path, after]) => ({path, before: readFile(path), after}))
     const alreadyPrepared = [...desired].every(([path, contents]) => readFile(path) === contents)
+    if (command === 'plan') {
+        assert(corrections || alreadyPrepared || initialChanges.length === 0,
+            'framework has release metadata changes; choose the corrected-candidate flow to include them')
+        return {schemaVersion: 1, edits, changedPaths: initialChanges}
+    }
+    assert(command !== 'check' || alreadyPrepared, 'release metadata changed; correct the candidate before continuing')
     if (!alreadyPrepared) {
-        assert(initialChanges.length === 0,
+        assert(corrections || initialChanges.length === 0,
             'framework has release metadata changes that do not match this release plan; reject or restore them before preparing')
         for (const [path, contents] of desired) writeFile(path, contents)
     }
 
     const changes = changedPaths()
-    assert(changes.every((path) => allowedPaths.includes(path)),
+    assert(corrections || changes.every((path) => allowedPaths.includes(path)),
         `release preparation encountered an unrelated framework change: ${changes.filter((path) => !allowedPaths.includes(path)).join(', ')}`)
     return {
         schemaVersion: 1,
         state: alreadyPrepared ? 'already-prepared' : 'prepared',
         releasePlan: plan,
         changedPaths: changes,
-        treeFingerprint: candidateTree(allowedPaths),
+        treeFingerprint: candidateTree(corrections ? [...new Set([...allowedPaths, ...changes])] : allowedPaths),
+        sourceSha: git(['rev-parse', 'HEAD']).trim(),
     }
 }
 
@@ -125,10 +136,14 @@ function readManifestByKey(key) {
 }
 
 function changedPaths() {
-    return git(['status', '--porcelain', '--untracked-files=all'])
-        .split('\n')
-        .filter(Boolean)
-        .map((line) => line.slice(3).trim().replace(/^.* -> /, ''))
+    const entries = git(['status', '--porcelain', '-z', '--untracked-files=all']).split('\0').filter(Boolean)
+    const paths = []
+    for (let index = 0; index < entries.length; index++) {
+        const entry = entries[index]
+        paths.push(entry.slice(3))
+        if (/[RC]/.test(entry.slice(0, 2))) paths.push(entries[++index])
+    }
+    return [...new Set(paths)].sort()
 }
 
 function readFile(path) {

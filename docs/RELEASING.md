@@ -39,7 +39,11 @@ For each selected package:
 
 The repository's preparation tooling validates this shape and records an exact
 candidate fingerprint. Re-running the identical plan is safe; do not hand-edit
-the candidate after verification.
+the candidate after verification without explicitly returning it to correction
+and verification. `prepare-release.mjs plan` is read-only and declares metadata
+before/after images; `check` validates prepared metadata without changing it.
+The private desktop app journals and applies those images. Explicit
+`--include-corrections` also fingerprints selected current source edits.
 
 ## 2. Verify the candidate
 
@@ -52,6 +56,12 @@ pnpm verify:release
 It runs formatting, lint, tooling tests, builds, type checks, package tests,
 consumer type checks, the browser/accessibility matrix, tarball and external
 consumer checks, a public source scan, and the release preflight.
+
+The desktop uses `scripts/verification-gates.mjs <absolute-receipt-file>` to run
+these named gates with durable per-gate results. Exact matching source,
+configuration, environment/toolchain and output digests permit reuse on retry.
+Changed inputs rerun checks conservatively. Corrupt receipt files are preserved
+and rebuilt by running the checks; they never count as a passing gate.
 
 The tool automatically validates:
 
@@ -137,8 +147,11 @@ attempt rather than attempting a direct working-tree publish.
 - If verification fails, fix the source or test and create a new candidate.
   Never promote artifacts from a failing run.
 - If a dependency stages but a dependant fails, inspect the pending stage and
-  correct the cause. Stage only the missing package when the release tooling
-  identifies that recovery path.
+  correct the cause. `stage-release.mjs stage --recover-existing` (enabled by
+  `release.yml`) downloads and compares existing exact stages/public versions
+  with the retained report, skips matching bytes, and stages only missing
+  packages. Mismatching or ambiguous stage identities fail closed. Older
+  candidate workflows without this flag cannot use missing-only recovery.
 - Reject an unwanted pending stage with npmjs.com or
   `npm stage reject <stage-id>`. Rejection requires 2FA and does not change
   public package history.

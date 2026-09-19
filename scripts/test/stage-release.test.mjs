@@ -123,7 +123,7 @@ test('GitHub Packages mirror verifies an existing immutable version before it pu
     assert.doesNotMatch(workflow, /for tarball in \.artifacts\/release\/packages\/\*\.tgz/)
 })
 
-function createFixture({published, missingPackage, stalePeer = false, version = '0.1.0-alpha.2'} = {}) {
+function createFixture({published, missingPackage, existingStage = false, mismatchedStage = false, stalePeer = false, version = '0.1.0-alpha.2'} = {}) {
     const root = mkdtempSync(path.join(os.tmpdir(), 'stage-release-'))
     mkdirSync(path.join(root, 'scripts'), {recursive: true})
     mkdirSync(path.join(root, 'packages', 'capillary'), {recursive: true})
@@ -174,6 +174,20 @@ function createFixture({published, missingPackage, stalePeer = false, version = 
     writeFileSync(log, '')
     writeFileSync(path.join(bin, 'npm'), `#!/bin/sh
 printf '%s\\n' "$*" >> "${log}"
+if [ "$1" = stage ] && [ "$2" = list ]; then
+  if [ "$3" = '@capillaryjs/capillary' ] && [ '${existingStage}' = true ]; then
+    printf '%s\\n' '{"stages":[{"id":"fixture-stage","name":"@capillaryjs/capillary","version":"${version}","tag":"${version.includes('-') ? 'next' : 'latest'}","status":"ready"}]}'
+  else printf '[]\\n'; fi
+  exit 0
+fi
+if [ "$1" = stage ] && [ "$2" = download ]; then
+  cp '${path.join(root, '.artifacts/release/packages', entries[mismatchedStage ? 1 : 0].filename)}' ./download.tgz
+  exit 0
+fi
+if [ "$1" = pack ]; then
+  cp '${path.join(root, '.artifacts/release/packages', entries[0].filename)}' ./published.tgz
+  exit 0
+fi
 if [ "$1" = view ]; then
   if [ "$3" = name ]; then
     case "$2" in
@@ -206,7 +220,7 @@ exit 0
     }
 }
 
-function invoke(fixture, command, keys, extraEnv = {}, {separator = false, missingNotesApproval} = {}) {
+function invoke(fixture, command, keys, extraEnv = {}, {separator = false, missingNotesApproval, recoverExisting = false} = {}) {
     const separatorArgument = separator ? ['--'] : []
     const releasePlan = JSON.stringify({
         schemaVersion: 1,
@@ -217,9 +231,42 @@ function invoke(fixture, command, keys, extraEnv = {}, {separator = false, missi
         path.join(fixture.root, 'scripts', 'stage-release.mjs'),
         command, ...separatorArgument,
         '--release-plan', releasePlan,
+        ...(recoverExisting ? ['--recover-existing'] : []),
     ], {
         cwd: fixture.root,
         encoding: 'utf8',
         env: {...process.env, PATH: fixture.path, ...extraEnv},
     })
 }
+
+test('partial staging recovery retains matching stage A and creates only missing B', () => {
+    const fixture = createFixture({existingStage: true})
+    const result = invoke(fixture, 'stage', ['capillary', 'capillaryUi'], {
+        GITHUB_ACTIONS: 'true', GITHUB_REF: 'refs/heads/main',
+    }, {recoverExisting: true})
+    assert.equal(result.status, 0, result.stderr)
+    const publishes = readFileSync(fixture.log, 'utf8').split('\n').filter((line) => line.startsWith('stage publish'))
+    assert.equal(publishes.length, 1)
+    assert.match(publishes[0], /capillary-ui-/)
+    assert.match(result.stdout, /exact stage fixture-stage retained/)
+})
+
+test('partial staging recovery refuses mismatching existing bytes before creating missing stages', () => {
+    const fixture = createFixture({existingStage: true, mismatchedStage: true})
+    const result = invoke(fixture, 'stage', ['capillary', 'capillaryUi'], {
+        GITHUB_ACTIONS: 'true', GITHUB_REF: 'refs/heads/main',
+    }, {recoverExisting: true})
+    assert.equal(result.status, 1)
+    assert.match(result.stderr, /existing artifact differs/)
+    assert.doesNotMatch(readFileSync(fixture.log, 'utf8'), /stage publish/)
+})
+
+test('stage recovery verifies already published immutable bytes and does not publish again', () => {
+    const fixture = createFixture({published: 'capillary'})
+    const result = invoke(fixture, 'stage', ['capillary'], {
+        GITHUB_ACTIONS: 'true', GITHUB_REF: 'refs/heads/main',
+    }, {recoverExisting: true})
+    assert.equal(result.status, 0, result.stderr)
+    assert.match(result.stdout, /already public with exact bytes/)
+    assert.doesNotMatch(readFileSync(fixture.log, 'utf8'), /stage publish/)
+})

@@ -142,6 +142,33 @@ function invoke(root, plan) {
     ], {cwd: root, encoding: 'utf8'})
 }
 
+test('read-only plan declares before and after images and check cannot rewrite drifted metadata', () => {
+    const fixture = createFixture()
+    const plan = releasePlan([{key: 'capillary', version: '0.5.1', tag: 'latest'}])
+    const planned = spawnSync(process.execPath, [path.join(fixture, 'scripts/prepare-release.mjs'), 'plan', '--release-plan', plan], {cwd: fixture, encoding: 'utf8'})
+    assert.equal(planned.status, 0, planned.stderr)
+    const report = JSON.parse(planned.stdout)
+    assert.equal(report.edits.length, 2)
+    assert.equal(readJson(fixture, 'packages/capillary/package.json').version, '0.5.0')
+    const checked = spawnSync(process.execPath, [path.join(fixture, 'scripts/prepare-release.mjs'), 'check', '--release-plan', plan], {cwd: fixture, encoding: 'utf8'})
+    assert.equal(checked.status, 1)
+    assert.equal(readJson(fixture, 'packages/capillary/package.json').version, '0.5.0')
+    assert.equal(spawnSync('git', ['status', '--porcelain'], {cwd: fixture, encoding: 'utf8'}).stdout, '')
+})
+
+test('explicit corrections include dirty source in the fingerprint without staging it', () => {
+    const fixture = createFixture()
+    const plan = releasePlan([{key: 'capillary', version: '0.5.1', tag: 'latest'}])
+    const prepared = invoke(fixture, plan)
+    assert.equal(prepared.status, 0, prepared.stderr)
+    writeFileSync(path.join(fixture, 'fix with spaces.txt'), 'source correction\n')
+    const corrected = spawnSync(process.execPath, [path.join(fixture, 'scripts/prepare-release.mjs'), 'check', '--release-plan', plan, '--include-corrections'], {cwd: fixture, encoding: 'utf8'})
+    assert.equal(corrected.status, 0, corrected.stderr)
+    assert.notEqual(JSON.parse(corrected.stdout).treeFingerprint, JSON.parse(prepared.stdout).treeFingerprint)
+    assert.ok(JSON.parse(corrected.stdout).changedPaths.includes('fix with spaces.txt'))
+    assert.equal(spawnSync('git', ['diff', '--cached', '--name-only'], {cwd: fixture, encoding: 'utf8'}).stdout, '')
+})
+
 function readJson(root, relativePath) {
     return JSON.parse(readFileSync(path.join(root, relativePath), 'utf8'))
 }
