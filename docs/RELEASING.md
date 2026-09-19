@@ -28,6 +28,15 @@ package/version, represented in its plan by `missingNotesApproval`, the SHA-256
 of the exact original changelog. Preparation otherwise rejects absent notes.
 An approved exception creates a dated entry recording that notes were omitted
 with maintainer approval. Existing prepared notes are recognized on recovery.
+If the requested version already appears in the changelog while `Unreleased`
+still has substantive notes, preparation stops rather than reusing the older
+entry. Reconcile the historical heading (for example, qualify a pre-rename
+package's headings with its old name), then use the desktop tool's
+corrected-candidate action. A different target version requires a new plan.
+The desktop tool additionally compares candidate and historical notes against
+the prior published npm changelog. Intentional repairs to incorrect history
+require explicit confirmation of the reported evidence; this does not bypass
+verification or candidate/publication approval.
 
 For each selected package:
 

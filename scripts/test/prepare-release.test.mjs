@@ -54,6 +54,33 @@ test('refuses preparation when unrelated framework changes are present', () => {
     assert.match(result.stderr, /unrelated changes: unrelated\.txt/)
 })
 
+test('refuses a stale target heading instead of reusing it as current release notes', () => {
+    const fixture = createFixture()
+    const filename = path.join(fixture, 'packages/capillary/CHANGELOG.md')
+    writeFileSync(filename, `# Changelog
+
+## Unreleased
+
+### Fixed
+
+- Current release note.
+
+## 0.5.1 - 2026-09-01
+
+### Added
+
+- Historical release note.
+`)
+    git(fixture, ['add', '.'])
+    git(fixture, ['commit', '-m', 'historical target heading'])
+
+    const result = invoke(fixture, releasePlan([{key: 'capillary', version: '0.5.1', tag: 'latest'}]))
+
+    assert.equal(result.status, 1)
+    assert.match(result.stderr, /already contains 0\.5\.1 while Unreleased has substantive notes/)
+    assert.equal(readJson(fixture, 'packages/capillary/package.json').version, '0.5.0')
+})
+
 test('missing notes require an exact exception and remain valid on repeated preparation', () => {
     const fixture = createFixture()
     const filename = path.join(fixture, 'packages/capillary/CHANGELOG.md')

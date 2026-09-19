@@ -6,6 +6,12 @@ and Semantic Versioning.
 
 ## Unreleased
 
+### Changed
+
+- Qualify predecessor Fray Visualization release headings so their historical
+  versions cannot be mistaken for Capillary Viz releases. Existing notes and
+  dates are retained.
+
 ## 1.1.0 - 2026-09-18
 
 ### Changed
@@ -43,7 +49,12 @@ and Semantic Versioning.
   symbols and `cap-*` custom-element/CSS surface. Existing released entries
   below retain their historical names.
 
-## 0.12.0 - 2026-09-13
+## Historical Fray Visualization releases
+
+The entries below describe the predecessor package before the CapillaryJS
+rename. Their versions belong to Fray Visualization, not to this package.
+
+## Fray Visualization 0.12.0 - 2026-09-13
 
 ### Changed
 
@@ -54,7 +65,7 @@ and Semantic Versioning.
   `BlockGraph`, `LineGraph`, `CategoryHidePanel`, and `SplitSelectionPanel`
   hosts plus the `CollapsibleOptionGroup` collapse toggle.
 
-## 0.11.1 - 2026-09-08
+## Fray Visualization 0.11.1 - 2026-09-08
 
 ### Fixed
 
@@ -64,7 +75,7 @@ and Semantic Versioning.
 - Published npm packages now include this changelog alongside their release
   history.
 
-## 0.11.0 - 2026-09-08
+## Fray Visualization 0.11.0 - 2026-09-08
 
 ### Added
 
@@ -77,7 +88,7 @@ and Semantic Versioning.
 - `CategoryHidePanel` now uses `CollapsibleOptionGroup` instead of `OptionGroup`
   for each criterion, giving each criterion group an expand/collapse toggle.
 
-## 0.10.0 - 2026-09-08
+## Fray Visualization 0.10.0 - 2026-09-08
 
 ### Changed
 
@@ -98,7 +109,7 @@ and Semantic Versioning.
 - Reduced the criterion-group gap in `CategoryHidePanel` from `1.5em` to
   `1em` for a denser, more compact panel layout.
 
-## 0.9.1 - 2026-09-07
+## Fray Visualization 0.9.1 - 2026-09-07
 
 ### Changed
 
@@ -107,7 +118,7 @@ and Semantic Versioning.
 - Restored the framework overview's explanation of how the optional
   visualization layer fits the direct Glue-to-Fray application model.
 
-## 0.9.0 - 2026-09-07
+## Fray Visualization 0.9.0 - 2026-09-07
 
 ### Changed
 
@@ -124,7 +135,7 @@ and Semantic Versioning.
   structure: a bordered control group with a normal chromed Header presented
   vertically at the left. Category criterion summaries remain horizontal.
 
-## 0.8.0 - 2026-09-06
+## Fray Visualization 0.8.0 - 2026-09-06
 
 ### Changed
 
@@ -150,19 +161,19 @@ and Semantic Versioning.
   controls under compact Shiny sizing.
 - Enabled strict TypeScript compiler checking.
 
-## 0.7.0 - 2026-09-04
+## Fray Visualization 0.7.0 - 2026-09-04
 
 - No public visualization API changes; version synchronized with the framework
   release.
 
-## 0.6.0 - 2026-09-04
+## Fray Visualization 0.6.0 - 2026-09-04
 
 ### Changed
 
 - Visualization surfaces participate in the prefix-free Fray theme/color trait
   migration.
 
-## 0.5.0 - 2026-09-03
+## Fray Visualization 0.5.0 - 2026-09-03
 
 ### Added
 

@@ -8,6 +8,27 @@ Versioning.
 
 ### Fixed
 
+- Keep DataTable header borders and column dividers visible while rows scroll,
+  and use the theme's table-header background and text tokens consistently.
+- Show both sort directions on unsorted table columns and render a
+  font-independent filter funnel that remains legible at compact header sizes.
+- Apply the Capillary theme's alternating table-row colors through the tokens
+  consumed by table rows.
+
+### Changed
+
+- Correct the changelog's package/version boundaries: distinguish historical
+  Fray releases and identify notes already shipped in Capillary UI 1.3.0.
+
+## 1.3.0 - 2026-09-18
+
+Historical correction: the following notes were shipped under `Unreleased` in
+the published 1.3.0 package. They include changes introduced in earlier
+Capillary UI releases; they are retained here as the shipped record, not as
+new changes in the next release.
+
+### Fixed
+
 - Set the default GroupBox content gap independently from island spacing, using
   a compact 2px rhythm for controls inside a GroupBox.
 
@@ -196,7 +217,13 @@ Versioning.
   CSS/data namespaces to the `cap-*` prefix. Existing released entries below
   retain their historical names.
 
-## 1.4.0 - 2026-09-13
+## Historical Fray releases
+
+The entries below describe released `@sylwellsoftware/fray` versions before the
+package was renamed to `@capillaryjs/capillary-ui`. They are retained as
+historical release notes and are not Capillary UI release versions.
+
+## Fray 1.4.0 - 2026-09-13
 
 ### Added
 
@@ -342,7 +369,7 @@ Versioning.
   `RadioGroup`, `DatePicker`, `DateTimePicker`, and `TimePicker`, which were
   missing from the stylesheet manifest.
 
-## 1.3.1 - 2026-09-08
+## Fray 1.3.1 - 2026-09-08
 
 ### Fixed
 
@@ -352,7 +379,7 @@ Versioning.
 - Published npm packages now include this changelog alongside their release
   history.
 
-## 1.3.0 - 2026-09-08
+## Fray 1.3.0 - 2026-09-08
 
 ### Added
 
@@ -376,7 +403,7 @@ Versioning.
 - Shiny now presents `NavigationBar` as a light, text-link navigation strip
   beneath application chrome instead of a dark action-bar surface.
 
-## 1.2.0 - 2026-09-08
+## Fray 1.2.0 - 2026-09-08
 
 ### Added
 
@@ -414,7 +441,7 @@ Versioning.
   the published text color as well as typography.
 - RadioGroup basic rendering adjusted
 
-## 1.1.1 - 2026-09-07
+## Fray 1.1.1 - 2026-09-07
 
 ### Changed
 
@@ -425,7 +452,7 @@ Versioning.
   semantics, meaningful HTML/CSS separation, and the complementary intent
   behind the Glue and Fray names.
 
-## 1.1.0 - 2026-09-07
+## Fray 1.1.0 - 2026-09-07
 
 ### Added
 
@@ -458,7 +485,7 @@ Versioning.
   `--font-size`, and `--line-height` tokens, preventing inherited controls and
   native content from falling back to the browser's serif defaults.
 
-## 1.0.0 - 2026-09-06
+## Fray 1.0.0 - 2026-09-06
 
 ### Added
 
@@ -540,7 +567,7 @@ Versioning.
 - Multi-state Checkbox variants synchronize the native checked property after
   every semantic transition.
 
-## 0.7.0 - 2026-09-04
+## Fray 0.7.0 - 2026-09-04
 
 ### Added
 
@@ -556,7 +583,7 @@ Versioning.
   inherit their mounted route lineage without changing Glue or unrouted
   component behavior.
 
-## 0.6.0 - 2026-09-04
+## Fray 0.6.0 - 2026-09-04
 
 ### Added
 
@@ -574,7 +601,7 @@ Versioning.
 - Theme/color root attributes and public custom properties are prefix-free;
   see the semantic-markup and theming migration guidance.
 
-## 0.5.0 - 2026-09-03
+## Fray 0.5.0 - 2026-09-03
 
 ### Changed
 
@@ -582,7 +609,7 @@ Versioning.
   the checked state, so native checkbox interactions remain correct for
   bindings such as `visible`/`hidden`.
 
-## 0.4.0 - 2026-09-03
+## Fray 0.4.0 - 2026-09-03
 
 ### Added
 
@@ -594,7 +621,7 @@ Versioning.
 - Application services are registered at the composition root and inherited by
   nested class components without service prop-drilling.
 
-## 0.3.0 - 2026-09-03
+## Fray 0.3.0 - 2026-09-03
 
 ### Added
 
@@ -614,7 +641,7 @@ Versioning.
 - `DataTable` uses one of `data`, `dataSource`, or `rest` instead of legacy
   query/REST props.
 
-## 0.2.0 - 2026-09-03
+## Fray 0.2.0 - 2026-09-03
 
 ### Added
 
@@ -627,7 +654,7 @@ Versioning.
   colors, and published package checks validate CSS subpaths.
 - Fray's Glue peer range follows the compatible Glue `0.2.x` line.
 
-## 0.1.0-alpha.1 - 2026-09-02
+## Fray 0.1.0-alpha.1 - 2026-09-02
 
 ### Added
 

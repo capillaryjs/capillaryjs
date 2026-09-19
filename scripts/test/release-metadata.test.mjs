@@ -28,6 +28,26 @@ test('an approved missing section creates an honest version entry and retains pl
     assert.equal(parseReleasePlan(formatReleasePlan(plan)).packages[0].missingNotesApproval, missingNotesApproval)
 })
 
+test('refuses a historical target version when Unreleased contains current notes', () => {
+    const contents = `# Changelog
+
+## Unreleased
+
+### Fixed
+
+- Correct the current release.
+
+## 1.4.0 - 2026-09-13
+
+### Added
+
+- Historical release note.
+`
+
+    assert.throws(() => promoteUnreleased(contents, '1.4.0', '2026-09-19'),
+        /already contains 1\.4\.0 while Unreleased has substantive notes/)
+})
+
 test('release metadata accepts changing stable and prerelease versions', () => {
     assert.equal(isExactSemanticVersion('0.1.0-alpha.1'), true)
     assert.equal(isExactSemanticVersion('0.2.0'), true)

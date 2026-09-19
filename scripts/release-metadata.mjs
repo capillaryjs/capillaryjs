@@ -117,7 +117,10 @@ export function hasSubstantiveReleaseNotes(notes) {
 
 export function promoteUnreleased(contents, version, releaseDate, missingNotesApproval) {
     const approved = missingNotesApproval === createHash('sha256').update(contents).digest('hex')
+    const unreleasedNotes = markdownSection(contents, 'Unreleased')
     if (changelogHasRelease(contents, version)) {
+        assert(!hasSubstantiveReleaseNotes(unreleasedNotes ?? ''),
+            `CHANGELOG.md already contains ${version} while Unreleased has substantive notes; choose a new version or reconcile the historical changelog before preparing`)
         const escaped = version.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
         const match = new RegExp(`^## ${escaped}(?: - \\d{4}-\\d{2}-\\d{2})?[ \\t]*$`, 'm').exec(contents)
         const start = match.index + match[0].length
@@ -147,6 +150,15 @@ export function promoteUnreleased(contents, version, releaseDate, missingNotesAp
     const updated = `${contents.slice(0, start)}${heading}\n\n`
         + `## ${version} - ${releaseDate}\n\n${notes}\n${suffix.replace(/^\n?/, '\n')}`
     return updated.endsWith('\n') ? updated : `${updated}\n`
+}
+
+function markdownSection(contents, heading) {
+    const escaped = heading.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+    const match = new RegExp(`^## ${escaped}[ \\t]*$`, 'm').exec(contents)
+    if (!match) return undefined
+    const start = match.index + match[0].length
+    const next = contents.indexOf('\n## ', start)
+    return contents.slice(start, next < 0 ? contents.length : next)
 }
 
 function packageIndex(key) {

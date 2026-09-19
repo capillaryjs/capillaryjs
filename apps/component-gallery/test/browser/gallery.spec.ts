@@ -34,27 +34,39 @@ for (const theme of ['shiny', 'capillary', 'soft', 'minimal', 'white']) {
             return link?.dataset.capSelection === theme && link.sheet?.href === link.href
         }, theme)
         const surfaces = page.locator('.gallery-sidebar, #gallery-line-inputs')
-        // WebKit can expose the replacement stylesheet before it has applied
-        // its layered declarations. Wait for the chrome this test is about to
-        // inspect, rather than treating that brief transition as missing paint.
+        // WebKit serializes inherited custom properties on component hosts as
+        // their fallback values, even while it paints their resolved values.
+        // Wait for the root token (where WebKit reports it faithfully), then
+        // assert the actual pixels below rather than that serialization.
         if (['shiny', 'capillary', 'soft'].includes(theme)) {
-            await expect.poll(() => surfaces.evaluateAll(elements =>
-                elements.every(element => getComputedStyle(element).boxShadow !== 'none'),
-            )).toBe(true)
+            await expect.poll(() => page.evaluate(() =>
+                getComputedStyle(document.documentElement).getPropertyValue('--island-shadow').trim(),
+            )).not.toBe('none')
+        }
+        await page.evaluate(() => new Promise<void>(resolve =>
+            requestAnimationFrame(() => requestAnimationFrame(resolve)),
+        ))
+        if (theme === 'white') {
+            const chrome = await page.evaluate(() => {
+                const style = getComputedStyle(document.documentElement)
+                return {
+                    shadow: style.getPropertyValue('--island-shadow').trim(),
+                    border: style.getPropertyValue('--island-border').trim(),
+                }
+            })
+            expect(chrome.shadow).toBe('none')
+            expect(parseFloat(chrome.border)).toBe(0)
         }
         // Shell headers delegate spacing to their children in every theme,
         // even when the theme gives ordinary islands nonzero padding.
         await expect(page.locator('cap-app > header.island')).toHaveCSS('padding', '0px')
-        const samples = await surfaces.evaluateAll((elements, theme) => elements.map(e => {
+        const samples = await surfaces.evaluateAll((elements, selectedTheme) => elements.map(e => {
             const r = e.getBoundingClientRect()
-            const s = getComputedStyle(e)
             const y = Math.min(r.top + r.height / 2, innerHeight - 30)
             return {
                 id: e.id,
                 style: e.getAttribute('style'),
-                shadow: s.boxShadow,
-                border: parseFloat(s.borderLeftWidth),
-                points: (theme === 'white' ? [] : [
+                points: (selectedTheme === 'white' ? [] : [
                     ...[1, 2, 3].map(d => ({x: r.left - d, y})),
                     ...[0, 1, 2].map(d => ({x: r.right + d, y})),
                     {x: r.left + 0.1, y}, {x: r.right - 0.1, y},
@@ -76,20 +88,14 @@ for (const theme of ['shiny', 'capillary', 'soft', 'minimal', 'white']) {
                 const differences = sample.points.map((_, j) => Math.max(...painted[i * 8 + j]!
                     .map((channel, k) => Math.abs(channel - bare[i * 8 + j]![k]!))))
                 if (['shiny', 'capillary', 'soft'].includes(theme)) {
-                    expect(sample.shadow, sample.id).not.toBe('none')
                     expect(Math.max(...differences.slice(0, 3)), `${sample.id} left shadow pixels`).toBeGreaterThan(0)
                     if (theme !== 'soft') {
                         expect(Math.max(...differences.slice(3, 6)), `${sample.id} right shadow pixels`).toBeGreaterThan(0)
                     }
                 }
                 if (['capillary', 'minimal'].includes(theme)) {
-                    expect(sample.border, sample.id).toBeGreaterThan(0)
                     expect(differences[6], `${sample.id} left border pixels`).toBeGreaterThan(0)
                     expect(differences[7], `${sample.id} right border pixels`).toBeGreaterThan(0)
-                }
-                if (theme === 'white') {
-                    expect(sample.shadow).toBe('none')
-                    expect(sample.border).toBe(0)
                 }
             }
         } finally {

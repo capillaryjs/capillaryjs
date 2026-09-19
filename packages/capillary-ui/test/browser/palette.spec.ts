@@ -1,5 +1,6 @@
-import {expect, test, type Page} from '@playwright/test'
+import {expect, test, type Locator, type Page} from '@playwright/test'
 import {readFile} from 'node:fs/promises'
+import {screenshotPixels} from './paint.js'
 
 const colors = ['iceblue', 'ocean', 'green', 'gray', 'orange', 'purple', 'red', 'yellow']
 const legacySurfaces = [[245, 247, 248, 255], [235, 239, 243, 255], [215, 222, 227, 255]]
@@ -31,6 +32,28 @@ async function surfaceColors(page: Page): Promise<[number, number, number, numbe
             probe.remove()
         }
     }, uiAliases)
+}
+
+/** Samples corners of each rendered surface, outside text and other content.
+ * This checks the real gradient/paint contract without making a whole-image
+ * comparison sensitive to WebKit font antialiasing. */
+async function surfacePixels(page: Page, locators: readonly Locator[]): Promise<number[][]> {
+    const pixels: number[][] = []
+    for (const locator of locators) {
+        await locator.scrollIntoViewIfNeeded()
+        const points = await locator.evaluate(element => {
+            const rect = element.getBoundingClientRect()
+            const inset = 3
+            return [
+                {x: rect.left + inset, y: rect.top + inset},
+                {x: rect.right - inset, y: rect.top + inset},
+                {x: rect.left + inset, y: rect.bottom - inset},
+                {x: rect.right - inset, y: rect.bottom - inset},
+            ]
+        })
+        pixels.push(...await screenshotPixels(page, points))
+    }
+    return pixels
 }
 
 test.beforeEach(async ({page}) => {
@@ -104,8 +127,8 @@ test('Shiny retains legacy panel, table, and button pixels while chrome responds
         // even when the endpoint bytes are identical; the surface regression
         // above covers those bytes. These three legacy surfaces retain pixels.
         const pixelComponents = [panel, header, button]
-        const images = []
-        for (const component of pixelComponents) images.push(await component.screenshot({animations: 'disabled'}))
+        const pixelComponentNames = ['panel', 'table header', 'button']
+        const derivedPixels = await surfacePixels(page, pixelComponents)
         const legacyStyle = await page.addStyleTag({content: `:root {
             --ui-primary-bg-color: #f5f7f8;
             --ui-medium-bg-color: #ebeff3;
@@ -114,14 +137,10 @@ test('Shiny retains legacy panel, table, and button pixels while chrome responds
             --ui-gradient-2: linear-gradient(to bottom, var(--ui-primary-bg-color) 9px, var(--ui-primary-bg-color) 13px, var(--ui-dark-bg-color) 100%);
             --progress-track-background: linear-gradient(0deg, var(--ui-dark-bg-color) 0%, #f0f0f0 100%);
         }`})
-        for (const [index, component] of pixelComponents.entries()) {
-            const legacyImage = await component.screenshot({animations: 'disabled'})
-            const derivedImage = images[index]!
-            if (!legacyImage.equals(derivedImage)) {
-                await test.info().attach(`derived-${index}`, {body: derivedImage, contentType: 'image/png'})
-                await test.info().attach(`legacy-${index}`, {body: legacyImage, contentType: 'image/png'})
-            }
-            expect(legacyImage.equals(derivedImage), `Shiny component ${index} matches legacy pixels`).toBe(true)
+        const legacyPixels = await surfacePixels(page, pixelComponents)
+        for (const [index] of pixelComponents.entries()) {
+            expect(legacyPixels.slice(index * 4, index * 4 + 4), `${pixelComponentNames[index]} matches legacy surface pixels`)
+                .toEqual(derivedPixels.slice(index * 4, index * 4 + 4))
         }
         await legacyStyle.evaluate((element) => element.parentNode?.removeChild(element))
 

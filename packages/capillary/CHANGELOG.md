@@ -6,6 +6,11 @@ Versioning.
 
 ## Unreleased
 
+### Changed
+
+- Qualify predecessor Glue release headings so their historical versions cannot
+  be mistaken for Capillary releases. Existing notes and dates are retained.
+
 ## 1.3.0 - 2026-09-18
 
 ### Added
@@ -50,7 +55,12 @@ Versioning.
   `Capillary*`/`capillary*`. Existing released entries below retain their
   historical names.
 
-## 0.10.0 - 2026-09-13
+## Historical Glue releases
+
+The entries below describe the predecessor package before the CapillaryJS
+rename. Their versions belong to Glue, not to this package.
+
+## Glue 0.10.0 - 2026-09-13
 
 ### Added
 
@@ -62,14 +72,14 @@ Versioning.
   attempts and abort/dispose cancels pending retry timers. Retry policy or
   scheduler failures settle as terminal errors rather than remaining loading.
 
-## 0.9.1 - 2026-09-08
+## Glue 0.9.1 - 2026-09-08
 
 ### Fixed
 
 - Published npm packages now include this changelog alongside their release
   history.
 
-## 0.9.0 - 2026-09-08
+## Glue 0.9.0 - 2026-09-08
 
 ### Added
 
@@ -83,7 +93,7 @@ Versioning.
   activation. Existing `autoFetch` behavior remains compatible and is
   mutually exclusive with the named policy.
 
-## 0.8.1 - 2026-09-07
+## Glue 0.8.1 - 2026-09-07
 
 ### Changed
 
@@ -93,7 +103,7 @@ Versioning.
   relationships direct instead of maintaining a framework-shaped copy of
   application state, including the intent behind the Glue name.
 
-## 0.8.0 - 2026-09-06
+## Glue 0.8.0 - 2026-09-06
 
 ### Added
 
@@ -103,19 +113,19 @@ Versioning.
 
 - Enabled strict TypeScript compiler checking.
 
-## 0.7.0 - 2026-09-04
+## Glue 0.7.0 - 2026-09-04
 
 - No public Glue API changes; version synchronized with the framework release.
 
-## 0.6.0 - 2026-09-04
+## Glue 0.6.0 - 2026-09-04
 
 - No public Glue API changes; version synchronized with the framework release.
 
-## 0.5.0 - 2026-09-03
+## Glue 0.5.0 - 2026-09-03
 
 - No public Glue API changes; version synchronized with the framework release.
 
-## 0.4.0 - 2026-09-03
+## Glue 0.4.0 - 2026-09-03
 
 ### Added
 
@@ -134,15 +144,15 @@ Versioning.
 - Command-triggered query reconciliation is application-owned; refreshed query
   failures do not alter the settled command state.
 
-## 0.3.0 - 2026-09-03
+## Glue 0.3.0 - 2026-09-03
 
 - No public Glue API changes; version synchronized with the framework release.
 
-## 0.2.0 - 2026-09-03
+## Glue 0.2.0 - 2026-09-03
 
 - No public Glue API changes; version synchronized with the framework release.
 
-## 0.1.0-alpha.1 - 2026-09-02
+## Glue 0.1.0-alpha.1 - 2026-09-02
 
 ### Added
 
