@@ -12,7 +12,8 @@ the new protocol. Nothing is published by building or starting the flow lab.
 Ordinary pushes never publish packages. npm releases begin from a reviewed,
 clean commit on protected public `main`, pass the full public verification
 gate, and enter npm's staged-publishing workflow through GitHub OIDC. A human
-maintainer inspects and promotes every stage with 2FA.
+maintainer authorizes publication; the desktop tool verifies exact staged bytes
+and promotes stages in dependency order with npm's required 2FA.
 
 ## 1. Prepare metadata
 
@@ -20,12 +21,13 @@ Choose an exact release plan containing only the packages being released.
 Dependencies must remain compatible: Capillary precedes Capillary UI, which precedes Capillary UI
 Visualization.
 
-Every selected package must have a real changeout in its own `CHANGELOG.md`:
-the `Unreleased` section needs one of the standard categories (`Added`,
-`Changed`, `Fixed`, or `Removed`) and a non-empty bullet. The release tooling
-filters package choices and rejects plans that do not meet this requirement.
-An already prepared recovery candidate is the only exception; its notes have
-already been promoted under the target version.
+Every selected package's `CHANGELOG.md` is checked for substantive categorized
+Unreleased notes. Empty headings and placeholder bullets do not count. The
+desktop tool allows an explicit missing-notes exception for each affected
+package/version, represented in its plan by `missingNotesApproval`, the SHA-256
+of the exact original changelog. Preparation otherwise rejects absent notes.
+An approved exception creates a dated entry recording that notes were omitted
+with maintainer approval. Existing prepared notes are recognized on recovery.
 
 For each selected package:
 
@@ -51,14 +53,15 @@ It runs formatting, lint, tooling tests, builds, type checks, package tests,
 consumer type checks, the browser/accessibility matrix, tarball and external
 consumer checks, a public source scan, and the release preflight.
 
-Review:
+The tool automatically validates:
 
 - `.artifacts/release/package-artifacts.json`;
 - every selected tarball inventory and digest;
 - the promoted changelog entry inside every selected tarball (not only in the
   source checkout);
-- the exact version/tag plan;
-- the complete source diff.
+
+The maintainer reviews the exact version/tag plan, notes, and source changes.
+Full file inventories remain available for inspection but need no acknowledgement.
 
 Commit and push only the verified candidate, then wait for the required
 `verify-release` check on public `main`. A different commit or candidate tree
@@ -71,6 +74,11 @@ The private integration workspace dispatches
 workflow checks out the selected public commit, repeats release verification,
 validates registry availability, retains the exact tarballs as a workflow
 artifact, and pauses at the protected `npm-release` environment.
+
+Desktop dispatches additionally carry a release ID, candidate SHA, and SHA-256
+of the exact plan JSON. The workflow checks those inputs; its run title binds
+discovery to that release identity. CI/staging completion and npm's automated
+review are polled automatically. Uncertain dispatches are reconciled, not repeated.
 
 After environment approval, GitHub obtains a short-lived npm identity through
 OIDC and runs `npm stage publish` for the exact verified tarballs. No npm token

@@ -1,5 +1,5 @@
 name: Mirror verified packages to GitHub Packages
-run-name: Mirror verified npm release to GitHub Packages
+run-name: Mirror npm ${{ inputs.workflow_run_id }} @ ${{ inputs.candidate_sha }}
 
 on:
   workflow_dispatch:
@@ -10,6 +10,10 @@ on:
         type: string
       workflow_run_id:
         description: Successful staging workflow whose retained artifacts are being mirrored
+        required: true
+        type: string
+      release_plan:
+        description: Exact approved package versions to mirror
         required: true
         type: string
 
@@ -52,6 +56,7 @@ jobs:
       - name: Publish or verify packages in GitHub Packages
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RELEASE_PLAN: ${{ inputs.release_plan }}
         run: |
           set -euo pipefail
           node --input-type=module <<'NODE'
@@ -60,14 +65,21 @@ jobs:
           import {tmpdir} from 'node:os'
           import {join} from 'node:path'
           import {spawnSync} from 'node:child_process'
+          import {parseReleasePlan} from './scripts/release-metadata.mjs'
 
           const registry = 'https://npm.pkg.github.com'
           const root = '.artifacts/release'
           const report = JSON.parse(readFileSync(join(root, 'package-artifacts.json'), 'utf8'))
+          const plan = parseReleasePlan(process.env.RELEASE_PLAN)
+          const selected = plan.packages.map(({name, version}) => {
+              const matches = report.packages.filter((entry) => entry.name === name && entry.version === version)
+              if (matches.length !== 1) throw new Error(`Missing or ambiguous approved artifact: ${name}@${version}`)
+              return matches[0]
+          })
           const downloads = mkdtempSync(join(tmpdir(), 'capillaryjs-github-packages-'))
 
           try {
-              for (const entry of report.packages) {
+              for (const entry of selected) {
                   const tarball = join(root, 'packages', entry.filename)
                   const identity = `${entry.name}@${entry.version}`
                   const view = npm(['view', identity, 'dist.tarball', '--json', `--registry=${registry}`])
@@ -76,7 +88,6 @@ jobs:
                       console.log(`[github-packages] publishing absent ${identity}`)
                       const publish = npm(['publish', tarball, `--registry=${registry}`, '--access', 'public', '--ignore-scripts'])
                       if (publish.status !== 0) throw commandError('publish', identity, publish)
-                      continue
                   }
 
                   const packageDirectory = join(downloads, entry.filename)

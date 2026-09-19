@@ -17,6 +17,12 @@ test('validates an explicit two-package plan in dependency order', () => {
     assert.match(result.stdout, /order: @capillaryjs\/capillary -> @capillaryjs\/capillary-ui/)
 })
 
+test('a persisted missing-notes approval is accepted by stage validation', () => {
+    const fixture = createFixture()
+    const result = invoke(fixture, 'validate', ['capillary'], {}, {missingNotesApproval: 'a'.repeat(64)})
+    assert.equal(result.status, 0, result.stderr)
+})
+
 test('validates all three packages in dependency order', () => {
     const fixture = createFixture()
     const result = invoke(fixture, 'validate', ['capillary', 'capillaryUi', 'capillaryViz'])
@@ -200,12 +206,12 @@ exit 0
     }
 }
 
-function invoke(fixture, command, keys, extraEnv = {}, {separator = false} = {}) {
+function invoke(fixture, command, keys, extraEnv = {}, {separator = false, missingNotesApproval} = {}) {
     const separatorArgument = separator ? ['--'] : []
     const releasePlan = JSON.stringify({
         schemaVersion: 1,
         releaseDate: '2026-09-05',
-        packages: keys.map((key) => ({key, version: fixture.version, tag: fixture.version.includes('-') ? 'next' : 'latest'})),
+        packages: keys.map((key) => ({key, version: fixture.version, tag: fixture.version.includes('-') ? 'next' : 'latest', missingNotesApproval})),
     })
     return spawnSync(process.execPath, [
         path.join(fixture.root, 'scripts', 'stage-release.mjs'),

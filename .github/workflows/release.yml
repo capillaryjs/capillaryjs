@@ -1,5 +1,5 @@
 name: Stage npm release
-run-name: Stage npm release plan
+run-name: Stage npm ${{ inputs.release_id }} @ ${{ github.sha }} / ${{ inputs.plan_digest }}
 
 on:
   workflow_dispatch:
@@ -7,6 +7,18 @@ on:
       release_plan:
         description: Canonical JSON release plan with package keys, exact versions, tags, and date
         required: true
+        type: string
+      release_id:
+        description: Desktop release run identity (optional for legacy recovery)
+        required: false
+        type: string
+      candidate_sha:
+        description: Exact approved candidate (optional for legacy recovery)
+        required: false
+        type: string
+      plan_digest:
+        description: SHA-256 of the exact release plan input
+        required: false
         type: string
 
 permissions:
@@ -24,6 +36,15 @@ jobs:
     steps:
       - name: Check out public main
         uses: actions/checkout@v6
+
+      - name: Check approved candidate and plan identity
+        env:
+          CANDIDATE_SHA: ${{ inputs.candidate_sha }}
+          PLAN_DIGEST: ${{ inputs.plan_digest }}
+          RELEASE_PLAN: ${{ inputs.release_plan }}
+        run: |
+          test -z "$CANDIDATE_SHA" || test "$(git rev-parse HEAD)" = "$CANDIDATE_SHA"
+          node --input-type=module -e 'import {createHash} from "node:crypto"; if (process.env.PLAN_DIGEST && createHash("sha256").update(process.env.RELEASE_PLAN).digest("hex") !== process.env.PLAN_DIGEST) process.exit(1)'
 
       - name: Set up Node
         uses: actions/setup-node@v7

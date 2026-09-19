@@ -1,3 +1,5 @@
+import {createHash} from 'node:crypto'
+
 const semanticVersionPattern = /^\d+\.\d+\.\d+(?:-[0-9A-Za-z]+(?:[.-][0-9A-Za-z]+)*)?$/
 const datePattern = /^\d{4}-\d{2}-\d{2}$/
 
@@ -40,7 +42,10 @@ export function parseReleasePlan(value) {
         const expectedTag = releaseTagForVersion(entry.version)
         assert(entry.tag === expectedTag,
             `${definition.name}@${entry.version} requires npm tag ${expectedTag}`)
-        return {...definition, version: entry.version, tag: entry.tag}
+        assert(entry.missingNotesApproval == null || /^[0-9a-f]{64}$/.test(entry.missingNotesApproval),
+            'missing notes approval must identify the exact changelog SHA-256')
+        return {...definition, version: entry.version, tag: entry.tag,
+            ...(entry.missingNotesApproval ? {missingNotesApproval: entry.missingNotesApproval} : {})}
     })
     assert(new Set(selected.map(({key}) => key)).size === selected.length,
         'release plan selects a package more than once')
@@ -54,7 +59,8 @@ export function formatReleasePlan(plan) {
     return JSON.stringify({
         schemaVersion: normalized.schemaVersion,
         releaseDate: normalized.releaseDate,
-        packages: normalized.packages.map(({key, version, tag}) => ({key, version, tag})),
+        packages: normalized.packages.map(({key, version, tag, missingNotesApproval}) =>
+            ({key, version, tag, ...(missingNotesApproval ? {missingNotesApproval} : {})})),
     })
 }
 
@@ -99,17 +105,44 @@ export function setManifestDependencyRange(contents, section, dependency, range)
     return `${JSON.stringify(manifest, null, 2)}\n`
 }
 
-export function promoteUnreleased(contents, version, releaseDate) {
-    if (changelogHasRelease(contents, version)) return contents
+export function hasSubstantiveReleaseNotes(notes) {
+    let categorized = false
+    for (const line of notes.split('\n')) {
+        if (/^### /.test(line.trim())) categorized = /^### (Added|Changed|Fixed|Removed|Deprecated|Security)\s*$/.test(line.trim())
+        if (categorized && /^[-*] \S/.test(line.trim())
+            && !/^[-*] (?:TODO|TBD|None|N\/A|No changes|\.\.\.|…)[.!]?$/i.test(line.trim())) return true
+    }
+    return false
+}
+
+export function promoteUnreleased(contents, version, releaseDate, missingNotesApproval) {
+    const approved = missingNotesApproval === createHash('sha256').update(contents).digest('hex')
+    if (changelogHasRelease(contents, version)) {
+        const escaped = version.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+        const match = new RegExp(`^## ${escaped}(?: - \\d{4}-\\d{2}-\\d{2})?[ \\t]*$`, 'm').exec(contents)
+        const start = match.index + match[0].length
+        const next = contents.indexOf('\n## ', start)
+        const end = next < 0 ? contents.length : next
+        const notes = contents.slice(start, end)
+        if (hasSubstantiveReleaseNotes(notes) ||
+            (missingNotesApproval && notes.includes('Release notes omitted with maintainer approval.'))) return contents
+        assert(approved, 'prepared release has no substantive notes; explicit missing-notes approval required')
+        return `${contents.slice(0, start)}\n\nRelease notes omitted with maintainer approval.\n${contents.slice(end)}`
+    }
     const heading = '## Unreleased'
     const start = contents.indexOf(heading)
-    assert(start >= 0, 'CHANGELOG.md has no Unreleased heading')
+    if (start < 0) {
+        assert(approved, 'CHANGELOG.md has no Unreleased heading; explicit missing-notes approval required')
+        return `${contents.trimEnd()}\n\n## Unreleased\n\n## ${version} - ${releaseDate}\n\nRelease notes omitted with maintainer approval.\n`
+    }
     const contentStart = start + heading.length
     const nextHeading = contents.indexOf('\n## ', contentStart)
     const end = nextHeading < 0 ? contents.length : nextHeading
-    const notes = contents.slice(contentStart, end).trim()
-    assert(/### (Added|Changed|Fixed|Removed)/.test(notes),
-        'CHANGELOG.md Unreleased section has no categorized release notes')
+    let notes = contents.slice(contentStart, end).trim()
+    if (!hasSubstantiveReleaseNotes(notes)) {
+        assert(approved, 'CHANGELOG.md Unreleased section has no categorized release notes; explicit missing-notes approval required')
+        notes = 'Release notes omitted with maintainer approval.'
+    }
     const suffix = nextHeading < 0 ? '' : contents.slice(nextHeading)
     const updated = `${contents.slice(0, start)}${heading}\n\n`
         + `## ${version} - ${releaseDate}\n\n${notes}\n${suffix.replace(/^\n?/, '\n')}`

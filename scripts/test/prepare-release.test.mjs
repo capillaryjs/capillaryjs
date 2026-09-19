@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict'
+import {createHash} from 'node:crypto'
 import {cpSync, mkdirSync, mkdtempSync, readFileSync, writeFileSync} from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
@@ -51,6 +52,38 @@ test('refuses preparation when unrelated framework changes are present', () => {
 
     assert.equal(result.status, 1)
     assert.match(result.stderr, /unrelated changes: unrelated\.txt/)
+})
+
+test('missing notes require an exact exception and remain valid on repeated preparation', () => {
+    const fixture = createFixture()
+    const filename = path.join(fixture, 'packages/capillary/CHANGELOG.md')
+    const contents = '# Changelog\n\n## Unreleased\n\n### Added\n\n- TBD\n'
+    writeFileSync(filename, contents)
+    git(fixture, ['add', '.'])
+    git(fixture, ['commit', '-m', 'empty notes'])
+    const entry = {key: 'capillary', version: '0.5.1', tag: 'latest'}
+    const refused = invoke(fixture, releasePlan([entry]))
+    assert.equal(refused.status, 1)
+    assert.match(refused.stderr, /explicit missing-notes approval required/)
+    assert.equal(readJson(fixture, 'packages/capillary/package.json').version, '0.5.0')
+    entry.missingNotesApproval = createHash('sha256').update(contents).digest('hex')
+    const result = invoke(fixture, releasePlan([entry]))
+    assert.equal(result.status, 0, result.stderr)
+    assert.match(readFileSync(filename, 'utf8'), /## 0\.5\.1 - 2026-09-05\n\nRelease notes omitted with maintainer approval\./)
+    const recovered = invoke(fixture, releasePlan([entry]))
+    assert.equal(recovered.status, 0, recovered.stderr)
+    assert.equal(JSON.parse(recovered.stdout).treeFingerprint, JSON.parse(result.stdout).treeFingerprint)
+})
+
+test('a stale missing-notes approval cannot prepare a changed changelog', () => {
+    const fixture = createFixture()
+    const filename = path.join(fixture, 'packages/capillary/CHANGELOG.md')
+    writeFileSync(filename, '# Changelog\n\n## Unreleased\n')
+    git(fixture, ['add', '.'])
+    git(fixture, ['commit', '-m', 'empty notes'])
+    const result = invoke(fixture, releasePlan([{key: 'capillary', version: '0.5.1', tag: 'latest', missingNotesApproval: '0'.repeat(64)}]))
+    assert.equal(result.status, 1)
+    assert.equal(readJson(fixture, 'packages/capillary/package.json').version, '0.5.0')
 })
 
 function createFixture() {

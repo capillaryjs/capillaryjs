@@ -91,7 +91,7 @@ function desiredMetadata(plan, manifests) {
                 manifest, 'peerDependencies', '@capillaryjs/capillary-ui', `^${capillaryUiVersion}`)
         }
         expected.set(manifestPath, manifest)
-        expected.set(entry.changelog, promoteUnreleased(readFile(entry.changelog), entry.version, plan.releaseDate))
+        expected.set(entry.changelog, promoteUnreleased(readFile(entry.changelog), entry.version, plan.releaseDate, entry.missingNotesApproval))
     }
     return expected
 }
