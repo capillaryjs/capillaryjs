@@ -75,14 +75,15 @@ export class TableHeader<TRow extends TableRow = TableRow>
     static css = css`
         cap-datatable > table > thead {
             color: var(--table-header-color);
-            background: var(--ui-gradient);
+            background: var(--table-header-background);
         }
 
         cap-datatable > table > thead > tr > th {
             position: sticky;
             inset-block-start: 0;
             z-index: 2;
-            background: var(--ui-gradient);
+            height: 1.5rem;
+            background: var(--table-header-background);
             border: 2px groove #fff7;
             border-left: none;
         }

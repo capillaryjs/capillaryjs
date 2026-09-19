@@ -112,6 +112,9 @@ test('data surfaces own constrained scrolling and the table header stays fixed',
 
         const rootBounds = element.getBoundingClientRect()
         const headerBounds = header.getBoundingClientRect()
+        const tableElement = table.querySelector<HTMLTableElement>('table')
+        if (tableElement == null) throw new Error('Missing data table element')
+        const tableStyle = getComputedStyle(tableElement)
         return {
             rootClientHeight: element.clientHeight,
             rootScrollHeight: element.scrollHeight,
@@ -123,6 +126,8 @@ test('data surfaces own constrained scrolling and the table header stays fixed',
             })),
             headerOffsetTop: headerBounds.top - table.getBoundingClientRect().top,
             headerWithinRoot: headerBounds.top >= rootBounds.top,
+            borderCollapse: tableStyle.borderCollapse,
+            borderSpacing: tableStyle.borderSpacing,
         }
     })
 
@@ -134,6 +139,8 @@ test('data surfaces own constrained scrolling and the table header stays fixed',
     }
     expect(metrics.headerOffsetTop).toBeLessThanOrEqual(1)
     expect(metrics.headerWithinRoot).toBe(true)
+    expect(metrics.borderCollapse).toBe('separate')
+    expect(metrics.borderSpacing).toBe('0px')
 })
 
 test('record-view primitives retain semantics, keyboard behavior, and dialog focus',

@@ -544,7 +544,7 @@ describe('stable data components', () => {
         assert.equal(requiredQuery('th').hasAttribute('data-cap-component'), false)
         assert.equal(requiredQuery('cap-datatable').querySelector('div, [data-part]'), null)
         assert.equal(requiredQuery('button.sort').textContent, 'Name')
-        assert.equal(requiredQuery('button.filter').textContent, '⛃')
+        assert.equal(requiredQuery('button.filter').textContent, '')
         requiredQuery('button.sort')
             .dispatchEvent(new MouseEvent('click', {bubbles: true}))
         assert.deepEqual(

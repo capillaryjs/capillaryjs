@@ -530,6 +530,90 @@ test('labelled island Panels make one data surface flush without a duplicate tab
     await expect(page.locator('#gallery-table')).toHaveAttribute('aria-labelledby')
 })
 
+test('Capillary table headers are opaque and use the shared header height', async ({page}) => {
+    await page.goto('/#/data-components')
+
+    const headerMetrics = async (theme: string) => {
+        await page.getByRole('combobox', {name: 'Theme', exact: true}).selectOption(theme)
+        await page.waitForFunction((selection) => {
+            const link = document.querySelector<HTMLLinkElement>('link[data-cap-stylesheet="theme"]')
+            return link?.dataset.capSelection === selection && link.sheet?.href === link.href
+        }, theme)
+        return page.locator('#gallery-table thead > tr > th').first().evaluate((header) => {
+            const style = getComputedStyle(header)
+            return {
+                backgroundColor: style.backgroundColor,
+                height: header.getBoundingClientRect().height,
+            }
+        })
+    }
+
+    const shiny = await headerMetrics('shiny')
+    const capillary = await headerMetrics('capillary')
+
+    expect(capillary.backgroundColor).not.toBe('rgba(0, 0, 0, 0)')
+    expect(capillary.height).toBeCloseTo(shiny.height, 1)
+})
+
+test('table filter buttons render a font-independent funnel icon', async ({page}) => {
+    await page.goto('/#/data-components')
+    const filter = page.locator('#gallery-table button.filter').first()
+    const icon = await filter.evaluate((button) => {
+        const style = getComputedStyle(button, '::before')
+        return {
+            clipPath: style.clipPath,
+            content: style.content,
+            height: style.height,
+        }
+    })
+
+    expect(icon.content).not.toBe('none')
+    expect(icon.clipPath).not.toBe('none')
+    expect(Number.parseFloat(icon.height)).toBeGreaterThan(0)
+    await expect(filter).toHaveAccessibleName(/Filter/)
+})
+
+test('unsorted columns offer muted arrows in both sort directions', async ({page}) => {
+    await page.goto('/#/data-components')
+    const indicator = page.locator('#gallery-table th[aria-sort="none"] .sortindicator').first()
+    const arrows = await indicator.evaluate((element) => ({
+        opacity: getComputedStyle(element).opacity,
+        up: getComputedStyle(element, '::before').borderBottomWidth,
+        down: getComputedStyle(element, '::after').borderTopWidth,
+    }))
+
+    expect(arrows.opacity).toBe('0.5')
+    expect(Number.parseFloat(arrows.up)).toBeGreaterThan(5)
+    expect(Number.parseFloat(arrows.down)).toBeGreaterThan(5)
+})
+
+test('data-component islands own their scrollports in the app shell', async ({page}) => {
+    await page.goto('/#/data-components')
+    await page.setViewportSize({width: 2000, height: 500})
+
+    const scrollports = await page.evaluate(() => {
+        const main = document.querySelector<HTMLElement>('.gallery-main')!
+        const panelIds = ['gallery-table', 'gallery-collections', 'gallery-blockgraph', 'gallery-empty']
+        return {
+            main: main.scrollHeight > main.clientHeight + 1,
+            panels: panelIds.map((id) => {
+                const panel = document.getElementById(id)!
+                const body = panel.querySelector<HTMLElement>(':scope > .panel-content')!
+                return {
+                    flexible: panel.classList.contains('cap-size-flexible'),
+                    overflowY: getComputedStyle(body).overflowY,
+                    scrolls: body.scrollHeight > body.clientHeight + 1,
+                }
+            }),
+        }
+    })
+
+    expect(scrollports.main).toBe(false)
+    expect(scrollports.panels.every(({flexible}) => flexible)).toBe(true)
+    expect(scrollports.panels.every(({overflowY}) => overflowY === 'auto')).toBe(true)
+    expect(scrollports.panels.some(({scrolls}) => scrolls)).toBe(true)
+})
+
 test('data collections distinguish refresh retention from replacement-loading skeletons', async ({page}, testInfo) => {
     await page.goto('/#/data-components')
     const main = page.locator('.gallery-main')

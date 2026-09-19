@@ -68,8 +68,8 @@ export class DataComponentsPage extends Component<DataComponentsPageProps> {
                     offers retry.
                 </p>
             </Sidebar>
-            <Layout vertical allocation="flexible" scroll className="gallery-main">
-                <Panel island header="DataTable" id="gallery-table" context="form">
+            <Layout vertical allocation="flexible" className="gallery-main">
+                <Panel island allocation="flexible" header="DataTable" id="gallery-table" context="form">
                     <PanelToolbar>
                         <Toolbar label="Table actions">
                             <Button label="Reset table view" onClick={() => model.resetTableState()} />
@@ -83,7 +83,7 @@ export class DataComponentsPage extends Component<DataComponentsPageProps> {
                         placeholderCount={5}
                     />
                 </Panel>
-                <Panel island header="ListView and TreeView" id="gallery-collections"
+                <Panel island allocation="flexible" header="ListView and TreeView" id="gallery-collections"
                     context="form">
                     <Layout horizontal className="gallery-data-grid">
                         <ListView
@@ -101,10 +101,10 @@ export class DataComponentsPage extends Component<DataComponentsPageProps> {
                         />
                     </Layout>
                 </Panel>
-                <Panel island header="BlockGraph" id="gallery-blockgraph" context="form">
+                <Panel island allocation="flexible" header="BlockGraph" id="gallery-blockgraph" context="form">
                     <BlockGraph model={model.blockSelection} label="Framework component blocks" />
                 </Panel>
-                <Panel island header="Ready but empty" id="gallery-empty" context="form">
+                <Panel island allocation="flexible" header="Ready but empty" id="gallery-empty" context="form">
                     <Layout horizontal className="gallery-data-grid">
                         <DataTable<GalleryDataItem>
                             caption="Empty table"

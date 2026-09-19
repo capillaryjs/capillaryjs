@@ -139,7 +139,7 @@ export class TableHeaderCell extends Component<TableHeaderCellProps> {
                     aria-label={filterLabel}
                     aria-expanded={String(this.filterVisible)}
                     onClick={(event: MouseEvent) => this.toggleFilterPanel(event)}
-                >⛃</button>}
+                />}
             {panel}
         </th>
     }
@@ -211,7 +211,35 @@ export class TableHeaderCell extends Component<TableHeaderCellProps> {
             top: 50%;
             transform: translateY(-50%);
             width: 1em;
+            height: 1.25em;
             text-align: center;
+        }
+
+        /* An unsorted column offers both directions at the same muted weight
+         * as the filter funnel. A sorted column continues to render its one
+         * active text arrow above. */
+        cap-datatable > table > thead > tr > th[aria-sort="none"] > button.sort > span.sortindicator {
+            opacity: 0.5;
+        }
+
+        cap-datatable > table > thead > tr > th[aria-sort="none"] > button.sort > span.sortindicator::before,
+        cap-datatable > table > thead > tr > th[aria-sort="none"] > button.sort > span.sortindicator::after {
+            content: "";
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            border-left: .36em solid transparent;
+            border-right: .36em solid transparent;
+        }
+
+        cap-datatable > table > thead > tr > th[aria-sort="none"] > button.sort > span.sortindicator::before {
+            top: .04em;
+            border-bottom: .5em solid currentColor;
+        }
+
+        cap-datatable > table > thead > tr > th[aria-sort="none"] > button.sort > span.sortindicator::after {
+            bottom: .04em;
+            border-top: .5em solid currentColor;
         }
 
         cap-datatable > table > thead > tr > th[aria-sort] > button.filter {
@@ -221,6 +249,7 @@ export class TableHeaderCell extends Component<TableHeaderCellProps> {
             top: 50%;
             transform: translateY(-50%);
             width: 1em;
+            height: 1em;
             padding: 0;
             color: inherit;
             background: transparent;
@@ -231,6 +260,20 @@ export class TableHeaderCell extends Component<TableHeaderCellProps> {
             text-align: center;
             cursor: pointer;
             opacity: 0.5;
+        }
+
+        /* A solid, font-independent funnel: the tapered bowl narrows into a
+         * short stem, so the control stays legible at compact table-header
+         * sizes in every theme and locale. */
+        cap-datatable > table > thead > tr > th[aria-sort] > button.filter::before {
+            content: "";
+            position: absolute;
+            inset: 50% auto auto 50%;
+            width: .85em;
+            height: .9em;
+            background: currentColor;
+            clip-path: polygon(0 0, 100% 0, 60% 58%, 60% 100%, 40% 100%, 40% 58%);
+            transform: translate(-50%, -50%);
         }
 
         cap-datatable > table > thead > tr > th[aria-sort] > button.filter:hover {

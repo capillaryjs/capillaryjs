@@ -343,7 +343,12 @@ export class DataTable<TRow extends TableRow = TableRow>
         }
 
         & > table {
-            border-collapse: collapse;
+            /* Collapsed borders belong to the table paint layer, so they can
+             * disappear behind scrolling rows even though the header cells are
+             * sticky. Keep zero visual spacing while letting each sticky cell
+             * retain its own header-edge and column-divider chrome. */
+            border-collapse: separate;
+            border-spacing: 0;
             width: 100%;
         }
 
