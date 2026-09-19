@@ -6,6 +6,8 @@ Versioning.
 
 ## Unreleased
 
+## 1.4.0 - 2026-09-19
+
 ### Changed
 
 - Qualify predecessor Glue release headings so their historical versions cannot

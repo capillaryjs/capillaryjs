@@ -6,6 +6,8 @@ Versioning.
 
 ## Unreleased
 
+## 1.4.0 - 2026-09-19
+
 ### Fixed
 
 - Keep DataTable header borders and column dividers visible while rows scroll,

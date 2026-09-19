@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 1.2.0 - 2026-09-19
+
 ### Added
 
 - Distinguish flow graph node kinds with themeable accents and shape families,
