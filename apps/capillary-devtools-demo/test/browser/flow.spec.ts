@@ -26,6 +26,16 @@ test('real search reaches the table, UI bindings and every non-UI leaf; replay i
     const flow = projectFlow(trace, events)
     expect(flow.nodes.some((node) => node.node.label === 'savedSearch (unsubscribed)' && node.leaf)).toBe(true)
     await expect(page.getByRole('region', {name: 'Propagation graph'})).toContainText('Downstream leaves')
+    const legend = page.locator('.trace-flow-help')
+    await expect(legend).toContainText('Node shape and accent color reflect node kind.')
+    await expect(legend.locator('.trace-legend-edge')).toHaveCount(3)
+    await expect(legend.locator('.trace-legend-edge[data-observed="true"][data-reached="true"]')).toHaveCount(1)
+    await expect(legend.locator('.trace-legend-edge[data-observed="false"][data-reached="false"]')).toHaveCount(1)
+    await expect(legend.locator('.trace-legend-edge[data-observed="true"][data-reached="false"]')).toHaveCount(1)
+    const renderedNodes = await page.locator('.trace-node').evaluateAll((nodes) => nodes.map((node) => ({
+        id: node.getAttribute('data-node-id'), kind: node.getAttribute('data-kind'),
+    })))
+    for (const node of renderedNodes) expect(trace.nodes.find((candidate) => candidate.id === node.id)?.kind).toBe(node.kind)
     const before = await metrics(page)
     const eventCount = (await recording(page)).events.length
     const positions = await page.locator('.trace-node').evaluateAll((nodes) => nodes.map((node) => node.getAttribute('style')))

@@ -155,9 +155,14 @@ attempt start/duration/outcome table; it does not infer background work.
 Use runtime style registration for just the selected component dependencies, or
 import `@capillaryjs/capillary-devtools/styles/structural.css` for all views.
 CSS uses `--cap-trace-text`, `-surface`, `-line`, `-accent`, `-selected`, `-muted`,
-and `-warning` variables (all with neutral fallbacks). Controls are native and
-keyboard-operable; the scrollable graph has an equivalent textual outline and
-leaf list. There is no implicit animation or reduced-motion exception.
+and `-warning` variables (all with neutral fallbacks). Flow graph nodes also use
+`--cap-trace-kind-ui`, `-query`, `-command`, `-derived`, `-subscriber`,
+`-interaction`, and `-external` for their default accents. Each flow node exposes
+its raw diagnostic kind as `data-kind`, allowing a host page to provide additional
+kind-specific styling. Shape and accent are supplementary cues: the native node
+label and kind text remain the authoritative accessible identification. Controls
+are native and keyboard-operable; the scrollable graph has an equivalent textual
+outline and leaf list. There is no implicit animation or reduced-motion exception.
 
 The public model also exports `filterTrace`, `traceRoots`, `causalOutline`,
 `projectFlow`, `traceAttempts`, `captureLimitations`, `TraceRecording`, and their

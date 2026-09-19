@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+### Added
+
+- Distinguish flow graph node kinds with themeable accents and shape families,
+  and expose each node's raw diagnostic kind as a `data-kind` styling hook.
+- Show flow-edge states in the graph legend with representative arrow samples.
+
 ## 1.1.0 - 2026-09-18
 
 ### Changed
