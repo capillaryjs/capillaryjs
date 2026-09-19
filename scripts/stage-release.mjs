@@ -131,6 +131,16 @@ function reconcileExisting(definition, artifact) {
     assert(/E404|404 Not Found|is not in this registry/.test(`${publicVersion.stdout}\n${publicVersion.stderr}`),
         `cannot reconcile registry for ${definition.name}`)
     const stages = run('npm', ['stage', 'list', definition.name, '--json'])
+    // npm's stage-only trusted publisher grant authorizes `stage publish`, but
+    // not the account-scoped `stage list` read. A first tokenless workflow run
+    // therefore cannot inspect an existing stage. Proceeding is safe: npm keeps
+    // staged versions immutable, so an existing stage makes stage publish fail
+    // rather than replacing it. ReleaseTool verifies existing stages locally
+    // with maintainer authentication before it requests a retry.
+    if (stages.status !== 0 && /E401|Unable to authenticate/i.test(`${stages.stdout}\n${stages.stderr}`)) {
+        console.log(`[stage-release] cannot inspect existing stages for ${definition.name} with a stage-only trusted publisher; attempting immutable stage publish`)
+        return false
+    }
     assert(stages.status === 0, `cannot inspect stages for ${definition.name}: ${stages.stderr}`)
     const matches = new Map()
     function inspect(value) {

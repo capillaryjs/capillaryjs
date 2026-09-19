@@ -123,7 +123,7 @@ test('GitHub Packages mirror verifies an existing immutable version before it pu
     assert.doesNotMatch(workflow, /for tarball in \.artifacts\/release\/packages\/\*\.tgz/)
 })
 
-function createFixture({published, missingPackage, existingStage = false, mismatchedStage = false, stalePeer = false, version = '0.1.0-alpha.2'} = {}) {
+function createFixture({published, missingPackage, existingStage = false, mismatchedStage = false, unauthenticatedStageList = false, stalePeer = false, version = '0.1.0-alpha.2'} = {}) {
     const root = mkdtempSync(path.join(os.tmpdir(), 'stage-release-'))
     mkdirSync(path.join(root, 'scripts'), {recursive: true})
     mkdirSync(path.join(root, 'packages', 'capillary'), {recursive: true})
@@ -175,6 +175,10 @@ function createFixture({published, missingPackage, existingStage = false, mismat
     writeFileSync(path.join(bin, 'npm'), `#!/bin/sh
 printf '%s\\n' "$*" >> "${log}"
 if [ "$1" = stage ] && [ "$2" = list ]; then
+  if [ '${unauthenticatedStageList}' = true ]; then
+    printf 'npm error code E401\\nnpm error Unable to authenticate\\n' >&2
+    exit 1
+  fi
   if [ "$3" = '@capillaryjs/capillary' ] && [ '${existingStage}' = true ]; then
     printf '%s\\n' '{"stages":[{"id":"fixture-stage","name":"@capillaryjs/capillary","version":"${version}","tag":"${version.includes('-') ? 'next' : 'latest'}","status":"ready"}]}'
   else printf '[]\\n'; fi
@@ -249,6 +253,16 @@ test('partial staging recovery retains matching stage A and creates only missing
     assert.equal(publishes.length, 1)
     assert.match(publishes[0], /capillary-ui-/)
     assert.match(result.stdout, /exact stage fixture-stage retained/)
+})
+
+test('tokenless trusted staging proceeds when npm does not permit stage-list reads', () => {
+    const fixture = createFixture({unauthenticatedStageList: true})
+    const result = invoke(fixture, 'stage', ['capillary'], {
+        GITHUB_ACTIONS: 'true', GITHUB_REF: 'refs/heads/main',
+    }, {recoverExisting: true})
+    assert.equal(result.status, 0, result.stderr)
+    assert.match(result.stdout, /cannot inspect existing stages.*attempting immutable stage publish/)
+    assert.match(readFileSync(fixture.log, 'utf8'), /stage publish/)
 })
 
 test('partial staging recovery refuses mismatching existing bytes before creating missing stages', () => {
