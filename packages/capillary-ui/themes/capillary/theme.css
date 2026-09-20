@@ -179,101 +179,7 @@ cap-groupbox.cap-groupbox-section:not(cap-groupbox cap-groupbox) {
 
 
 :root {
-  --application-background:
-
-
-    /*
-          * Fold 1:
-          * tall fold rising from lower-left toward upper-middle
-          */
-          radial-gradient(
-                  130% 185% at 145% 118%,
-                  rgb(255 255 255 / 0.00) 0%,
-                  rgb(255 255 255 / 0.02) 18%,
-                  rgb(255 255 255 / 0.05) 32%,
-                  rgb(255 255 255 / 0.09) 44%,
-                  rgb(255 255 255 / 0.14) 52%,
-                  rgb(255 255 255 / 0.20) calc(58% - 2px),
-                  rgb(255 255 255 / 0.96) calc(58% - 1px),
-                  rgb(255 255 255 / 0.99) 58%,
-                  rgb(255 255 255 / 0.00) calc(58% + 2px)
-          ),
-
-          radial-gradient(
-                  160% 115% at 95% 118%,
-                  rgb(255 255 255 / 0.00) 0%,
-                  rgb(255 255 255 / 0.02) 18%,
-                  rgb(255 255 255 / 0.05) 32%,
-                  rgb(255 255 255 / 0.09) 44%,
-                  rgb(255 255 255 / 0.14) 52%,
-                  rgb(255 255 255 / 0.20) calc(58% - 2px),
-                  rgb(255 255 255 / 0.96) calc(58% - 1px),
-                  rgb(255 255 255 / 0.99) 58%,
-                  rgb(255 255 255 / 0.00) calc(58% + 2px)
-          ),
-
-
-            /*
-             * Fold 2:
-             * broad sweep across the lower-middle
-             */
-          radial-gradient(
-                  130% 210% at -48% 82%,
-                  rgb(255 255 255 / 0.00) 0%,
-                  rgb(255 255 255 / 0.02) 24%,
-                  rgb(255 255 255 / 0.05) 40%,
-                  rgb(255 255 255 / 0.09) 52%,
-                  rgb(255 255 255 / 0.14) 60%,
-                  rgb(255 255 255 / 0.20) calc(66% - 2px),
-                  rgb(255 255 255 / 0.82) calc(66% - 1px),
-                  rgb(255 255 255 / 0.88) 66%,
-                  rgb(255 255 255 / 0.00) calc(66% + 2px)
-          ),
-
-            /*
-             * Fold 3:
-             * subtle top-right fold
-             */
-          radial-gradient(
-                  125% 155% at 138% -28%,
-                  rgb(255 255 255 / 0.00) 0%,
-                  rgb(255 255 255 / 0.01) 24%,
-                  rgb(255 255 255 / 0.03) 38%,
-                  rgb(255 255 255 / 0.07) 48%,
-                  rgb(255 255 255 / 0.12) 54%,
-                  rgb(255 255 255 / 0.20) calc(57% - 2px),
-                  rgb(255 255 255 / 0.55) calc(57% - 1px),
-                  rgb(255 255 255 / 0.62) 57%,
-                  rgb(255 255 255 / 0.00) calc(57% + 2px)
-          ),
-
-
-          radial-gradient(
-                  125% 155% at 0% -25%,
-                  rgb(255 255 255 / 0.00) 0%,
-                  rgb(255 255 255 / 0.01) 24%,
-                  rgb(255 255 255 / 0.03) 38%,
-                  rgb(255 255 255 / 0.07) 48%,
-                  rgb(255 255 255 / 0.12) 54%,
-                  rgb(255 255 255 / 0.20) calc(57% - 2px),
-                  rgb(255 255 255 / 0.55) calc(57% - 1px),
-                  rgb(255 255 255 / 0.62) 57%,
-                  rgb(255 255 255 / 0.00) calc(57% + 2px)
-          ),
-
-            /*
-             * very subtle overall lighting
-             */
-          linear-gradient(
-                  135deg,
-                  rgb(255 255 255 / 0.06) 0%,
-                  transparent 42%,
-                  rgb(0 0 0 / 0.025) 100%
-          ),
-
-          #cfcfcf;
-
-  background-attachment: local;
+  --application-background: unset;
 }
 
 html {
@@ -282,7 +188,6 @@ html {
 }
 
 body {
-    background: var(--application-background) no-repeat;
     min-height: 100vh;
     height: 100%;
 }

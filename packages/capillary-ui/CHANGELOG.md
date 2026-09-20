@@ -6,6 +6,12 @@ Versioning.
 
 ## Unreleased
 
+### Fixed
+
+- Unset the Capillary theme's `--application-background` override and stop
+  the theme from painting a `body` background, so the layered radial-gradient
+  combination no longer renders behind the theme's controls.
+
 ## 1.4.0 - 2026-09-19
 
 ### Fixed
