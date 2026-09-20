@@ -6,6 +6,8 @@ Versioning.
 
 ## Unreleased
 
+## 1.4.1 - 2026-09-20
+
 ### Fixed
 
 - Unset the Capillary theme's `--application-background` override and stop
