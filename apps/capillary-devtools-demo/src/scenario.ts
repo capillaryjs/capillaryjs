@@ -42,7 +42,12 @@ export class FlowScenario {
     private readonly unsubscribers: Array<() => void>
 
     constructor(readonly clock = new ScenarioClock()) {
+        this.command = new AsyncCommand({purpose: 'saveCommand', concurrency: 'replace', execute: (value) => {
+            this.executions += 1
+            return new Promise((resolve) => { this.pendingCommand = () => resolve(`Saved ${value}`) })
+        }})
         this.query = new LiveQuery({args: {search: this.normalized}, autoFetch: false, purpose: 'searchResults',
+            refreshOn: [this.command.succeeded],
             retry: {maxAttempts: 2, delayMs: 40, jitter: false, scheduler: clock},
             handler: {fetch: ({search}) => {
                 this.requests += 1
@@ -55,10 +60,6 @@ export class FlowScenario {
         this.count = this.query.map((rows) => rows?.length ?? 0, {purpose: 'resultCount'})
         this.summary = this.count.map((value) => `${value} results`, {purpose: 'resultSummary'})
         this.table = createQueryTableDataSource({query: this.query})
-        this.command = new AsyncCommand({purpose: 'saveCommand', concurrency: 'replace', execute: (value) => {
-            this.executions += 1
-            return new Promise((resolve) => { this.pendingCommand = () => resolve(`Saved ${value}`) })
-        }})
         this.commandText = this.command.map((value) => value ?? 'Nothing saved', {purpose: 'saveStatus'})
         this.unsubscribers = [
             this.search.subscribe(() => { this.writes += 1 }, {emitCurrent: false, diagnosticLabel: 'source write counter'}),

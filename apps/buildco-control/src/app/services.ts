@@ -119,8 +119,7 @@ export const mutate = new AsyncCommand<Mutation, { id: string; message: string }
 });
 
 export function forceResult<T>(source: LiveQuery<T, {
-    params: ReadableEmitter<Parameters>;
-    revision: ReadableEmitter<number>
+    params: ReadableEmitter<Parameters>
 }>) {
     return new DerivedEmitter([source, demo.mode, demo.previous] as const, ([value, mode, previous]) => mode !== "live" && mode !== "ready" && previous === "clear" ? undefined : value,
         {computeFetchState: states => demo.mode.get() === "live" ? states[0]! : demo.mode.get() as typeof FetchState[keyof typeof FetchState]});

@@ -73,6 +73,9 @@ library API for large corpora instead of serializing an entire stress dataset.
   detail, activity/date filters, and cross-project overtime.
 - Issue/delay registers with causal and cost filters and create/edit/resolve
   dialogs. Commands update the shared query results; no actual costs are fabricated.
+- View invalidation is an explicit local `valueChanges(revision)` refresh edge;
+  the revision is not a synthetic query argument and is never serialized to the
+  scenario transport.
 - Real `BlockGraph` distributions with hide/split controls and selected-record
   inspection, plus `LineGraph` history for six operational metric groups.
 - Seven hash routes, deep links, back/forward navigation, active-only mounting,

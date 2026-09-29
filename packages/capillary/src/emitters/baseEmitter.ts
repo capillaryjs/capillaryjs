@@ -50,6 +50,11 @@ export interface ReadableEmitter<TValue, TError = unknown> {
     ): () => void
 }
 
+/** A readable value whose owner explicitly permits writes. */
+export interface WritableEmitter<TValue, TError = unknown> extends ReadableEmitter<TValue, TError> {
+    set(value: TValue, eventOrCause?: unknown): unknown
+}
+
 export interface DerivedErrorEntry {
     readonly sourceIndex: number | null
     readonly error: unknown
@@ -264,13 +269,31 @@ implements ReadableEmitter<TValue, TError> {
     protected notify(event: EventBubble<unknown> | null = null): void {
         if (this.isDisposed) return
         const notification = this.notification(event)
+        let firstError: unknown = undefined
+        let hasError = false
+        const deliver = (
+            listener: (notification: EmitterNotification<TValue, TError>) => void,
+            delivery?: {target: object; framework: boolean},
+        ) => {
+            try {
+                this.deliver(listener, notification, delivery)
+            } catch (error: unknown) {
+                // Preserve the existing synchronous error contract, while making
+                // one bad listener unable to starve later independent listeners.
+                if (!hasError) {
+                    hasError = true
+                    firstError = error
+                }
+            }
+        }
         if (Diagnostics.active) {
             // A prior listener can unsubscribe a later listener while this delivery
             // is in flight. Preserve its original consumer identity and ordering.
             const deliveries = [...this.subscribers].map((listener) =>
                 [listener, this.diagnosticSubscriptions.get(listener)] as const)
-            for (const [listener, delivery] of deliveries) this.deliver(listener, notification, delivery)
-        } else for (const listener of [...this.subscribers]) listener(notification)
+            for (const [listener, delivery] of deliveries) deliver(listener, delivery)
+        } else for (const listener of [...this.subscribers]) deliver(listener)
+        if (hasError) throw firstError
     }
 
     private deliver(

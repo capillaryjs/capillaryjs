@@ -55,6 +55,11 @@ Observer errors and reentrant observations are isolated from application
 delivery. Observers/formatters must be pure; the framework does not undo an
 observer's intentional application mutation.
 
+Declarative connections remain ordinary application consequences: their
+functional error source is available whether diagnostics is enabled or not.
+The diagnostic stream can show a query operation superseded before dispatch,
+but only a `handler invoked` operation event proves that a handler actually ran.
+
 ## Start at the interaction
 
 Capillary UI automatically wraps native TSX/`h()` handlers, two-way bindings,

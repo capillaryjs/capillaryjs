@@ -18,12 +18,12 @@ package root.
 
 | Area | Runtime exports | Public type families |
 | --- | --- | --- |
-| Reactive values | `BaseEmitter`, `Emitter`, `DerivedEmitter` | readable emitter, notification, snapshot update, source/value inference, mapping and option types |
+| Reactive values | `BaseEmitter`, `Emitter`, `DerivedEmitter`, `WritableProjection`, `writableProjection` | readable/writable emitter, notification, snapshot update, source/value inference, mapping and projection option types |
 | Fetch state | `FetchState`, `FetchStateValues`, `combineFetchStates` | `FetchStateValue` |
-| Live queries | `QueryArg`, `replaceArg`, `LiveQuery` | argument, `LiveQueryExecution`, polling, scheduler, retry, retention, `LiveResult`, and `RefreshableLiveResult` contracts |
+| Live queries | `QueryArg`, `replaceArg`, `LiveQuery` | argument, `LiveQueryExecution`, polling, scheduler, retry, retention, refresh-trigger, `LiveResult`, and `RefreshableLiveResult` contracts |
 | Retrieval | `QueryHandler`, `RestQueryHandler` | handler, request, Fetch/URL/response, serializer, parser, and REST option contracts |
 | Endpoints | `QueryEndpoint`, `RestEndpoint`, `DerivedEndpoint`, `DerivedLiveResult`, `queryEndpoint`, `restEndpoint`, `derivedEndpoint` | declaration and open-result option types |
-| Commands | `AsyncCommand`, `AsyncCommandConcurrencyError` | executor, context, concurrency, retry, and option types |
+| Commands and connections | `AsyncCommand`, `AsyncCommandConcurrencyError`, `connect`, `bindCommand` | executor, context, concurrency, retry, success-occurrence, connection, and bound-command types |
 | Retry | `resolveRetryPolicy`, `computeRetryDelay`, `isAbortError` | `RetryPolicy`, `RetryBackoff`, `ResolvedRetryPolicy`, and `RetryScheduler` contracts |
 | Diagnostics | `EventBubble`, `EventBus`, `Diagnostics`, `DiagnosticScope`, `defaultDiagnosticScope`, `diagnosticInfo` | event options/listener, `BubbleGraph`, protocol-v1 node/description/subject/fact/event-kind/outcome/details/observer options |
 | Utility | — | `NonEmptyArray` |
@@ -47,8 +47,17 @@ Important compatibility boundaries:
   imply activation. Historical `autoFetch: false` still skips only the
   initial request.
 - `AsyncCommand` owns one mutation lifecycle and an explicit `ignore`,
-  `replace`, or `reject` concurrency policy. Follow-up query state remains
-  independent.
+  `replace`, or `reject` concurrency policy. Its future-only `succeeded`
+  source carries the accepted invocation arguments/result without making a
+  historical success part of its current snapshot. Follow-up query state
+  remains independent.
+- `connect()` routes a future occurrence to one explicit write or action and
+  returns idempotent cleanup with a future-only `errors` source. `valueChanges()`
+  adapts ordinary value changes explicitly; it does not convert fetch-state
+  notifications into success occurrences.
+- `LiveQuery.refreshOn` accepts future occurrence sources or `{source,
+  retention, dedupeKey}` descriptors. Keys are optional, query-local, bounded
+  coverage assertions and never replace backend idempotency.
 - `retry` is an opt-in `RetryPolicy` on live queries, commands, and endpoint
   `query` defaults. Per-instance options override endpoint defaults; `null`
   disables an inherited default; absent everywhere means a single attempt.

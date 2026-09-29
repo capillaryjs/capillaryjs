@@ -1,6 +1,5 @@
-import {BaseEmitter, DerivedEmitter, Emitter} from '@capillaryjs/capillary'
+import {BaseEmitter, DerivedEmitter, Emitter, WritableProjection} from '@capillaryjs/capillary'
 import type {
-    EmitterNotification,
     ReadableEmitter,
 } from '@capillaryjs/capillary'
 
@@ -344,49 +343,31 @@ export function setsEqual<TValue>(left: ReadonlySet<TValue>, right: ReadonlySet<
     return left === right || (left.size === right.size && [...left].every((value) => right.has(value)))
 }
 
-class VisibilityEmitter extends BaseEmitter<CategoryVisibility>
+class VisibilityEmitter extends WritableProjection<ReadonlySet<string>, CategoryVisibility>
 implements VisualizationValueEmitter<CategoryVisibility> {
-    private readonly release: () => void
-
     constructor(
-        private readonly source: Emitter<ReadonlySet<string>>,
-        private readonly categoryKey: string,
+        source: Emitter<ReadonlySet<string>>,
+        categoryKey: string,
         owner: unknown,
     ) {
-        super(source.get().has(categoryKey) ? 'hidden' : 'visible', {
+        super(source, {
             owner,
             purpose: `${categoryKey} category visibility`,
-            fetchState: source.getFetchState(),
-            error: source.getError(),
-        })
-        this.release = source.subscribe((notification) => this.updateFromSource(notification), {
-            emitCurrent: false,
+            read: (hidden) => hidden.has(categoryKey) ? 'hidden' : 'visible',
+            write: (hidden, value) => {
+                if (value !== 'hidden' && value !== 'visible') {
+                    throw new TypeError('Category visibility must be hidden or visible')
+                }
+                const next = new Set(hidden)
+                if (value === 'hidden') next.add(categoryKey)
+                else next.delete(categoryKey)
+                return next
+            },
         })
     }
 
-    set(value: CategoryVisibility, eventOrCause?: unknown): boolean {
-        if (value !== 'hidden' && value !== 'visible') {
-            throw new TypeError('Category visibility must be hidden or visible')
-        }
-        const next = new Set(this.source.get())
-        if (value === 'hidden') next.add(this.categoryKey)
-        else next.delete(this.categoryKey)
-        return this.source.set(next, eventOrCause ?? `${this.categoryKey} visibility changed`)
-    }
-
-    override dispose(): void {
-        this.release()
-        super.dispose()
-    }
-
-    private updateFromSource(notification: EmitterNotification<ReadonlySet<string>>): void {
-        this.setSnapshot({
-            value: notification.value.has(this.categoryKey) ? 'hidden' : 'visible',
-            fetchState: notification.fetchState,
-            error: notification.error,
-            parentEvent: notification.event,
-            cause: 'hidden category membership changed',
-        })
+    override set(value: CategoryVisibility, eventOrCause?: unknown): boolean {
+        return super.set(value, eventOrCause) as boolean
     }
 }
 

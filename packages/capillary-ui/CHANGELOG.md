@@ -6,6 +6,11 @@ Versioning.
 
 ## Unreleased
 
+### Changed
+
+- Re-export Capillary's canonical `WritableEmitter` structural contract while
+  retaining the existing Capillary UI type import path.
+
 ## 1.4.1 - 2026-09-20
 
 ### Fixed

@@ -9,6 +9,7 @@ import {computeRetryDelay, isAbortError, resolveRetryPolicy} from '../retryPolic
 import type {ResolvedRetryPolicy, RetryPolicy} from '../retryPolicy.js'
 import {BaseEmitter} from './baseEmitter.js'
 import type {EmitterValue, ReadableEmitter} from './baseEmitter.js'
+import type {OccurrenceSource} from './occurrence.js'
 import type {
     LiveQueryRefreshOptions,
     LiveQueryRetention,
@@ -34,6 +35,20 @@ export interface LiveQueryPollingOptions {
 
 export type LiveQueryExecution = 'immediate' | 'deferred' | 'explicit'
 
+export interface LiveQueryRefreshConnection<TOccurrence = unknown> {
+    source: OccurrenceSource<TOccurrence>
+    retention?: LiveQueryRetention
+    /** Optional application-defined key for one query-instance invalidation. */
+    dedupeKey?: (occurrence: TOccurrence) => unknown
+    onError?: (error: unknown, occurrence: TOccurrence) => void
+}
+
+/**
+ * Existential occurrence payload: every connection keeps its own payload type,
+ * while a query only needs the source subscription contract.
+ */
+export type LiveQueryRefreshTrigger = OccurrenceSource<any> | LiveQueryRefreshConnection<any>
+
 export interface LiveQueryOptions<
     TResult,
     TArguments extends QueryArgumentEmitters,
@@ -52,6 +67,12 @@ export interface LiveQueryOptions<
     autoFetch?: boolean
     keepPreviousValue?: boolean
     polling?: LiveQueryPollingOptions
+    /** Future-only occurrences that request a fresh read without becoming arguments. */
+    refreshOn?: readonly LiveQueryRefreshTrigger[]
+    /** A prerequisite gate, separate from polling.enabled. */
+    enabled?: boolean | ReadableEmitter<boolean, unknown>
+    /** Observes subscriber failures without allowing them to retry a completed read. */
+    onNotificationError?: (error: unknown) => void
     /**
      * Opt-in retry policy for failed attempts. `null` explicitly disables a
      * policy inherited from an endpoint declaration.
@@ -91,7 +112,14 @@ implements RefreshableLiveResult<TResult | undefined, unknown> {
     private activated: boolean
     private argumentUnsubscribers: Array<() => void> = []
     private pollingUnsubscribers: Array<() => void> = []
+    private refreshUnsubscribers: Array<() => void> = []
+    private enabledUnsubscribe: (() => void) | null = null
     private readonly polling: LiveQueryPollingOptions | undefined
+    private readonly refreshOn: readonly LiveQueryRefreshTrigger[]
+    private readonly enabled: boolean | ReadableEmitter<boolean, unknown>
+    private readonly onNotificationError: (error: unknown) => void
+    private readonly refreshDedupeKeys = new Map<object, Map<unknown, RefreshDedupeRecord>>()
+    private refreshGeneration = 0
     private readonly pollingScheduler: PollingScheduler
     private pollingHandle: unknown = null
     private readonly retryPolicy: ResolvedRetryPolicy | null
@@ -113,6 +141,9 @@ implements RefreshableLiveResult<TResult | undefined, unknown> {
             autoFetch = true,
             keepPreviousValue = true,
             polling,
+            refreshOn = [],
+            enabled = true,
+            onNotificationError = defaultNotificationErrorReporter,
             retry,
             owner,
             purpose = 'live query',
@@ -124,7 +155,12 @@ implements RefreshableLiveResult<TResult | undefined, unknown> {
         }
         assertNamedArgs(args)
         if (polling != null) assertPollingOptions(polling)
-        assertExecutionOptions(execution, options.autoFetch, polling)
+        assertRefreshOn(refreshOn)
+        assertEnabled(enabled)
+        if (typeof onNotificationError !== 'function') {
+            throw new TypeError('LiveQuery onNotificationError must be a function')
+        }
+        assertExecutionOptions(execution, options.autoFetch, polling, refreshOn)
 
         super(undefined, {
             fetchState: FetchState.Initial,
@@ -140,6 +176,9 @@ implements RefreshableLiveResult<TResult | undefined, unknown> {
         this.execution = execution ?? null
         this.activated = execution !== 'deferred'
         this.polling = polling
+        this.refreshOn = refreshOn
+        this.enabled = enabled
+        this.onNotificationError = onNotificationError
         this.pollingScheduler = polling?.scheduler ?? defaultPollingScheduler
         this.retryPolicy = resolveRetryPolicy(retry)
         this.lastSuccessfulValue = undefined
@@ -147,7 +186,7 @@ implements RefreshableLiveResult<TResult | undefined, unknown> {
         if (execution !== 'deferred' && execution !== 'explicit') {
             this.initializeAutomaticTriggers()
         }
-        if (execution === 'immediate' || (execution == null && autoFetch)) {
+        if ((execution === 'immediate' || (execution == null && autoFetch)) && this.isEnabled()) {
             this._activeRequest = this.executeRequest('initial fetch')
         }
         this.scheduleNextPoll()
@@ -175,6 +214,7 @@ implements RefreshableLiveResult<TResult | undefined, unknown> {
 
         this.activated = true
         this.initializeAutomaticTriggers()
+        if (!this.isEnabled()) return Promise.resolve(undefined)
         const request = this.executeRequest(eventOrCause)
         this.scheduleNextPoll()
         return request
@@ -186,6 +226,7 @@ implements RefreshableLiveResult<TResult | undefined, unknown> {
     ): Promise<TResult | undefined> {
         if (this.isDisposed) return Promise.resolve(undefined)
         if (!this.activated) return this.activate(eventOrCause)
+        if (!this.isEnabled()) return Promise.resolve(undefined)
         return this.executeRequest(
             eventOrCause,
             normalizeRetention(options.retention ?? (this.replacementPending ? 'replace' : undefined)),
@@ -216,13 +257,13 @@ implements RefreshableLiveResult<TResult | undefined, unknown> {
             ? new DiagnosticOperation(this, queryEvent) : null
         this.diagnosticOperation = operation
         operation?.begin(this.argumentValues)
-        this.setSnapshot({
+        this.publish(() => this.setSnapshot({
             value: loadingValue,
             fetchState: FetchState.Loading,
             error: null,
             cause,
             parentEvent: operation?.event ?? parentEvent,
-        })
+        }))
         queryEvent ??= this.createEvent('query fetch', parentEvent, this.argumentValues)
 
         const request = Promise.resolve()
@@ -254,8 +295,13 @@ implements RefreshableLiveResult<TResult | undefined, unknown> {
     ): Promise<TResult | undefined> {
         try {
             for (let attempt = 1; ; attempt += 1) {
+                // executeRequest publishes Loading synchronously and dispatches
+                // here in a microtask. A later synchronous invalidation may have
+                // superseded this request before it ever reached the handler.
+                if (!this.isCurrentRequest(requestId, controller)) { operation?.ignored(undefined); return undefined }
                 if (attempt > 1) operation?.begin(this.argumentValues)
                 try {
+                    if (!this.isCurrentRequest(requestId, controller)) { operation?.ignored(undefined); return undefined }
                     const arguments_ = this.argumentValues
                     const invoke = (event: EventBubble<unknown> | null) => this.handler.fetch(arguments_, {
                         signal: controller.signal,
@@ -268,13 +314,13 @@ implements RefreshableLiveResult<TResult | undefined, unknown> {
                     this.hasVisibleResult = true
                     this.replacementPending = false
                     const completion = operation?.settle('succeeded', result)
-                    this.setSnapshot({
+                    this.publish(() => this.setSnapshot({
                         value: result,
                         fetchState: FetchState.Ready,
                         error: null,
                         cause: 'query succeeded',
                         parentEvent: completion ?? queryEvent,
-                    })
+                    }))
                     operation?.close('succeeded')
                     return result
                 } catch (error: unknown) {
@@ -285,13 +331,13 @@ implements RefreshableLiveResult<TResult | undefined, unknown> {
                         || retry == null
                         || attempt >= retry.maxAttempts
                         || !retry.shouldRetry(error, attempt)) {
-                        this.setSnapshot({
+                        this.publish(() => this.setSnapshot({
                             value: retainPreviousValue ? this.lastSuccessfulValue : undefined,
                             fetchState: FetchState.Error,
                             error,
                             cause: 'query failed',
                             parentEvent: completion ?? queryEvent,
-                        })
+                        }))
                         operation?.close(isAbortError(error) ? 'aborted' : 'failed')
                         this.hasVisibleResult = retainPreviousValue && this.hasSuccessfulValue
                         return undefined
@@ -307,13 +353,13 @@ implements RefreshableLiveResult<TResult | undefined, unknown> {
         } catch (error: unknown) {
             if (!this.isCurrentRequest(requestId, controller)) return undefined
             operation?.close('failed')
-            this.setSnapshot({
+            this.publish(() => this.setSnapshot({
                 value: retainPreviousValue ? this.lastSuccessfulValue : undefined,
                 fetchState: FetchState.Error,
                 error,
                 cause: 'query retry infrastructure failed',
                 parentEvent: queryEvent,
-            })
+            }))
             this.hasVisibleResult = retainPreviousValue && this.hasSuccessfulValue
             return undefined
         }
@@ -367,15 +413,16 @@ implements RefreshableLiveResult<TResult | undefined, unknown> {
         this.abortController = null
         this._activeRequest = null
         this.cancelRetryWait()
+        this.refreshDedupeKeys.clear()
         this.replacementPending = false
         const parentEvent = eventOrCause instanceof EventBubble ? eventOrCause : null
-        this.setSnapshot({
+        this.publish(() => this.setSnapshot({
             value: this.hasSuccessfulValue ? this.lastSuccessfulValue : undefined,
             fetchState: this.hasSuccessfulValue ? FetchState.Ready : FetchState.Initial,
             error: null,
             cause: parentEvent == null ? eventOrCause : 'query aborted',
             parentEvent,
-        })
+        }))
     }
 
     override dispose(): void {
@@ -392,6 +439,11 @@ implements RefreshableLiveResult<TResult | undefined, unknown> {
         this.argumentUnsubscribers = []
         for (const unsubscribe of this.pollingUnsubscribers) unsubscribe()
         this.pollingUnsubscribers = []
+        for (const unsubscribe of this.refreshUnsubscribers) unsubscribe()
+        this.refreshUnsubscribers = []
+        this.enabledUnsubscribe?.()
+        this.enabledUnsubscribe = null
+        this.refreshDedupeKeys.clear()
         super.dispose()
     }
 
@@ -400,6 +452,8 @@ implements RefreshableLiveResult<TResult | undefined, unknown> {
         this.automaticTriggersInitialized = true
         this.argumentUnsubscribers = Object.values(this.args).map((argument) =>
             argument.subscribe(({event}) => {
+                this.refreshDedupeKeys.clear()
+                this.refreshGeneration += 1
                 void this.refresh(event, {
                     retention: isReplacementArgument(argument) || this.replacementPending
                         ? 'replace'
@@ -408,6 +462,13 @@ implements RefreshableLiveResult<TResult | undefined, unknown> {
             }, {emitCurrent: false, diagnosticTarget: this}),
         )
         if (this.polling != null) this.initializePolling(this.polling)
+        if (isReadableEmitter(this.enabled)) {
+            this.enabledUnsubscribe = this.enabled.subscribe(({event}) => this.enabledChanged(event), {
+                emitCurrent: false,
+                diagnosticTarget: this,
+            })
+        }
+        for (const trigger of this.refreshOn) this.initializeRefreshTrigger(trigger)
     }
 
     private initializePolling(polling: LiveQueryPollingOptions): void {
@@ -427,6 +488,7 @@ implements RefreshableLiveResult<TResult | undefined, unknown> {
             || !this.automaticTriggersInitialized
             || this.polling == null
             || this.pollingHandle != null) return
+        if (!this.isEnabled()) return
         if (!readPollingValue(this.polling.enabled, true)) return
         const intervalMs = readPollingValue(this.polling.intervalMs)
         assertPollingInterval(intervalMs)
@@ -448,13 +510,96 @@ implements RefreshableLiveResult<TResult | undefined, unknown> {
             && requestId === this.requestId
             && controller === this.abortController
             && !controller.signal.aborted
+            && this.isEnabled()
     }
 
     protected override diagnosticSources(): readonly object[] {
         return [...Object.values(this.args ?? {}),
-            ...[this.polling?.enabled, this.polling?.intervalMs].filter(isReadableEmitter)]
+            ...[this.polling?.enabled, this.polling?.intervalMs, this.enabled].filter(isReadableEmitter)]
     }
     protected override get diagnosticKind(): DiagnosticNodeKind { return 'query' }
+
+    private isEnabled(): boolean {
+        return readPollingValue(this.enabled, true)
+    }
+
+    private publish(action: () => void): void {
+        try {
+            action()
+        } catch (error: unknown) {
+            try {
+                this.onNotificationError(error)
+            } catch {
+                // Error reporting must not enter a handler/retry path either.
+            }
+        }
+    }
+
+    private enabledChanged(event: EventBubble<unknown> | null): void {
+        if (!this.isEnabled()) {
+            this.abort(event ?? 'query disabled')
+            this.cancelScheduledPoll()
+            return
+        }
+        this.scheduleNextPoll()
+        if (this.activated && this.execution !== 'explicit') void this.refresh(event ?? 'query enabled')
+    }
+
+    private initializeRefreshTrigger(trigger: LiveQueryRefreshTrigger): void {
+        const connection = isRefreshConnection(trigger) ? trigger : {source: trigger}
+        const namespace = connection as object
+        this.refreshUnsubscribers.push(connection.source.subscribe((occurrence) => {
+            let key: unknown = undefined
+            if (connection.dedupeKey != null) {
+                try {
+                    key = connection.dedupeKey(occurrence)
+                } catch (error: unknown) {
+                    connection.onError?.(error, occurrence)
+                }
+            }
+            let keys: Map<unknown, RefreshDedupeRecord> | undefined
+            if (key !== undefined) {
+                keys = this.refreshDedupeKeys.get(namespace) ?? new Map()
+                if (keys.has(key)) return
+            }
+            const generation = this.refreshGeneration
+            const beforeRequestId = this.requestId
+            const request = this.refresh(
+                occurrenceEvent(occurrence) ?? 'refresh trigger',
+                connection.retention === undefined ? {} : {retention: connection.retention},
+            )
+            if (key !== undefined && keys != null) {
+                const requestId = this.requestId
+                if (requestId === beforeRequestId) return
+                keys.set(key, {state: 'pending', generation, requestId})
+                this.refreshDedupeKeys.set(namespace, keys)
+                // A completed successful read is application-declared coverage
+                // for this opaque token. Failed, cancelled, superseded, disabled,
+                // and argument-generation-changed requests consume no key.
+                void request.then(() => {
+                    const record = keys!.get(key)
+                    if (record?.state !== 'pending'
+                        || record.generation !== generation
+                        || record.requestId !== requestId) return
+                    if (!this.isDisposed
+                        && this.refreshGeneration === generation
+                        && this.requestId === requestId
+                        && this.getFetchState() === FetchState.Ready) {
+                        if (keys!.size > 64) keys!.delete(keys!.keys().next().value)
+                        keys!.set(key, {state: 'covered', generation, requestId})
+                    } else {
+                        keys!.delete(key)
+                    }
+                })
+            }
+        }, connection.onError === undefined ? {} : {onError: connection.onError}))
+    }
+}
+
+interface RefreshDedupeRecord {
+    state: 'pending' | 'covered'
+    generation: number
+    requestId: number
 }
 
 const defaultPollingScheduler: PollingScheduler = {
@@ -503,6 +648,7 @@ function assertExecutionOptions(
     execution: LiveQueryExecution | undefined,
     autoFetch: boolean | undefined,
     polling: LiveQueryPollingOptions | undefined,
+    refreshOn: readonly LiveQueryRefreshTrigger[],
 ): void {
     if (execution !== undefined
         && execution !== 'immediate'
@@ -516,6 +662,47 @@ function assertExecutionOptions(
     if (execution === 'explicit' && polling !== undefined) {
         throw new TypeError('Explicit LiveQuery execution does not support polling')
     }
+    if (execution === 'explicit' && refreshOn.length > 0) {
+        throw new TypeError('Explicit LiveQuery execution does not support refreshOn')
+    }
+}
+
+function assertRefreshOn(value: readonly LiveQueryRefreshTrigger[]): void {
+    if (!Array.isArray(value)) throw new TypeError('LiveQuery refreshOn must be an array')
+    for (const trigger of value) {
+        const source = isRefreshConnection(trigger) ? trigger.source : trigger
+        if (source == null || typeof source.subscribe !== 'function') {
+            throw new TypeError('LiveQuery refreshOn entries must be occurrence sources')
+        }
+        if (isRefreshConnection(trigger)) {
+            if (trigger.retention !== undefined) normalizeRetention(trigger.retention)
+            if (trigger.dedupeKey != null && typeof trigger.dedupeKey !== 'function') {
+                throw new TypeError('LiveQuery refreshOn dedupeKey must be a function')
+            }
+            if (trigger.onError != null && typeof trigger.onError !== 'function') {
+                throw new TypeError('LiveQuery refreshOn onError must be a function')
+            }
+        }
+    }
+}
+
+function isRefreshConnection(value: LiveQueryRefreshTrigger): value is LiveQueryRefreshConnection<unknown> {
+    return value != null && typeof value === 'object' && 'source' in value
+}
+
+function assertEnabled(value: boolean | ReadableEmitter<boolean, unknown>): void {
+    if (typeof value === 'boolean') return
+    if (!isReadableEmitter(value) || typeof value.get() !== 'boolean') {
+        throw new TypeError('LiveQuery enabled must be a boolean or boolean emitter')
+    }
+}
+
+function occurrenceEvent(value: unknown): EventBubble<unknown> | null {
+    if (value != null && typeof value === 'object' && 'event' in value) {
+        const event = (value as {event?: unknown}).event
+        return event instanceof EventBubble ? event : null
+    }
+    return null
 }
 
 function readPollingValue<TValue>(
@@ -564,6 +751,10 @@ function createAbortController(): AbortControllerLike {
         throw new Error('LiveQuery requires AbortController in this runtime')
     }
     return new (constructor as AbortControllerConstructor)()
+}
+
+function defaultNotificationErrorReporter(_error: unknown): void {
+    // A query's settled result remains authoritative when an observer fails.
 }
 
 // QueryArgumentValues always produces a record, but keeping this assertion near

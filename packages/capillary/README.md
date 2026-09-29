@@ -185,6 +185,10 @@ Here the leaf emitters know nothing about querying, and the computation knows
 nothing about REST. Dispose `users`, `search`, and `searchText` at the lifetime
 boundary that created them.
 
+`QueryArg` mirrors current source state into a named query input. It is not an
+event consequence mechanism: use `connect()` for a future command completion
+that should write an already-existing emitter.
+
 ## Live queries
 
 ```ts
@@ -243,6 +247,63 @@ query.refresh('project changed', {retention: 'replace'})
 
 `retry()` inherits the failed request's retention policy unless its options
 explicitly override it.
+
+### Declared refreshes and readiness
+
+`refreshOn` connects future occurrences to a particular query without adding
+their payload to its request arguments. `AsyncCommand.succeeded` is the common
+source: it emits exactly once for an accepted run, including a void or equal
+result, and never replays an old success to a late subscriber.
+
+```ts
+import {AsyncCommand, connect, Emitter, LiveQuery} from '@capillaryjs/capillary'
+
+const search = new Emitter('matching')
+const addItem = new AsyncCommand({execute: (item: {name: string}) => api.add(item)})
+const items = new LiveQuery({
+    handler: itemsHandler,
+    args: {search},
+    refreshOn: [addItem.succeeded],
+})
+const disconnectReset = connect({
+    on: addItem.succeeded,
+    target: search,
+    value: () => '',
+})
+// Component/service cleanup owns disconnectReset() and items.dispose().
+```
+
+The search reset and success-triggered refresh are independent declared edges.
+If they happen synchronously, Capillary keeps Loading notifications synchronous
+but dispatches only the final current request. A failed or aborted command does
+neither. `refreshOn` entries can instead use `{source, retention, dedupeKey}`;
+`dedupeKey` is opt-in, local to that query connection, and should be supplied
+only when application semantics guarantee that a successful read covers the
+opaque key. Pending, failed, aborted, superseded, disabled, and changed-argument
+reads do not consume a key. Ordinary refreshes need no revision or key
+infrastructure; a row count is not a general revision signal.
+
+`connect()` returns an idempotent cleanup function. Its future-only `errors`
+source reports a synchronous mapping/write error or rejected action without
+changing the already accepted command/query outcome. Use `valueChanges(source)`
+when an ordinary emitter (rather than a command occurrence) should explicitly
+trigger a consequence; it emits only future changes under `Object.is`, or a
+supplied domain `equals` comparator, and never treats a fetch-state-only change
+as a value event.
+
+Use `enabled` for a prerequisite gate rather than a truthiness convention in a
+handler. A false gate prevents initial, automatic, explicit, retry, and poll
+dispatch; enabling an already-live automatic query fetches once with current
+arguments. It is distinct from `polling.enabled`, which controls the timer.
+
+```ts
+const selectedId = new Emitter<string | null>(null)
+const detail = new LiveQuery({
+    handler: detailHandler,
+    args: {selectedId},
+    enabled: selectedId.map((id) => id !== null),
+})
+```
 
 Argument-triggered refreshes also retain by default. Mark an argument that
 identifies a different conceptual dataset with `replaceArg()`:
@@ -317,6 +378,14 @@ a `scheduler` with the same `schedule`/`cancel` shape as `PollingScheduler`.
 If `shouldRetry`, custom `backoff`, or the injected scheduler throws, Capillary
 treats that as a terminal retry-infrastructure error rather than leaving the
 operation in `Loading`; `AsyncCommand` applies its normal `mapError` function.
+
+For a retryable mutation, an application may supply `idempotencyKey` on the
+command. The function runs once per logical `run()` and its string is exposed
+as `context.idempotencyKey` on every attempt; the executor/transport maps it
+to its own protocol and the backend must enforce it. The application creates a
+fresh key for a new intent and may deliberately reuse an uncertain intent only
+under its backend contract. Capillary does not claim client-only exactly-once
+effects.
 
 The REST adapter accepts injected `fetch`, `baseUrl`, and `serialize` behavior.
 Its generic serializer omits `undefined` and empty arrays, encodes `null` as an
@@ -419,15 +488,23 @@ snapshot and a read-only `isRunning` view, which stays true across retry
 attempts. It deliberately does not own batch progress, notifications, or UI
 behavior; retries are opt-in through the shared `RetryPolicy` contract.
 Executor completion alone
-determines command success. The application may then refresh affected queries;
-their failures remain in their own query snapshots:
+determines command success. `succeeded` and `connect()` declare its downstream
+consequences without promise-chain synchronization glue; their errors are
+reported through the connection's `onError` without retrying the mutation.
+`bindCommand()` samples a named record of values/emitters only when its returned
+action is invoked, so source edits never execute a mutation. Query failures
+remain in their own snapshots:
 
 ```ts
-const saved = await saveCommand.run(update)
-if (saved !== undefined) {
-    await Promise.all([users.refresh('save reconciled'), audit.refresh('save reconciled')])
-}
+const submit = bindCommand(saveCommand, {id: selectedId, draft})
+button.onclick = () => void submit()
 ```
+
+`writableProjection(source, {read, write})` exposes one writable field or
+membership view over an authoritative writable aggregate. `write` receives the
+current source value and returns the application-defined immutable replacement;
+it does not bypass validation or create a second state owner. The canonical
+`WritableEmitter` type is exported by Capillary and re-exported by Capillary UI.
 
 ## Integration with Capillary UI and other consumers
 
@@ -461,12 +538,12 @@ service, or a test can consume the same emitters and live queries.
 
 | Area | Public exports |
 | --- | --- |
-| Values | `BaseEmitter`, `Emitter`, `DerivedEmitter`, readable/snapshot/notification option and inference types |
+| Values | `BaseEmitter`, `Emitter`, `DerivedEmitter`, `WritableProjection`, `writableProjection`, readable/writable/snapshot/notification option and inference types |
 | State | `FetchState`, `FetchStateValues`, `combineFetchStates` |
-| Queries | `QueryArg`, `LiveQuery`, `LiveResult`, `RefreshableLiveResult`, polling and argument types |
+| Queries | `QueryArg`, `LiveQuery`, `LiveResult`, `RefreshableLiveResult`, polling, readiness, refresh-trigger, and argument types |
 | Handlers | `QueryHandler`, `RestQueryHandler`, handler/fetch/URL/serializer/parser contracts |
 | Endpoints | `QueryEndpoint`, `RestEndpoint`, `DerivedEndpoint`, `DerivedLiveResult`, lowercase factory functions and option types |
-| Commands | `AsyncCommand`, `AsyncCommandConcurrencyError`, executor/context/concurrency option types |
+| Commands | `AsyncCommand`, `AsyncCommandConcurrencyError`, `connect`, `bindCommand`, executor/context/concurrency/success-occurrence option types |
 | Diagnostics | `EventBubble`, `EventBus`, `EventOptions`, `EventListener`, `BubbleGraph` |
 | Utilities | `NonEmptyArray` |
 

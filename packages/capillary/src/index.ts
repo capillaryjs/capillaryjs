@@ -20,6 +20,7 @@ export type {
     EmitterValues,
     MapOptions,
     ReadableEmitter,
+    WritableEmitter,
     SnapshotUpdate,
     SubscribeOptions,
 } from './emitters/baseEmitter.js'
@@ -31,9 +32,22 @@ export type {
     AsyncCommandExecutor,
     AsyncCommandOptions,
 } from './commands/asyncCommand.js'
+export type {CommandSuccess, OccurrenceSource, OccurrenceSubscribeOptions} from './emitters/occurrence.js'
+export {bindCommand, connect, valueChanges, writableProjection, WritableProjection} from './relationships.js'
+export type {
+    BoundCommand,
+    Connection,
+    ConnectionError,
+    ConnectOptions,
+    ValueChange,
+    ValueChangesOptions,
+    WritableProjectionOptions,
+} from './relationships.js'
 export {LiveQuery} from './emitters/liveQuery.js'
 export type {
     LiveQueryExecution,
+    LiveQueryRefreshConnection,
+    LiveQueryRefreshTrigger,
     LiveQueryPollingOptions,
     LiveQueryOptions,
     PollingScheduler,

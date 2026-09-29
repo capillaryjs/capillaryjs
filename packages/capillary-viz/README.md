@@ -42,6 +42,10 @@ Models and derived emitters are caller-owned. Dispose them at the composition
 boundary that created them. Components observe passed models but never dispose
 them.
 
+Category visibility is a writable projection over the model's authoritative
+hidden-key set. The projection keeps membership validation and immutable set
+updates in the model layer rather than duplicating category state in a control.
+
 ```text
 application items and domain declarations
                  │

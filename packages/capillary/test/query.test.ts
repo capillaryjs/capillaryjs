@@ -9,6 +9,8 @@ import {
     QueryArg,
     replaceArg,
     RestQueryHandler,
+    AsyncCommand,
+    connect,
 } from '../src/index.js'
 import type {
     AbortSignalLike,
@@ -38,6 +40,268 @@ describe('QueryArg', () => {
 })
 
 describe('LiveQuery', () => {
+    test('does not retry a successful read when a subscriber throws', async () => {
+        let calls = 0
+        const notificationErrors: unknown[] = []
+        const query = new LiveQuery<string>({
+            handler: {fetch: () => {
+                calls += 1
+                return 'loaded'
+            }},
+            retry: {maxAttempts: 2, delayMs: 0},
+            onNotificationError: (error) => notificationErrors.push(error),
+        })
+        const observerFailure = new Error('render failed')
+        query.subscribeFutureValues(({fetchState}) => {
+            if (fetchState === FetchState.Ready) throw observerFailure
+        })
+
+        await query._activeRequest
+        assert.equal(calls, 1)
+        assert.equal(query.get(), 'loaded')
+        assert.deepEqual(notificationErrors, [observerFailure])
+        query.dispose()
+    })
+
+    test('refreshes from command success without adding trigger payloads to arguments', async () => {
+        const search = new Emitter('matching')
+        const command = new AsyncCommand<void, undefined>({execute: () => undefined})
+        const calls: string[] = []
+        const query = new LiveQuery<string, {search: Emitter<string>}>({
+            autoFetch: false,
+            args: {search},
+            refreshOn: [command.succeeded],
+            handler: {fetch: ({search: term}) => {
+                calls.push(term)
+                return term
+            }},
+        })
+
+        await command.run()
+        await query._activeRequest
+        assert.deepEqual(calls, ['matching'])
+        query.dispose()
+        command.dispose()
+    })
+
+    test('declares command success reset and refresh with one final-argument fetch', async () => {
+        const search = new Emitter('matching')
+        const add = new AsyncCommand<void, void>({execute: () => undefined})
+        const calls: string[] = []
+        const query = new LiveQuery<string, {search: Emitter<string>}>({
+            autoFetch: false,
+            args: {search},
+            refreshOn: [add.succeeded],
+            handler: {fetch: ({search: term}) => {
+                calls.push(term)
+                return term
+            }},
+        })
+        const disconnect = connect({on: add.succeeded, target: search, value: () => ''})
+
+        await add.run()
+        await query._activeRequest
+        assert.deepEqual(calls, [''])
+        disconnect()
+        query.dispose()
+        add.dispose()
+    })
+
+    test('refreshes once when a command clears an already-empty filter', async () => {
+        const search = new Emitter('')
+        const add = new AsyncCommand<void, void>({execute: () => undefined})
+        const calls: string[] = []
+        const query = new LiveQuery<string, {search: Emitter<string>}>({
+            autoFetch: false,
+            args: {search},
+            refreshOn: [add.succeeded],
+            handler: {fetch: ({search: term}) => {
+                calls.push(term)
+                return term
+            }},
+        })
+        const disconnect = connect({on: add.succeeded, target: search, value: () => ''})
+
+        await add.run()
+        await query._activeRequest
+        assert.deepEqual(calls, [''])
+        disconnect()
+        query.dispose()
+        add.dispose()
+    })
+
+    test('suppresses either synchronous reset/refresh registration order before dispatch', async () => {
+        const search = new Emitter('matching')
+        const add = new AsyncCommand<void, void>({execute: () => undefined})
+        const disconnect = connect({on: add.succeeded, target: search, value: () => ''})
+        const calls: string[] = []
+        const query = new LiveQuery<string, {search: Emitter<string>}>({
+            autoFetch: false,
+            args: {search},
+            refreshOn: [add.succeeded],
+            handler: {fetch: ({search: term}) => {
+                calls.push(term)
+                return term
+            }},
+        })
+
+        await add.run()
+        await query._activeRequest
+        assert.deepEqual(calls, [''])
+        disconnect()
+        query.dispose()
+        add.dispose()
+    })
+
+    test('does not dispatch while disabled and fetches current arguments when enabled', async () => {
+        const enabled = new Emitter(false)
+        const term = new Emitter('first')
+        const calls: string[] = []
+        const query = new LiveQuery<string, {term: Emitter<string>}>({
+            args: {term},
+            enabled,
+            handler: {fetch: ({term: value}) => {
+                calls.push(value)
+                return value
+            }},
+        })
+
+        term.set('latest')
+        await nextMicrotask()
+        assert.deepEqual(calls, [])
+        assert.equal(await query.refresh(), undefined)
+        enabled.set(true)
+        await query._activeRequest
+        assert.deepEqual(calls, ['latest'])
+        query.dispose()
+    })
+
+    test('keeps keyed invalidations pending, recovers after failure, and bounds covered keys', async () => {
+        const command = new AsyncCommand<number, {revision: number}>({
+            execute: (revision) => ({revision}),
+        })
+        let calls = 0
+        let fail = true
+        const query = new LiveQuery<string>({
+            autoFetch: false,
+            refreshOn: [{
+                source: command.succeeded,
+                dedupeKey: ({result}) => result.revision,
+            }],
+            handler: {fetch: () => {
+                calls += 1
+                if (fail) throw new Error('replica unavailable')
+                return 'covered'
+            }},
+        })
+
+        await command.run(1)
+        await query._activeRequest
+        assert.equal(calls, 1)
+        fail = false
+        await command.run(1)
+        await query._activeRequest
+        assert.equal(calls, 2, 'failed requests do not consume a key')
+        await command.run(1)
+        await nextMicrotask()
+        assert.equal(calls, 2, 'covered key suppresses only this connection refresh')
+
+        for (let revision = 2; revision <= 66; revision += 1) {
+            await command.run(revision)
+            await query._activeRequest
+        }
+        await command.run(1)
+        await query._activeRequest
+        assert.equal(calls, 68, 'bounded key retention may cause an extra safe refresh')
+        query.dispose()
+        command.dispose()
+    })
+
+    test('does not retain a keyed invalidation when it is aborted before settlement', async () => {
+        const command = new AsyncCommand<string, string>({execute: (value) => value})
+        const requests: Array<Deferred<string>> = []
+        const query = new LiveQuery<string>({
+            autoFetch: false,
+            refreshOn: [{source: command.succeeded, dedupeKey: ({result}) => result}],
+            handler: {fetch: () => {
+                const request = deferred<string>()
+                requests.push(request)
+                return request.promise
+            }},
+        })
+        await command.run('revision-1')
+        await nextMicrotask()
+        query.abort()
+        await command.run('revision-1')
+        await nextMicrotask()
+        assert.equal(requests.length, 2)
+        requests[1]?.resolve('covered')
+        await query._activeRequest
+        query.dispose()
+        command.dispose()
+    })
+
+    test('keeps explicit execution gated without auto-fetching on gate changes', async () => {
+        const enabled = new Emitter(false)
+        let calls = 0
+        const query = new LiveQuery<number>({
+            execution: 'explicit',
+            enabled,
+            handler: {fetch: () => ++calls},
+        })
+
+        enabled.set(true)
+        await nextMicrotask()
+        assert.equal(calls, 0)
+        await query.refresh()
+        assert.equal(calls, 1)
+        enabled.set(false)
+        assert.equal(await query.retry(), undefined)
+        assert.equal(calls, 1)
+        query.dispose()
+    })
+
+    test('suppresses a queued request superseded before handler dispatch', async () => {
+        const search = new Emitter('matching')
+        const calls: string[] = []
+        const query = new LiveQuery<string, {search: Emitter<string>}>({
+            handler: {fetch: ({search: term}) => {
+                calls.push(term)
+                return term
+            }},
+            args: {search},
+        })
+
+        // The initial request and the argument-triggered request are both
+        // queued. Only the final current request may invoke the handler.
+        search.set('')
+        await query._activeRequest
+        assert.deepEqual(calls, [''])
+        assert.equal(query.get(), '')
+        query.dispose()
+    })
+
+    test('keeps ordinary latest-request behavior after a handler entered in an earlier microtask', async () => {
+        const calls: number[] = []
+        const first = deferred<number>()
+        const query = new LiveQuery<number>({
+            autoFetch: false,
+            handler: {fetch: () => {
+                calls.push(calls.length + 1)
+                return calls.length === 1 ? first.promise : 2
+            }},
+        })
+
+        const initial = query.refresh()
+        await nextMicrotask()
+        const replacement = query.refresh()
+        first.resolve(1)
+        assert.equal(await initial, undefined)
+        assert.equal(await replacement, 2)
+        assert.deepEqual(calls, [1, 2])
+        query.dispose()
+    })
+
     test('performs initial fetch and preserves the last value during refresh', async () => {
         type Arguments = {term: string}
         type Result = string[]

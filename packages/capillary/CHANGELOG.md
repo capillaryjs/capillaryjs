@@ -6,6 +6,20 @@ Versioning.
 
 ## Unreleased
 
+### Added
+
+- Add future-only `AsyncCommand.succeeded` completions, `connect()` consequence
+  wiring (with a future-only error source), explicit `valueChanges()` adapters,
+  `LiveQuery.refreshOn`, explicit query `enabled` gates, `bindCommand`, core
+  `WritableEmitter`/`writableProjection`, and optional stable command
+  idempotency keys supplied to executor contexts.
+
+### Fixed
+
+- Prevent listener failures during successful command or query publication from
+  retrying or reclassifying a completed operation, and skip queued live-query
+  work that was superseded before its handler dispatches.
+
 ## 1.4.0 - 2026-09-19
 
 ### Changed

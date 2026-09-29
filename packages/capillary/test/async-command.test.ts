@@ -152,6 +152,120 @@ describe('AsyncCommand', () => {
         command.dispose()
     })
 
+    test('does not retry a successful mutation when a subscriber throws', async () => {
+        let executions = 0
+        const notificationErrors: unknown[] = []
+        const command = new AsyncCommand<void, string>({
+            execute() {
+                executions += 1
+                return 'saved'
+            },
+            retry: {maxAttempts: 2, delayMs: 0},
+            onNotificationError: (error) => notificationErrors.push(error),
+        })
+        const subscriberFailure = new Error('view failed')
+        let independentNotifications = 0
+        command.subscribeFutureValues(({fetchState}) => {
+            if (fetchState === FetchState.Ready) throw subscriberFailure
+        })
+        command.subscribeFutureValues(() => { independentNotifications += 1 })
+
+        assert.equal(await command.run(), 'saved')
+        assert.equal(executions, 1)
+        assert.equal(command.getFetchState(), FetchState.Ready)
+        assert.deepEqual(notificationErrors, [subscriberFailure])
+        assert.equal(independentNotifications, 2, 'loading and success reach independent subscribers')
+        command.dispose()
+    })
+
+    test('emits one future-only success occurrence for void and repeated results', async () => {
+        const command = new AsyncCommand<string, undefined>({execute: () => undefined})
+        const successes: Array<{id: number, arguments: string, result: undefined}> = []
+        command.succeeded.subscribe((success) => successes.push(success))
+
+        await command.run('first')
+        await command.run('second')
+        assert.deepEqual(successes.map(({arguments: value, result}) => [value, result]), [
+            ['first', undefined], ['second', undefined],
+        ])
+        command.abort()
+
+        const late: unknown[] = []
+        command.succeeded.subscribe((success) => late.push(success))
+        assert.deepEqual(late, [], 'success occurrences are not retained state')
+        command.dispose()
+    })
+
+    test('keeps an application idempotency key stable across retries', async () => {
+        const fake = fakeScheduler()
+        let calls = 0
+        const keys: Array<string | undefined> = []
+        const command = new AsyncCommand<{id: string}, string>({
+            execute(_arguments, context) {
+                calls += 1
+                keys.push(context.idempotencyKey)
+                return calls === 1 ? Promise.reject(new Error('lost response')) : 'saved'
+            },
+            idempotencyKey: ({id}) => `save:${id}`,
+            retry: {maxAttempts: 2, delayMs: 1, scheduler: fake.scheduler},
+        })
+        const execution = command.run({id: 'a'})
+        await nextMicrotask()
+        fake.run(0)
+        assert.equal(await execution, 'saved')
+        assert.deepEqual(keys, ['save:a', 'save:a'])
+        command.dispose()
+    })
+
+    test('lets a backend fixture replay a committed outcome for a lost response', async () => {
+        const fake = fakeScheduler()
+        const outcomes = new Map<string, string>()
+        let backendEffects = 0
+        let loseFirstResponse = true
+        const command = new AsyncCommand<{name: string}, string>({
+            idempotencyKey: ({name}) => `create:${name}`,
+            retry: {maxAttempts: 2, delayMs: 1, scheduler: fake.scheduler},
+            execute: ({name}, {idempotencyKey}) => {
+                const key = idempotencyKey!
+                let outcome = outcomes.get(key)
+                if (outcome === undefined) {
+                    backendEffects += 1
+                    outcome = `created:${name}`
+                    outcomes.set(key, outcome)
+                }
+                if (loseFirstResponse) {
+                    loseFirstResponse = false
+                    throw new Error('response lost after commit')
+                }
+                return outcome
+            },
+        })
+
+        const run = command.run({name: 'alpha'})
+        await nextMicrotask()
+        fake.run(0)
+        assert.equal(await run, 'created:alpha')
+        assert.equal(backendEffects, 1)
+        command.dispose()
+    })
+
+    test('releases command ownership before a success reaction starts a replacement run', async () => {
+        const values: string[] = []
+        const command = new AsyncCommand<string, string>({execute: (value) => {
+            values.push(value)
+            return value
+        }})
+        command.succeeded.subscribe(({arguments: value}) => {
+            if (value === 'first') void command.run('second')
+        })
+
+        assert.equal(await command.run('first'), 'first')
+        await nextMicrotask()
+        assert.deepEqual(values, ['first', 'second'])
+        assert.equal(command.get(), 'second')
+        command.dispose()
+    })
+
     test('abort and disposal cancel work, suppress settlement, and are idempotent', async () => {
         const requests: Array<{context: AsyncCommandContext; deferred: Deferred<number>}> = []
         const command = new AsyncCommand<void, number>({

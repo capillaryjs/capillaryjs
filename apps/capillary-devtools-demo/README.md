@@ -18,6 +18,9 @@ the outline keeps repeated diamond executions distinct.
 
 The visible controls exercise direct/unchanged writes, failure then retry,
 pending-request supersession, abort, disposal, and command completion/abort.
+Command completion is also a declared `refreshOn` relationship, so the trace
+separates the accepted command from its independently failing or superseded
+query follow-up.
 The injected clock and retry scheduler make recorded ordering and retry delay
 deterministic. Only those controls run application actions; playback never does.
 After disposing the query, reload to restore the scenario.

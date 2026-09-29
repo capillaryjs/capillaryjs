@@ -1,5 +1,5 @@
-import type {EndpointQueryOptions, ReadableEmitter} from "@capillaryjs/capillary";
-import {RestEndpoint} from "@capillaryjs/capillary";
+import type {EndpointQueryOptions, OccurrenceSource, ReadableEmitter} from "@capillaryjs/capillary";
+import {RestEndpoint, valueChanges} from "@capillaryjs/capillary";
 import type {Bootstrap, Choice, Mutation, Parameters, Screen, ViewResult} from "../api/ScenarioApi.ts";
 import {SCREENS} from "../api/ScenarioApi.ts";
 import type {ScenarioFetch, ScenarioFetchInit} from "../api/ScenarioFetch.js";
@@ -11,7 +11,7 @@ export type ViewQueryEmitters = {
 
 export class BuildcoService {
     readonly bootstrapEndpoint: RestEndpoint<Record<string, never>, Bootstrap>;
-    readonly viewEndpoints: Record<Screen, RestEndpoint<{ params: Parameters; revision: number }, ViewResult>>;
+    readonly viewEndpoints: Record<Screen, RestEndpoint<{ params: Parameters }, ViewResult>>;
     readonly choicesEndpoint: RestEndpoint<{ projectId: string }, Record<string, Choice[]>>;
     private readonly fetch: ScenarioFetch;
     private readonly baseUrl: string;
@@ -27,7 +27,6 @@ export class BuildcoService {
         });
         this.viewEndpoints = Object.fromEntries(SCREENS.map(screen => [screen, new RestEndpoint<{
             params: Parameters;
-            revision: number
         }, ViewResult>({
             url: `/api/view/${screen}`,
             baseUrl: this.baseUrl,
@@ -36,7 +35,7 @@ export class BuildcoService {
                 url.searchParams.set("params", JSON.stringify(args.params));
             },
             query: {keepPreviousValue: true, execution: "deferred", purpose: `buildco ${screen} view`}
-        })])) as Record<Screen, RestEndpoint<{ params: Parameters; revision: number }, ViewResult>>;
+        })])) as Record<Screen, RestEndpoint<{ params: Parameters }, ViewResult>>;
         this.choicesEndpoint = new RestEndpoint<{ projectId: string }, Record<string, Choice[]>>({
             url: "/api/choices",
             baseUrl: this.baseUrl,
@@ -52,8 +51,12 @@ export class BuildcoService {
         return this.bootstrapEndpoint.open({});
     }
 
-    view(screen: Screen, args: ViewQueryEmitters, options?: EndpointQueryOptions) {
-        return this.viewEndpoints[screen].open(args, options);
+    view(screen: Screen, args: ViewQueryEmitters, options: EndpointQueryOptions = {}) {
+        const refreshOn: readonly OccurrenceSource<unknown>[] = [valueChanges(args.revision)];
+        return this.viewEndpoints[screen].open({params: args.params}, {
+            ...options,
+            refreshOn,
+        });
     }
 
     async choices(projectId: string): Promise<Record<string, Choice[]>> {

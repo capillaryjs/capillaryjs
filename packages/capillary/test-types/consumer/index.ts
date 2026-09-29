@@ -1,9 +1,13 @@
 import {
     DerivedEmitter,
     Emitter,
+    bindCommand,
+    connect,
     LiveQuery,
     replaceArg,
     RestEndpoint,
+    valueChanges,
+    writableProjection,
 } from '@capillaryjs/capillary'
 import type {
     LiveQueryExecution,
@@ -67,14 +71,36 @@ const endpointResult = endpoint.open({term}, {execution: 'explicit', retry: null
 endpointResult.get()?.id.toUpperCase()
 
 const command = new AsyncCommand<{id: string}, Result>({
-    execute: ({id}, {signal}) => {
+    execute: ({id}, {signal, idempotencyKey}) => {
         signal.aborted satisfies boolean
+        idempotencyKey satisfies string | undefined
         return {id}
     },
+    idempotencyKey: ({id}) => `save:${id}`,
     retry: {maxAttempts: 2, backoff: (attempt) => attempt * 250},
 })
 void command.run({id: 'record-1'})
 command.get()?.id.toUpperCase()
+command.succeeded.subscribe(({arguments: successArguments, result}) => {
+    successArguments.id.toUpperCase()
+    result.id.toUpperCase()
+})
+const clearTerm = connect({on: command.succeeded, target: term, value: () => ''})
+clearTerm.errors.subscribe(({error, occurrence}) => {
+    error satisfies unknown
+    occurrence.result.id.toUpperCase()
+})
+clearTerm()
+const runCurrent = bindCommand(command, {id: term})
+void runCurrent()
+const item = new Emitter({id: 'record-1', title: 'Original'})
+const title = writableProjection(item, {
+    read: (value) => value.title,
+    write: (value, nextTitle) => ({...value, title: nextTitle}),
+})
+title.set('Updated')
+new LiveQuery({handler, args: {term}, refreshOn: [command.succeeded], enabled: new Emitter(true)})
+valueChanges(term).subscribe(({value}) => value.toUpperCase())
 // @ts-expect-error Built declarations preserve command argument types.
 void command.run({id: 1})
 

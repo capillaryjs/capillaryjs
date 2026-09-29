@@ -6,6 +6,7 @@ import {LiveQuery} from '../emitters/liveQuery.js'
 import type {
     LiveQueryExecution,
     LiveQueryPollingOptions,
+    LiveQueryRefreshTrigger,
     QueryArgumentValues,
 } from '../emitters/liveQuery.js'
 import type {LiveResult} from '../emitters/liveResult.js'
@@ -25,6 +26,9 @@ export interface EndpointQueryOptions {
     autoFetch?: boolean
     keepPreviousValue?: boolean
     polling?: LiveQueryPollingOptions
+    refreshOn?: readonly LiveQueryRefreshTrigger[]
+    enabled?: boolean | ReadableEmitter<boolean, unknown>
+    onNotificationError?: (error: unknown) => void
     /**
      * Shared retry default for queries opened from the endpoint. A per-open
      * or per-query `retry` overrides it; `null` disables it explicitly.

@@ -106,6 +106,24 @@ test('supersession, retry failure/success and disposal have distinct terminal at
     query.dispose(); stop()
 })
 
+test('records queued supersession without claiming the stale handler was invoked', async () => {
+    const events: EventBubble<unknown>[] = []
+    const stop = Diagnostics.subscribe((fact) => { if (fact.type === 'event') events.push(fact.event) })
+    const term = new Emitter('first')
+    const calls: string[] = []
+    const query = new LiveQuery({args: {term}, handler: {fetch: ({term: value}) => {
+        calls.push(value)
+        return value
+    }}})
+
+    term.set('second')
+    await query._activeRequest
+    assert.deepEqual(calls, ['second'])
+    assert.equal(events.filter((event) => event.cause === 'handler invoked').length, 1)
+    assert(events.some((event) => event.cause === 'operation superseded'))
+    query.dispose(); term.dispose(); stop()
+})
+
 test('query and command handler writes inherit their root and throwing subscribers report failure', async () => {
     const events: EventBubble<unknown>[] = []
     const stop = Diagnostics.subscribe((fact) => { if (fact.type === 'event') events.push(fact.event) })

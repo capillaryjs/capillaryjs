@@ -4,6 +4,7 @@ import type {
     DiagnosticScope,
     FetchStateValue,
     ReadableEmitter,
+    WritableEmitter,
 } from '@capillaryjs/capillary'
 import {Diagnostics, diagnosticInfo, EventBubble} from '@capillaryjs/capillary'
 
@@ -82,11 +83,8 @@ export interface LiveBinding<TValue> {
     readonly [liveBindingBrand]: true
 }
 
-/** Minimal writable Capillary contract used by native `bind:value` and `bind:checked`. */
-export interface WritableEmitter<TValue, TError = unknown>
-extends ReadableEmitter<TValue, TError> {
-    set(value: TValue, eventOrCause?: unknown): unknown
-}
+/** Re-exported core contract used by native `bind:value` and `bind:checked`. */
+export type {WritableEmitter} from '@capillaryjs/capillary'
 
 export interface EmitterSnapshot<TValue, TError = unknown> {
     readonly value: TValue
