@@ -6,6 +6,8 @@ and Semantic Versioning.
 
 ## Unreleased
 
+## 1.3.0 - 2026-09-29
+
 ### Added
 
 - Add adaptive `BlockGraph` label orientation with graph-wide overrides.
