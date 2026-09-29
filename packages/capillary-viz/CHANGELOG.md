@@ -8,8 +8,11 @@ and Semantic Versioning.
 
 ### Added
 
-- Add adaptive `BlockGraph` label orientation with graph-wide overrides and a
-  horizontal fallback when `ResizeObserver` is unavailable.
+- Add adaptive `BlockGraph` label orientation with graph-wide overrides.
+  Auto mode keeps a complete horizontal label whenever it fits the measured
+  block width; otherwise taller blocks use a physical top-left, bottom-to-top
+  vertical label. Labels consistently render as `Criterion: Category (count)`;
+  horizontal is the fallback when `ResizeObserver` is unavailable.
 
 ## 1.2.0 - 2026-09-19
 
