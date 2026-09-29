@@ -17,18 +17,27 @@ export interface BlockGraphProps<TItem> extends ComponentProps {
     readonly label?: string
     readonly description?: string
     readonly emptyMessage?: string
+    /** Controls block-label writing direction; `auto` uses the block's measured aspect ratio. */
+    readonly labelOrientation?: BlockLabelOrientation
 }
+
+export type BlockLabelOrientation = 'auto' | 'horizontal' | 'vertical'
+type ResolvedBlockLabelOrientation = Exclude<BlockLabelOrientation, 'auto'>
 
 /** Accessible nested proportional mosaic backed by an explicit selection model. */
 export class BlockGraph<TItem = unknown> extends Component<BlockGraphProps<TItem>> {
     static override liveProps: readonly string[] = []
+    private labelResizeObserver: ResizeObserver | null = null
+    private readonly measuredLabelOrientations = new Map<string, ResolvedBlockLabelOrientation>()
     render(): CapillaryUiChild {
         const {
             model,
             label = 'Block graph',
             description = 'Area is proportional to item count.',
             emptyMessage = 'No items are available.',
+            labelOrientation = 'auto',
         } = this.props
+        assertBlockLabelOrientation(labelOrientation)
         const layoutSnapshot = this.snapshot(model.layout$)
         const isLoading = layoutSnapshot.fetchState === FetchState.Initial
             || layoutSnapshot.fetchState === FetchState.Loading
@@ -103,6 +112,20 @@ export class BlockGraph<TItem = unknown> extends Component<BlockGraphProps<TItem
     static override hostName = 'block-graph'
     static dataSurface = 'data' as const
     static override dependencies = [Button, Placeholder]
+
+    override afterMount(): void {
+        this.reconcileLabelOrientation()
+    }
+
+    override afterUpdate(): void {
+        this.reconcileLabelOrientation()
+    }
+
+    override onDestroy(): void {
+        this.labelResizeObserver?.disconnect()
+        this.labelResizeObserver = null
+        this.measuredLabelOrientations.clear()
+    }
 
     static css = css`
         & {
@@ -221,6 +244,16 @@ export class BlockGraph<TItem = unknown> extends Component<BlockGraphProps<TItem
             text-align: start;
             border: 0;
             cursor: pointer;
+        }
+
+        & [role="treeitem"] > cap-blocklabel[data-label-orientation="vertical"] {
+            writing-mode: vertical-rl;
+            transform: rotate(180deg);
+        }
+
+        & [role="treeitem"] > cap-blocklabel[data-label-orientation="horizontal"] {
+            writing-mode: horizontal-tb;
+            transform: none;
         }
 
         & [role="treeitem"][aria-selected="true"] {
@@ -358,6 +391,56 @@ export class BlockGraph<TItem = unknown> extends Component<BlockGraphProps<TItem
         </div>
     }
 
+    private reconcileLabelOrientation(): void {
+        this.labelResizeObserver?.disconnect()
+        this.labelResizeObserver = null
+        if (!(this.dom instanceof Element)) return
+
+        const orientation = this.props.labelOrientation ?? 'auto'
+        assertBlockLabelOrientation(orientation)
+        const blocks = [...this.dom.querySelectorAll<HTMLElement>('[role="treeitem"]')]
+        const activeKeys = new Set(blocks.map((block) => block.dataset.blockKey).filter(
+            (key): key is string => key != null,
+        ))
+        for (const key of this.measuredLabelOrientations.keys()) {
+            if (!activeKeys.has(key)) this.measuredLabelOrientations.delete(key)
+        }
+
+        if (orientation !== 'auto') {
+            for (const block of blocks) this.setLabelOrientation(block, orientation)
+            return
+        }
+
+        for (const block of blocks) {
+            this.setLabelOrientation(
+                block,
+                this.measuredLabelOrientations.get(block.dataset.blockKey ?? '') ?? 'horizontal',
+            )
+        }
+        if (typeof globalThis.ResizeObserver !== 'function') return
+        this.labelResizeObserver = new ResizeObserver((entries) => {
+            for (const entry of entries) {
+                const block = entry.target
+                if (!(block instanceof HTMLElement)) continue
+                const key = block.dataset.blockKey
+                if (key == null) continue
+                const next: ResolvedBlockLabelOrientation = entry.contentRect.height > entry.contentRect.width
+                    ? 'vertical'
+                    : 'horizontal'
+                this.measuredLabelOrientations.set(key, next)
+                this.setLabelOrientation(block, next)
+            }
+        })
+        for (const block of blocks) this.labelResizeObserver.observe(block)
+    }
+
+    private setLabelOrientation(
+        block: HTMLElement,
+        orientation: ResolvedBlockLabelOrientation,
+    ): void {
+        block.querySelector('cap-blocklabel')?.setAttribute('data-label-orientation', orientation)
+    }
+
     private blockKeyDown(event: KeyboardEvent, node: BlockNode<TItem>): void {
         if (event.key === 'Enter' || event.key === ' ') {
             event.preventDefault()
@@ -396,6 +479,12 @@ export class BlockGraph<TItem = unknown> extends Component<BlockGraphProps<TItem
                 return
             }
         }
+    }
+}
+
+function assertBlockLabelOrientation(value: string): asserts value is BlockLabelOrientation {
+    if (value !== 'auto' && value !== 'horizontal' && value !== 'vertical') {
+        throw new TypeError(`Unknown block label orientation: ${value}`)
     }
 }
 

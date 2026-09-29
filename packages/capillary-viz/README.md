@@ -247,6 +247,7 @@ unavailable until loading ends. Error and ready-empty states remain distinct.
 | `label` | Accessible graph name and visible heading |
 | `description` | Visible explanation of the area encoding |
 | `emptyMessage` | Message for an empty valid layout |
+| `labelOrientation` | `auto` (default), `horizontal`, or `vertical`; auto switches to vertical when a block is taller than wide |
 
 The graph exposes an ARIA tree, keyboard selection, a current-path readout,
 clear-selection action, loading/error states, and explicit partition
@@ -254,8 +255,10 @@ diagnostics. Each block applies Capillary UI's `colored` trait using the categor
 `--c1`, `--c2`, and `--c3` values. Nested mosaics are inset by
 `--viz-block-graph-child-inset` (default `1.6em`) so parent surfaces remain
 visible. Labels overlay their surfaces and keep criterion and category on one
-line without distorting area ratios. Hover emphasis targets only the deepest
-block under the pointer.
+line without distorting area ratios. In `auto` mode each rendered block is
+measured independently with `ResizeObserver`; equal dimensions remain
+horizontal, and vertical labels use the established `vertical-rl` writing mode.
+Hover emphasis targets only the deepest block under the pointer.
 
 ### LineGraph
 

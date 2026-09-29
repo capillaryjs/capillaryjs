@@ -430,7 +430,7 @@ on Capillary and Capillary UI and exports a root module plus
 | History | `SeriesBuilder`, `HistoryShape`, `SeriesCategory` |
 | Civil dates | `CivilDate`, `civilDateToDay`, `dayToCivilDate`, `addCivilDays`, `todayCivilDate`, `compareCivilDates` |
 | Chart calculation | `buildLineChartModel`, `linePath`, `areaPath`, `valueAtDate`, `buildIntegerTicks` and chart model types |
-| Components | `CategoryHidePanel`, `SplitSelectionPanel`, `BlockGraph`, `LineGraph` and their props |
+| Components | `CategoryHidePanel`, `SplitSelectionPanel`, `BlockGraph` (including `BlockLabelOrientation`), `LineGraph` and their props |
 
 The package never fetches or persists application data. Criteria, derived
 emitters, split models, and block models are caller-owned. Every active block

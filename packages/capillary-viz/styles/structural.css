@@ -265,6 +265,16 @@ cap-blockgraph {
             cursor: pointer;
         }
 
+        cap-blockgraph [role="treeitem"] > cap-blocklabel[data-label-orientation="vertical"] {
+            writing-mode: vertical-rl;
+            transform: rotate(180deg);
+        }
+
+        cap-blockgraph [role="treeitem"] > cap-blocklabel[data-label-orientation="horizontal"] {
+            writing-mode: horizontal-tb;
+            transform: none;
+        }
+
         cap-blockgraph [role="treeitem"][aria-selected="true"] {
             z-index: 3;
             outline: 3px solid var(--viz-selection-color, var(--colored-contrast, Highlight));

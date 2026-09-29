@@ -6,6 +6,11 @@ and Semantic Versioning.
 
 ## Unreleased
 
+### Added
+
+- Add adaptive `BlockGraph` label orientation with graph-wide overrides and a
+  horizontal fallback when `ResizeObserver` is unavailable.
+
 ## 1.2.0 - 2026-09-19
 
 ### Changed

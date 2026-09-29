@@ -76,6 +76,23 @@ const itemsValue: readonly Item[] = [
     {id: 3, state: 'closed', tags: []},
 ]
 
+class TestResizeObserver {
+    static instances: TestResizeObserver[] = []
+    readonly observed: Element[] = []
+    disconnected = false
+    constructor(private readonly callback: (entries: ResizeObserverEntry[]) => void) {
+        TestResizeObserver.instances.push(this)
+    }
+    observe(element: Element): void { this.observed.push(element) }
+    disconnect(): void { this.disconnected = true }
+    emit(entries: Array<{target: Element; width: number; height: number}>): void {
+        this.callback(entries.map(({target, width, height}) => ({
+            target,
+            contentRect: {width, height},
+        } as ResizeObserverEntry)))
+    }
+}
+
 test('generated structural CSS uses fixed visualization hosts without theme selectors', async () => {
     const css = await readFile(fileURLToPath(
         new URL('../styles/structural.css', import.meta.url),
@@ -284,6 +301,53 @@ describe('BlockGraph', () => {
         assert.match(BlockGraph.css, /cap-blocklabel > cap-blockname\s*\{[^}]*display:\s*flex[^}]*flex:\s*1 1 auto/)
         assert.match(BlockGraph.css, /\[role="treeitem"\]:hover:not\(:has\(\[role="treeitem"\]:hover\)\)/)
         assert.doesNotMatch(BlockGraph.css, /& \[role="treeitem"\]:hover\s*\{/)
+        assert.match(BlockGraph.css, /data-label-orientation="vertical"[^}]*writing-mode: vertical-rl/)
+    })
+
+    test('orients labels from block measurements and preserves explicit overrides', () => {
+        const previousResizeObserver = globalThis.ResizeObserver
+        Object.assign(globalThis, {ResizeObserver: TestResizeObserver})
+        TestResizeObserver.instances = []
+        const items = new Emitter<readonly Item[]>(itemsValue)
+        const state = stateCriterion()
+        state.setAllVisible(true)
+        const splits = createSplitSelection([state])
+        const selection = createBlockSelection(items, splits.activeSplits$)
+        const graph = new BlockGraph({model: selection})
+        graph.mount(document.body)
+        const blocks = [...document.querySelectorAll<HTMLElement>('[role="treeitem"]')]
+        const observer = TestResizeObserver.instances.at(-1)
+        assert.ok(observer)
+        assert.deepEqual(observer.observed, blocks)
+        observer.emit([
+            {target: blocks[0]!, width: 80, height: 160},
+            {target: blocks[1]!, width: 160, height: 80},
+        ])
+        assert.equal(blocks[0]?.querySelector('cap-blocklabel')?.getAttribute('data-label-orientation'), 'vertical')
+        assert.equal(blocks[1]?.querySelector('cap-blocklabel')?.getAttribute('data-label-orientation'), 'horizontal')
+        graph.destroy()
+        assert.equal(observer.disconnected, true)
+        selection.dispose()
+        splits.dispose()
+        state.dispose()
+        items.dispose()
+
+        const explicitItems = new Emitter<readonly Item[]>(itemsValue)
+        const explicitState = stateCriterion()
+        explicitState.setAllVisible(true)
+        const explicitSplits = createSplitSelection([explicitState])
+        const explicitSelection = createBlockSelection(explicitItems, explicitSplits.activeSplits$)
+        const explicit = new BlockGraph({model: explicitSelection, labelOrientation: 'vertical'})
+        explicit.mount(document.body)
+        assert.ok([...document.querySelectorAll<HTMLElement>('[role="treeitem"]')].every((block) =>
+            block.querySelector('cap-blocklabel')?.getAttribute('data-label-orientation') === 'vertical'))
+        explicit.destroy()
+        explicitSelection.dispose()
+        explicitSplits.dispose()
+        explicitState.dispose()
+        explicitItems.dispose()
+        if (previousResizeObserver == null) delete (globalThis as {ResizeObserver?: unknown}).ResizeObserver
+        else Object.assign(globalThis, {ResizeObserver: previousResizeObserver})
     })
 
     test('renders and updates an externally observable keyboard selection', () => {
