@@ -258,7 +258,14 @@ visible. Labels overlay their surfaces and keep criterion and category on one
 line without distorting area ratios. In `auto` mode each rendered block is
 measured independently with `ResizeObserver`; equal dimensions remain
 horizontal, and vertical labels use the established `vertical-rl` writing mode.
-Hover emphasis targets only the deepest block under the pointer.
+Labels render as `Criterion: Category (count)`. In `auto` mode, a block keeps a
+horizontal label whenever its complete label fits its measured width; otherwise
+a taller-than-wide block uses a vertical label. Vertical labels occupy a narrow
+physical top-left strip and read bottom-to-top by rotating only their inner text
+group, not their positioned container. Nested mosaics retain their ordinary
+proportional inset. Very narrow blocks retain the complete label rather than
+applying content-measurement heuristics. Hover emphasis targets only the
+deepest block under the pointer.
 
 ### LineGraph
 

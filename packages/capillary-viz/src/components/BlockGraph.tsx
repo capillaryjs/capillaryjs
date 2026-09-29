@@ -231,8 +231,8 @@ export class BlockGraph<TItem = unknown> extends Component<BlockGraphProps<TItem
         & [role="treeitem"] > cap-blocklabel {
             position: absolute;
             z-index: 1;
-            inset-block-start: 0;
-            inset-inline-start: 0;
+            top: 0;
+            left: 0;
             box-sizing: border-box;
             display: flex;
             flex-flow: row nowrap;
@@ -247,8 +247,18 @@ export class BlockGraph<TItem = unknown> extends Component<BlockGraphProps<TItem
         }
 
         & [role="treeitem"] > cap-blocklabel[data-label-orientation="vertical"] {
+            z-index: 4;
+            top: 0;
+            left: 0;
+            right: auto;
+            bottom: auto;
+            width: 1.6em;
+            height: max-content;
             writing-mode: vertical-rl;
-            transform: rotate(180deg);
+            transform: none;
+            justify-content: flex-start;
+            align-items: flex-end;
+            padding: 0.2rem;
         }
 
         & [role="treeitem"] > cap-blocklabel[data-label-orientation="horizontal"] {
@@ -289,17 +299,20 @@ export class BlockGraph<TItem = unknown> extends Component<BlockGraphProps<TItem
         }
 
         & cap-blockname > strong {
-            flex: 1 1 auto;
+            flex: 0 1 auto;
             min-width: 0;
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
         }
 
-        & cap-blocklabel > data {
+        & cap-blockname > data {
             flex: 0 0 auto;
-            align-self: center;
             font-weight: 750;
+        }
+
+        & [role="treeitem"] > cap-blocklabel[data-label-orientation="vertical"] > cap-blockname {
+            transform: rotate(180deg);
         }
 
         & cap-blockgroup {
@@ -364,8 +377,8 @@ export class BlockGraph<TItem = unknown> extends Component<BlockGraphProps<TItem
                 <cap-blockname>
                     <small>{node.criterionLabel ?? 'Items'}:</small>
                     <strong>{node.label}</strong>
+                    <data value={String(node.count)}>({node.count})</data>
                 </cap-blockname>
-                <data value={String(node.count)}>{node.count}</data>
             </cap-blocklabel>
             {node.children.length === 0 ? null : <cap-blockgroup
                 role="group"
@@ -424,9 +437,7 @@ export class BlockGraph<TItem = unknown> extends Component<BlockGraphProps<TItem
                 if (!(block instanceof HTMLElement)) continue
                 const key = block.dataset.blockKey
                 if (key == null) continue
-                const next: ResolvedBlockLabelOrientation = entry.contentRect.height > entry.contentRect.width
-                    ? 'vertical'
-                    : 'horizontal'
+                const next = this.resolveAutoLabelOrientation(block, entry.contentRect)
                 this.measuredLabelOrientations.set(key, next)
                 this.setLabelOrientation(block, next)
             }
@@ -439,6 +450,47 @@ export class BlockGraph<TItem = unknown> extends Component<BlockGraphProps<TItem
         orientation: ResolvedBlockLabelOrientation,
     ): void {
         block.querySelector('cap-blocklabel')?.setAttribute('data-label-orientation', orientation)
+    }
+
+    private resolveAutoLabelOrientation(
+        block: HTMLElement,
+        bounds: {width: number; height: number},
+    ): ResolvedBlockLabelOrientation {
+        this.setLabelOrientation(block, 'horizontal')
+        const horizontalWidth = this.measureHorizontalLabelWidth(block)
+        if (horizontalWidth > 0 && bounds.width >= horizontalWidth) return 'horizontal'
+        return bounds.height > bounds.width ? 'vertical' : 'horizontal'
+    }
+
+    private measureHorizontalLabelWidth(block: HTMLElement): number {
+        const label = block.querySelector<HTMLElement>('cap-blocklabel')
+        const body = block.ownerDocument?.body
+        if (label == null || body == null) return 0
+        const probe = label.cloneNode(true) as HTMLElement
+        probe.style.cssText = [
+            'position:fixed',
+            'visibility:hidden',
+            'pointer-events:none',
+            'inset:auto',
+            'display:flex',
+            'width:max-content',
+            'max-width:none',
+            'height:auto',
+            'overflow:visible',
+            'white-space:nowrap',
+            'writing-mode:horizontal-tb',
+            'transform:none',
+        ].join(';')
+        for (const child of probe.querySelectorAll<HTMLElement>('cap-blockname, small, strong')) {
+            child.style.overflow = 'visible'
+            child.style.minWidth = 'auto'
+        }
+        const name = probe.querySelector<HTMLElement>('cap-blockname')
+        if (name != null) name.style.flex = '0 0 auto'
+        body.append(probe)
+        const width = probe.getBoundingClientRect().width
+        probe.remove()
+        return width
     }
 
     private blockKeyDown(event: KeyboardEvent, node: BlockNode<TItem>): void {

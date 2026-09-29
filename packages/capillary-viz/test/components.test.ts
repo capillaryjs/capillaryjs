@@ -301,7 +301,9 @@ describe('BlockGraph', () => {
         assert.match(BlockGraph.css, /cap-blocklabel > cap-blockname\s*\{[^}]*display:\s*flex[^}]*flex:\s*1 1 auto/)
         assert.match(BlockGraph.css, /\[role="treeitem"\]:hover:not\(:has\(\[role="treeitem"\]:hover\)\)/)
         assert.doesNotMatch(BlockGraph.css, /& \[role="treeitem"\]:hover\s*\{/)
-        assert.match(BlockGraph.css, /data-label-orientation="vertical"[^}]*writing-mode: vertical-rl/)
+        assert.match(BlockGraph.css, /data-label-orientation="vertical"[^}]*z-index: 4[^}]*top: 0[^}]*left: 0[^}]*right: auto[^}]*bottom: auto[^}]*width: 1\.6em[^}]*height: max-content[^}]*writing-mode: vertical-rl[^}]*transform: none[^}]*align-items: flex-end/)
+        assert.match(BlockGraph.css, /data-label-orientation="vertical"\] > cap-blockname\s*\{[^}]*transform: rotate\(180deg\)/)
+        assert.doesNotMatch(BlockGraph.css, /data-label-orientation="vertical"\]\) > cap-blockgroup/)
     })
 
     test('orients labels from block measurements and preserves explicit overrides', () => {
@@ -374,9 +376,11 @@ describe('BlockGraph', () => {
         assert.equal(blocks[0]?.style.backgroundColor, '')
         assert.equal(blocks[0]?.style.borderColor, colors[0])
         const blockName = required('[role="treeitem"] > cap-blocklabel > cap-blockname')
-        assert.equal(blockName.textContent, 'State:Open')
+        assert.equal(blockName.textContent, 'State:Open(2)')
+        assert.equal(blocks[0]?.querySelector('cap-blocklabel')?.textContent, 'State:Open(2)')
         assert.equal(blockName.querySelector('small')?.textContent, 'State:')
         assert.equal(blockName.querySelector('strong')?.textContent, 'Open')
+        assert.equal(blockName.querySelector('data')?.textContent, '(2)')
         assert.match(blocks[0]?.getAttribute('aria-label') ?? '', /Open, 2 items/)
         blocks[0]?.dispatchEvent(new KeyboardEvent('keydown', {key: 'Enter', bubbles: true}))
         assert.deepEqual(selection.selectedItems$.get().map(({id}) => id), [1, 2])

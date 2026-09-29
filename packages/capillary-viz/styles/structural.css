@@ -250,8 +250,8 @@ cap-blockgraph {
         cap-blockgraph [role="treeitem"] > cap-blocklabel {
             position: absolute;
             z-index: 1;
-            inset-block-start: 0;
-            inset-inline-start: 0;
+            top: 0;
+            left: 0;
             box-sizing: border-box;
             display: flex;
             flex-flow: row nowrap;
@@ -266,8 +266,18 @@ cap-blockgraph {
         }
 
         cap-blockgraph [role="treeitem"] > cap-blocklabel[data-label-orientation="vertical"] {
+            z-index: 4;
+            top: 0;
+            left: 0;
+            right: auto;
+            bottom: auto;
+            width: 1.6em;
+            height: max-content;
             writing-mode: vertical-rl;
-            transform: rotate(180deg);
+            transform: none;
+            justify-content: flex-start;
+            align-items: flex-end;
+            padding: 0.2rem;
         }
 
         cap-blockgraph [role="treeitem"] > cap-blocklabel[data-label-orientation="horizontal"] {
@@ -308,17 +318,20 @@ cap-blockgraph {
         }
 
         cap-blockgraph cap-blockname > strong {
-            flex: 1 1 auto;
+            flex: 0 1 auto;
             min-width: 0;
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
         }
 
-        cap-blockgraph cap-blocklabel > data {
+        cap-blockgraph cap-blockname > data {
             flex: 0 0 auto;
-            align-self: center;
             font-weight: 750;
+        }
+
+        cap-blockgraph [role="treeitem"] > cap-blocklabel[data-label-orientation="vertical"] > cap-blockname {
+            transform: rotate(180deg);
         }
 
         cap-blockgraph cap-blockgroup {
