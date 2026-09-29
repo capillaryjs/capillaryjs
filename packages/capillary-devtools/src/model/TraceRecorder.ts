@@ -1,5 +1,5 @@
 import {Diagnostics, Emitter} from '@capillaryjs/capillary'
-import type {DiagnosticFact, DiagnosticNode, DiagnosticObserverOptions} from '@capillaryjs/capillary'
+import type {DiagnosticFact, DiagnosticNode, DiagnosticObserverOptions, EventBubble} from '@capillaryjs/capillary'
 import {devtoolsDiagnosticScope} from './scope.js'
 import type {TraceEdge, TraceEvent, TraceNode, TraceRecording, ValuePreview} from './types.js'
 import {captureValueSnapshot} from './valueSnapshot.js'
@@ -15,6 +15,16 @@ export interface TraceRecorderOptions extends DiagnosticObserverOptions {
     maxSnapshotDepth?: number
     maxSnapshotEntries?: number
     capture?: TraceCaptureMode
+    /**
+     * Whether interaction events that produced no recorded causal descendants
+     * are retained like any other event. `true` (the default) preserves
+     * record-everything behavior; `false` activates the interaction retention
+     * policy: sterile interactions are evicted preferentially under budget
+     * pressure and counted in `suppressedInteractions` rather than
+     * `evictedEvents`. The policy is lossy and unrecoverable for a completed
+     * recording, so it must be enabled deliberately at construction.
+     */
+    retainInteractionsWithoutDescendants?: boolean
     formatter?: (value: unknown, context: TraceCaptureContext) => string
     clock?: () => number
 }
@@ -34,6 +44,9 @@ export class TraceRecorder {
     private gaps = 0
     private evictedEvents = 0
     private droppedTopology = 0
+    private suppressedInteractions = 0
+    private walkDepthExceeded = 0
+    private readonly unprovenInteractions = new Set<string>()
     private bytes = 0
     private notifying = false
     private disposed = false
@@ -42,7 +55,8 @@ export class TraceRecorder {
 
     constructor(options: TraceRecorderOptions = {}) {
         this.options = {maxEvents: 2000, maxBytes: 2_000_000, maxNodes: 2000, maxEdges: 8000,
-            maxPreviewLength: 180, maxSnapshotDepth: 3, maxSnapshotEntries: 100, capture: 'scalar', clock: Date.now,
+            maxPreviewLength: 180, maxSnapshotDepth: 3, maxSnapshotEntries: 100, capture: 'scalar',
+            retainInteractionsWithoutDescendants: true, clock: Date.now,
             topology: true, verbose: false, ui: true, ...options}
         for (const key of ['maxEvents', 'maxBytes', 'maxNodes', 'maxEdges', 'maxPreviewLength', 'maxSnapshotDepth', 'maxSnapshotEntries'] as const) {
             if (!Number.isSafeInteger(this.options[key]) || this.options[key] < 1) {
@@ -85,6 +99,7 @@ export class TraceRecorder {
         this.events = []; this.nodes.clear(); this.edges = []; this.sequence = 0
         this.startedAt = null; this.stoppedAt = null; this.lateStart = true
         this.gaps = 0; this.evictedEvents = 0; this.droppedTopology = 0; this.bytes = 0
+        this.unprovenInteractions.clear(); this.suppressedInteractions = 0; this.walkDepthExceeded = 0
         if (active) this.start()
         this.changed()
         return this
@@ -95,7 +110,9 @@ export class TraceRecorder {
             nodes: Object.freeze([...this.nodes.values()]), edges: Object.freeze([...this.edges]),
             capture: Object.freeze({active: this.unsubscribe !== null, startedAt: this.startedAt,
                 stoppedAt: this.stoppedAt, lateStart: this.lateStart, gaps: this.gaps,
-                evictedEvents: this.evictedEvents, droppedTopology: this.droppedTopology, bytes: this.bytes,
+                evictedEvents: this.evictedEvents, droppedTopology: this.droppedTopology,
+                suppressedInteractions: this.suppressedInteractions, walkDepthExceeded: this.walkDepthExceeded,
+                bytes: this.bytes,
                 maxBytes: this.options.maxBytes, maxEvents: this.options.maxEvents,
                 rawReferences: this.options.capture === 'raw', topology: this.options.topology,
                 ui: this.options.ui, verbose: this.options.verbose, mode: this.options.capture})})
@@ -131,8 +148,9 @@ export class TraceRecorder {
             const node = details?.node ?? {...identity, label: event.purpose}
             this.addNode(node)
             const preview = (value: unknown, field: string) => this.preview(value, {nodeId: node.id, field})
+            const kind = details?.kind ?? 'operation'
             this.events.push(Object.freeze({id: event.id, sequence: this.sequence++, timestamp: this.options.clock(),
-                parentId: event.parent?.id ?? null, nodeId: node.id, kind: details?.kind ?? 'operation',
+                parentId: event.parent?.id ?? null, nodeId: node.id, kind,
                 outcome: details?.outcome ?? null, cause: (typeof event.cause === 'string' ? event.cause : scalarText(event.cause)).slice(0, 512),
                 value: preview(event.value, 'value'), before: details && Object.hasOwn(details, 'before')
                     ? preview(details.before, 'before') : null,
@@ -142,6 +160,10 @@ export class TraceRecorder {
                 ...(details?.consumer ? {consumer: Object.freeze({...details.consumer})} : {}),
                 inputs: Object.freeze((details?.inputs ?? []).map((input) => Object.freeze({nodeId: input.nodeId,
                     value: preview(input.value, 'input')})))}))
+            if (!this.options.retainInteractionsWithoutDescendants) {
+                if (kind === 'interaction') this.unprovenInteractions.add(event.id)
+                else this.proveInteractionAncestors(event)
+            }
         }
         this.enforceBounds()
         this.changed()
@@ -180,17 +202,62 @@ export class TraceRecorder {
     }
 
     private enforceBounds(): void {
-        while (this.events.length > this.options.maxEvents) { this.events.shift(); this.evictedEvents += 1 }
+        while (this.events.length > this.options.maxEvents) this.evictEvent()
         while (this.nodes.size > this.options.maxNodes) this.evictNode()
         while (this.edges.length > this.options.maxEdges) { this.edges.shift(); this.droppedTopology += 1 }
         this.bytes = this.byteSize()
         while (this.bytes > this.options.maxBytes) {
-            if (this.events.length) { this.events.shift(); this.evictedEvents += 1 }
+            if (this.events.length) this.evictEvent()
             else if (this.edges.length) { this.edges.shift(); this.droppedTopology += 1 }
             else if (this.nodes.size) this.evictNode()
             else break
             this.bytes = this.byteSize()
         }
+    }
+
+    /**
+     * Prefers evicting the oldest still-unproven interaction — the longest-
+     * pending sterile candidate — before falling back to oldest-overall.
+     * Unproven removals count as `suppressedInteractions`, distinct from
+     * `evictedEvents`. The unproven set iterates in insertion (commit) order
+     * and only holds IDs of events still present, so its first entry is the
+     * oldest unproven interaction in `this.events`.
+     */
+    private evictEvent(): void {
+        const sterile = this.unprovenInteractions.values().next().value as string | undefined
+        if (sterile !== undefined) {
+            const index = this.events.findIndex((event) => event.id === sterile)
+            this.unprovenInteractions.delete(sterile)
+            if (index >= 0) {
+                this.events.splice(index, 1)
+                this.suppressedInteractions += 1
+                return
+            }
+        }
+        const evicted = this.events.shift()
+        if (evicted) this.unprovenInteractions.delete(evicted.id)
+        this.evictedEvents += 1
+    }
+
+    /**
+     * Any committed non-interaction event proves every interaction ancestor
+     * on its live `EventBubble.parent` chain. The walk deliberately has no
+     * early stop: an ancestor can be absent from committed state because it
+     * was excluded from capture or already evicted, which is indistinguishable
+     * from "already proven" by set membership alone — stopping early could
+     * permanently strand a legitimate interaction further up. Deletions are
+     * idempotent. Depth is bounded by a defensive cap; exceeding it surfaces
+     * via `walkDepthExceeded` and never fabricates ancestry.
+     */
+    private proveInteractionAncestors(event: EventBubble<unknown>): void {
+        let depth = 0
+        let ancestor: EventBubble<unknown> | null = event.parent
+        while (ancestor !== null && depth < ANCESTOR_WALK_DEPTH_LIMIT) {
+            this.unprovenInteractions.delete(ancestor.id)
+            ancestor = ancestor.parent
+            depth += 1
+        }
+        if (ancestor !== null) this.walkDepthExceeded += 1
     }
 
     private evictNode(): void {
@@ -225,6 +292,8 @@ export class TraceRecorder {
         })
     }
 }
+
+const ANCESTOR_WALK_DEPTH_LIMIT = 64
 
 function scalarText(value: unknown): string {
     if (value === null) return 'null'

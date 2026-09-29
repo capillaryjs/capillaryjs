@@ -230,6 +230,8 @@ export function captureLimitations(recording: TraceRecording): readonly string[]
         ...(capture.gaps ? [`Recording was paused ${capture.gaps} time(s); activity during those gaps is unknown.`] : []),
         ...(capture.evictedEvents ? [`${capture.evictedEvents} events evicted by the recording budget.`] : []),
         ...(capture.droppedTopology ? [`${capture.droppedTopology} topology records evicted; connected leaves may be missing.`] : []),
+        ...(capture.suppressedInteractions ? [`${capture.suppressedInteractions} isolated interactions omitted by the retention policy.`] : []),
+        ...(capture.walkDepthExceeded ? [`${capture.walkDepthExceeded} ancestor walks hit the interaction-retention depth cap; distant causal ancestors may be missing.`] : []),
         ...(recording.events.some((event) => event.parentId && !recording.events.some((parent) => parent.id === event.parentId))
             ? ['Some causal parents are outside this capture.'] : []),
         ...(traceAttempts(recording.events).some((attempt) => !attempt.end)

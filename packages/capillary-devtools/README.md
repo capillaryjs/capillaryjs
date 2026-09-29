@@ -88,6 +88,7 @@ available to the caller.
 | `maxSnapshotDepth`, `maxSnapshotEntries` | 3 levels (maximum 20), 100 properties across each captured value tree |
 | `capture` | `scalar`: metadata and primitive previews; object contents are not read |
 | `topology`, `ui`, `verbose` | `true`, `true`, `false`; verbose adds unchanged recomputations and input snapshots |
+| `retainInteractionsWithoutDescendants` | `true` records every interaction; `false` retains interactions only when they produce a recorded causal descendant |
 | `clock` | `Date.now`; use a monotonic/injected clock for measured intervals |
 
 Payload modes are `none`, `scalar`, `preview`, `snapshot`, `raw`, and `formatter`.
@@ -131,6 +132,20 @@ Eviction is explicit; missing parents/metadata and unfinished attempts are never
 presented as a complete trace or proof that a request is still running. An
 unchanged node is only an observed unchanged recomputation in verbose mode.
 Otherwise no event means unknown, not “did not execute.”
+
+With `retainInteractionsWithoutDescendants: false`, each recorded interaction is
+unproven until a committed non-interaction event claims it as an ancestor along
+the live causal chain. Budget eviction then prefers the oldest still-unproven
+interaction and counts those removals as `suppressedInteractions`, kept separate
+from `evictedEvents` so policy omission is not conflated with budget loss.
+Proving is synchronous for emitter mutations and tracked command/query
+operations; only a hand-rolled deferred continuation without an intervening
+marker event can appear transiently before proof or pruning. Nested
+interaction-only chains never qualify, and excluded-scope activity neither
+proves nor is retained. Ancestor walks stop at 64 hops; truncations surface as
+`walkDepthExceeded`. Both counters are read via `captureLimitations`. The
+policy is lossy and fixed at construction; the default preserves
+record-everything capture.
 
 Capture is opt-in and caller-owned. Importing the package does not start it.
 Deployment, authorization, data retention/export, and production inclusion are

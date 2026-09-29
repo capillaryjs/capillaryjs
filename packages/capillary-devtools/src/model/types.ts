@@ -63,6 +63,12 @@ export interface TraceRecording {
         readonly gaps: number
         readonly evictedEvents: number
         readonly droppedTopology: number
+        /** Absent in older recordings. Interaction roots pruned by the
+         *  retention policy before producing recorded descendants. */
+        readonly suppressedInteractions?: number
+        /** Absent in older recordings. Ancestor walks truncated at the
+         *  interaction-retention depth cap. */
+        readonly walkDepthExceeded?: number
         readonly bytes: number
         readonly maxBytes: number
         readonly maxEvents: number

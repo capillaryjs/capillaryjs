@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+### Added
+
+- Add opt-in interaction retention: `TraceRecorder({retainInteractionsWithoutDescendants:
+  false})` evicts sterile interaction roots preferentially under the event/byte
+  budgets, counts them separately as `capture.suppressedInteractions`, and reports
+  them via `captureLimitations`. Ancestor walks are capped at 64 hops and
+  truncations surface as `capture.walkDepthExceeded`. The default remains
+  record-everything; the option is fixed at construction.
+
 ## 1.2.0 - 2026-09-19
 
 ### Added

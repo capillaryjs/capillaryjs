@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict'
 import {test} from 'node:test'
 import {DerivedEmitter, Diagnostics, Emitter, EventBubble, LiveQuery} from '@capillaryjs/capillary'
-import {captureLimitations, filterTrace, nodeValueEvent, projectFlow, traceAttempts, traceRoots, TracePlayback, TraceRecorder, TraceSelection} from '../src/model/index.js'
+import {captureLimitations, devtoolsDiagnosticScope, filterTrace, nodeValueEvent, projectFlow, traceAttempts, traceRoots, TracePlayback, TraceRecorder, TraceSelection} from '../src/model/index.js'
 
 test('one interaction retains both convergence paths, dormant leaves and immutable history', () => {
     let time = 0
@@ -216,4 +216,123 @@ test('feedback topology has finite stable geometry and timed playback cancellati
     playback.dispose()
     assert.equal(pending, 0)
     recorder.dispose(); a.dispose(); b.dispose()
+})
+
+test('sterile interactions are suppressed under budget pressure while proven roots survive', () => {
+    const recorder = new TraceRecorder({maxEvents: 8, retainInteractionsWithoutDescendants: false}).start()
+    const source = new Emitter(0)
+    const action = {}
+    Diagnostics.interaction(action, 'useful click', () => source.set(1))
+    for (let index = 0; index < 20; index++) Diagnostics.interaction(action, `hover ${index}`, () => {})
+    const recording = recorder.snapshot()
+    assert.equal(recording.capture.evictedEvents, 0)
+    assert.equal(recording.capture.suppressedInteractions, 14)
+    const roots = traceRoots(recording)
+    const interactionRoots = roots.filter((event) => event.kind === 'interaction')
+    assert.equal(interactionRoots.length, 7)
+    assert(interactionRoots.some((event) => event.cause === 'useful click'))
+    assert(recording.events.some((event) => event.kind !== 'interaction'))
+    assert(captureLimitations(recording).some((message) => message.includes('isolated interactions omitted')))
+    recorder.dispose(); source.dispose()
+})
+
+test('default recording keeps every interaction under the unchanged eviction rules', () => {
+    const recorder = new TraceRecorder({maxEvents: 8}).start()
+    const source = new Emitter(0)
+    const action = {}
+    Diagnostics.interaction(action, 'useful click', () => source.set(1))
+    for (let index = 0; index < 20; index++) Diagnostics.interaction(action, `hover ${index}`, () => {})
+    const recording = recorder.snapshot()
+    assert.equal(recording.capture.suppressedInteractions, 0)
+    assert.equal(recording.capture.evictedEvents, 14)
+    assert(!recording.events.some((event) => event.cause === 'useful click'))
+    recorder.dispose(); source.dispose()
+})
+
+test('nested interaction-only chains never prove each other', () => {
+    const recorder = new TraceRecorder({maxEvents: 4, retainInteractionsWithoutDescendants: false}).start()
+    const outer = {}, inner = {}
+    for (let index = 0; index < 6; index++) {
+        Diagnostics.interaction(outer, `outer ${index}`, () =>
+            Diagnostics.interaction(inner, `inner ${index}`, () => {}))
+    }
+    const recording = recorder.snapshot()
+    assert.equal(recording.capture.suppressedInteractions, 8)
+    assert.equal(recording.events.length, 4)
+    assert(recording.events.every((event) => event.kind === 'interaction'))
+    recorder.dispose()
+})
+
+test('a deferred descendant that threads the origin proves its interaction', () => {
+    const recorder = new TraceRecorder({maxEvents: 6, retainInteractionsWithoutDescendants: false}).start()
+    const source = new Emitter(0)
+    const action = {}
+    let origin: EventBubble<unknown> | null = null
+    Diagnostics.interaction(action, 'deferred work', (event) => { origin = event })
+    // Transiently visible before proof arrives — settled-state retention is the guarantee.
+    assert(recorder.snapshot().events.some((event) => event.cause === 'deferred work'))
+    Diagnostics.withEvent(origin, () => source.set(5))
+    for (let index = 0; index < 12; index++) Diagnostics.interaction(action, `hover ${index}`, () => {})
+    const recording = recorder.snapshot()
+    assert(recording.events.some((event) => event.cause === 'deferred work'))
+    assert(recording.events.some((event) => event.kind === 'value' && event.value.text === '5'))
+    recorder.dispose(); source.dispose()
+})
+
+test('an excluded-scope intermediate does not block a deeper interaction from proving', () => {
+    const recorder = new TraceRecorder({maxEvents: 10, retainInteractionsWithoutDescendants: false}).start()
+    const source = new Emitter(0)
+    const action = {}
+    Diagnostics.interaction(action, 'outer interaction', (event) => {
+        const excluded = new EventBubble({owner: action, purpose: 'excluded hop',
+            parent: event, diagnosticScope: devtoolsDiagnosticScope})
+        Diagnostics.withEvent(excluded, () =>
+            Diagnostics.interaction(action, 'inner interaction', () => source.set(3)))
+    })
+    for (let index = 0; index < 30; index++) Diagnostics.interaction(action, `hover ${index}`, () => {})
+    const recording = recorder.snapshot()
+    assert(recording.events.some((event) => event.cause === 'outer interaction'))
+    assert(recording.events.some((event) => event.cause === 'inner interaction'))
+    assert(!recording.events.some((event) => event.cause === 'excluded hop'))
+    recorder.dispose(); source.dispose()
+})
+
+test('eviction of an unproven interaction drops its id and does not corrupt later picks', () => {
+    const recorder = new TraceRecorder({maxEvents: 4, retainInteractionsWithoutDescendants: false}).start()
+    const action = {}
+    // First eviction cycle: unproven hovers occupy the whole budget.
+    for (let index = 0; index < 8; index++) Diagnostics.interaction(action, `hover ${index}`, () => {})
+    // A non-interaction event then evicts the remaining unproven set correctly.
+    const source = new Emitter(0)
+    for (let index = 0; index < 6; index++) source.set(index)
+    const recording = recorder.snapshot()
+    assert.equal(recording.capture.suppressedInteractions, 8)
+    assert(recording.events.every((event) => event.kind !== 'interaction'))
+    recorder.dispose(); source.dispose()
+})
+
+test('reset clears unproven tracking and suppression counters', () => {
+    const recorder = new TraceRecorder({maxEvents: 4, retainInteractionsWithoutDescendants: false}).start()
+    const action = {}
+    for (let index = 0; index < 8; index++) Diagnostics.interaction(action, `hover ${index}`, () => {})
+    assert(recorder.snapshot().capture.suppressedInteractions! > 0)
+    recorder.reset()
+    const recording = recorder.snapshot()
+    assert.equal(recording.capture.suppressedInteractions, 0)
+    assert.equal(recording.capture.walkDepthExceeded, 0)
+    assert.equal(recording.events.length, 0)
+    recorder.dispose()
+})
+
+test('ancestor walks deeper than the depth cap are reported, not silently dropped', () => {
+    const recorder = new TraceRecorder({retainInteractionsWithoutDescendants: false}).start()
+    const owner = {}
+    let chain: EventBubble<unknown> | null = null
+    for (let index = 0; index < 66; index++) {
+        chain = new EventBubble({owner, purpose: `hop ${index}`, parent: chain})
+    }
+    const recording = recorder.snapshot()
+    assert.equal(recording.capture.walkDepthExceeded, 1)
+    assert(captureLimitations(recording).some((message) => message.includes('depth cap')))
+    recorder.dispose()
 })

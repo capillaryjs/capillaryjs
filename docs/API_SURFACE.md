@@ -459,8 +459,12 @@ playback/view types. `./model` exports only the headless model surface.
 `TraceCaptureMode` includes opt-in `snapshot`. `maxSnapshotDepth` (default 3,
 range 1–20) and `maxSnapshotEntries` (default 100) bound immutable `ValueSnapshot`
 trees retained on `ValuePreview.snapshot`. `maxPreviewLength` also bounds each
-snapshot's scalar text/property label. Optional `TraceEvent.consumer` and
-`TraceRecording.capture.mode` preserve compatibility with older recordings.
+snapshot's scalar text/property label. Optional `TraceEvent.consumer`,
+`TraceRecording.capture.mode`, `suppressedInteractions`, and `walkDepthExceeded`
+preserve compatibility with older recordings. The opt-in
+`retainInteractionsWithoutDescendants: false` recorder option prunes interaction
+roots that produce no recorded causal descendant and reports them via
+`capture.suppressedInteractions`/`captureLimitations`.
 
 Independently importable `./views/<Name>` exports are `CausalTraceView`,
 `ChronologicalTraceView`, `FlowGraphView`, `TraceTimelineView`,
