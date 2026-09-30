@@ -18,6 +18,12 @@ import type {
     BaseSelectionHandler,
     ItemKeyGetter,
 } from '../selectionhandler.js'
+import {
+    CommandInvocationPresentation,
+    commandSource,
+    validateCommandInteractionOptions,
+} from '../../commandSupport.js'
+import type {CommandAction, CommandInteractionOptions} from '../../commandSupport.js'
 import {TableHeader} from './TableHeader.js'
 import type {TableColumn, TableRow} from './TableHeaderCell.js'
 import type {FilterOptions, FilterValue} from './FilterPanel.js'
@@ -36,7 +42,7 @@ import type {TableFilters, TableSort} from './tableQuery.js'
 const TableBody = Object.assign((props: ComponentProps) =>
     <tbody>{props.children}</tbody>, {diagnosticLabel: 'Table body'})
 
-interface DataTableCommonProps<TRow extends TableRow> extends ComponentProps {
+interface DataTableCommonProps<TRow extends TableRow> extends ComponentProps, CommandInteractionOptions {
     columns: readonly TableColumn<TRow>[]
     rowKey?: Extract<keyof TRow, string> | ItemKeyGetter<TRow>
     caption?: CapillaryUiChild
@@ -69,11 +75,15 @@ type DataTableSelectionProps<TRow extends TableRow> =
         multiSelect?: false
         selectedItemEmitter?: ValueEmitter<TRow | null>
         selectedItemsEmitter?: never
+        selectionCommand?: CommandAction<TRow | null>
+        disableWhileRunning?: boolean
     }
     | {
         multiSelect: true
         selectedItemsEmitter?: ValueEmitter<TRow[]>
         selectedItemEmitter?: never
+        selectionCommand?: CommandAction<readonly TRow[]>
+        disableWhileRunning?: boolean
     }
 
 export type DataTableProps<TRow extends TableRow = TableRow> =
@@ -98,10 +108,12 @@ export class DataTable<TRow extends TableRow = TableRow>
     private ownedDataSource: TableDataSource<TRow> | null = null
     private readonly derivedFilterOptions =
         new Map<string, ReadableEmitter<FilterOptions, unknown> & {dispose?: () => void}>()
+    private readonly commandPresentation = new CommandInvocationPresentation(() => this.update())
 
     constructor(props: DataTableProps<TRow>) {
         super(props)
         assertDataTableInput(props)
+        validateCommandInteractionOptions(props)
         this.columns = normalizeColumns(props.columns)
         this.rowKey = normalizeRowKey(props.rowKey)
         this.suppliedDataSource = props.dataSource ?? null
@@ -122,6 +134,9 @@ export class DataTable<TRow extends TableRow = TableRow>
                     : {selectedItemsEmitter: props.selectedItemsEmitter}),
                 getItems: () => this.query?.get() ?? [],
                 getKey: this.rowKey,
+                onSelectionCommitted: (items, event, action) => this.runSelectionCommand(items, event, action),
+                captureSelectionCommand: () => this.props.selectionCommand,
+                canSelect: () => this.canSelect(),
             })
             : createSelectionHandler({
                 owner: this,
@@ -130,6 +145,9 @@ export class DataTable<TRow extends TableRow = TableRow>
                     : {selectedItemEmitter: props.selectedItemEmitter}),
                 getItems: () => this.query?.get() ?? [],
                 getKey: this.rowKey,
+                onSelectionCommitted: (items, event, action) => this.runSelectionCommand(items, event, action),
+                captureSelectionCommand: () => this.props.selectionCommand,
+                canSelect: () => this.canSelect(),
             })
         this.selectedItemsEmitter = this.selectionHandler.selectedItemsEmitter
         this.selectedItemEmitter = this.selectionHandler instanceof SingleSelectionHandler
@@ -167,6 +185,14 @@ export class DataTable<TRow extends TableRow = TableRow>
         if (!Array.isArray(rows)) throw new TypeError('DataTable query value must be an array')
         const status = this.query?.getFetchState() ?? FetchState.Initial
         const error = this.query?.getError()
+        const selectionCommand = this.props.selectionCommand
+        const commandErrors = this.props.commandErrors ?? 'inline'
+        this.commandPresentation.reconcile(selectionCommand)
+        const command = commandSource(selectionCommand)
+        const commandRunning = command == null ? false : this.read(command.isRunning)
+        const commandError = commandErrors === 'external' || command == null
+            ? null : this.snapshot(command).error
+        const invocationError = this.commandPresentation.error(commandErrors)
         const isLoading = status === FetchState.Initial || status === FetchState.Loading
         const replacesContent = status === FetchState.Initial
             || (status === FetchState.Loading && result === undefined)
@@ -187,13 +213,15 @@ export class DataTable<TRow extends TableRow = TableRow>
                     fallback={this.capillaryUiMessage('dataTableLoadError')}
                 />
                 : null}
+            {invocationError == null && commandError == null ? null
+                : <ErrorMessage className="cap-error-banner" error={invocationError ?? commandError} />}
             {status === FetchState.Error && typeof this.dataSource?.retry === 'function'
                 ? <button
                     type="button"
                     onClick={() => this.dataSource?.retry?.('table retry')}
                 >{this.capillaryUiMessage('dataTableRetry')}</button>
                 : null}
-            <table key="table" aria-busy={isLoading ? 'true' : null}>
+            <table key="table" aria-busy={isLoading || commandRunning ? 'true' : null}>
                 {this.props.caption == null ? null : <caption>{this.props.caption}</caption>}
                 <TableHeader
                     key="header"
@@ -286,6 +314,24 @@ export class DataTable<TRow extends TableRow = TableRow>
 
     getSelectedRowEmitter(): ValueEmitter<TRow | null> | null {
         return this.selectedItemEmitter
+    }
+
+    private canSelect(): boolean {
+        const command = commandSource(this.props.selectionCommand)
+        return !command?.isRunning.get() || this.props.disableWhileRunning === false
+    }
+
+    private runSelectionCommand(
+        items: readonly TRow[], event: MouseEvent | KeyboardEvent, action: unknown,
+    ): void {
+        if (action == null) return
+        const payload = this.props.multiSelect === true ? [...items] : items[0] ?? null
+        this.commandPresentation.invoke(
+            action as CommandAction<TRow | null | readonly TRow[]>, payload, event, {
+                commandErrors: this.props.commandErrors,
+                onCommandInvocationError: this.props.onCommandInvocationError,
+            },
+        )
     }
 
     onDestroy(): void {

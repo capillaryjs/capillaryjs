@@ -7,11 +7,17 @@ import type {ComponentProps, CapillaryUiChild, Key} from '../../component.js'
 import {componentClass, invoke} from '../../controlUtils.js'
 import type {ValueEmitter} from '../../controlUtils.js'
 import {ErrorMessage} from '../../status/statusPresentation.js'
+import {
+    CommandInvocationPresentation,
+    commandSource,
+    validateCommandInteractionOptions,
+} from '../../commandSupport.js'
+import type {CommandAction, CommandInteractionOptions} from '../../commandSupport.js'
 import {TreeItem} from './treeitem.js'
 import type {TreeItemProps, TreeNode} from './treeitem.js'
 import {assertTreeNodes} from './treeModel.js'
 
-export interface TreeViewProps<TValue = unknown> extends ComponentProps {
+interface TreeViewCommonProps<TValue = unknown> extends ComponentProps, CommandInteractionOptions {
     nodes?: readonly TreeNode<TValue>[] | ReadableEmitter<readonly TreeNode<TValue>[] | undefined, unknown>
     label: string
     placeholderCount?: number
@@ -20,8 +26,14 @@ export interface TreeViewProps<TValue = unknown> extends ComponentProps {
     renderItem?: (node: TreeNode<TValue>, depth: number) => CapillaryUiChild
     itemLabelClassName?: (node: TreeNode<TValue>, depth: number) => string | null | undefined
     itemLabelStyle?: (node: TreeNode<TValue>, depth: number) => TreeItemStyle | null | undefined
-    onSelect?: (node: TreeNode<TValue>, event: Event) => void
+    /** Defaults to true when `selectionCommand` is supplied. */
+    disableWhileRunning?: boolean
 }
+
+export type TreeViewProps<TValue = unknown> = TreeViewCommonProps<TValue> & (
+    | {selectionCommand: CommandAction<Key | null>; onSelect?: never}
+    | {selectionCommand?: never; onSelect?: (node: TreeNode<TValue>, event: Event) => void}
+)
 
 export type TreeItemStyle = Readonly<Record<
 string,
@@ -48,9 +60,14 @@ export class TreeView<TValue = unknown> extends Component<TreeViewProps<TValue>>
     private focusedKey: Key | null = null
     private typeahead = ''
     private typeaheadTimer: ReturnType<typeof setTimeout> | null = null
+    private readonly commandPresentation = new CommandInvocationPresentation(() => this.update())
 
     constructor(props: TreeViewProps<TValue>) {
         super(props)
+        if (props.selectionCommand != null && props.onSelect != null) {
+            throw new TypeError('TreeView selectionCommand and onSelect are mutually exclusive')
+        }
+        validateCommandInteractionOptions(props)
         if (isReadableEmitter<readonly TreeNode<TValue>[] | undefined>(props.nodes)) {
             this.nodesEmitter = props.nodes
             this.ownedNodesEmitter = null
@@ -101,6 +118,14 @@ export class TreeView<TValue = unknown> extends Component<TreeViewProps<TValue>>
         assertTreeNodes(nodes)
         const fetchState = this.nodesEmitter.getFetchState()
         const sourceError = this.nodesEmitter.getError()
+        const selectionCommand = this.props.selectionCommand
+        const commandErrors = this.props.commandErrors ?? 'inline'
+        this.commandPresentation.reconcile(selectionCommand)
+        const command = commandSource(selectionCommand)
+        const commandRunning = command == null ? false : this.read(command.isRunning)
+        const commandError = commandErrors === 'external' || command == null
+            ? null : this.snapshot(command).error
+        const invocationError = this.commandPresentation.error(commandErrors)
         const isLoading = fetchState === FetchState.Initial || fetchState === FetchState.Loading
         const replacesContent = fetchState === FetchState.Initial
             || (fetchState === FetchState.Loading && result === undefined)
@@ -116,7 +141,7 @@ export class TreeView<TValue = unknown> extends Component<TreeViewProps<TValue>>
 
         const Host = this.Host
         return <Host className={componentClass(this.props) || null}
-            aria-busy={isLoading ? 'true' : null}
+            aria-busy={isLoading || commandRunning ? 'true' : null}
             data-cap-retained-loading={retainedLoading ? '' : null}>
             {fetchState === FetchState.Error
                 ? <ErrorMessage
@@ -125,6 +150,8 @@ export class TreeView<TValue = unknown> extends Component<TreeViewProps<TValue>>
                     fallback={this.capillaryUiMessage('treeViewLoadError')}
                 />
                 : null}
+            {invocationError == null && commandError == null ? null
+                : <ErrorMessage className="cap-error-banner" error={invocationError ?? commandError} />}
             {replacesContent
                 ? <>
                     <p role="status">{this.capillaryUiMessage('treeViewLoading')}</p>
@@ -149,7 +176,7 @@ export class TreeView<TValue = unknown> extends Component<TreeViewProps<TValue>>
                 ? <ul
                     role="tree"
                     aria-label={this.props.label}
-                    aria-busy={isLoading ? 'true' : null}
+                    aria-busy={isLoading || commandRunning ? 'true' : null}
                 >
                     {visible.map((item, index) => {
                         const {node, depth, position, setSize} = item
@@ -341,8 +368,24 @@ export class TreeView<TValue = unknown> extends Component<TreeViewProps<TValue>>
     }
 
     private selectNode(node: TreeNode<TValue>, event: Event): void {
+        const {
+            selectionCommand: action,
+            commandErrors,
+            onCommandInvocationError,
+            disableWhileRunning,
+            onSelect,
+        } = this.props
+        const command = commandSource(action)
+        if (command?.isRunning.get() && disableWhileRunning !== false) return
+        const changed = !Object.is(this.selectedKeyEmitter.get(), node.id)
         this.selectedKeyEmitter.set(node.id, 'tree item selected')
-        invoke(this.props.onSelect, node, event)
+        invoke(onSelect, node, event)
+        if (changed && action != null) {
+            this.commandPresentation.invoke(action, node.id, event, {
+                commandErrors,
+                onCommandInvocationError,
+            })
+        }
         this.focusRow(node.id)
     }
 

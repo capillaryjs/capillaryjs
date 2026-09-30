@@ -36,6 +36,7 @@ export type {CommandSuccess, OccurrenceSource, OccurrenceSubscribeOptions} from 
 export {bindCommand, connect, valueChanges, writableProjection, WritableProjection} from './relationships.js'
 export type {
     BoundCommand,
+    CommandBinding,
     Connection,
     ConnectionError,
     ConnectOptions,

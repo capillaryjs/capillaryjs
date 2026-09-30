@@ -10,6 +10,12 @@ import type {ValueControlProps, ValueEmitter} from '../../controlUtils.js'
 import {ErrorMessage} from '../../status/statusPresentation.js'
 import {LabeledInputControl} from '../LabeledInputControl.js'
 import {requiredInputInvalidSelector, requiredPresentationCss} from '../requiredPresentation.js'
+import {
+    CommandInvocationPresentation,
+    commandSource,
+    validateCommandInteractionOptions,
+} from '../../commandSupport.js'
+import type {CommandAction, CommandInteractionOptions} from '../../commandSupport.js'
 
 const temporalInputLiveProps = ['disabled', 'required', 'readOnly', 'busy', 'error'] as const
 
@@ -20,7 +26,7 @@ const temporalInputLiveProps = ['disabled', 'required', 'readOnly', 'busy', 'err
  * @experimental This interface is experimental and may change in any release.
  */
 export interface TemporalInputProps<TValue> extends ValueControlProps<TValue | null>,
-    LivePropContract<(typeof temporalInputLiveProps)[number]> {
+    LivePropContract<(typeof temporalInputLiveProps)[number]>, CommandInteractionOptions {
     id?: string | number | null
     label?: CapillaryUiChild
     ariaLabel?: string
@@ -41,6 +47,10 @@ export interface TemporalInputProps<TValue> extends ValueControlProps<TValue | n
      */
     step?: number | 'any' | undefined
     inputRef?: Ref<HTMLInputElement>
+    /** Executes after a changed valid native commit, never for intermediate input. */
+    changeCommand?: CommandAction<TValue | null>
+    /** Defaults to true when `changeCommand` is supplied. */
+    disableWhileRunning?: boolean
     onInput?: (value: TValue | null, event: Event) => void
     onChange?: (value: TValue | null, event: Event) => void
 }
@@ -60,6 +70,8 @@ export abstract class TemporalInput<
     readonly inputId: string
     readonly errorId: string
     readonly valueEmitter: ValueEmitter<TValue | null>
+    private lastCommittedValue: TValue | null
+    private readonly commandPresentation = new CommandInvocationPresentation(() => this.update())
 
     /** The native `<input>` type rendered by the concrete component. */
     protected abstract readonly inputType: 'date' | 'time' | 'datetime-local'
@@ -72,7 +84,12 @@ export abstract class TemporalInput<
         const hostName = (this.constructor as {hostName?: string | null}).hostName
         this.inputId = controlId(hostName ?? 'temporal', props.id)
         this.errorId = `${this.inputId}-error`
+        if (props.changeCommand != null && props.onChange != null) {
+            throw new TypeError('TemporalInput changeCommand and onChange are mutually exclusive')
+        }
+        validateCommandInteractionOptions(props)
         this.valueEmitter = createValueEmitter(this, props, null, `${hostName ?? 'temporal'} value`)
+        this.lastCommittedValue = this.valueEmitter.get()
     }
 
     initialize(): void {
@@ -81,7 +98,19 @@ export abstract class TemporalInput<
 
     private handleEvent(event: Event): void {
         const input = event.currentTarget as HTMLInputElement
-        if (this.props.readOnly) {
+        const {
+            changeCommand: action,
+            commandErrors,
+            onCommandInvocationError,
+            readOnly,
+            disabled,
+            disableWhileRunning,
+            onInput,
+            onChange,
+        } = this.props
+        const command = commandSource(action)
+        if (readOnly || disabled
+            || (command?.isRunning.get() && disableWhileRunning !== false)) {
             const value = this.valueEmitter.get()
             input.value = value == null ? '' : String(value)
             return
@@ -95,11 +124,17 @@ export abstract class TemporalInput<
         if (valid && this.valueEmitter.get() !== value) {
             this.valueEmitter.set(value, `${this.inputType} input`)
         }
-        const {onInput, onChange} = this.props
         if (event.type === 'input') {
             invoke(onInput, value, event)
         } else if (event.type === 'change') {
             invoke(onChange, value, event)
+            if (valid && action != null && value !== this.lastCommittedValue) {
+                this.lastCommittedValue = value
+                this.commandPresentation.invoke(action, value, event, {
+                    commandErrors,
+                    onCommandInvocationError,
+                })
+            }
         }
     }
 
@@ -118,8 +153,20 @@ export abstract class TemporalInput<
             max,
             step,
             inputRef,
+            changeCommand,
+            disableWhileRunning = true,
+            commandErrors = 'inline',
         } = this.props
+        this.commandPresentation.reconcile(changeCommand)
         const value = this.valueEmitter.get()
+        const command = commandSource(changeCommand)
+        const commandRunning = command == null ? false : this.read(command.isRunning)
+        const commandError = commandErrors === 'external' || command == null
+            ? null : this.snapshot(command).error
+        const invocationError = this.commandPresentation.error(commandErrors)
+        const isBusy = busy || commandRunning
+        const displayedError = error ?? invocationError ?? commandError
+        const isDisabled = disabled || (commandRunning && disableWhileRunning)
 
         const Host = this.Host
         return (
@@ -134,18 +181,18 @@ export abstract class TemporalInput<
                     max={max}
                     step={step}
                     autoComplete={autoComplete}
-                    disabled={disabled}
+                    disabled={isDisabled}
                     required={required}
                     readOnly={readOnly}
                     ref={inputRef}
                     aria-label={label == null ? ariaLabel : null}
-                    aria-busy={busy ? 'true' : null}
-                    aria-invalid={error == null ? null : 'true'}
-                    aria-describedby={error == null ? null : this.errorId}
+                    aria-busy={isBusy ? 'true' : null}
+                    aria-invalid={displayedError == null ? null : 'true'}
+                    aria-describedby={displayedError == null ? null : this.errorId}
                     onInput={(event: Event) => this.handleEvent(event)}
                     onChange={(event: Event) => this.handleEvent(event)}
                 />
-                {error == null ? null : <ErrorMessage id={this.errorId} error={error} />}
+                {displayedError == null ? null : <ErrorMessage id={this.errorId} error={displayedError} />}
             </Host>
         )
     }

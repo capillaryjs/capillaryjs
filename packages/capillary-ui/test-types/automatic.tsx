@@ -1,4 +1,4 @@
-import {Emitter} from '@capillaryjs/capillary'
+import {AsyncCommand, bindCommand, Emitter} from '@capillaryjs/capillary'
 import {
     Button,
     DescriptionItem,
@@ -21,6 +21,8 @@ const label = new Emitter('Save')
 const disabled = new Emitter(false)
 const inputValue = new Emitter('Ada')
 const numericValue = new Emitter(1)
+const refresh = new AsyncCommand<void, void>({execute: () => undefined})
+const saveName = new AsyncCommand<{name: string}, void>({execute: () => undefined})
 const radioOptions = new Emitter([
     ['list', 'List'],
     ['grid', 'Grid'],
@@ -29,6 +31,8 @@ const radioOptions = new Emitter([
 const automaticTree = (
     <Panel header="Automatic JSX">
         <Button label={label} disabled={live(disabled)} />
+        <Button label="Refresh" command={refresh} />
+        <Button label="Save name" command={bindCommand(saveName, {name: inputValue})} />
         <Textbox valueEmitter={inputValue} />
         <p>{inputValue}</p>
         <input bind:value={inputValue} />
@@ -57,6 +61,10 @@ const liveRadioState = <RadioGroup
 const invalidInput = <input ref={{current: 'not-an-input'}} />
 // @ts-expect-error Automatic JSX checks component prop types.
 const invalidAutomaticTree = <Button disabled="yes" />
+// @ts-expect-error A Button command needs void arguments or an explicit binding.
+const invalidButtonCommand = <Button label="Save" command={saveName} />
+// @ts-expect-error A declared command owns its activation callback.
+const invalidButtonCommandCallback = <Button label="Refresh" command={refresh} onClick={() => {}} />
 // @ts-expect-error live() retains the emitter's scalar value type.
 const invalidLiveProp = <Button disabled={live(label)} />
 // @ts-expect-error bind:value requires a writable string emitter.
@@ -91,6 +99,8 @@ void routedLink
 void liveRadioState
 void invalidInput
 void invalidAutomaticTree
+void invalidButtonCommand
+void invalidButtonCommandCallback
 void invalidLiveProp
 void invalidValueBinding
 void invalidCheckedBinding

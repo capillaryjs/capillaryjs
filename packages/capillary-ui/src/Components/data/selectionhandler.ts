@@ -12,6 +12,16 @@ interface SelectionHandlerCommonConfig<TItem> {
     getItems: () => readonly TItem[]
     getKey?: ItemKeyGetter<TItem>
     owner?: unknown
+    /** Called only for completed user selection gestures, never reconciliation. */
+    onSelectionCommitted?: (
+        items: readonly TItem[],
+        event: MouseEvent | KeyboardEvent,
+        action: unknown,
+    ) => void
+    /** Captures the component-owned action before a selection write can rerender it. */
+    captureSelectionCommand?: () => unknown
+    /** Whether a user gesture may currently mutate selection. */
+    canSelect?: () => boolean
 }
 
 export interface SingleSelectionHandlerConfig<TItem>
@@ -50,6 +60,11 @@ export class BaseSelectionHandler<TItem = unknown> {
     readonly selectedItemsEmitter: ValueEmitter<TItem[]>
     readonly selectedItems$: ValueEmitter<TItem[]>
     readonly ownsSelectedItemsEmitter: boolean
+    private readonly onSelectionCommitted: (
+        items: readonly TItem[], event: SelectionEvent, action: unknown,
+    ) => void
+    protected readonly captureSelectionCommand: () => unknown
+    private readonly canSelect: () => boolean
     protected rows: HTMLElement[] = []
     private readonly rowCleanups: Array<() => void> = []
     protected activeIndex = 0
@@ -57,6 +72,8 @@ export class BaseSelectionHandler<TItem = unknown> {
     protected anchorSelected: boolean | null = null
     private dragStartIndex: number | null = null
     private dragOriginEvent: MouseEvent | null = null
+    private dragInitialItems: TItem[] = []
+    private dragSelectionCommand: unknown = null
     private dragMoved = false
     private dragCleanup: (() => void) | null = null
     private suppressNextClick = false
@@ -69,6 +86,9 @@ export class BaseSelectionHandler<TItem = unknown> {
         getKey = defaultItemKey,
         selectedItemsEmitter,
         owner = null,
+        onSelectionCommitted = () => undefined,
+        captureSelectionCommand = () => null,
+        canSelect = () => true,
     }: BaseSelectionHandlerConfig<TItem>) {
         if (typeof getItems !== 'function') {
             throw new TypeError('Selection handler getItems must be a function')
@@ -85,6 +105,9 @@ export class BaseSelectionHandler<TItem = unknown> {
             ?? this.ownedSelectedItemsEmitter!
         this.selectedItems$ = this.selectedItemsEmitter
         this.ownsSelectedItemsEmitter = this.ownedSelectedItemsEmitter != null
+        this.onSelectionCommitted = onSelectionCommitted
+        this.captureSelectionCommand = captureSelectionCommand
+        this.canSelect = canSelect
     }
 
     rowsUpdated(rows: Iterable<HTMLElement> | ArrayLike<HTMLElement> | null): void {
@@ -131,6 +154,8 @@ export class BaseSelectionHandler<TItem = unknown> {
         this.clearClickSuppression()
         this.dragStartIndex = index
         this.dragOriginEvent = event
+        this.dragInitialItems = [...this.getSelectedItems()]
+        this.dragSelectionCommand = this.captureSelectionCommand()
         this.dragMoved = false
         const ownerDocument = row.ownerDocument
         const onMouseUp = (): void => this.finishDrag(this.dragMoved)
@@ -186,9 +211,19 @@ export class BaseSelectionHandler<TItem = unknown> {
 
     protected selectIndex(_index: number, _event: SelectionEvent): void {}
 
-    protected setSelectedItems(items: TItem[], cause = 'selection changed'): void {
+    protected setSelectedItems(items: TItem[], cause = 'selection changed'): boolean {
+        if (sameSelection(this.getSelectedItems(), items, this.getKey)) return false
         this.selectedItemsEmitter.set(items, cause)
         this.syncRows()
+        return true
+    }
+
+    protected commitSelection(event: SelectionEvent, action = this.captureSelectionCommand()): void {
+        this.onSelectionCommitted([...this.getSelectedItems()], event, action)
+    }
+
+    protected canCommitSelection(): boolean {
+        return this.canSelect()
     }
 
     getSelectedItems(): TItem[] {
@@ -231,11 +266,23 @@ export class BaseSelectionHandler<TItem = unknown> {
     }
 
     private finishDrag(suppressClick: boolean): void {
+        const committedEvent = this.dragOriginEvent
+        const committed = this.dragMoved
+            && !sameSelection(this.dragInitialItems, this.getSelectedItems(), this.getKey)
         this.dragCleanup?.()
         this.dragCleanup = null
         this.dragStartIndex = null
         this.dragOriginEvent = null
+        this.dragInitialItems = []
+        const action = this.dragSelectionCommand
+        this.dragSelectionCommand = null
         this.dragMoved = false
+        // Only a completed pointer gesture (the mouse-up path) is a commit.
+        // A replacement gesture or component teardown abandons the in-progress
+        // range rather than turning it into a late selection command.
+        if (suppressClick && committed && committedEvent != null) {
+            this.commitSelection(committedEvent, action)
+        }
         if (!suppressClick) return
         this.suppressNextClick = true
         if (this.suppressClickTimer != null) clearTimeout(this.suppressClickTimer)
@@ -275,6 +322,10 @@ export class SingleSelectionHandler<TItem = unknown> extends BaseSelectionHandle
             getItems: config.getItems,
             ...(config.getKey == null ? {} : {getKey: config.getKey}),
             ...(config.owner === undefined ? {} : {owner: config.owner}),
+            ...(config.onSelectionCommitted == null ? {} : {onSelectionCommitted: config.onSelectionCommitted}),
+            ...(config.canSelect == null ? {} : {canSelect: config.canSelect}),
+            ...(config.captureSelectionCommand == null
+                ? {} : {captureSelectionCommand: config.captureSelectionCommand}),
             selectedItemsEmitter: new SingleSelectionArrayView(selectedItemEmitter),
         })
         this.ownedSelectedItemEmitter = owned
@@ -282,12 +333,14 @@ export class SingleSelectionHandler<TItem = unknown> extends BaseSelectionHandle
         this.selectedItem$ = selectedItemEmitter
     }
 
-    protected selectIndex(index: number): void {
+    protected selectIndex(index: number, event: SelectionEvent): void {
+        if (!this.canCommitSelection()) return
         const item = this.getItems()[index]
         if (item === undefined) return
         this.anchorIndex = index
         this.anchorSelected = true
-        this.setSelectedItems([item], 'single selection changed')
+        const action = this.captureSelectionCommand()
+        if (this.setSelectedItems([item], 'single selection changed')) this.commitSelection(event, action)
     }
 
     getSelectedItem(): TItem | null {
@@ -302,6 +355,7 @@ export class SingleSelectionHandler<TItem = unknown> extends BaseSelectionHandle
 
 export class MultiSelectionHandler<TItem = unknown> extends BaseSelectionHandler<TItem> {
     protected selectIndex(index: number, event: SelectionEvent): void {
+        if (!this.canCommitSelection()) return
         const items = this.getItems()
         const item = items[index]
         if (item === undefined) return
@@ -321,7 +375,8 @@ export class MultiSelectionHandler<TItem = unknown> extends BaseSelectionHandler
                 selected,
                 this.getKey,
             )
-            this.setSelectedItems(next, 'range selection changed')
+            const action = this.captureSelectionCommand()
+            if (this.setSelectedItems(next, 'range selection changed')) this.commitSelection(event, action)
             return
         }
 
@@ -336,13 +391,15 @@ export class MultiSelectionHandler<TItem = unknown> extends BaseSelectionHandler
                 : [...selected, item]
             this.anchorIndex = index
             this.anchorSelected = !exists
-            this.setSelectedItems(next, 'multi selection toggled')
+            const action = this.captureSelectionCommand()
+            if (this.setSelectedItems(next, 'multi selection toggled')) this.commitSelection(event, action)
             return
         }
 
         this.anchorIndex = index
         this.anchorSelected = true
-        this.setSelectedItems([item], 'multi selection changed')
+        const action = this.captureSelectionCommand()
+        if (this.setSelectedItems([item], 'multi selection changed')) this.commitSelection(event, action)
     }
 
     protected onKeyboardMove(index: number, event: KeyboardEvent): void {
@@ -358,6 +415,7 @@ export class MultiSelectionHandler<TItem = unknown> extends BaseSelectionHandler
         endIndex: number,
         event: MouseEvent,
     ): void {
+        if (!this.canCommitSelection()) return
         const items = this.getItems()
         const first = Math.min(startIndex, endIndex)
         const last = Math.max(startIndex, endIndex)
@@ -462,6 +520,16 @@ function isSelectedByKey<TItem>(
     const key = getKey(item, index)
     return selected.some((candidate, candidateIndex) =>
         Object.is(getKey(candidate, candidateIndex), key))
+}
+
+function sameSelection<TItem>(
+    left: readonly TItem[],
+    right: readonly TItem[],
+    getKey: ItemKeyGetter<TItem>,
+): boolean {
+    if (left.length !== right.length) return false
+    const leftKeys = new Set(left.map((item, index) => getKey(item, index)))
+    return right.every((item, index) => leftKeys.has(getKey(item, index)))
 }
 
 function applyRangeSelection<TItem>(

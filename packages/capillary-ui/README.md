@@ -291,6 +291,38 @@ Capillary UI keeps the property synchronized in both directions and owns the ren
 subscription. Higher-level value controls use the same explicit
 `valueEmitter` convention.
 
+### Commands at declared interactions
+
+Attach an `AsyncCommand` to a semantic interaction instead of manually wiring
+the callback plus its busy/error state. Button commands take no arguments;
+commands needing application values use `bindCommand()`, which samples them
+only when activated:
+
+```tsx
+<Button label="Add a work item"
+    command={bindCommand(addItem, {screen: 'projects'})}
+    busyLabel="Adding…" />
+```
+
+The control presents the original command's running/execution-error state and
+blocks the interaction while it runs by default. `disableWhileRunning={false}`
+deliberately delegates repeated interaction to the command's concurrency policy;
+application `disabled` and `readOnly` still win.
+
+`changeCommand` runs after a changed accepted value on value controls (Textbox
+and temporal inputs run on committed `change`, not every input). `selectionCommand`
+runs after a completed user selection on ListView, DataTable, or TreeView.
+Mounting, programmatic writes, query/data reconciliation, focus, and tree
+expansion never execute a command. The callback for the same interaction
+(`onClick`, `onChange`, or `onSelect`) is mutually exclusive with its command.
+Applications retain arguments, validation, confirmation, navigation, and
+success effects; use `succeeded`, `connect`, and `refreshOn` for the latter.
+
+Controls show command executor errors and argument-sampler/concurrency
+invocation failures inline by default. Set `commandErrors="external"` together
+with `onCommandInvocationError` to own invocation-error presentation elsewhere;
+the command's error snapshot remains available to the application.
+
 ## Value-control convention
 
 Stateful controls expose a public writable `valueEmitter`. Callers can supply
@@ -317,15 +349,15 @@ the tables below denotes that TypeScript type parameter.
 
 | Component | Purpose | Key props and state |
 | --- | --- | --- |
-| `Button` | Native button with optional pressed and busy state | `label`, `type`, `disabled`, `pressed`, `busy`, `busyLabel`, `error`, `onClick`; live: `disabled`, `pressed`, `busy`, `error` |
+| `Button` | Native button with optional pressed and busy state | `label`, `type`, `disabled`, `pressed`, `busy`, `busyLabel`, `error`, `command`, `disableWhileRunning`, `onClick`; a command requires native `type="button"`; live: `disabled`, `pressed`, `busy`, `error` |
 | `Toolbar` | Named action group | `label`, `orientation` |
 | `Label` | Native label for rich or live text | `text`, `htmlFor`; live: `text` |
-| `Textbox` | Labelled native text input with validation | `label`, `valueEmitter`, `defaultValue`, `type`, `name`, `placeholder`, `disabled`, `required`, `readOnly`, `busy`, `error`, native text constraints, `inputRef`, `onInput`, `onChange`; live: availability, `busy`, and `error` |
-| `Dropdown<T>` | Labelled native select | `options`, `label`, `valueEmitter`, `defaultValue`, `placeholder`, `disabled`, `required`, `readOnly`, `busy`, `error`, `onChange`; `readOnly` retains focusability and restores the selected value after attempted changes; `options` may be static or a readable emitter whose fetch state supplies loading/error feedback |
-| `RadioButton` | Standalone native radio and label | `label`, `name`, `value`, `checked`, `disabled`, `required`, `readOnly`, `busy`, `error`, `onChange`; live: state, availability, `busy`, `error` |
-| `RadioGroup<T>` | Named native-radio fieldset owning one value | `options` as `[value, label]` tuples, `label`, `valueEmitter`, `defaultValue`, `disabled`, `required`, `readOnly`, `busy`, `error`, `onChange`; options are ordinary render data |
-| `Toggle<T>` | ARIA radio group rendered as toggle buttons | `options` as `[value, label]` tuples, `label`, `valueEmitter`, `defaultValue`, `disabled`, `required`, `readOnly`, `busy`, `error`, `onChange` |
-| `Checkbox<T>` | Configurable keyboard-operable semantic state cycle | `symbols` as `[content, value]` tuples, `label`/`ariaLabel`, `valueEmitter`, `defaultValue`, `disabled`, `required`, `readOnly`, `busy`, `error`, `onChange` |
+| `Textbox` | Labelled native text input with validation | Existing value/native props plus `changeCommand`, `disableWhileRunning`, `onInput`, `onChange`; live: availability, `busy`, and `error` |
+| `Dropdown<T>` | Labelled native select | Existing option/value props plus `changeCommand`, `disableWhileRunning`, `onChange`; `readOnly` retains focusability and restores the selected value; options may be static or a readable emitter with loading/error feedback |
+| `RadioButton` | Standalone native radio and label | Existing native state props plus `changeCommand`, `disableWhileRunning`, `onChange`; live: state, availability, `busy`, `error` |
+| `RadioGroup<T>` | Named native-radio fieldset owning one value | Existing option/value props plus `changeCommand`, `disableWhileRunning`, `onChange`; options are ordinary render data |
+| `Toggle<T>` | ARIA radio group rendered as toggle buttons | Existing option/value props plus `changeCommand`, `disableWhileRunning`, `onChange` |
+| `Checkbox<T>` | Configurable keyboard-operable semantic state cycle | Existing symbol/value props plus `changeCommand`, `disableWhileRunning`, `onChange` |
 | `TriCheckbox` | Neutral/prefer/deny `FilterMode` cycle | Same public props as `Checkbox`, except fixed symbols |
 | `QuadCheckbox` | Neutral/prefer/require/deny `FilterMode` cycle | Same public props as `Checkbox`, except fixed symbols |
 | `DatePicker` (experimental) | Native `<input type="date">` | `CivilDate` value props, `label`/`ariaLabel`, `name`, `autoComplete`, `disabled`, `required`, `readOnly`, `busy`, `error`, `min`/`max`/`step`, `inputRef`, input/change callbacks |
@@ -458,13 +490,13 @@ native link semantics.
 | `InfoPanel` | Bordered info panel with optional title and key-value fields | `title`, `label`, `InfoField` children |
 | `InfoField` | Native `dt`/`dd` key-value pair | required `label`, `value` or content |
 | `Placeholder` | Decorative loading placeholder | numeric `width`, clamped to 10–100 percent |
-| `ListView<T>` | Keyed single- or multi-select ARIA listbox | `items`, `itemKey`, `label`, `placeholderCount`, `renderItem`, `multiSelect`, selected emitter |
+| `ListView<T>` | Keyed single- or multi-select ARIA listbox | Existing item/selection props plus `selectionCommand`, `disableWhileRunning` |
 | `TreeItem<T>` | Declarative tree-node marker | `id`, `label`, `textValue`, `value`, nested `TreeItem` children |
-| `TreeView<T>` | Keyed single-select ARIA tree | `nodes` or declarative items, `label`, `placeholderCount`, selected/expanded emitters, `renderItem`, per-label class/style callbacks, `onSelect` |
+| `TreeView<T>` | Keyed single-select ARIA tree | Existing node/selection props plus `selectionCommand`, `disableWhileRunning`, `onSelect` |
 | `FilterPanel` | Semantic filter-control fieldset | `options`, `filters`, `filterModes`, `defaultSemanticState`, `label`, `onChange` |
 | `TableHeaderCell` | Sort/filter header-cell control | column key/label plus sort/filter state callbacks |
 | `TableHeader` | Header row over public column definitions | `columns`, sort/filter emitters and callbacks |
-| `DataTable<T>` | Accessible local, caller-query, or REST-backed table | `columns`, one data input, `rowKey`, caption/messages, `placeholderCount`, semantic filter options, single/multi selection |
+| `DataTable<T>` | Accessible local, caller-query, or REST-backed table | Existing data/filter/selection props plus `selectionCommand`, `disableWhileRunning` |
 
 `ListView`, `TreeView`, and `DataTable` reconcile selection by stable keys when
 fresh item objects arrive. Supply an explicit key for application data; index

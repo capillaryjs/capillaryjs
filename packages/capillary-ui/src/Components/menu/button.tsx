@@ -3,11 +3,17 @@ import {LineControl} from '../lineinputs/LineControl.js'
 import type {ComponentProps, CapillaryUiChild, LivePropContract} from '../component.js'
 import {componentClass, controlId, invoke} from '../controlUtils.js'
 import {ErrorMessage} from '../status/statusPresentation.js'
+import {
+    CommandInvocationPresentation,
+    commandSource,
+    validateCommandInteractionOptions,
+} from '../commandSupport.js'
+import type {CommandAction, CommandInteractionOptions} from '../commandSupport.js'
 
 const buttonLiveProps = ['disabled', 'pressed', 'busy', 'error'] as const
 
-export interface ButtonProps extends ComponentProps,
-    LivePropContract<(typeof buttonLiveProps)[number]> {
+interface ButtonCommonProps extends ComponentProps,
+    LivePropContract<(typeof buttonLiveProps)[number]>, CommandInteractionOptions {
     label?: CapillaryUiChild
     type?: 'button' | 'reset' | 'submit'
     disabled?: boolean
@@ -20,14 +26,28 @@ export interface ButtonProps extends ComponentProps,
     value?: string | number
     title?: string
     ariaLabel?: string
-    onClick?: (event: MouseEvent) => void
+    /** Defaults to true when `command` is supplied. */
+    disableWhileRunning?: boolean
 }
+
+export type ButtonProps = ButtonCommonProps & (
+    | {
+        /** Executes this command on native button activation. */
+        command: CommandAction<void>
+        onClick?: never
+    }
+    | {
+        command?: never
+        onClick?: (event: MouseEvent) => void
+    }
+)
 
 /** Native actionable button primitive. */
 export class Button extends LineControl<ButtonProps> {
     static override liveProps = buttonLiveProps
     static override dependencies = [ErrorMessage]
     readonly errorId: string
+    private readonly commandPresentation = new CommandInvocationPresentation(() => this.update())
 
     constructor(props: ButtonProps = {}) {
         super(props)
@@ -35,6 +55,13 @@ export class Button extends LineControl<ButtonProps> {
         if (props.onClick != null && typeof props.onClick !== 'function') {
             throw new TypeError('Button onClick must be a function')
         }
+        if (props.command != null && props.onClick != null) {
+            throw new TypeError('Button command and onClick are mutually exclusive')
+        }
+        if (props.command != null && props.type != null && props.type !== 'button') {
+            throw new TypeError('Button command requires type="button"')
+        }
+        validateCommandInteractionOptions(props)
     }
 
     render(): CapillaryUiChild {
@@ -52,14 +79,26 @@ export class Button extends LineControl<ButtonProps> {
             value,
             title,
             ariaLabel,
+            command,
+            disableWhileRunning = true,
+            commandErrors = 'inline',
+            onCommandInvocationError,
             onClick,
         } = this.props
+        this.commandPresentation.reconcile(command)
+        const commandState = commandSource(command)
+        const commandRunning = commandState == null ? false : this.read(commandState.isRunning)
+        const commandError = commandErrors === 'external' || commandState == null
+            ? null : this.snapshot(commandState).error
+        const invocationError = this.commandPresentation.error(commandErrors)
         const hasChildren = Array.isArray(children)
             ? children.length > 0
             : children != null && typeof children !== 'boolean'
         const normalContent = hasChildren ? children : (label ?? '')
-        const content = busy ? (busyLabel ?? normalContent) : normalContent
-        const unavailable = disabled || busy
+        const isBusy = busy || commandRunning
+        const displayedError = error ?? invocationError ?? commandError
+        const content = isBusy ? (busyLabel ?? normalContent) : normalContent
+        const unavailable = disabled || busy || (commandRunning && disableWhileRunning)
 
         const Host = this.Host
         return <Host className={componentClass(this.props) || null}>
@@ -72,14 +111,19 @@ export class Button extends LineControl<ButtonProps> {
                 disabled={unavailable}
                 aria-label={ariaLabel}
                 aria-pressed={pressed == null ? null : String(Boolean(pressed))}
-                aria-busy={busy ? 'true' : null}
-                aria-invalid={error == null ? null : 'true'}
-                aria-describedby={error == null ? null : this.errorId}
+                aria-busy={isBusy ? 'true' : null}
+                aria-invalid={displayedError == null ? null : 'true'}
+                aria-describedby={displayedError == null ? null : this.errorId}
                 onClick={(event: MouseEvent) => {
-                    if (!unavailable) invoke(onClick, event)
+                    if (unavailable) return
+                    if (command != null) this.commandPresentation.invoke(command, undefined, event, {
+                        commandErrors,
+                        onCommandInvocationError,
+                    })
+                    else invoke(onClick, event)
                 }}
             >{content}</button>
-            {error == null ? null : <ErrorMessage id={this.errorId} error={error} />}
+            {displayedError == null ? null : <ErrorMessage id={this.errorId} error={displayedError} />}
         </Host>
     }
 

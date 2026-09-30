@@ -2,7 +2,7 @@ import assert from 'node:assert/strict'
 import {after, afterEach, before, describe, test} from 'node:test'
 import {Window} from 'happy-dom'
 
-import {Emitter, FetchState} from '@capillaryjs/capillary'
+import {AsyncCommand, bindCommand, Emitter, FetchState} from '@capillaryjs/capillary'
 import {
     Breadcrumb,
     Button,
@@ -159,6 +159,76 @@ describe('action and text controls', () => {
         assert.equal(element.hasAttribute('aria-busy'), false)
         element.click()
         assert.equal(calls, 1)
+    })
+
+    test('Button invokes direct and bound commands with automatic busy state', async () => {
+        let directRuns = 0
+        let release!: () => void
+        const direct = new AsyncCommand<void, void>({
+            execute: () => new Promise<void>((resolve) => {
+                directRuns += 1
+                release = resolve
+            }),
+        })
+        Button.new({label: 'Refresh', command: direct, busyLabel: 'Refreshing…'})
+            .attachTo(document.body)
+        const button = requiredQuery<HTMLButtonElement>('button')
+        button.click()
+        await Promise.resolve()
+        assert.equal(directRuns, 1)
+        assert.equal(button.disabled, true)
+        assert.equal(button.textContent, 'Refreshing…')
+        release()
+        await Promise.resolve()
+        await Promise.resolve()
+        assert.equal(button.disabled, false)
+
+        document.body.replaceChildren()
+        const draft = new Emitter('first')
+        const received: string[] = []
+        const save = new AsyncCommand<{draft: string}, void>({
+            execute: ({draft: value}) => { received.push(value) },
+        })
+        Button.new({label: 'Save', command: bindCommand(save, {draft})}).attachTo(document.body)
+        draft.set('second')
+        requiredQuery<HTMLButtonElement>('button').click()
+        await Promise.resolve()
+        assert.deepEqual(received, ['second'])
+        direct.dispose()
+        save.dispose()
+        draft.dispose()
+    })
+
+    test('command controls present or explicitly report invocation failures', async () => {
+        const command = new AsyncCommand<{draft: string}, void>({execute: () => undefined})
+        const reports: unknown[] = []
+        const broken = bindCommand(command, () => {
+            throw new Error('Draft is unavailable')
+        })
+        const button = Button.new({
+            label: 'Save',
+            command: broken,
+            onCommandInvocationError: (error) => reports.push(error),
+        }).attachTo(document.body)
+        requiredQuery<HTMLButtonElement>('button').click()
+        await Promise.resolve()
+        assert.equal((reports[0] as Error).message, 'Draft is unavailable')
+        assert.equal(requiredQuery<HTMLElement>('cap-error[role="alert"]', button.dom as Element)
+            .getAttribute('aria-label'), 'Draft is unavailable')
+
+        button.setProps({
+            label: 'Save',
+            command: broken,
+            commandErrors: 'external',
+            onCommandInvocationError: (error) => reports.push(error),
+        })
+        assert.equal(button.dom instanceof Element
+            ? button.dom.querySelector('cap-error[role="alert"]') : null, null)
+        const noArguments = new AsyncCommand<void, void>({execute: () => undefined})
+        assert.throws(() => Button.new({label: 'Save', command: noArguments, commandErrors: 'external'}),
+            /requires onCommandInvocationError/)
+        command.dispose()
+        noArguments.dispose()
     })
 
     test('Toolbar supplies role, name, orientation, and children', () => {
@@ -348,6 +418,46 @@ describe('choice controls', () => {
         options.set([{value: 2, label: 'Second'}])
         assert.equal(select.options.length, 1)
         assert.equal(requiredAt(select.options, 0).textContent, 'Second')
+    })
+
+    test('value controls run commands only for changed committed user values', async () => {
+        const selected: number[] = []
+        const selectCommand = new AsyncCommand<number, void>({
+            execute: (value) => { selected.push(value) },
+        })
+        Dropdown.new({
+            label: 'Priority',
+            options: [{value: 1, label: 'Low'}, {value: 2, label: 'High'}],
+            value: 1,
+            changeCommand: selectCommand,
+        }).attachTo(document.body)
+        const select = requiredQuery<HTMLSelectElement>('select')
+        select.value = '2'
+        select.dispatchEvent(new Event('change', {bubbles: true}))
+        await Promise.resolve()
+        assert.deepEqual(selected, [2])
+        select.dispatchEvent(new Event('change', {bubbles: true}))
+        await Promise.resolve()
+        assert.deepEqual(selected, [2])
+
+        document.body.replaceChildren()
+        const names: string[] = []
+        const saveName = new AsyncCommand<string, void>({
+            execute: (value) => { names.push(value) },
+        })
+        Textbox.new({label: 'Name', value: 'Before', changeCommand: saveName})
+            .attachTo(document.body)
+        const input = requiredQuery<HTMLInputElement>('input')
+        input.value = 'After'
+        input.dispatchEvent(new Event('input', {bubbles: true}))
+        input.dispatchEvent(new Event('change', {bubbles: true}))
+        await Promise.resolve()
+        assert.deepEqual(names, ['After'])
+        input.dispatchEvent(new Event('change', {bubbles: true}))
+        await Promise.resolve()
+        assert.deepEqual(names, ['After'])
+        selectCommand.dispose()
+        saveName.dispose()
     })
 
     test('Dropdown uses its native select for live availability and validation', () => {

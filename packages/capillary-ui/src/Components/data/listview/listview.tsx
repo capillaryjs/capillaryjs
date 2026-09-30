@@ -16,8 +16,14 @@ import type {
     BaseSelectionHandler,
     ItemKeyGetter,
 } from '../selectionhandler.js'
+import {
+    CommandInvocationPresentation,
+    commandSource,
+    validateCommandInteractionOptions,
+} from '../../commandSupport.js'
+import type {CommandAction, CommandInteractionOptions} from '../../commandSupport.js'
 
-interface ListViewCommonProps<TItem> extends ComponentProps {
+interface ListViewCommonProps<TItem> extends ComponentProps, CommandInteractionOptions {
     items?: readonly TItem[] | ReadableEmitter<readonly TItem[] | undefined, unknown>
     itemKey?: string | ItemKeyGetter<TItem>
     label?: string
@@ -30,11 +36,17 @@ export type ListViewProps<TItem = unknown> = ListViewCommonProps<TItem> & (
         multiSelect?: false
         selectedItemEmitter?: ValueEmitter<TItem | null>
         selectedItemsEmitter?: never
+        /** Persists a completed user selection; source reconciliation never invokes it. */
+        selectionCommand?: CommandAction<TItem | null>
+        disableWhileRunning?: boolean
     }
     | {
         multiSelect: true
         selectedItemsEmitter?: ValueEmitter<TItem[]>
         selectedItemEmitter?: never
+        /** Persists one completed user selection gesture as a whole selection. */
+        selectionCommand?: CommandAction<readonly TItem[]>
+        disableWhileRunning?: boolean
     }
 )
 
@@ -50,9 +62,11 @@ export class ListView<TItem = unknown> extends Component<ListViewProps<TItem>> {
     readonly getItemKey: ItemKeyGetter<TItem>
     readonly selectionHandler: BaseSelectionHandler<TItem>
     private readonly ownedItemsEmitter: Emitter<readonly TItem[]> | null
+    private readonly commandPresentation = new CommandInvocationPresentation(() => this.update())
 
     constructor(props: ListViewProps<TItem> = {}) {
         super(props)
+        validateCommandInteractionOptions(props)
         if (isReadableEmitter<readonly TItem[] | undefined>(props.items)) {
             this.itemsEmitter = props.items
             this.ownedItemsEmitter = null
@@ -74,6 +88,9 @@ export class ListView<TItem = unknown> extends Component<ListViewProps<TItem>> {
                     : {selectedItemsEmitter: props.selectedItemsEmitter}),
                 getItems: () => this.itemsEmitter.get() ?? [],
                 getKey: this.getItemKey,
+                onSelectionCommitted: (items, event, action) => this.runSelectionCommand(items, event, action),
+                captureSelectionCommand: () => this.props.selectionCommand,
+                canSelect: () => this.canSelect(),
             })
             : createSelectionHandler({
                 owner: this,
@@ -82,6 +99,9 @@ export class ListView<TItem = unknown> extends Component<ListViewProps<TItem>> {
                     : {selectedItemEmitter: props.selectedItemEmitter}),
                 getItems: () => this.itemsEmitter.get() ?? [],
                 getKey: this.getItemKey,
+                onSelectionCommitted: (items, event, action) => this.runSelectionCommand(items, event, action),
+                captureSelectionCommand: () => this.props.selectionCommand,
+                canSelect: () => this.canSelect(),
             })
         this.selectedItemsEmitter = this.selectionHandler.selectedItemsEmitter
         this.selectedItems$ = this.selectedItemsEmitter
@@ -115,6 +135,14 @@ export class ListView<TItem = unknown> extends Component<ListViewProps<TItem>> {
         const rows = result ?? []
         const status = this.itemsEmitter.getFetchState()
         const error = this.itemsEmitter.getError()
+        const selectionCommand = this.props.selectionCommand
+        const commandErrors = this.props.commandErrors ?? 'inline'
+        this.commandPresentation.reconcile(selectionCommand)
+        const command = commandSource(selectionCommand)
+        const commandRunning = command == null ? false : this.read(command.isRunning)
+        const commandError = commandErrors === 'external' || command == null
+            ? null : this.snapshot(command).error
+        const invocationError = this.commandPresentation.error(commandErrors)
         const isLoading = status === FetchState.Initial || status === FetchState.Loading
         const replacesContent = status === FetchState.Initial
             || (status === FetchState.Loading && result === undefined)
@@ -125,7 +153,7 @@ export class ListView<TItem = unknown> extends Component<ListViewProps<TItem>> {
         const Host = this.Host
         return <Host
             className={componentClass(this.props) || null}
-            aria-busy={isLoading ? 'true' : null}
+            aria-busy={isLoading || commandRunning ? 'true' : null}
             data-cap-retained-loading={retainedLoading ? '' : null}
         >
             {status === FetchState.Error
@@ -135,6 +163,8 @@ export class ListView<TItem = unknown> extends Component<ListViewProps<TItem>> {
                     fallback={this.capillaryUiMessage('listViewLoadError')}
                 />
                 : null}
+            {invocationError == null && commandError == null ? null
+                : <ErrorMessage className="cap-error-banner" error={invocationError ?? commandError} />}
             {replacesContent
                 ? <>
                     <p role="status">{this.capillaryUiMessage('listViewLoading')}</p>
@@ -153,7 +183,7 @@ export class ListView<TItem = unknown> extends Component<ListViewProps<TItem>> {
                 ? <ul
                     role="listbox"
                     aria-label={this.props.label ?? this.capillaryUiMessage('listViewLabel')}
-                    aria-busy={isLoading ? 'true' : null}
+                    aria-busy={isLoading || commandRunning ? 'true' : null}
                     aria-multiselectable={this.props.multiSelect ? 'true' : null}
                 >{rows.map((item, index) => {
                     const key = this.getItemKey(item, index)
@@ -194,6 +224,24 @@ export class ListView<TItem = unknown> extends Component<ListViewProps<TItem>> {
 
     getSelectedItemEmitter(): ValueEmitter<TItem | null> | null {
         return this.selectedItemEmitter
+    }
+
+    private canSelect(): boolean {
+        const command = commandSource(this.props.selectionCommand)
+        return !command?.isRunning.get() || this.props.disableWhileRunning === false
+    }
+
+    private runSelectionCommand(
+        items: readonly TItem[], event: MouseEvent | KeyboardEvent, action: unknown,
+    ): void {
+        if (action == null) return
+        const payload = this.props.multiSelect === true ? [...items] : items[0] ?? null
+        this.commandPresentation.invoke(
+            action as CommandAction<TItem | null | readonly TItem[]>, payload, event, {
+                commandErrors: this.props.commandErrors,
+                onCommandInvocationError: this.props.onCommandInvocationError,
+            },
+        )
     }
 
     onDestroy(): void {

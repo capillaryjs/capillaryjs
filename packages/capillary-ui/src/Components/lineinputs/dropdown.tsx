@@ -11,6 +11,12 @@ import {
 import type {ValueControlProps, ValueEmitter} from '../controlUtils.js'
 import {ErrorMessage} from '../status/statusPresentation.js'
 import {SelectControl} from './SelectControl.js'
+import {
+    CommandInvocationPresentation,
+    commandSource,
+    validateCommandInteractionOptions,
+} from '../commandSupport.js'
+import type {CommandAction, CommandInteractionOptions} from '../commandSupport.js'
 
 export type DropdownValue = string | number
 
@@ -22,8 +28,8 @@ export interface DropdownOption<TValue extends DropdownValue = string> {
 
 const dropdownLiveProps = ['disabled', 'required', 'readOnly', 'busy', 'error'] as const
 
-export interface DropdownProps<TValue extends DropdownValue = string>
-    extends ValueControlProps<TValue>, LivePropContract<(typeof dropdownLiveProps)[number]> {
+interface DropdownCommonProps<TValue extends DropdownValue = string>
+    extends ValueControlProps<TValue>, LivePropContract<(typeof dropdownLiveProps)[number]>, CommandInteractionOptions {
     id?: string | number | null
     options?: readonly DropdownOption<TValue>[]
         | ReadableEmitter<readonly DropdownOption<TValue>[], unknown>
@@ -37,8 +43,15 @@ export interface DropdownProps<TValue extends DropdownValue = string>
     error?: unknown
     placeholder?: CapillaryUiChild
     ariaLabel?: string
-    onChange?: (value: TValue, event: Event) => void
+    /** Defaults to true when `changeCommand` is supplied. */
+    disableWhileRunning?: boolean
 }
+
+export type DropdownProps<TValue extends DropdownValue = string> =
+    DropdownCommonProps<TValue> & (
+        | {changeCommand: CommandAction<TValue>; onChange?: never}
+        | {changeCommand?: never; onChange?: (value: TValue, event: Event) => void}
+    )
 
 export class Dropdown<TValue extends DropdownValue = string>
     extends SelectControl<DropdownProps<TValue>> {
@@ -49,11 +62,16 @@ export class Dropdown<TValue extends DropdownValue = string>
     readonly optionsEmitter: ReadableEmitter<readonly DropdownOption<TValue>[], unknown>
     readonly valueEmitter: ValueEmitter<TValue>
     private readonly ownsOptionsEmitter: boolean
+    private readonly commandPresentation = new CommandInvocationPresentation(() => this.update())
 
     constructor(props: DropdownProps<TValue> = {}) {
         super(props)
         this.inputId = controlId('dropdown', props.id)
         this.errorId = `${this.inputId}-error`
+        if (props.changeCommand != null && props.onChange != null) {
+            throw new TypeError('Dropdown changeCommand and onChange are mutually exclusive')
+        }
+        validateCommandInteractionOptions(props)
         const suppliedOptions = props.options ?? []
         if (isReadableEmitter<readonly DropdownOption<TValue>[]>(suppliedOptions)) {
             this.optionsEmitter = suppliedOptions
@@ -87,7 +105,17 @@ export class Dropdown<TValue extends DropdownValue = string>
             error = null,
             placeholder = this.capillaryUiMessage('dropdownPlaceholder'),
             ariaLabel,
+            changeCommand,
+            disableWhileRunning = true,
+            commandErrors = 'inline',
+            onCommandInvocationError,
         } = this.props
+        this.commandPresentation.reconcile(changeCommand)
+        const command = commandSource(changeCommand)
+        const commandRunning = command == null ? false : this.read(command.isRunning)
+        const commandError = commandErrors === 'external' || command == null
+            ? null : this.snapshot(command).error
+        const invocationError = this.commandPresentation.error(commandErrors)
         const options = this.optionsEmitter.get() ?? []
         assertOptions<DropdownOption<TValue>>(options)
         const currentValue = this.valueEmitter.get()
@@ -98,10 +126,11 @@ export class Dropdown<TValue extends DropdownValue = string>
         const sourceError = hasSourceError
             ? this.optionsEmitter.getError()
             : null
-        const displayedError = error ?? (hasSourceError
+        const displayedError = error ?? invocationError ?? commandError ?? (hasSourceError
             ? sourceError ?? this.capillaryUiMessage('dropdownLoadError')
             : null)
-        const isBusy = busy || sourceBusy
+        const isBusy = busy || sourceBusy || commandRunning
+        const isDisabled = disabled || (commandRunning && disableWhileRunning)
 
         const Host = this.Host
         return <Host
@@ -113,7 +142,7 @@ export class Dropdown<TValue extends DropdownValue = string>
                     id={this.inputId}
                     name={name}
                     value={currentValue == null ? '' : String(currentValue)}
-                    disabled={disabled}
+                    disabled={isDisabled}
                     required={required}
                     aria-readonly={readOnly ? 'true' : null}
                     aria-label={label == null ? ariaLabel : null}
@@ -166,7 +195,17 @@ export class Dropdown<TValue extends DropdownValue = string>
 
     /** Handle a native select change: resolve the option, update the value, emit. */
     protected selectOption(event: Event): void {
-        if (this.props.readOnly) {
+        const {
+            changeCommand: action,
+            commandErrors,
+            onCommandInvocationError,
+            readOnly,
+            disabled,
+            disableWhileRunning,
+        } = this.props
+        const command = commandSource(action)
+        if (readOnly || disabled
+            || (command?.isRunning.get() && disableWhileRunning !== false)) {
             const select = event.currentTarget as HTMLSelectElement
             select.value = this.valueEmitter.get() == null ? '' : String(this.valueEmitter.get())
             return
@@ -177,8 +216,17 @@ export class Dropdown<TValue extends DropdownValue = string>
         // A declared option restores TValue; raw is the fallback for
         // JavaScript callers that mutate the select outside that list.
         const nextValue = option?.value ?? raw as TValue
+        const changed = !Object.is(this.valueEmitter.get(), nextValue)
         this.valueEmitter.set(nextValue, 'dropdown selection')
+        // Capture the command and presentation policy before the local write.
+        // The emitter can synchronously rerender a parent that replaces props.
         this.emitChange(nextValue, option, event)
+        if (changed && action != null) {
+            this.commandPresentation.invoke(action, nextValue, event, {
+                commandErrors,
+                onCommandInvocationError,
+            })
+        }
     }
 
     /** Emit the public change callback. Subclasses may forward extra detail. */

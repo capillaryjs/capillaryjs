@@ -493,11 +493,14 @@ consequences without promise-chain synchronization glue; their errors are
 reported through the connection's `onError` without retrying the mutation.
 `bindCommand()` samples a named record of values/emitters only when its returned
 action is invoked, so source edits never execute a mutation. Query failures
-remain in their own snapshots:
+remain in their own snapshots. The callable binding retains its original
+command as `.command`, so a presentation consumer can observe the existing
+lifecycle without constructing another command:
 
 ```ts
 const submit = bindCommand(saveCommand, {id: selectedId, draft})
 button.onclick = () => void submit()
+submit.command.isRunning.get()
 ```
 
 `writableProjection(source, {read, write})` exposes one writable field or

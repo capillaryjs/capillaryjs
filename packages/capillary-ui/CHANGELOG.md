@@ -6,6 +6,15 @@ Versioning.
 
 ## Unreleased
 
+### Added
+
+- Add declarative command integration: `Button.command`, typed
+  `changeCommand` props for editable controls, and opt-in `selectionCommand`
+  props for ListView, DataTable, and TreeView. Bound commands reuse their
+  original running/error lifecycle; source reconciliation never executes one.
+  `commandErrors` and `onCommandInvocationError` make sampler/concurrency
+  invocation failures visible inline or explicitly application-owned.
+
 ## 1.5.0 - 2026-09-29
 
 ### Changed

@@ -1,7 +1,7 @@
 # Public API surface
 
 Status: current package-root and documented CSS entry points
-Updated: 2026-09-15
+Updated: 2026-09-30
 
 This inventory describes the checked-out Capillary, Capillary UI, Capillary Viz,
 and optional Capillary DevTools packages. All follow 1.x semantic-versioning
@@ -23,7 +23,7 @@ package root.
 | Live queries | `QueryArg`, `replaceArg`, `LiveQuery` | argument, `LiveQueryExecution`, polling, scheduler, retry, retention, refresh-trigger, `LiveResult`, and `RefreshableLiveResult` contracts |
 | Retrieval | `QueryHandler`, `RestQueryHandler` | handler, request, Fetch/URL/response, serializer, parser, and REST option contracts |
 | Endpoints | `QueryEndpoint`, `RestEndpoint`, `DerivedEndpoint`, `DerivedLiveResult`, `queryEndpoint`, `restEndpoint`, `derivedEndpoint` | declaration and open-result option types |
-| Commands and connections | `AsyncCommand`, `AsyncCommandConcurrencyError`, `connect`, `bindCommand` | executor, context, concurrency, retry, success-occurrence, connection, and bound-command types |
+| Commands and connections | `AsyncCommand`, `AsyncCommandConcurrencyError`, `connect`, `bindCommand` | executor, context, concurrency, retry, success-occurrence, connection, `BoundCommand`, and `CommandBinding` types |
 | Retry | `resolveRetryPolicy`, `computeRetryDelay`, `isAbortError` | `RetryPolicy`, `RetryBackoff`, `ResolvedRetryPolicy`, and `RetryScheduler` contracts |
 | Diagnostics | `EventBubble`, `EventBus`, `Diagnostics`, `DiagnosticScope`, `defaultDiagnosticScope`, `diagnosticInfo` | event options/listener, `BubbleGraph`, protocol-v1 node/description/subject/fact/event-kind/outcome/details/observer options |
 | Utility | — | `NonEmptyArray` |
@@ -51,6 +51,8 @@ Important compatibility boundaries:
   source carries the accepted invocation arguments/result without making a
   historical success part of its current snapshot. Follow-up query state
   remains independent.
+- `bindCommand()` remains callable and exposes its original command through
+  `.command`; it samples argument sources only on invocation.
 - `connect()` routes a future occurrence to one explicit write or action and
   returns idempotent cleanup with a future-only `errors` source. `valueChanges()`
   adapts ordinary value changes explicitly; it does not convert fetch-state
@@ -169,6 +171,15 @@ Notable public behavior:
   `Button` remains unavailable but retains normal button chrome beneath the
   working texture. Application commands and lifecycle stay in Capillary/
   application code.
+- `Button.command` declares a native activation, `changeCommand` declares a
+  changed user-value execution, and `selectionCommand` declares a completed
+  user-selection execution for ListView, DataTable, and TreeView. Controls
+  present the original command's running/error state; mounting, programmatic
+  writes, and source reconciliation never execute it.
+- Command-aware controls default to inline command and invocation errors.
+  `commandErrors="external"` requires `onCommandInvocationError`; it leaves
+  presentation to an application-owned error region while preserving the
+  command's own observable snapshot.
 - `ProgressBar` only paints busy chrome for an emitter-backed indeterminate
   value whose `getFetchState()` is `FetchState.Loading`; a literal `null` value
   remains static.

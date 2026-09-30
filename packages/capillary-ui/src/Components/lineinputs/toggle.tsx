@@ -10,6 +10,12 @@ import {
 } from '../controlUtils.js'
 import type {ValueControlProps, ValueEmitter} from '../controlUtils.js'
 import {ErrorMessage} from '../status/statusPresentation.js'
+import {
+    CommandInvocationPresentation,
+    commandSource,
+    validateCommandInteractionOptions,
+} from '../commandSupport.js'
+import type {CommandAction, CommandInteractionOptions} from '../commandSupport.js'
 
 export type ToggleOption<TValue extends Key = string> = readonly [
     value: TValue,
@@ -18,8 +24,8 @@ export type ToggleOption<TValue extends Key = string> = readonly [
 
 const toggleLiveProps = ['disabled', 'required', 'readOnly', 'busy', 'error'] as const
 
-export interface ToggleProps<TValue extends Key = string>
-    extends ValueControlProps<TValue>, LivePropContract<(typeof toggleLiveProps)[number]> {
+interface ToggleCommonProps<TValue extends Key = string>
+    extends ValueControlProps<TValue>, LivePropContract<(typeof toggleLiveProps)[number]>, CommandInteractionOptions {
     id?: string | number | null
     options?: readonly ToggleOption<TValue>[]
     label?: CapillaryUiChild
@@ -30,8 +36,14 @@ export interface ToggleProps<TValue extends Key = string>
     readOnly?: boolean
     busy?: boolean
     error?: unknown
-    onChange?: (value: TValue, event: Event | null) => void
+    /** Defaults to true when `changeCommand` is supplied. */
+    disableWhileRunning?: boolean
 }
+
+export type ToggleProps<TValue extends Key = string> = ToggleCommonProps<TValue> & (
+    | {changeCommand: CommandAction<TValue>; onChange?: never}
+    | {changeCommand?: never; onChange?: (value: TValue, event: Event | null) => void}
+)
 
 /** Mutually exclusive button group with radio-group semantics. */
 export class Toggle<TValue extends Key = string> extends LabeledInputControl<ToggleProps<TValue>> {
@@ -41,9 +53,14 @@ export class Toggle<TValue extends Key = string> extends LabeledInputControl<Tog
     readonly groupId: string
     readonly legendId: string
     readonly errorId: string
+    private readonly commandPresentation = new CommandInvocationPresentation(() => this.update())
 
     constructor(props: ToggleProps<TValue> = {}) {
         super(props)
+        if (props.changeCommand != null && props.onChange != null) {
+            throw new TypeError('Toggle changeCommand and onChange are mutually exclusive')
+        }
+        validateCommandInteractionOptions(props)
         const options = props.options ?? []
         validateToggleOptions(options)
         const firstValue = options[0]?.[0] ?? null
@@ -74,9 +91,26 @@ export class Toggle<TValue extends Key = string> extends LabeledInputControl<Tog
     }
 
     selectOption(value: TValue, event: Event | null = null): void {
-        if (this.props.disabled || this.props.readOnly) return
+        const {
+            changeCommand: action,
+            commandErrors,
+            onCommandInvocationError,
+            disabled,
+            readOnly,
+            disableWhileRunning,
+        } = this.props
+        const command = commandSource(action)
+        if (disabled || readOnly
+            || (command?.isRunning.get() && disableWhileRunning !== false)) return
+        const changed = !Object.is(this.valueEmitter.get(), value)
         this.valueEmitter.set(value, 'toggle option selected')
         invoke(this.props.onChange, value, event)
+        if (changed && event != null && action != null) {
+            this.commandPresentation.invoke(action, value, event, {
+                commandErrors,
+                onCommandInvocationError,
+            })
+        }
     }
 
     render(): CapillaryUiChild {
@@ -88,7 +122,19 @@ export class Toggle<TValue extends Key = string> extends LabeledInputControl<Tog
             readOnly = false,
             busy = false,
             error = null,
+            changeCommand,
+            disableWhileRunning = true,
+            commandErrors = 'inline',
         } = this.props
+        this.commandPresentation.reconcile(changeCommand)
+        const command = commandSource(changeCommand)
+        const commandRunning = command == null ? false : this.read(command.isRunning)
+        const commandError = commandErrors === 'external' || command == null
+            ? null : this.snapshot(command).error
+        const invocationError = this.commandPresentation.error(commandErrors)
+        const isBusy = busy || commandRunning
+        const displayedError = error ?? invocationError ?? commandError
+        const isDisabled = disabled || (commandRunning && disableWhileRunning)
         validateToggleOptions(options)
         const selectedValue = this.valueEmitter.get()
         const selectedIndex = Math.max(0,
@@ -103,21 +149,21 @@ export class Toggle<TValue extends Key = string> extends LabeledInputControl<Tog
                 aria-labelledby={label == null ? null : this.legendId}
                 aria-required={required ? 'true' : null}
                 aria-readonly={readOnly ? 'true' : null}
-                aria-busy={busy ? 'true' : null}
-                aria-invalid={error == null ? null : 'true'}
-                aria-describedby={error == null ? null : this.errorId}
+                aria-busy={isBusy ? 'true' : null}
+                aria-invalid={displayedError == null ? null : 'true'}
+                aria-describedby={displayedError == null ? null : this.errorId}
             >{options.map(([value, optionLabel], index) => <button
                 key={String(value)}
                 type="button"
                 role="radio"
-                disabled={disabled}
+                disabled={isDisabled}
                 aria-checked={Object.is(selectedValue, value) ? 'true' : 'false'}
                 tabIndex={index === selectedIndex ? 0 : -1}
                 onClick={(event: MouseEvent) => this.selectOption(value, event)}
                 onKeyDown={(event: KeyboardEvent) =>
                     this.handleKeyDown(event, index, options)}
             >{optionLabel}</button>)}</cap-options>
-            {error == null ? null : <ErrorMessage id={this.errorId} error={error} />}
+            {displayedError == null ? null : <ErrorMessage id={this.errorId} error={displayedError} />}
         </Host>
     }
 

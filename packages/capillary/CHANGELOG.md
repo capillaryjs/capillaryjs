@@ -6,6 +6,12 @@ Versioning.
 
 ## Unreleased
 
+### Added
+
+- Let `bindCommand()` retain a readonly reference to its original
+  `AsyncCommand`, so command-aware consumers can present its existing lifecycle
+  without creating another command wrapper.
+
 ## 1.5.0 - 2026-09-29
 
 ### Added

@@ -114,6 +114,7 @@ test('bindCommand samples sources at invocation rather than on source writes', a
     })
     const submit = bindCommand(command, {draft})
 
+    assert.equal(submit.command, command)
     draft.set('second')
     assert.deepEqual(received, [])
     assert.equal(await submit(), 'second')

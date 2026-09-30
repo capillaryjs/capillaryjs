@@ -15,6 +15,12 @@ import {
 import type {ValueControlProps, ValueEmitter} from '../controlUtils.js'
 import {ErrorMessage} from '../status/statusPresentation.js'
 import {CheckableControl} from './CheckableControl.js'
+import {
+    CommandInvocationPresentation,
+    commandSource,
+    validateCommandInteractionOptions,
+} from '../commandSupport.js'
+import type {CommandAction, CommandInteractionOptions} from '../commandSupport.js'
 
 export type RadioOption<TValue extends Key = string> = readonly [
     value: TValue,
@@ -24,8 +30,8 @@ export type RadioOption<TValue extends Key = string> = readonly [
 const radioButtonLiveProps = ['checked', 'disabled', 'required', 'readOnly', 'busy', 'error'] as const
 const radioGroupLiveProps = ['disabled', 'required', 'readOnly', 'busy', 'error'] as const
 
-export interface RadioButtonProps extends ComponentProps,
-    LivePropContract<(typeof radioButtonLiveProps)[number]> {
+interface RadioButtonCommonProps extends ComponentProps,
+    LivePropContract<(typeof radioButtonLiveProps)[number]>, CommandInteractionOptions {
     id?: string | number | null
     label?: CapillaryUiChild
     name?: string
@@ -37,8 +43,13 @@ export interface RadioButtonProps extends ComponentProps,
     readOnly?: boolean
     busy?: boolean
     error?: unknown
-    onChange?: (checked: boolean, event: Event) => void
+    disableWhileRunning?: boolean
 }
+
+export type RadioButtonProps = RadioButtonCommonProps & (
+    | {changeCommand: CommandAction<boolean>; onChange?: never}
+    | {changeCommand?: never; onChange?: (checked: boolean, event: Event) => void}
+)
 
 /** A native radio input with its associated label and visual control shell. */
 export class RadioButton extends CheckableControl<RadioButtonProps> {
@@ -46,9 +57,14 @@ export class RadioButton extends CheckableControl<RadioButtonProps> {
     static override dependencies = [ErrorMessage]
     readonly inputId: string
     readonly errorId: string
+    private readonly commandPresentation = new CommandInvocationPresentation(() => this.update())
 
     constructor(props: RadioButtonProps = {}) {
         super(props)
+        if (props.changeCommand != null && props.onChange != null) {
+            throw new TypeError('RadioButton changeCommand and onChange are mutually exclusive')
+        }
+        validateCommandInteractionOptions(props)
         this.inputId = controlId('radio', props.id)
         this.errorId = `${this.inputId}-error`
     }
@@ -62,7 +78,20 @@ export class RadioButton extends CheckableControl<RadioButtonProps> {
             readOnly = false,
             busy = false,
             error = null,
+            changeCommand,
+            disableWhileRunning = true,
+            commandErrors = 'inline',
+            onCommandInvocationError,
         } = this.props
+        this.commandPresentation.reconcile(changeCommand)
+        const command = commandSource(changeCommand)
+        const commandRunning = command == null ? false : this.read(command.isRunning)
+        const commandError = commandErrors === 'external' || command == null
+            ? null : this.snapshot(command).error
+        const invocationError = this.commandPresentation.error(commandErrors)
+        const isBusy = busy || commandRunning
+        const displayedError = error ?? invocationError ?? commandError
+        const isDisabled = disabled || (commandRunning && disableWhileRunning)
         const Host = this.Host
         return <Host className={componentClass(this.props) || null}>
             <label htmlFor={this.inputId}>
@@ -72,28 +101,34 @@ export class RadioButton extends CheckableControl<RadioButtonProps> {
                     name={this.props.name}
                     value={this.props.value == null ? undefined : String(this.props.value)}
                     checked={checked}
-                    disabled={disabled}
+                    disabled={isDisabled}
                     required={required}
                     aria-readonly={readOnly ? 'true' : null}
-                    aria-busy={busy ? 'true' : null}
-                    aria-invalid={error == null ? null : 'true'}
-                    aria-describedby={error == null ? null : this.errorId}
+                    aria-busy={isBusy ? 'true' : null}
+                    aria-invalid={displayedError == null ? null : 'true'}
+                    aria-describedby={displayedError == null ? null : this.errorId}
                     onClick={(event: MouseEvent) => {
                         if (readOnly) event.preventDefault()
                     }}
                     onChange={(event: Event) => {
                         const input = event.currentTarget as HTMLInputElement
-                        if (readOnly) {
+                        if (readOnly || isDisabled) {
                             input.checked = checked
                             return
                         }
                         invoke(this.props.onChange, input.checked, event)
+                        if (changeCommand != null && input.checked !== checked) {
+                            this.commandPresentation.invoke(changeCommand, input.checked, event, {
+                                commandErrors,
+                                onCommandInvocationError,
+                            })
+                        }
                     }}
                 />
                 <cap-checkshell aria-hidden="true" />
                 {label}
             </label>
-            {error == null ? null : <ErrorMessage id={this.errorId} error={error} />}
+            {displayedError == null ? null : <ErrorMessage id={this.errorId} error={displayedError} />}
         </Host>
     }
 
@@ -126,9 +161,9 @@ export class RadioButton extends CheckableControl<RadioButtonProps> {
     `
 }
 
-export interface RadioGroupProps<TValue extends Key = string>
+interface RadioGroupCommonProps<TValue extends Key = string>
     extends ValueControlProps<TValue>,
-        LivePropContract<(typeof radioGroupLiveProps)[number]> {
+        LivePropContract<(typeof radioGroupLiveProps)[number]>, CommandInteractionOptions {
     id?: string | number | null
     /** Ordinary option data; an owning render must resolve any reactive source. */
     options?: readonly RadioOption<TValue>[]
@@ -145,8 +180,13 @@ export interface RadioGroupProps<TValue extends Key = string>
     busy?: boolean
     /** Validation error; accepts an ordinary value or `live(errorEmitter)`. */
     error?: unknown
-    onChange?: (value: TValue, event: Event | null) => void
+    disableWhileRunning?: boolean
 }
+
+export type RadioGroupProps<TValue extends Key = string> = RadioGroupCommonProps<TValue> & (
+    | {changeCommand: CommandAction<TValue>; onChange?: never}
+    | {changeCommand?: never; onChange?: (value: TValue, event: Event | null) => void}
+)
 
 /** A native-radio group that owns one selected option value. */
 export class RadioGroup<TValue extends Key = string>
@@ -157,9 +197,14 @@ export class RadioGroup<TValue extends Key = string>
     readonly valueEmitter: ValueEmitter<TValue>
     readonly groupId: string
     readonly errorId: string
+    private readonly commandPresentation = new CommandInvocationPresentation(() => this.update())
 
     constructor(props: RadioGroupProps<TValue> = {}) {
         super(props)
+        if (props.changeCommand != null && props.onChange != null) {
+            throw new TypeError('RadioGroup changeCommand and onChange are mutually exclusive')
+        }
+        validateCommandInteractionOptions(props)
         const options = props.options ?? []
         validateRadioOptions(options)
         const firstValue = options[0]?.[0] ?? null as unknown as TValue
@@ -181,13 +226,29 @@ export class RadioGroup<TValue extends Key = string>
     }
 
     selectOption(value: TValue, event: Event | null = null): void {
-        if (this.props.disabled) return
-        if (this.props.readOnly) {
+        const {
+            changeCommand: action,
+            commandErrors,
+            onCommandInvocationError,
+            disabled,
+            readOnly,
+            disableWhileRunning,
+        } = this.props
+        const command = commandSource(action)
+        if (disabled || (command?.isRunning.get() && disableWhileRunning !== false)) return
+        if (readOnly) {
             this.restoreNativeSelection()
             return
         }
+        const changed = !Object.is(this.valueEmitter.get(), value)
         this.valueEmitter.set(value, 'radio option selected')
         invoke(this.props.onChange, value, event)
+        if (changed && event != null && action != null) {
+            this.commandPresentation.invoke(action, value, event, {
+                commandErrors,
+                onCommandInvocationError,
+            })
+        }
     }
 
     render(): CapillaryUiChild {
@@ -199,7 +260,19 @@ export class RadioGroup<TValue extends Key = string>
             readOnly = false,
             busy = false,
             error = null,
+            changeCommand,
+            disableWhileRunning = true,
+            commandErrors = 'inline',
         } = this.props
+        this.commandPresentation.reconcile(changeCommand)
+        const command = commandSource(changeCommand)
+        const commandRunning = command == null ? false : this.read(command.isRunning)
+        const commandError = commandErrors === 'external' || command == null
+            ? null : this.snapshot(command).error
+        const invocationError = this.commandPresentation.error(commandErrors)
+        const isBusy = busy || commandRunning
+        const displayedError = error ?? invocationError ?? commandError
+        const isDisabled = disabled || (commandRunning && disableWhileRunning)
         validateRadioOptions(options)
         const selectedValue = this.valueEmitter.get()
         const Host = this.Host
@@ -208,13 +281,13 @@ export class RadioGroup<TValue extends Key = string>
         >
             <fieldset
                 id={this.groupId}
-                disabled={disabled}
+                disabled={isDisabled}
                 aria-readonly={readOnly ? 'true' : null}
                 aria-label={label == null ? this.props.ariaLabel : null}
                 aria-required={required ? 'true' : null}
-                aria-busy={busy ? 'true' : null}
-                aria-invalid={error == null ? null : 'true'}
-                aria-describedby={error == null ? null : this.errorId}
+                aria-busy={isBusy ? 'true' : null}
+                aria-invalid={displayedError == null ? null : 'true'}
+                aria-describedby={displayedError == null ? null : this.errorId}
                 onClick={(event: MouseEvent) => {
                     if (readOnly) event.preventDefault()
                 }}
@@ -227,15 +300,15 @@ export class RadioGroup<TValue extends Key = string>
                     value={value}
                     label={optionLabel}
                     checked={Object.is(selectedValue, value)}
-                    disabled={disabled}
+                    disabled={isDisabled}
                     required={required}
-                    busy={busy && error == null}
+                    busy={isBusy && displayedError == null}
                     onChange={(checked, event) => {
                         if (checked) this.selectOption(value, event)
                     }}
                 />)}
             </fieldset>
-            {error == null ? null : <ErrorMessage id={this.errorId} error={error} />}
+            {displayedError == null ? null : <ErrorMessage id={this.errorId} error={displayedError} />}
         </Host>
     }
 

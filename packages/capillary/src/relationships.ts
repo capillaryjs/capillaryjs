@@ -138,23 +138,31 @@ export type BoundCommand<TArguments, TResult> = (
     eventOrCause?: EventBubble<unknown> | unknown,
 ) => Promise<TResult | undefined>
 
+/** A callable command binding that retains the command whose arguments it samples. */
+export type CommandBinding<TArguments, TResult, TError = unknown> =
+    BoundCommand<TArguments, TResult> & {
+        readonly command: AsyncCommand<TArguments, TResult, TError>
+    }
+
 /** Samples emitter argument sources only when the returned action is invoked. */
 export function bindCommand<TArguments, TResult, TError>(
     command: AsyncCommand<TArguments, TResult, TError>,
     arguments_: {[TName in keyof TArguments]: ArgumentSource<TArguments[TName]>} | (() => TArguments),
-): BoundCommand<TArguments, TResult> {
+): CommandBinding<TArguments, TResult, TError> {
     if (command == null || typeof command.run !== 'function') throw new TypeError('bindCommand command must be an AsyncCommand')
     if (typeof arguments_ !== 'function' && (arguments_ == null || typeof arguments_ !== 'object')) {
         throw new TypeError('bindCommand arguments must be a record or sampler')
     }
-    return (eventOrCause = 'bound command run') => {
+    const binding = ((eventOrCause = 'bound command run') => {
         const sampled = typeof arguments_ === 'function'
             ? arguments_()
             : Object.fromEntries(Object.entries(arguments_).map(([name, source]) =>
                 [name, isReadableEmitter(source) ? source.get() : source],
             )) as TArguments
         return command.run(sampled, eventOrCause)
-    }
+    }) as CommandBinding<TArguments, TResult, TError>
+    Object.defineProperty(binding, 'command', {value: command, enumerable: true})
+    return binding
 }
 
 export interface WritableProjectionOptions<TSource, TValue> extends EmitterOptions<TValue, unknown> {

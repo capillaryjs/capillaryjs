@@ -12,6 +12,12 @@ import type {ValueControlProps, ValueEmitter} from '../../controlUtils.js'
 import {ErrorMessage} from '../../status/statusPresentation.js'
 import {FilterMode} from '../../../util/filterMode.js'
 import type {FilterModeValue} from '../../../util/filterMode.js'
+import {
+    CommandInvocationPresentation,
+    commandSource,
+    validateCommandInteractionOptions,
+} from '../../commandSupport.js'
+import type {CommandAction, CommandInteractionOptions} from '../../commandSupport.js'
 
 export type CheckboxValue = string | number
 export type CheckboxSymbol<TValue extends CheckboxValue = FilterModeValue> = readonly [
@@ -51,8 +57,8 @@ export const semanticCheckboxCss = css`
 
 const checkboxLiveProps = ['disabled', 'required', 'readOnly', 'busy', 'error'] as const
 
-export interface CheckboxProps<TValue extends CheckboxValue = FilterModeValue>
-    extends ValueControlProps<TValue>, LivePropContract<(typeof checkboxLiveProps)[number]> {
+interface CheckboxCommonProps<TValue extends CheckboxValue = FilterModeValue>
+    extends ValueControlProps<TValue>, LivePropContract<(typeof checkboxLiveProps)[number]>, CommandInteractionOptions {
     id?: string | number | null
     symbols?: readonly CheckboxSymbol<TValue>[]
     initialSemanticState?: TValue
@@ -66,8 +72,15 @@ export interface CheckboxProps<TValue extends CheckboxValue = FilterModeValue>
     busy?: boolean
     error?: unknown
     name?: string
-    onChange?: (value: TValue, event: Event | null) => void
+    /** Defaults to true when `changeCommand` is supplied. */
+    disableWhileRunning?: boolean
 }
+
+export type CheckboxProps<TValue extends CheckboxValue = FilterModeValue> =
+    CheckboxCommonProps<TValue> & (
+        | {changeCommand: CommandAction<TValue>; onChange?: never}
+        | {changeCommand?: never; onChange?: (value: TValue, event: Event | null) => void}
+    )
 
 /** Keyboard-operable semantic state cycler. */
 export class Checkbox<TValue extends CheckboxValue = FilterModeValue>
@@ -85,11 +98,16 @@ export class Checkbox<TValue extends CheckboxValue = FilterModeValue>
     readonly semanticStateEmitter: ValueEmitter<TValue>
     readonly inputId: string
     readonly errorId: string
+    private readonly commandPresentation = new CommandInvocationPresentation(() => this.update())
 
     constructor(props: CheckboxProps<TValue> = {}) {
         super(props)
         this.inputId = controlId('checkbox', props.id)
         this.errorId = `${this.inputId}-error`
+        if (props.changeCommand != null && props.onChange != null) {
+            throw new TypeError('Checkbox changeCommand and onChange are mutually exclusive')
+        }
+        validateCommandInteractionOptions(props)
         const componentType = this.constructor as typeof Checkbox
         // Static members cannot carry the instance's generic state parameter;
         // subclasses validate the tuple values before this boundary is used.
@@ -133,7 +151,20 @@ export class Checkbox<TValue extends CheckboxValue = FilterModeValue>
             readOnly = false,
             busy = false,
             error = null,
+            changeCommand,
+            disableWhileRunning = true,
+            commandErrors = 'inline',
+            onCommandInvocationError,
         } = this.props
+        this.commandPresentation.reconcile(changeCommand)
+        const command = commandSource(changeCommand)
+        const commandRunning = command == null ? false : this.read(command.isRunning)
+        const commandError = commandErrors === 'external' || command == null
+            ? null : this.snapshot(command).error
+        const invocationError = this.commandPresentation.error(commandErrors)
+        const isBusy = busy || commandRunning
+        const displayedError = error ?? invocationError ?? commandError
+        const isDisabled = disabled || (commandRunning && disableWhileRunning)
         const semanticState = this.valueEmitter.get()
         const semanticIndex = this.symbols.findIndex(([, state]) =>
             Object.is(state, semanticState))
@@ -160,22 +191,29 @@ export class Checkbox<TValue extends CheckboxValue = FilterModeValue>
                     id={this.inputId}
                     type="checkbox"
                     checked={checked}
-                    disabled={disabled}
+                    disabled={isDisabled}
                     required={nativeRequired}
                     aria-readonly={readOnly ? 'true' : null}
                     name={this.props.name}
                     value={String(semanticState)}
-                    aria-busy={busy ? 'true' : null}
+                    aria-busy={isBusy ? 'true' : null}
                     aria-label={textLabel == null
                         ? null
                         : this.capillaryUiMessage('checkboxStateLabel')(textLabel, localizedStateName)}
-                    aria-invalid={error == null ? null : 'true'}
-                    aria-describedby={error == null ? null : this.errorId}
+                    aria-invalid={displayedError == null ? null : 'true'}
+                    aria-describedby={displayedError == null ? null : this.errorId}
                     onClick={(event: MouseEvent) => {
                         if (readOnly) event.preventDefault()
                     }}
                     onChange={(event: Event) => {
+                        if (isDisabled) return
                         this.cycleState(1, event)
+                        if (!readOnly && changeCommand != null) {
+                            this.commandPresentation.invoke(changeCommand, this.valueEmitter.get(), event, {
+                                commandErrors,
+                                onCommandInvocationError,
+                            })
+                        }
                         // A native checkbox toggles its binary checked property before
                         // it emits change. Deny and Neutral both map to unchecked, so
                         // a VDOM patch can otherwise see the same checked prop as its
@@ -186,19 +224,32 @@ export class Checkbox<TValue extends CheckboxValue = FilterModeValue>
                         )
                     }}
                     onKeyDown={(event: KeyboardEvent) => {
+                        if (isDisabled || readOnly) return
                         if (event.key === 'ArrowRight' || event.key === 'ArrowDown') {
                             event.preventDefault()
                             this.cycleState(1, event)
+                            if (changeCommand != null) {
+                                this.commandPresentation.invoke(changeCommand, this.valueEmitter.get(), event, {
+                                    commandErrors,
+                                    onCommandInvocationError,
+                                })
+                            }
                         } else if (event.key === 'ArrowLeft' || event.key === 'ArrowUp') {
                             event.preventDefault()
                             this.cycleState(-1, event)
+                            if (changeCommand != null) {
+                                this.commandPresentation.invoke(changeCommand, this.valueEmitter.get(), event, {
+                                    commandErrors,
+                                    onCommandInvocationError,
+                                })
+                            }
                         }
                     }}
                 />
                 <cap-checkshell aria-hidden="true">{shellSymbol}</cap-checkshell>
                 {label}
             </label>
-            {error == null ? null : <ErrorMessage id={this.errorId} error={error} />}
+            {displayedError == null ? null : <ErrorMessage id={this.errorId} error={displayedError} />}
         </Host>
     }
 

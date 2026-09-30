@@ -10,11 +10,17 @@ import type {ValueControlProps, ValueEmitter} from '../controlUtils.js'
 import {ErrorMessage} from '../status/statusPresentation.js'
 import {LabeledInputControl} from './LabeledInputControl.js'
 import {requiredInputInvalidSelector, requiredPresentationCss} from './requiredPresentation.js'
+import {
+    CommandInvocationPresentation,
+    commandSource,
+    validateCommandInteractionOptions,
+} from '../commandSupport.js'
+import type {CommandAction, CommandInteractionOptions} from '../commandSupport.js'
 
 const textboxLiveProps = ['disabled', 'required', 'readOnly', 'busy', 'error'] as const
 
-export interface TextboxProps extends ValueControlProps<string>,
-    LivePropContract<(typeof textboxLiveProps)[number]> {
+interface TextboxCommonProps extends ValueControlProps<string>,
+    LivePropContract<(typeof textboxLiveProps)[number]>, CommandInteractionOptions {
     id?: string | number | null
     label?: CapillaryUiChild
     placeholder?: string
@@ -32,9 +38,15 @@ export interface TextboxProps extends ValueControlProps<string>,
     pattern?: string
     ariaLabel?: string
     inputRef?: Ref<HTMLInputElement>
+    /** Defaults to true when `changeCommand` is supplied. */
+    disableWhileRunning?: boolean
     onInput?: (value: string, event: Event) => void
-    onChange?: (value: string, event: Event) => void
 }
+
+export type TextboxProps = TextboxCommonProps & (
+    | {changeCommand: CommandAction<string>; onChange?: never}
+    | {changeCommand?: never; onChange?: (value: string, event: Event) => void}
+)
 
 export class Textbox extends LabeledInputControl<TextboxProps> {
     static override liveProps = textboxLiveProps
@@ -42,12 +54,19 @@ export class Textbox extends LabeledInputControl<TextboxProps> {
     readonly inputId: string
     readonly errorId: string
     readonly valueEmitter: ValueEmitter<string>
+    private lastCommittedValue: string
+    private readonly commandPresentation = new CommandInvocationPresentation(() => this.update())
 
     constructor(props: TextboxProps = {}) {
         super(props)
         this.inputId = controlId('textbox', props.id)
         this.errorId = `${this.inputId}-error`
+        if (props.changeCommand != null && props.onChange != null) {
+            throw new TypeError('Textbox changeCommand and onChange are mutually exclusive')
+        }
+        validateCommandInteractionOptions(props)
         this.valueEmitter = createValueEmitter(this, props, '', 'textbox value')
+        this.lastCommittedValue = this.valueEmitter.get() ?? ''
     }
 
     initialize(): void {
@@ -72,10 +91,23 @@ export class Textbox extends LabeledInputControl<TextboxProps> {
             pattern,
             ariaLabel,
             inputRef,
+            changeCommand,
+            disableWhileRunning = true,
+            commandErrors = 'inline',
+            onCommandInvocationError,
             onInput,
             onChange,
         } = this.props
+        this.commandPresentation.reconcile(changeCommand)
         const value = this.valueEmitter.get() ?? ''
+        const command = commandSource(changeCommand)
+        const commandRunning = command == null ? false : this.read(command.isRunning)
+        const commandError = commandErrors === 'external' || command == null
+            ? null : this.snapshot(command).error
+        const invocationError = this.commandPresentation.error(commandErrors)
+        const isBusy = busy || commandRunning
+        const displayedError = error ?? invocationError ?? commandError
+        const isDisabled = disabled || (commandRunning && disableWhileRunning)
 
         const Host = this.Host
         return <Host className={componentClass(this.props) || null}>
@@ -86,7 +118,7 @@ export class Textbox extends LabeledInputControl<TextboxProps> {
                 type={type}
                 value={value}
                 placeholder={placeholder}
-                disabled={disabled}
+                disabled={isDisabled}
                 required={required}
                 readOnly={readOnly}
                 autoComplete={autoComplete}
@@ -96,11 +128,11 @@ export class Textbox extends LabeledInputControl<TextboxProps> {
                 pattern={pattern}
                 ref={inputRef}
                 aria-label={label == null ? ariaLabel : null}
-                aria-busy={busy ? 'true' : null}
-                aria-invalid={error == null ? null : 'true'}
-                aria-describedby={error == null ? null : this.errorId}
+                aria-busy={isBusy ? 'true' : null}
+                aria-invalid={displayedError == null ? null : 'true'}
+                aria-describedby={displayedError == null ? null : this.errorId}
                 onInput={(event: Event) => {
-                    if (readOnly) {
+                    if (readOnly || isDisabled) {
                         ;(event.currentTarget as HTMLInputElement).value = value
                         return
                     }
@@ -109,11 +141,19 @@ export class Textbox extends LabeledInputControl<TextboxProps> {
                     invoke(onInput, nextValue, event)
                 }}
                 onChange={(event: Event) => {
-                    if (readOnly) return
-                    invoke(onChange, eventValue(event, 'textbox change'), event)
+                    if (readOnly || isDisabled) return
+                    const nextValue = eventValue(event, 'textbox change')
+                    invoke(onChange, nextValue, event)
+                    if (changeCommand != null && nextValue !== this.lastCommittedValue) {
+                        this.lastCommittedValue = nextValue
+                        this.commandPresentation.invoke(changeCommand, nextValue, event, {
+                            commandErrors,
+                            onCommandInvocationError,
+                        })
+                    }
                 }}
             />
-            {error == null ? null : <ErrorMessage id={this.errorId} error={error} />}
+            {displayedError == null ? null : <ErrorMessage id={this.errorId} error={displayedError} />}
         </Host>
     }
 

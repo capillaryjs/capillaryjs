@@ -7,6 +7,7 @@ import {
     QueryArg,
     RestEndpoint,
     RestQueryHandler,
+    bindCommand,
 } from '../src/index.js'
 import type {QueryHandlerLike} from '../src/index.js'
 import {AsyncCommand} from '../src/index.js'
@@ -109,3 +110,5 @@ save.run({id: 1}).then((result) => result?.savedId.toFixed())
 save.isRunning.get().valueOf()
 // @ts-expect-error Command arguments retain their declared shape.
 void save.run({id: 'one'})
+const boundSave = bindCommand(save, {id: count})
+boundSave.command.run({id: 2})

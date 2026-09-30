@@ -30,7 +30,7 @@ import type {
     FilterModeValue,
     TreeNode,
 } from '../src/index.js'
-import {Diagnostics, Emitter, FetchState} from '@capillaryjs/capillary'
+import {AsyncCommand, Diagnostics, Emitter, FetchState} from '@capillaryjs/capillary'
 import {requiredAt, requiredQuery} from './testUtils.js'
 
 let window: Window
@@ -210,6 +210,31 @@ describe('selection handlers', () => {
             handler.destroy()
         }
     })
+})
+
+test('selection commands run only for completed user selection, not source reconciliation', async () => {
+    const items = new Emitter([{id: 'a', label: 'A'}, {id: 'b', label: 'B'}])
+    const selected: string[] = []
+    const remember = new AsyncCommand<{id: string, label: string} | null, void>({
+        execute: (value) => { selected.push(value?.id ?? 'none') },
+    })
+    const list = new ListView<{id: string, label: string}>({
+        items,
+        itemKey: 'id',
+        selectionCommand: remember,
+    }).attachTo(document.body)
+    const rows = document.querySelectorAll<HTMLElement>('[data-cap-selectable-row]')
+    requiredAt(rows, 1).dispatchEvent(new MouseEvent('click', {bubbles: true}))
+    await Promise.resolve()
+    assert.deepEqual(selected, ['b'])
+
+    items.set([{id: 'a', label: 'A refreshed'}, {id: 'b', label: 'B refreshed'}])
+    await Promise.resolve()
+    assert.deepEqual(selected, ['b'])
+    assert.equal(list.getSelectedItem()?.label, 'B refreshed')
+    list.destroy()
+    remember.dispose()
+    items.dispose()
 })
 
 describe('stable data components', () => {
