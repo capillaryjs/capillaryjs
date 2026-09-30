@@ -6,6 +6,8 @@ Versioning.
 
 ## Unreleased
 
+## 1.6.0 - 2026-09-30
+
 ### Added
 
 - Let `bindCommand()` retain a readonly reference to its original

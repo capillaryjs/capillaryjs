@@ -6,6 +6,8 @@ Versioning.
 
 ## Unreleased
 
+## 1.6.0 - 2026-09-30
+
 ### Added
 
 - Add declarative command integration: `Button.command`, typed
