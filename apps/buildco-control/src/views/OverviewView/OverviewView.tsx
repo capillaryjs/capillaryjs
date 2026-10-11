@@ -1,6 +1,6 @@
 import type {CapillaryUiChild} from "@capillaryjs/capillary-ui";
 import {
-    Component, Layout, InfoPanel, InfoField, ListView, Panel, PanelToolbar,
+    Component, Layout, InfoPanel, InfoField, Panel, PanelToolbar,
     Dropdown, Button, ProgressBar, RouteLink, RouteQuery, Placeholder, Toolbar,
     routeTarget, routeParameter, stringRouteQueryCodec, withRouteQuery,
 } from "@capillaryjs/capillary-ui";
@@ -11,7 +11,7 @@ import {formatValue} from "../shared.tsx";
 
 export class OverviewView extends Component {
     static dependencies = [
-        Layout, InfoPanel, InfoField, ListView, Panel, PanelToolbar,
+        Layout, InfoPanel, InfoField, Panel, PanelToolbar,
         Dropdown, Button, ProgressBar, RouteLink, RouteQuery, Placeholder, Toolbar,
     ];
 
@@ -94,11 +94,8 @@ export class OverviewView extends Component {
                 </PanelToolbar>
                 {attention.length === 0
                     ? <p className="muted">No portfolio items currently require attention.</p>
-                    : <ListView
-                        label="Attention items"
-                        items={attention}
-                        itemKey="id"
-                        renderItem={r => {
+                    : <ul className="attention-list" aria-label="Attention items">
+                        {attention.map(r => {
                             const isIssue = r.id?.startsWith("issue-");
                             const link = isIssue
                                 ? <RouteLink to={routeTarget(routes["issue-report"], routeParameter(issueIdParam, String(r.id)))}>
@@ -107,13 +104,13 @@ export class OverviewView extends Component {
                                 : <RouteLink to={withRouteQuery(routeTarget(routes.projects), {project: String(r.projectId ?? ""), scope: String(r.scopeId ?? ""), phase: String(r.id), tab: "summary"})}>
                                     {r.name}
                                 </RouteLink>;
-                            return <span className="attention-item">
+                            return <li key={String(r.id)} className="attention-item">
                                 {link}
                                 {r.openIssues != null ? <span className="attention-detail">{Number(r.openIssues)} issues</span> : null}
                                 {r.date ? <span className="attention-date">{r.date}</span> : null}
-                            </span>;
-                        }}
-                    />
+                            </li>;
+                        })}
+                    </ul>
                 }
             </Panel>
         </Layout>;

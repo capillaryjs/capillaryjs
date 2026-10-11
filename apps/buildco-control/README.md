@@ -22,6 +22,10 @@ Web Worker; initial generation can take around 30 seconds. Use
 **http://127.0.0.1:5173/?profile=small** for the five-project quick-start dataset.
 No backend is required in this embedded mode. All data stays local.
 
+The overview's attention items are native links in an ordinary list, so keyboard
+navigation does not nest links inside selectable listbox options. Header/footer
+copy retains its full theme contrast rather than fading text and picker labels.
+
 ```sh
 pnpm --filter @sylwellsoftware/buildco-control build
 pnpm --filter @sylwellsoftware/buildco-control preview

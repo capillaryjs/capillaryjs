@@ -106,7 +106,7 @@ body {
     letter-spacing: 2px;
     font-weight: 650;
     margin-top: -3px;
-    opacity: .6;
+    opacity: 1;
 }
 
 .brand-mark {
@@ -254,7 +254,7 @@ body {
 /*}*/
 
 .muted {
-    opacity: .65;
+    opacity: 1;
     font-size: 12px;
 }
 
@@ -264,7 +264,22 @@ body {
     justify-content: space-between;
     gap: 20px;
     font-size: 10px;
-    opacity: .7;
+    opacity: 1;
+}
+
+.attention-list {
+    list-style: none;
+    margin: 0;
+    padding: .5em;
+    overflow: auto;
+}
+
+.attention-item {
+    display: flex;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: .5em;
+    padding-block: .35em;
 }
 
 .footer-controls {
