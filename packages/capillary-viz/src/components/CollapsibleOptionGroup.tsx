@@ -65,7 +65,7 @@ export class CollapsibleOptionGroup<
                         aria-label={ariaLabel ?? (label == null ? 'Toggle options' : null)}
                         aria-labelledby={ariaLabel == null && label != null ? `${this.groupId}-label` : null}
                         aria-busy={busy ? 'true' : null}
-                        aria-expanded={!this.collapsed}
+                        aria-expanded={String(!this.collapsed)}
                         aria-controls={this.contentId}
                         onClick={() => this.toggle()}
                     >

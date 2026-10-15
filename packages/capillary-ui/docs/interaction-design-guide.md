@@ -93,6 +93,9 @@ not duplicate the accessible name. Tooltips supplement names; they do not
 replace them. A grip is still a manipulation handle, not automatically an icon
 button. Do not shorten an unclear action merely to remove its text.
 
+For native widget markup, supply ARIA states as strings, for example
+`aria-expanded={String(expanded)}`. ARIA values are not HTML boolean attributes.
+
 ## Show pending work for every asynchronous interaction
 
 Every proper button must use the standard busy/loading mechanism. Prefer
