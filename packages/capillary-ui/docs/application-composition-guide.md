@@ -15,6 +15,11 @@ Capillary UI owns presentation and browser lifecycle; Capillary owns reactive pr
 The companion [repository layout guide](application-layout-guide.md) explains
 where to put the resulting code.
 
+Use the [interaction design guide](interaction-design-guide.md) when choosing
+theme boundaries, action versus widget semantics, direct manipulation, icons
+and pending feedback. These interaction rules complement the layout and
+lifetime decisions below.
+
 ## 1. Start with workflows and relationships
 
 For each screen, write down the question it answers and the actions it supports.

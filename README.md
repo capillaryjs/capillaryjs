@@ -145,19 +145,20 @@ collected from the root component and its declared dependencies:
 import {Emitter} from '@capillaryjs/capillary'
 import {
     Button,
-    Component,
+    CapillaryUiApp,
     Panel,
     createCapillaryUiRuntime,
+    mountCapillaryUiApp,
 } from '@capillaryjs/capillary-ui'
 
 import '@capillaryjs/capillary-ui/themes/base.css'
 import '@capillaryjs/capillary-ui/colors/iceblue/colors.css'
 import '@capillaryjs/capillary-ui/themes/minimal/theme.css'
 
-class Counter extends Component {
+class Counter extends CapillaryUiApp {
     readonly count = new Emitter(0)
 
-    render() {
+    protected override renderContent() {
         return <Panel header="Counter">
             <Button
                 label={`Count: ${this.read(this.count)}`}
@@ -174,8 +175,7 @@ class Counter extends Component {
 }
 
 const runtime = createCapillaryUiRuntime()
-runtime.registerStyles(Counter).injectStyles(document)
-runtime.mount(runtime.create(Counter), document.querySelector('#app')!)
+mountCapillaryUiApp(runtime, Counter, document.querySelector('#app')!)
 ```
 
 The dependency list is a styling and composition contract: it lets Capillary UI emit
@@ -215,10 +215,12 @@ Capillary UI presentation has four independently owned inputs, loaded in this or
 Application layout CSS remains separate. Themes and color palettes can be
 replaced without rebuilding components or refetching application data.
 
-Root sizing is application policy. Add `cap-fill-horizontal`,
-`cap-fill-vertical`, or both to an application root when it should claim the
-viewport. An embedded root without either class keeps normal content sizing
-and inherits the host page's typography.
+Root sizing is application policy. `CapillaryUiApp` applies theme typography
+and canvas tokens even with its default embedded sizing. Select viewport axes
+with `sizing` independently of that text treatment. Keep the complete intended
+shell inside the root; importing variables alone does not style content outside
+it. See the [interaction design guide](packages/capillary-ui/docs/interaction-design-guide.md)
+for theme boundaries, interaction semantics and async feedback.
 
 ## Scope and non-goals
 

@@ -46,6 +46,12 @@ Capillary UI prefers native HTML when it expresses the contract. Custom `cap-*`
 hosts are readable light-DOM ownership and styling boundaries; they are not
 registered custom elements and do not use Shadow DOM.
 
+The [interaction design guide](docs/interaction-design-guide.md) covers complete
+theme boundaries, buttons versus widget interactions, direct manipulation,
+icons and required feedback for asynchronous user operations. The
+[application composition guide](docs/application-composition-guide.md) applies
+those choices to screen structure and lifetime.
+
 ## Set up TSX
 
 Use Capillary UI's automatic JSX runtime:
@@ -124,6 +130,13 @@ prefer a complete static asset may import
 
 `CapillaryUiApp` deliberately does not select a palette, theme, appearance mode,
 services, router, routes, or domain state. Those remain application policy.
+
+Put the complete intended interface inside that theme boundary, including its
+account/navigation/settings shell. Loading CSS variables alone does not apply
+the font to siblings outside `cap-app`. Embedded sizing still applies typography;
+use `landmark="none"` when an inner view or surrounding document owns the main
+landmark. Contextual surfaces mounted outside the root need their own theme
+boundary. Keep deliberate source/code monospace styling.
 
 The low-level `h()` vnode factory remains exported for non-JSX integrations,
 but TSX is the documented authoring model for applications and Capillary UI

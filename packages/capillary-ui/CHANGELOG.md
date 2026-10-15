@@ -6,6 +6,12 @@ Versioning.
 
 ## Unreleased
 
+### Added
+
+- Document complete application theme boundaries and interaction design rules
+  for buttons, widget manipulation, icons and mandatory async pending feedback.
+  Include the linked interaction guide in the published package.
+
 ## 1.6.0 - 2026-09-30
 
 ### Added

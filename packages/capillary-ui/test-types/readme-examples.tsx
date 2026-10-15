@@ -8,7 +8,9 @@ import {
 import type {ReadableEmitter} from '@capillaryjs/capillary'
 import {
     Button,
+    CapillaryUiApp,
     Component,
+    Dropdown,
     Panel,
     RadioGroup,
     Sidebar,
@@ -16,6 +18,7 @@ import {
     Textbox,
     createCapillaryUiRuntime,
     live,
+    mountCapillaryUiApp,
 } from '@capillaryjs/capillary-ui'
 import type {
     ComponentProps,
@@ -67,6 +70,40 @@ class Counter extends Component {
 interface Change {
     id: number
     title: string
+}
+
+// Complete themed root and reactive-origin feedback from the public guides.
+class ThemedCounter extends CapillaryUiApp {
+    readonly count = new Emitter(0)
+
+    protected override renderContent() {
+        return <Panel header="Counter"><Button
+            label={`Count: ${this.read(this.count)}`}
+            onClick={() => this.count.set(this.count.get() + 1)}
+        /></Panel>
+    }
+
+    onDestroy(): void { this.count.dispose() }
+    static dependencies = [Button, Panel]
+}
+
+function mountThemedCounter(target: HTMLElement): void {
+    mountCapillaryUiApp(createCapillaryUiRuntime(), ThemedCounter, target)
+}
+
+interface SearchControlsProps extends ComponentProps {
+    category: Emitter<string>
+    results: ReadableEmitter<readonly Change[] | undefined, unknown>
+}
+
+class SearchControls extends Component<SearchControlsProps> {
+    render() {
+        const result = this.snapshot(this.props.results)
+        return <Dropdown label="Category" valueEmitter={this.props.category}
+            options={[{value: 'all', label: 'All'}]}
+            busy={result.fetchState === FetchState.Loading} />
+    }
+    static dependencies = [Dropdown]
 }
 
 const fixtures: readonly Change[] = [

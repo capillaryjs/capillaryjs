@@ -61,6 +61,12 @@ material factual error.
 Use relative links that resolve inside this public repository. Do not link to
 private integration-workspace notes or use machine-specific paths.
 
+## AI directed guidance
+
+For AI-assisted implementation, also read [AI_GUIDANCE.md](AI_GUIDANCE.md).
+It separates agent-specific collaboration instructions from the human-facing
+package guides.
+
 By participating, you agree to follow [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md).
 Security reports belong in the private channel described in
 [SECURITY.md](SECURITY.md), not in a public issue.
