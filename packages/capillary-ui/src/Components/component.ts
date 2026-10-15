@@ -749,14 +749,19 @@ export class Component<TProps extends ComponentProps = ComponentProps> {
     }
 
     setProps(nextProps: TProps): this {
+        this.replaceProps(nextProps)
+        if (this.mounted) this.update(undefined,
+            Diagnostics.currentEvent?.diagnostic?.node.kind === 'binding' ? 'dependency' : 'parent')
+        return this
+    }
+
+    /** Validate/install props before a subclass publishes owned derived inputs. */
+    protected replaceProps(nextProps: TProps): void {
         if (nextProps == null || typeof nextProps !== 'object' || Array.isArray(nextProps)) {
             throw new TypeError(`${this.constructor.name} props must be an object`)
         }
         this.validateIslandAncestry(nextProps)
         this.props = nextProps
-        if (this.mounted) this.update(undefined,
-            Diagnostics.currentEvent?.diagnostic?.node.kind === 'binding' ? 'dependency' : 'parent')
-        return this
     }
 
     afterMount(_dom: ChildNode | null): void {}

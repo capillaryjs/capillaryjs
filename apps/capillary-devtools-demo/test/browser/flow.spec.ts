@@ -64,6 +64,8 @@ test('failure/retry, supersession, abort/disposal and command completion are ins
     expect(traceAttempts((await recording(page)).events).map((attempt) => attempt.status)).toEqual(['failed', 'succeeded'])
     await page.getByRole('button', {name: 'Start pending request', exact: true}).click()
     await expect.poll(async () => traceAttempts((await recording(page)).events).at(-1)?.status).toBe('unfinished in capture')
+    await expect(page.getByRole('button', {name: 'Start pending request', exact: true})).toHaveAttribute('aria-busy', 'true')
+    await expect(page.getByRole('button', {name: 'Supersede pending request', exact: true})).toBeEnabled()
     const oldRoot = (await recording(page)).events.findLast((event) => event.kind === 'interaction')!
     await page.getByRole('button', {name: 'Supersede pending request', exact: true}).click()
     await expect.poll(async () => traceAttempts((await recording(page)).events).at(-1)?.status).toBe('succeeded')
@@ -84,7 +86,7 @@ test('failure/retry, supersession, abort/disposal and command completion are ins
     expect(traceAttempts(disposed.events).at(-1)?.status).toBe('aborted')
 })
 
-test('table rendering and captured row contents are inspectable without header render noise', async ({page}) => {
+test('table rendering and captured row contents include bounded header busy feedback', async ({page}) => {
     await page.goto(url)
     await page.getByRole('textbox', {name: 'Search', exact: true}).fill('plumbing')
     await expect(page.getByTestId('summary')).toHaveText('2 results')
@@ -94,7 +96,11 @@ test('table rendering and captured row contents are inspectable without header r
     const body = trace.nodes.find(node => node.label === 'Table body')!
     const header = trace.nodes.find(node => node.label === 'Table header')!
     const query = trace.nodes.find(node => node.label === 'searchResults')!
-    expect(events.some(event => event.nodeId === header.id)).toBe(false)
+    const headerRenders = events.filter(event => event.nodeId === header.id && event.outcome === 'succeeded')
+    // Deferred query notifications can have their own causal root. Within this
+    // input root, header work is bounded by pending start/finish, not row count.
+    expect(headerRenders.length).toBeGreaterThan(0)
+    expect(headerRenders.length).toBeLessThanOrEqual(2)
     expect(events.some(event => event.nodeId === body.id && (event.consumer?.domWrites ?? 0) > 0)).toBe(true)
     await page.locator(`.trace-node[data-node-id="${body.id}"]`).click()
     const details = page.getByRole('region', {name: 'Trace details'})

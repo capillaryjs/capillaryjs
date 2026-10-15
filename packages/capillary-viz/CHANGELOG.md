@@ -6,6 +6,11 @@ and Semantic Versioning.
 
 ## Unreleased
 
+### Fixed
+
+- Use a persistent decorative split-reorder grip with keyboard reordering on
+  its focusable row, rather than an action button. Name option disclosures.
+
 ## 1.3.0 - 2026-09-29
 
 ### Added

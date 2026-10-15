@@ -114,6 +114,11 @@ start work the user is waiting for. Show pending state at the initiating
 control and in the affected results where useful. Do not substitute disabled
 styling for a working indication. Icon-only actions are not exceptions.
 
+`Button` guards activation while busy by default. Deliberately repeatable or
+replaceable work can use `disableWhileRunning={false}` without losing its working
+indication. Explicit `disabled` still wins; do not disable query inputs merely
+because a previous request is pending.
+
 Reactive queries remain queries, not mutation commands. A control does not
 infer which downstream work its value starts. The application connects that
 work's state explicitly, using a tracked snapshot and the control's `busy`

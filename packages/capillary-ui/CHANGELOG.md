@@ -8,9 +8,20 @@ Versioning.
 
 ### Added
 
+- Add decorative `Icon`, icon/subtle Button presentation, and anchored native
+  `Popover` with dismissal, viewport positioning and focus restoration.
+- Add live external busy presentation for collections, tabs, table headers and
+  filters; show pending router transitions and actual stylesheet loading/retry.
+- Let `disableWhileRunning={false}` preserve deliberate repeat/replacement of
+  explicitly busy buttons; explicit disabled state continues to win.
 - Document complete application theme boundaries and interaction design rules
   for buttons, widget manipulation, icons and mandatory async pending feedback.
   Include the linked interaction guide in the published package.
+
+### Fixed
+
+- Reconcile static DataTable rows and updated collection render callbacks
+  coherently. Keep closed table filter headers isolated from option updates.
 
 ## 1.6.0 - 2026-09-30
 

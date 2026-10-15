@@ -152,7 +152,8 @@ export class IssueAnalysisView extends Component {
                 <Sidebar island allocation="flexible" header="Issue Analysis">
                     <SidebarToolbar>
                         <Toolbar label="Analysis controls">
-                            <Dropdown
+                            <Button icon="refresh" ariaLabel="Refresh results" appearance="subtle" busy={view.fetchState === "loading"} onClick={() => void this.query.refresh()}/>
+                            <Dropdown busy={view.fetchState === "loading"}
                                 label="Subject"
                                 options={[
                                     {value: "issues", label: "Issues"},
@@ -160,12 +161,12 @@ export class IssueAnalysisView extends Component {
                                 ]}
                                 valueEmitter={this.state.tab as any}
                             />
-                            <Dropdown
+                            <Dropdown busy={view.fetchState === "loading"}
                                 label="Project"
                                 options={[{value: "", label: "All projects"}, ...(b.value.choices.projects ?? [])]}
                                 valueEmitter={this.state.field("project") as any}
                             />
-                            <Button
+                            <Button busy={view.fetchState === "loading"}
                                 label="Reset"
                                 onClick={() => {
                                     this.blockSelection.clear();
@@ -175,6 +176,7 @@ export class IssueAnalysisView extends Component {
                             />
                         </Toolbar>
                     </SidebarToolbar>
+                    {view.fetchState === "error" ? <p role="alert">{String(view.error ?? "The results could not be refreshed.")}</p> : null}
                     <SplitSelectionPanel
                         model={this.splitSelection}
                         label="Distribution groups"
@@ -193,7 +195,7 @@ export class IssueAnalysisView extends Component {
                         label="Record distribution"
                         emptyMessage="No records match the current subject."
                     />
-                    <ListView
+                    <ListView busy={view.fetchState === "loading"}
                         label="Records in selected block"
                         items={selectedItems}
                         itemKey="id"

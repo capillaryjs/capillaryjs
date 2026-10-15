@@ -39,6 +39,8 @@ export interface CapillaryUiMessageOverrides {
     readonly progressInProgress?: string
     readonly radioOptionLabel?: string
     readonly splitViewSeparatorLabel?: string
+    readonly stylesheetLoadError?: string
+    readonly stylesheetRetryLabel?: string
     readonly tabLineLabel?: string
     readonly tableFilterColumnLabel?: (label: string) => string
     readonly tableSortColumnLabel?: (label: string) => string
@@ -108,6 +110,8 @@ const englishCapillaryUiMessages = Object.freeze({
     progressInProgress: 'In progress',
     radioOptionLabel: 'Option',
     splitViewSeparatorLabel: 'Resize panes',
+    stylesheetLoadError: 'Unable to load the selected stylesheet',
+    stylesheetRetryLabel: 'Retry stylesheet',
     tabLineLabel: 'Sections',
     tableFilterColumnLabel: (label: string) => `Filter ${label}`,
     tableSortColumnLabel: (label: string) => `Sort ${label}`,

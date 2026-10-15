@@ -67,7 +67,7 @@ export class OverviewView extends Component {
             <Panel island allocation="flexible" header="Attention Items">
                 <PanelToolbar>
                     <Toolbar label="Attention controls">
-                    <Dropdown
+                    <Dropdown busy={view.fetchState === "loading"}
                         label="Scope"
                         options={[
                             {value: "all", label: "All"},
@@ -76,7 +76,7 @@ export class OverviewView extends Component {
                         ]}
                         valueEmitter={this.state.field("scope") as any}
                     />
-                    <Dropdown
+                    <Dropdown busy={view.fetchState === "loading"}
                         label="Order"
                         options={[
                             {value: "", label: "Urgency"},
@@ -86,12 +86,13 @@ export class OverviewView extends Component {
                         ]}
                         valueEmitter={this.state.field("sort") as any}
                     />
-                    <Button
-                        label="Refresh"
+                    <Button busy={view.fetchState === "loading"}
+                        icon="refresh" ariaLabel="Refresh" appearance="subtle"
                         onClick={() => void this.query.refresh()}
                     />
                     </Toolbar>
                 </PanelToolbar>
+                {view.fetchState === "error" ? <p role="alert">{String(view.error ?? "The results could not be refreshed.")}</p> : null}
                 {attention.length === 0
                     ? <p className="muted">No portfolio items currently require attention.</p>
                     : <ul className="attention-list" aria-label="Attention items">

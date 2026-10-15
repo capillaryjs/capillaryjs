@@ -153,15 +153,7 @@ cap-chronologicaltrace,
 cap-tracedetails,
 cap-tracetimeline,
 cap-traceplayback,
-cap-traceactivity { display: block; min-width: 0; color: var(--cap-trace-text, #192c3d); font: 13px/1.5 system-ui, sans-serif; }
-        cap-traceinspector button,
-        cap-traceflow button,
-        cap-causaltrace button,
-        cap-chronologicaltrace button,
-        cap-tracedetails button,
-        cap-tracetimeline button,
-        cap-traceplayback button,
-        cap-traceactivity button,
+cap-traceactivity { display: block; min-width: 0; color: var(--cap-trace-text, var(--ui-color, #192c3d)); font: inherit; line-height: 1.5; --ui-select-bg: var(--cap-trace-selected, #eaf3ff); --ui-select-bg-dark: var(--cap-trace-selected, #eaf3ff); --ui-select-text-color: var(--cap-trace-text, #192c3d); --selected-bg-color: var(--cap-trace-selected, #eaf3ff); }
         cap-traceinspector select,
         cap-traceflow select,
         cap-causaltrace select,
@@ -178,14 +170,6 @@ cap-traceactivity { display: block; min-width: 0; color: var(--cap-trace-text, #
         cap-tracetimeline input,
         cap-traceplayback input,
         cap-traceactivity input { font: inherit; }
-        cap-traceinspector button,
-        cap-traceflow button,
-        cap-causaltrace button,
-        cap-chronologicaltrace button,
-        cap-tracedetails button,
-        cap-tracetimeline button,
-        cap-traceplayback button,
-        cap-traceactivity button,
         cap-traceinspector select,
         cap-traceflow select,
         cap-causaltrace select,
@@ -194,22 +178,6 @@ cap-traceactivity { display: block; min-width: 0; color: var(--cap-trace-text, #
         cap-tracetimeline select,
         cap-traceplayback select,
         cap-traceactivity select { color: inherit; background: var(--cap-trace-surface, #fff); border: 1px solid var(--cap-trace-line, #cad4de); border-radius: 5px; padding: .35rem .55rem; }
-        cap-traceinspector button,
-        cap-traceflow button,
-        cap-causaltrace button,
-        cap-chronologicaltrace button,
-        cap-tracedetails button,
-        cap-tracetimeline button,
-        cap-traceplayback button,
-        cap-traceactivity button { cursor: pointer; text-align: start; }
-        cap-traceinspector button:disabled,
-        cap-traceflow button:disabled,
-        cap-causaltrace button:disabled,
-        cap-chronologicaltrace button:disabled,
-        cap-tracedetails button:disabled,
-        cap-tracetimeline button:disabled,
-        cap-traceplayback button:disabled,
-        cap-traceactivity button:disabled { cursor: default; opacity: .55; }
         cap-traceinspector :focus-visible,
         cap-traceflow :focus-visible,
         cap-causaltrace :focus-visible,
@@ -218,22 +186,22 @@ cap-traceactivity { display: block; min-width: 0; color: var(--cap-trace-text, #
         cap-tracetimeline :focus-visible,
         cap-traceplayback :focus-visible,
         cap-traceactivity :focus-visible { outline: 3px solid var(--cap-trace-accent, #005bb8); outline-offset: 2px; }
-        cap-traceinspector button[aria-pressed="true"],
-        cap-traceflow button[aria-pressed="true"],
-        cap-causaltrace button[aria-pressed="true"],
-        cap-chronologicaltrace button[aria-pressed="true"],
-        cap-tracedetails button[aria-pressed="true"],
-        cap-tracetimeline button[aria-pressed="true"],
-        cap-traceplayback button[aria-pressed="true"],
-        cap-traceactivity button[aria-pressed="true"],
-        cap-traceinspector button[aria-current="step"],
-        cap-traceflow button[aria-current="step"],
-        cap-causaltrace button[aria-current="step"],
-        cap-chronologicaltrace button[aria-current="step"],
-        cap-tracedetails button[aria-current="step"],
-        cap-tracetimeline button[aria-current="step"],
-        cap-traceplayback button[aria-current="step"],
-        cap-traceactivity button[aria-current="step"] { outline: 2px solid var(--cap-trace-accent, #005bb8); outline-offset: -2px; background: var(--cap-trace-selected, #eaf3ff); }
+        cap-traceinspector [role="option"][aria-selected="true"],
+        cap-traceflow [role="option"][aria-selected="true"],
+        cap-causaltrace [role="option"][aria-selected="true"],
+        cap-chronologicaltrace [role="option"][aria-selected="true"],
+        cap-tracedetails [role="option"][aria-selected="true"],
+        cap-tracetimeline [role="option"][aria-selected="true"],
+        cap-traceplayback [role="option"][aria-selected="true"],
+        cap-traceactivity [role="option"][aria-selected="true"],
+        cap-traceinspector [role="treeitem"][aria-selected="true"],
+        cap-traceflow [role="treeitem"][aria-selected="true"],
+        cap-causaltrace [role="treeitem"][aria-selected="true"],
+        cap-chronologicaltrace [role="treeitem"][aria-selected="true"],
+        cap-tracedetails [role="treeitem"][aria-selected="true"],
+        cap-tracetimeline [role="treeitem"][aria-selected="true"],
+        cap-traceplayback [role="treeitem"][aria-selected="true"],
+        cap-traceactivity [role="treeitem"][aria-selected="true"] { outline: 2px solid var(--cap-trace-accent, #005bb8); outline-offset: -2px; background: var(--cap-trace-selected, #eaf3ff); }
         cap-traceinspector h2,
         cap-traceflow h2,
         cap-causaltrace h2,
@@ -249,7 +217,7 @@ cap-traceactivity { display: block; min-width: 0; color: var(--cap-trace-text, #
         cap-tracedetails h3,
         cap-tracetimeline h3,
         cap-traceplayback h3,
-        cap-traceactivity h3 { font: 650 1rem/1.4 system-ui, sans-serif; margin: 0 0 .75rem; }
+        cap-traceactivity h3 { font-family: inherit; font-weight: 650; font-size: 1rem; line-height: 1.4; margin: 0 0 .75rem; }
         cap-traceinspector p,
         cap-traceflow p,
         cap-causaltrace p,
@@ -358,9 +326,365 @@ cap-traceinspector .trace-workbench { display: grid; grid-template-columns: minm
         cap-traceinspector .trace-stack { display: flex; flex-flow: column nowrap; gap: 1rem; min-width: 0; }
         cap-traceinspector .trace-columns { display: grid; grid-template-columns: minmax(0, 1fr) minmax(14rem, .7fr); gap: 1rem; }
         cap-traceinspector .trace-roots { display: flex; flex-flow: column nowrap; gap: .4rem; padding: 0; list-style: none; }
-        cap-traceinspector .trace-roots button { width: 100%; }
         cap-traceinspector select { max-width: 18rem; }
         @media (max-width: 900px) { cap-traceinspector .trace-workbench, cap-traceinspector .trace-columns { grid-template-columns: minmax(0, 1fr); } cap-traceinspector .trace-roots { max-height: 12rem; overflow: auto; } }
+
+cap-button,
+cap-checkbox {
+            --_cap-control-row-min: var(--_cap-control-compact-min,
+                max(var(--control-min-height, 2em), var(--control-row-min-height, 0px)));
+            min-height: calc(var(--_cap-control-row-min)
+                + 2 * var(--control-row-padding-block, .25em));
+            padding-block: var(--control-row-padding-block, .25em);
+            box-sizing: border-box;
+            font-family: inherit;
+            font-size: var(--ui-font-size);
+            line-height: 1.2;
+        }
+
+cap-button > button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: .35em;
+            min-height: var(--control-min-height, 2em);
+            margin: 0;
+            padding: var(--ui-control-padding);
+            color: var(--button-color);
+            background: var(--button-background);
+            border: var(--button-border);
+            border-radius: var(--ui-border-radius);
+            box-shadow: var(--button-shadow);
+            box-sizing: border-box;
+            cursor: default;
+            font: inherit;
+            user-select: none;
+            white-space: nowrap;
+        }
+
+        cap-button {
+            display: inline-flex;
+            position: relative;
+            flex-flow: row wrap;
+            align-items: center;
+            align-content: center;
+        }
+
+        cap-button > button:hover:not(:disabled, [aria-disabled="true"]) {
+            background: var(--button-background-hover);
+        }
+
+        cap-button > button:active:not(:disabled, [aria-disabled="true"]) {
+            background: var(--button-background-active);
+            border-style: var(--button-border-style-active);
+            box-shadow: var(--button-shadow-active);
+        }
+
+        cap-button > button:focus-visible {
+            outline: 2px solid transparent;
+            outline-offset: 1px;
+            box-shadow: var(--focus-ring);
+        }
+
+        cap-button > button:disabled:not([aria-busy="true"]),
+        cap-button > button[aria-disabled="true"]:not([aria-busy="true"]) {
+            color: var(--input-color-disabled);
+            background: var(--button-background-disabled);
+            border-color: var(--button-border-disabled);
+            cursor: not-allowed;
+            pointer-events: none;
+        }
+
+        cap-button > button[aria-busy="true"]:not([aria-invalid="true"]) {
+            /* Busy is unavailable for activation, but remains a normal button
+             * surface with the loading texture layered on top. */
+            background: var(--working-background-image), var(--button-background);
+            background-repeat: repeat, no-repeat;
+            background-size: 2rem 2rem, 100% 100%;
+            animation: cap-working-progress .55s linear infinite;
+        }
+
+        cap-button > button[aria-invalid="true"] {
+            border-color: var(--error-control-border);
+            box-shadow: var(--error-control-shadow);
+        }
+
+        cap-button.cap-subtle > button {
+            min-height: 1.75em;
+            padding: .2em .3em;
+            background: transparent;
+            border-color: transparent;
+            box-shadow: none;
+        }
+        cap-button.cap-subtle > button:hover:not(:disabled, [aria-disabled="true"]) {
+            background: var(--button-background-hover);
+        }
+        cap-button.cap-subtle > button:focus-visible { box-shadow: var(--focus-ring); }
+        cap-button.cap-subtle > button[aria-busy="true"]:not([aria-invalid="true"]) {
+            background: var(--working-background-image), transparent;
+            background-size: 2rem 2rem, 100% 100%;
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            cap-button > button[aria-busy="true"] {
+                animation: none !important;
+            }
+        }
+
+        @media (forced-colors: active) {
+            cap-button > button[aria-invalid="true"] {
+                outline: 2px solid Mark;
+                outline-offset: 1px;
+            }
+        }
+
+cap-error {
+            position: absolute;
+            z-index: 1200;
+            inset-block-start: -.5rem;
+            inset-inline-end: -.5rem;
+            display: block;
+            width: 1.25em;
+            height: 1.25em;
+            margin: 0;
+            color: var(--error-color);
+            font-size: .875em;
+            line-height: 1.35;
+            outline: none;
+            box-sizing: border-box;
+        }
+
+        cap-error > cap-erroricon {
+            position: absolute;
+            display: flex;
+            width: 1rem;
+            height: 1rem;
+            font-size: .9rem;
+            color: var(--error-contrast);
+            background: var(--error-color);
+            border: var(--error-icon-border);
+            border-radius: 50%;
+            box-shadow: var(--error-icon-shadow);
+            box-sizing: border-box;
+            font-weight: bold;
+            justify-content: center;
+            align-items: center;
+
+        }
+
+        cap-error > cap-erroricon::before {
+            content: "!";
+        }
+
+        cap-error > cap-errortext {
+            position: absolute;
+            z-index: 1;
+            inset-block-start: calc(100% + .25em);
+            inset-inline-end: 0;
+            display: block;
+            visibility: hidden;
+            width: max-content;
+            max-width: min(22rem, 80vw);
+            padding: var(--space-xs) var(--space-sm);
+            color: var(--ui-color);
+            background: var(--error-bg-neutral, var(--application-background));
+            border: 1px solid var(--error-control-border);
+            border-radius: var(--ui-border-radius);
+            box-shadow: var(--ui-shadow);
+            opacity: 0;
+            overflow-wrap: anywhere;
+            pointer-events: none;
+            transform: translateY(-.2em);
+            transition: opacity var(--motion-fast), transform var(--motion-fast), visibility 0s linear var(--motion-fast);
+        }
+
+        cap-error > cap-erroricon:hover + cap-errortext,
+        cap-error:focus-visible > cap-errortext {
+            visibility: visible;
+            opacity: 1;
+            transform: translateY(0);
+            transition-delay: 0s;
+        }
+
+        cap-error:focus-visible > cap-erroricon {
+            outline: 2px solid transparent;
+            outline-offset: 1px;
+            box-shadow: var(--focus-ring);
+        }
+
+        @media (forced-colors: active) {
+            cap-error > cap-erroricon,
+            cap-error > cap-errortext {
+                color: CanvasText;
+                background: Canvas;
+                border-color: Mark;
+                forced-color-adjust: auto;
+            }
+        }
+
+@keyframes cap-working-progress {
+            from { background-position: 0 0, 0 0; }
+            to { background-position: 2rem 0, 0 0; }
+        }
+        .cap-working[aria-busy="true"]:not([aria-invalid="true"]) {
+            background-image: var(--working-background-image);
+            background-size: 2rem 2rem;
+            animation: cap-working-progress .55s linear infinite;
+        }
+        @media (prefers-reduced-motion: reduce) {
+            .cap-working[aria-busy="true"] { animation: none; }
+        }
+
+cap-icon {
+            display: inline-block;
+            flex: 0 0 auto;
+            inline-size: 1.15em;
+            block-size: 1.15em;
+            vertical-align: -.15em;
+            background: currentColor;
+            mask: var(--_cap-icon-mask) center / contain no-repeat;
+            pointer-events: none;
+        }
+        @media (forced-colors: active) { cap-icon { background: ButtonText; } }
+
+cap-listview {
+            display: flex;
+            position: relative;
+            flex: 1 1 auto;
+            flex-direction: column;
+            min-inline-size: 0;
+            min-block-size: 0;
+            max-block-size: 100%;
+            overflow: auto;
+            padding: var(--ui-padding-v) var(--ui-padding-h);
+            color: var(--ui-text-color);
+            background: var(--ui-input-bg);
+            border: var(--ui-input-border);
+            border-radius: var(--ui-border-radius);
+            box-shadow: var(--input-shadow);
+            box-sizing: border-box;
+            pointer-events: all;
+            user-select: none;
+            white-space: nowrap;
+        }
+
+        cap-listview > [role="listbox"],
+        cap-listview > ul[aria-hidden="true"] {
+            display: flex;
+            flex-direction: column;
+            margin: 0;
+            padding: 0;
+            list-style: none;
+        }
+
+        cap-listview[data-cap-retained-loading]::after {
+            content: "";
+            position: absolute;
+            z-index: 1;
+            inset: 0;
+            opacity: 0.33;
+            animation: cap-working-progress .55s linear infinite;
+            background-image: var(--working-background-image);
+            background-repeat: repeat;
+            background-size: 2rem 2rem;
+            pointer-events: none;
+        }
+
+        cap-listview > [role="listbox"] > [role="option"],
+        cap-listview > ul[aria-hidden="true"] > li {
+            display: flex;
+            flex-flow: row nowrap;
+            position: relative;
+            min-height: calc(var(--ui-font-size) + var(--ui-padding-h) + var(--ui-padding-h));
+            line-height: calc(var(--ui-font-size) + var(--ui-padding) + var(--ui-padding));
+            font-size: var(--ui-font-size);
+            color: var(--ui-text-color);
+            border-radius: var(--ui-border-radius);
+            box-sizing: border-box;
+            user-select: none;
+            align-items: center;
+        }
+
+        cap-listview > ul[aria-hidden="true"] cap-placeholder {
+            font-size: var(--ui-font-size);
+        }
+
+        cap-listview > [role="listbox"] > [role="option"]:hover {
+            background: var(--hover-bg-color, #f5f5f5);
+        }
+
+        cap-listview > [role="listbox"] > [role="option"][aria-selected="true"] {
+            background: var(--selected-bg-color, #e0e7ff);
+        }
+
+        cap-listview > [role="status"] {
+            margin: 0;
+            padding: var(--ui-padding);
+        }
+
+        cap-listview:has(> cap-error) {
+            border-color: var(--error-color);
+        }
+
+        @media (forced-colors: active) {
+            cap-listview:has(> cap-error) {
+                outline: 2px solid Mark;
+                outline-offset: -2px;
+            }
+
+            cap-listview[data-cap-retained-loading]::after {
+                display: none;
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            cap-listview[data-cap-retained-loading]::after {
+                animation: none !important;
+            }
+        }
+
+cap-placeholder {
+            display: block;
+            width: 5em;
+            height: 1em;
+            background: #ccc;
+            border-radius: var(--ui-border-radius);
+            position: relative;
+        }
+
+        cap-placeholder::after {
+            content: "";
+            display: block;
+            position: absolute;
+            z-index: 1;
+            inset: 0;
+            margin: auto;
+            animation: cap-working-progress .55s linear infinite;
+            background-repeat: repeat;
+            background-size: 2rem 2rem;
+            background-image: var(--working-background-image);
+            border: 0 solid transparent;
+            border-radius: inherit;
+            box-sizing: border-box;
+            pointer-events: none;
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            cap-placeholder::after {
+                animation: none !important;
+            }
+        }
+
+        @media (forced-colors: active) {
+            cap-placeholder {
+                background: CanvasText;
+                forced-color-adjust: none;
+            }
+
+            cap-placeholder::after {
+                display: none;
+            }
+        }
 
 cap-traceflow .trace-flow-surface { position: relative; min-width: 0; min-height: 0; }
         cap-traceflow .trace-flow-surface > .trace-scroll { height: 100%; min-height: 0; }
@@ -378,6 +702,7 @@ cap-traceflow .trace-flow-surface { position: relative; min-width: 0; min-height
         cap-traceflow .trace-node[data-observed="true"][data-reached="false"] { border-inline-start-color: var(--cap-trace-line, #cad4de); }
         cap-traceflow .trace-node[aria-current="step"] { box-shadow: 0 0 0 3px var(--_node-accent); }
         cap-traceflow .trace-node strong { display: block; overflow-wrap: anywhere; line-height: 1.35; }
+        cap-traceflow .trace-node { background: var(--cap-trace-surface, var(--panel-background, #fff)); color: inherit; border: 1px solid var(--cap-trace-line, #cad4de); border-inline-start: 4px solid var(--_node-accent); font: inherit; text-align: start; cursor: pointer; }
         cap-traceflow .trace-node small, cap-traceflow .trace-node span { line-height: 1.35; }
         cap-traceflow .trace-node span { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         cap-traceflow .trace-edge { position: absolute; height: 0; border-top: 2px solid var(--cap-trace-accent, #005bb8); color: var(--cap-trace-accent, #005bb8); transform-origin: left center; }
@@ -393,6 +718,593 @@ cap-traceflow .trace-flow-surface { position: relative; min-width: 0; min-height
         cap-traceflow .trace-legend-edge { position: relative; flex: 0 0 2.75rem; height: 0; border-top: 2px solid var(--cap-trace-accent, #005bb8); color: var(--cap-trace-accent, #005bb8); }
         cap-traceflow .trace-legend-edge[data-observed="false"] { border-top-style: dashed; border-top-color: var(--cap-trace-muted, #526477); color: var(--cap-trace-muted, #526477); }
         cap-traceflow .trace-legend-edge[data-observed="true"][data-reached="false"] { border-top-color: var(--cap-trace-line, #cad4de); color: var(--cap-trace-line, #cad4de); }
-        cap-traceflow .trace-leaves { display: flex; flex-wrap: wrap; gap: .5rem; list-style: none; padding: 0; }
+        cap-traceflow .trace-leaves > [role="listbox"] { display: flex; flex-wrap: wrap; gap: .5rem; list-style: none; padding: 0; }
 
-cap-causaltrace ol { list-style: none; padding: 0; margin: 0; } cap-causaltrace li { margin: .25rem 0; } cap-causaltrace summary { cursor: pointer; } cap-causaltrace button { max-width: 100%; overflow-wrap: anywhere; }
+cap-causaltrace cap-treeview { max-width: 100%; overflow-wrap: anywhere; }
+
+cap-treeview {
+            display: flex;
+            position: relative;
+            flex: 1 1 auto;
+            flex-direction: column;
+            min-inline-size: 0;
+            min-block-size: 0;
+            max-block-size: 100%;
+            overflow: auto;
+        }
+
+        cap-treeview > [role="tree"],
+        cap-treeview > ul[aria-hidden="true"] {
+            display: flex;
+            flex-flow: column nowrap;
+            align-items: stretch;
+            margin: 0;
+            padding: 0;
+            list-style: none;
+        }
+
+        cap-treeview[data-cap-retained-loading]::after {
+            content: "";
+            position: absolute;
+            z-index: 1;
+            inset: 0;
+            opacity: 0.33;
+            animation: cap-working-progress .55s linear infinite;
+            background-image: var(--working-background-image);
+            background-repeat: repeat;
+            background-size: 2rem 2rem;
+            pointer-events: none;
+        }
+
+        cap-treeview [role="treeitem"],
+        cap-treeview > ul[aria-hidden="true"] > li {
+            display: flex;
+            position: relative;
+            align-items: flex-start;
+            gap: 0.35rem;
+            min-width: 0;
+            padding: 0.38rem 0.5rem;
+            padding-inline-start: calc(0.5rem + var(--tree-depth) * 1.1rem);
+            cursor: default;
+            user-select: none;
+        }
+
+        cap-treeview > ul[aria-hidden="true"] cap-placeholder {
+            align-self: center;
+            height: var(--ui-font-size);
+        }
+
+        cap-treeview [role="treeitem"]:hover {
+            background: var(--button-background-hover);
+        }
+
+        cap-treeview [role="treeitem"]:focus-visible {
+            outline: 2px solid transparent;
+            outline-offset: -2px;
+            box-shadow: var(--focus-ring);
+        }
+
+        cap-treeview [role="treeitem"][aria-selected="true"] {
+            color: var(--ui-select-text-color);
+            background: var(--ui-select-bg);
+        }
+
+        cap-treeview cap-expander {
+            flex: 0 0 1rem;
+            text-align: center;
+        }
+
+        cap-treeview [role="treeitem"][aria-expanded] > cap-expander {
+            cursor: pointer;
+        }
+
+        cap-treeview cap-label {
+            display: block;
+            flex: 1 1 auto;
+            min-width: 0;
+            overflow-wrap: anywhere;
+        }
+
+        cap-treeview > [role="status"] {
+            margin: 0;
+            padding: var(--ui-padding, 0.75rem);
+        }
+
+        cap-treeview:has(> cap-error) {
+            outline: 1px solid var(--error-color);
+            outline-offset: -1px;
+        }
+
+        @media (forced-colors: active) {
+            cap-treeview [role="treeitem"][aria-selected="true"] {
+                outline: 2px solid Highlight;
+                forced-color-adjust: auto;
+            }
+
+            cap-treeview:has(> cap-error) {
+                outline: 2px solid Mark;
+            }
+
+            cap-treeview[data-cap-retained-loading]::after {
+                display: none;
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            cap-treeview[data-cap-retained-loading]::after {
+                animation: none !important;
+            }
+        }
+
+cap-datatable {
+            display: block;
+            position: relative;
+            flex: 1 1 auto;
+            min-inline-size: 0;
+            min-block-size: 0;
+            max-block-size: 100%;
+            overflow: auto;
+        }
+
+        cap-datatable > p {
+            margin: 0;
+        }
+
+        cap-datatable > table {
+            /* Collapsed borders belong to the table paint layer, so they can
+             * disappear behind scrolling rows even though the header cells are
+             * sticky. Keep zero visual spacing while letting each sticky cell
+             * retain its own header-edge and column-divider chrome. */
+            border-collapse: separate;
+            border-spacing: 0;
+            width: 100%;
+        }
+
+        cap-datatable[data-cap-retained-loading]::after {
+            content: "";
+            position: absolute;
+            z-index: 3;
+            inset: 0;
+            opacity: 0.33;
+            animation: cap-working-progress .55s linear infinite;
+            background-image: var(--working-background-image);
+            background-repeat: repeat;
+            background-size: 2rem 2rem;
+            pointer-events: none;
+        }
+
+        cap-datatable thead:has([aria-expanded="true"]) {
+            position: relative;
+            z-index: 1100;
+        }
+
+        cap-datatable th,
+        cap-datatable td {
+            position: relative;
+            text-align: left;
+            padding: 0 var(--ui-padding);
+            font-weight: normal;
+        }
+
+        cap-datatable,
+        cap-datatable table,
+        cap-datatable tbody tr,
+        cap-datatable tbody tr td {
+            user-select: none;
+            pointer-events: all;
+        }
+
+        cap-datatable tr td {
+            background: var(--ui-table-bg-color);
+            line-height: calc(var(--ui-font-size) + var(--ui-padding));
+            font-size: var(--ui-font-size);
+            height: calc(var(--ui-font-size) + var(--ui-padding-h));
+        }
+
+        cap-datatable > table > tbody > tr:nth-child(even) > td {
+            background: var(--ui-table-bg-color2);
+        }
+
+        cap-datatable > table > tbody > tr[aria-selected="true"] > td {
+            color: var(--ui-select-text-color);
+            background: var(--ui-select-bg);
+        }
+
+        cap-datatable > table > tbody > tr:nth-child(even)[aria-selected="true"] > td {
+            background: var(--ui-select-bg-dark);
+        }
+
+        cap-datatable tr td cap-placeholder {
+            font-size: var(--ui-font-size);
+            height: var(--ui-font-size);
+        }
+
+        cap-datatable:has(> cap-error) {
+            outline: 1px solid var(--error-color);
+            outline-offset: -1px;
+        }
+
+        cap-datatable:has(> cap-error) > button {
+            border-color: var(--error-color);
+        }
+
+        @media (forced-colors: active) {
+            cap-datatable:has(> cap-error) {
+                outline: 2px solid Mark;
+            }
+
+            cap-datatable[data-cap-retained-loading]::after {
+                display: none;
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            cap-datatable[data-cap-retained-loading]::after {
+                animation: none !important;
+            }
+        }
+
+cap-datatable > table > thead {
+            color: var(--table-header-color);
+            background: var(--table-header-background);
+        }
+
+        cap-datatable > table > thead > tr > th {
+            position: sticky;
+            inset-block-start: 0;
+            z-index: 2;
+            height: 1.5rem;
+            background: var(--table-header-background);
+            border: 2px groove #fff7;
+            border-left: none;
+        }
+
+        cap-datatable > table > thead > tr > th:last-child {
+            border-right: none;
+        }
+
+cap-datatable th cap-popover cap-filterpanel {
+            position: static;
+            border: 0;
+            box-shadow: none;
+            padding: 0;
+            min-width: min(var(--filter-panel-min-width), 100%);
+        }
+        cap-datatable > table > thead > tr > th[aria-sort] {
+            position: sticky;
+            inset-block-start: 0;
+            padding-right: 24px;
+            user-select: var(--noselect-user-select);
+            cursor: var(--noselect-cursor);
+        }
+
+        cap-datatable > table > thead > tr > th[aria-sort] > button.sort {
+            appearance: none;
+            display: block;
+            width: 100%;
+            padding: 0;
+            color: inherit;
+            background: transparent;
+            border: 0;
+            font-family: inherit;
+            font-size: inherit;
+            font-weight: inherit;
+            line-height: inherit;
+            text-align: inherit;
+            cursor: pointer;
+        }
+
+        cap-datatable > table > thead > tr > th[aria-sort] > button.sort > span.sortindicator {
+            position: absolute;
+            right: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 1em;
+            height: 1.25em;
+            text-align: center;
+        }
+
+        /* An unsorted column offers both directions at the same muted weight
+         * as the filter funnel. A sorted column continues to render its one
+         * active text arrow above. */
+        cap-datatable > table > thead > tr > th[aria-sort="none"] > button.sort > span.sortindicator {
+            opacity: 0.5;
+        }
+
+        cap-datatable > table > thead > tr > th[aria-sort="none"] > button.sort > span.sortindicator::before,
+        cap-datatable > table > thead > tr > th[aria-sort="none"] > button.sort > span.sortindicator::after {
+            content: "";
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            border-left: .36em solid transparent;
+            border-right: .36em solid transparent;
+        }
+
+        cap-datatable > table > thead > tr > th[aria-sort="none"] > button.sort > span.sortindicator::before {
+            top: .04em;
+            border-bottom: .5em solid currentColor;
+        }
+
+        cap-datatable > table > thead > tr > th[aria-sort="none"] > button.sort > span.sortindicator::after {
+            bottom: .04em;
+            border-top: .5em solid currentColor;
+        }
+
+        cap-datatable > table > thead > tr > th[aria-sort] > button.filter {
+            appearance: none;
+            position: absolute;
+            right: 2px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 1em;
+            height: 1em;
+            padding: 0;
+            color: inherit;
+            background: transparent;
+            border: 0;
+            font-family: inherit;
+            font-size: inherit;
+            line-height: inherit;
+            text-align: center;
+            cursor: pointer;
+            opacity: 0.5;
+        }
+
+        /* A solid, font-independent funnel: the tapered bowl narrows into a
+         * short stem, so the control stays legible at compact table-header
+         * sizes in every theme and locale. */
+        cap-datatable > table > thead > tr > th[aria-sort] > button.filter::before {
+            content: "";
+            position: absolute;
+            inset: 50% auto auto 50%;
+            width: .85em;
+            height: .9em;
+            background: currentColor;
+            clip-path: polygon(0 0, 100% 0, 60% 58%, 60% 100%, 40% 100%, 40% 58%);
+            transform: translate(-50%, -50%);
+        }
+
+        cap-datatable > table > thead > tr > th[aria-sort] > button.filter:hover {
+            opacity: 1;
+        }
+
+        cap-datatable > table > thead > tr > th[aria-sort] > button[aria-busy="true"] {
+            background-image: var(--working-background-image);
+            background-size: 2rem 2rem;
+            animation: cap-working-progress .55s linear infinite;
+            opacity: 1;
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            cap-datatable > table > thead > tr > th[aria-sort] > button[aria-busy="true"] { animation: none; }
+        }
+
+cap-filterpanel {
+            position: absolute;
+            color: var(--filter-panel-color);
+            background: var(--filter-panel-background);
+            border: var(--filter-panel-border);
+            border-radius: var(--filter-panel-radius);
+            padding: var(--filter-panel-padding);
+            min-width: var(--filter-panel-min-width);
+            box-shadow: var(--filter-panel-shadow);
+            z-index: 1000;
+            display: flex;
+            flex-flow: column nowrap;
+            align-items: flex-start;
+            left: 100%;
+            top: 0;
+            user-select: none;
+        }
+
+        cap-filterpanel > p {
+            margin: 0;
+        }
+
+        cap-filterpanel[aria-busy="true"]::after {
+            content: "";
+            position: absolute;
+            z-index: 1;
+            inset: 0;
+            background-image: var(--working-background-image);
+            background-repeat: repeat;
+            background-size: 2rem 2rem;
+            animation: cap-working-progress .55s linear infinite;
+            pointer-events: none;
+        }
+
+        cap-filterpanel:has(> cap-error) {
+            border-color: var(--error-color);
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            cap-filterpanel[aria-busy="true"]::after {
+                animation: none !important;
+            }
+        }
+
+cap-checkbox {
+            display: inline-flex;
+            position: relative;
+            flex-flow: row wrap;
+            align-items: center;
+            align-content: center;
+            --_cap-checkable-label-color: var(--ui-text-color);
+            --_cap-checkable-cursor: pointer;
+            --_cap-checkable-box-background: var(--checkbox-box-background,
+                var(--ui-input-bg, transparent));
+            --_cap-checkable-box-border: var(--checkbox-box-border,
+                var(--cbx-o-border, 1px solid currentColor));
+            --_cap-checkable-box-shadow: var(--checkbox-box-shadow);
+            --_cap-checkable-box-filter: none;
+        }
+
+        cap-checkbox > label {
+            display: flex;
+            flex-flow: row nowrap;
+            position: relative;
+            min-height: var(--_cap-control-row-min);
+            margin: 0;
+            color: var(--_cap-checkable-label-color);
+            border-radius: var(--ui-border-radius);
+            box-sizing: border-box;
+            align-items: center;
+            gap: .3em;
+            cursor: var(--_cap-checkable-cursor);
+            user-select: none;
+        }
+
+        cap-checkbox > label:has(> input:disabled) {
+            color: var(--checkable-label-color-disabled);
+            cursor: not-allowed;
+        }
+
+        cap-checkbox > label:has(> input[aria-readonly="true"]:not(:disabled)) {
+            --_cap-checkable-label-color: var(--checkable-label-color-readonly);
+            --_cap-checkable-cursor: default;
+            --_cap-checkable-box-background: var(--checkbox-box-background-readonly);
+            --_cap-checkable-box-border: var(--checkbox-box-border-readonly);
+            --_cap-checkable-box-shadow: var(--checkbox-box-shadow-readonly);
+            --_cap-checkable-box-filter: saturate(.78);
+        }
+
+        cap-checkbox > label > input {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0 0 0 0);
+            white-space: nowrap;
+            border: 0;
+            font: inherit;
+            font-size: var(--ui-font-size, inherit);
+        }
+
+        cap-checkbox > label > input + cap-checkshell {
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: var(--checkbox-box-size, 1em);
+            height: var(--checkbox-box-size, 1em);
+            flex: 0 0 var(--checkbox-box-size, 1em);
+            box-sizing: border-box;
+            text-align: center;
+            line-height: 1;
+            color: var(--input-color, var(--ui-text-color, currentColor));
+            background: var(--_cap-checkable-box-background);
+            border: var(--_cap-checkable-box-border);
+            border-radius: var(--checkbox-box-radius,
+                var(--cbx-border-radius, var(--radius-sm, 0.2rem)));
+            box-shadow: var(--_cap-checkable-box-shadow);
+            filter: var(--_cap-checkable-box-filter);
+            font-family: inherit;
+            font-size: 1em;
+            user-select: none;
+        }
+
+        cap-checkbox > label > input:checked + cap-checkshell {
+            color: var(--checkbox-symbol-color, var(--selection-color, currentColor));
+            background: var(--checkbox-box-background-checked,
+                var(--selection-background, var(--ui-accent-color, Highlight)));
+            border: var(--checkbox-box-border-checked, var(--checkbox-box-border,
+                var(--cbx-o-border, 1px solid currentColor)));
+            box-shadow: var(--checkbox-box-shadow-checked);
+        }
+
+
+
+cap-checkbox > label:has(> input:required:invalid:not(:disabled):not([aria-invalid="true"]))::before {
+    content: "";
+    position: absolute;
+    z-index: 0;
+    inset-block: -4px;
+    inset-inline-start: -4px;
+    inset-inline-end: calc(-4px - 1em);
+    border: 1px dashed var(--required-color);
+    border-radius: inherit;
+    pointer-events: none;
+}
+
+
+cap-checkbox > label:has(> input:required:invalid:not(:disabled):not([aria-invalid="true"]))::after {
+    content: "✲";
+    position: absolute;
+    z-index: 1;
+    inset-block-start: -.5em;
+    inset-inline-end: -1em;
+    display: flex;
+    inline-size: 1rem;
+    block-size: 1rem;
+    align-items: center;
+    justify-content: center;
+    color: var(--required-indicator-color);
+    background: var(--required-indicator-background);
+    font-size: .75rem;
+    font-weight: 700;
+    line-height: 1;
+    pointer-events: none;
+}
+
+        cap-checkbox > label:has(> input[aria-invalid="true"]) {
+            box-shadow: var(--error-control-shadow);
+        }
+
+        cap-checkbox > label > input:focus-visible + cap-checkshell {
+            outline: 2px solid var(--focus-color, var(--ui-accent-color, Highlight));
+            outline-offset: 1px;
+        }
+
+        cap-checkbox > label > input:disabled + cap-checkshell {
+            opacity: 0.6;
+            filter: saturate(0.6);
+        }
+
+        cap-checkbox > label > input[aria-busy="true"]:not([aria-invalid="true"]) + cap-checkshell {
+            background: var(--working-background-image), var(--checkbox-box-background,
+                var(--ui-input-bg, transparent));
+            background-repeat: repeat, no-repeat;
+            background-size: 2rem 2rem, 100% 100%;
+            animation: cap-working-progress .55s linear infinite;
+        }
+
+        cap-checkbox > label > input[aria-invalid="true"] + cap-checkshell {
+            border-color: var(--error-control-border);
+            box-shadow: none;
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            cap-checkbox > label > input[aria-busy="true"] + cap-checkshell {
+                animation: none !important;
+            }
+        }
+
+        @media (forced-colors: active) {
+            cap-checkbox > label:has(> input[aria-invalid="true"]) {
+                outline: 2px solid Mark;
+                outline-offset: 1px;
+            }
+        }
+
+cap-popover { display: contents; }
+        cap-popover > [popover] {
+            position: fixed;
+            inset: auto;
+            margin: 0;
+            inline-size: max-content;
+            max-inline-size: min(28rem, calc(100vw - 1rem));
+            box-sizing: border-box;
+            overflow: auto;
+            padding: var(--panel-padding, .75rem);
+            color: var(--panel-color, inherit);
+            background: var(--panel-background, Canvas);
+            border: var(--panel-border, 1px solid CanvasText);
+            border-radius: var(--panel-radius, .4rem);
+            box-shadow: var(--dialog-shadow);
+            font: inherit;
+        }
+        cap-popover > [popover]::backdrop { background: transparent; }
+        @media (forced-colors: active) { cap-popover > [popover] { border: 1px solid CanvasText; } }

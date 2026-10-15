@@ -150,12 +150,12 @@ custom elements.
 
 | Family | Public components |
 | --- | --- |
-| Actions | `Button`, `Toolbar` |
+| Actions | `Button`, `Icon`, `Toolbar` |
 | Text and choices | `Label`, `Textbox`, `Dropdown`, `RadioButton`, `RadioGroup`, `Toggle`, `Checkbox`, `TriCheckbox`, `QuadCheckbox` |
 | Layout and navigation | `Breadcrumb`, `CapillaryUiApp`, `Layout`, `Header`, `GroupBox`, `NavigationBar`, `OptionGroup`, `OptionGroupHeaderEnd`, `OptionsBox`, `Panel`, `PanelToolbar`, `Sidebar`, `SidebarToolbar`, `SplitPrimary`, `SplitSecondary`, `SplitView`, `Tab`, `TabLine`, `TabPanel` |
 | Records and collections | `DescriptionItem`, `DescriptionList`, `InfoField`, `InfoPanel`, `Placeholder`, `ListView`, `TreeItem`, `TreeView` |
 | Tables and filters | `DataTable`, `FilterPanel`, `TableHeader`, `TableHeaderCell` |
-| Dialog and status | `Dialog`, `DialogActions`, `ProgressBar` |
+| Dialog and status | `Dialog`, `DialogActions`, `Popover`, `ProgressBar` |
 | Presentation selection | `ThemePicker`, `ColorPicker` |
 | Date and time (experimental) | `DatePicker`, `DateTimePicker`, `TimePicker` |
 
@@ -167,10 +167,18 @@ Notable public behavior:
   state. The old `value` form is an initial-value compatibility alias, not a
   continuously controlled prop.
 - `busy` is live presentation state on actions, input/choice controls, date/time
-  controls, and `OptionGroup`; it does not disable inputs, while a busy
-  `Button` remains unavailable but retains normal button chrome beneath the
-  working texture. Application commands and lifecycle stay in Capillary/
-  application code.
+  controls, collections, tabs, table headers/filters and `OptionGroup`. Inputs
+  and selections remain usable. Button guards activation by default;
+  `disableWhileRunning={false}` explicitly permits repeat/replacement while
+  retaining busy presentation. Explicit `disabled` always wins. Application
+  commands and lifecycle stay in Capillary/application code.
+- `Icon` renders a decorative, current-color intent glyph. `Button.icon`
+  retains the glyph while working; icon-only buttons require `ariaLabel`.
+  `appearance="subtle"` gives contextual buttons compact chrome without losing
+  their native semantics, focus, error or busy presentation.
+  `ariaControls`, `ariaExpanded` and `ariaHasPopup` describe the native opener.
+- `RouteLink` and routed tabs present their own pending router transition.
+  Explicit `busy` can additionally describe application-owned downstream work.
 - `Button.command` declares a native activation, `changeCommand` declares a
   changed user-value execution, and `selectionCommand` declares a completed
   user-selection execution for ListView, DataTable, and TreeView. Controls
@@ -200,6 +208,8 @@ Notable public behavior:
   snapshots retain visible error feedback alongside stale values.
 - `DataTable` accepts exactly one of direct `data`, a caller-owned
   `dataSource`, or table-owned `rest` options.
+  Static array updates and column render callbacks are installed coherently by
+  `setProps`; changing to a different data source requires a new table instance.
 - `DataTable`, `ListView`, and `TreeView` declare the static `dataSurface`
   trait, which materializes as `data-cap-surface="data"` on their hosts. An
   island Panel with a header and exactly one direct marked child removes its
@@ -212,6 +222,12 @@ Notable public behavior:
 - Rich `Checkbox` and `TableColumn` labels accept a textual `ariaLabel` for
   Capillary UI-generated state, sort, and filter accessibility messages.
 - `Dialog` uses a native modal surface with focus containment and restoration.
+- `Popover` uses the native nonmodal top layer, anchored to an element, with
+  viewport clamping, outside/Escape dismissal and focus restoration. Its caller
+  owns content and open state; current native Popover API support is required.
+- Theme/color pickers stay busy until the selected stylesheet loads. Failure
+  exposes the standard error and a localized retry action. Replacement and
+  destruction abort observation of obsolete resources, not unrelated requests.
 - `GroupBox` is a named group with a bordered body and vertical header by
   default. Its optional `section` variant is a natural-height full-inline
   section with a larger legend/top rule; its `column` variant is a

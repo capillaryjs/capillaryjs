@@ -225,7 +225,7 @@ recursive order.
 | `label` | GroupBox heading |
 | `description` | Introductory help text |
 
-Pointer dragging reorders entries. From a drag handle,
+Pointer dragging from the persistent grip reorders entries. From its focusable row,
 `Alt+ArrowUp`/`Alt+ArrowDown` provides the keyboard equivalent and announces
 the new position. Preset buttons expose their active state with
 `aria-pressed`.

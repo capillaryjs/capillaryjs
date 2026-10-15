@@ -177,15 +177,48 @@ test('native interaction reaches component reads, reactive children, live props,
     await Promise.resolve()
     const count = recorder.snapshot().events.length
     const roots = recording.events.filter((event) => !event.parentId).length
-    for (const button of (inspector.dom as HTMLElement).querySelectorAll('button')) {
-        if (button.textContent === 'First step' || button.textContent === 'Next step') button.click()
-    }
+    const playbackButtons = (inspector.dom as HTMLElement).querySelectorAll<HTMLButtonElement>(
+        'button[aria-label="First step"], button[aria-label="Next step"]',
+    )
+    assert.equal(playbackButtons.length, 2)
+    playbackButtons.forEach(button => button.click())
     await Promise.resolve()
     assert.equal(recorder.snapshot().events.length, count)
     assert.equal(recorder.snapshot().events.filter((event) => !event.parentId).length, roots)
     assert(!recorder.snapshot().nodes.some((node) => node.scopeId === devtoolsDiagnosticScope.id))
     inspector.destroy(); selection.dispose(); playback.dispose(); app.destroy()
     orphan.dispose(); text.dispose(); query.dispose(); normalized.dispose(); search.dispose(); recorder.dispose()
+})
+
+test('trace content uses widget selection while capture/playback remain named action buttons', async () => {
+    const recorder = new TraceRecorder().start()
+    const source = new Emitter(0, {purpose: 'Count'})
+    const derived = source.map(value => value + 1, {purpose: 'Derived count'})
+    source.set(1)
+    const selection = new TraceSelection(), playback = new TracePlayback()
+    selection.selectRoot(recorder.snapshot().events.find(event => !event.parentId)!.id)
+    const view = new TraceInspector({recording: recorder, selection, playback}).mount(document.body)
+    const root = view.dom as HTMLElement
+    assert.equal(root.querySelector('button[data-node-id], button[data-root-id], button[data-event-id]'), null)
+    assert.ok(root.querySelector('cap-listview [role="option"] [data-root-id]'))
+    assert.ok(root.querySelector('cap-treeview [role="treeitem"] [data-event-id]'))
+    assert.ok(root.querySelector('cap-chronologicaltrace tbody tr[aria-selected]'))
+    const graph = root.querySelector<HTMLElement>('.trace-canvas[role="listbox"]')!
+    const options = [...graph.querySelectorAll<HTMLElement>('[role="option"]')]
+    assert.ok(options.length >= 2)
+    options[0]!.focus()
+    options[0]!.dispatchEvent(new window.KeyboardEvent('keydown', {key: 'ArrowRight', bubbles: true}) as unknown as Event)
+    assert.equal(selection.state.get().nodeId, options[1]!.dataset.nodeId)
+    assert.equal(document.activeElement, options[1])
+    assert.equal(options[1]!.getAttribute('aria-selected'), 'true')
+    assert.ok(root.querySelector('cap-button button[aria-label="First step"] cap-icon[aria-hidden="true"]'))
+    root.querySelector<HTMLButtonElement>('button[aria-label="First step"]')!.click()
+    assert.equal(playback.state.get().cursor, 0, 'collection reconciliation must not reset playback')
+    root.querySelector<HTMLButtonElement>('button[aria-label="Next step"]')!.click()
+    assert.equal(playback.state.get().cursor, 1)
+    view.destroy()
+    assert.equal(selection.state.subscriberCount, 0)
+    selection.dispose(); playback.dispose(); derived.dispose(); source.dispose(); recorder.dispose()
 })
 
 test('two live inspectors remain excluded while subscriptions churn during recording notifications', async () => {

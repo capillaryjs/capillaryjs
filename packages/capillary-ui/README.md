@@ -383,8 +383,10 @@ the native forward cycle.
 
 `busy` is presentational state: it sets native/ARIA busy semantics and paints
 the theme's moving working texture without disabling an input or choice.
-`Button` remains the exception: a busy action is unavailable until it settles,
-but keeps its normal button colors, border, and elevation with the working
+`Button` guards activation while busy by default. Use `disableWhileRunning={false}`
+only when the application deliberately supports repeat/replacement; explicit
+`disabled` still wins. A busy action
+keeps its normal button colors, border, and elevation with the working
 texture layered on top. `ProgressBar` only paints that working texture when it
 has a `valueEmitter` whose fetch state is `Loading`; this applies to both
 determinate and indeterminate bars. A literal `value={null}` is simply an
@@ -550,9 +552,16 @@ selection behavior already owned by `ListView` and `DataTable`.
 `itemLabelClassName` and `itemLabelStyle` when only the label beside the
 expander needs a reusable presentation trait such as `colored`.
 
+Collections also accept live `busy` for work triggered by selection or filters
+outside their data emitter. Tabs and table headers/filters accept the same explicit
+relationship; routed tabs and RouteLink also track their own router transition.
+This presentation does not disable selection or infer asynchronous subscribers.
+
 #### DataTable inputs and ownership
 
-`DataTable` requires exactly one data mode:
+`DataTable` requires exactly one data mode. Static arrays and column renderers
+can be replaced together with `setProps`; switching data-source ownership requires
+a new table instance:
 
 - `data`: a static array or readable emitter; the table owns the local derived
   data source it creates.
@@ -586,9 +595,31 @@ virtualization, and server-specific wire policy remain application concerns.
 | Component | Purpose | Key props and state |
 | --- | --- | --- |
 | `Dialog` | Controlled native modal with focus containment and restoration | `title`, `description`, `DialogActions` and ordinary content children, `valueEmitter`/`defaultValue`, `closeLabel`, `showCloseButton`, `initialFocusRef`, `onClose` |
+| `Popover` | Anchored native nonmodal top-layer panel | required `label`, `anchor: HTMLElement \| null`, `valueEmitter`/`defaultValue`, `id`, `initialFocusRef`, `onClose`, ordinary content children |
+| `Icon` | Decorative current-color intent glyph | required `name: IconName`; compose with an accessible control, not as a standalone named action |
 | `ProgressBar` | Labelled native progress with visual track | required `label`, `value` or `valueEmitter`, `max`, `valueText`; fills its available width; `null` is indeterminate; emitter-backed busy chrome (including determinate bars) requires `FetchState.Loading` |
-| `ThemePicker` | Select and replace a Capillary UI theme link | value props, `options`, `label`/`ariaLabel`, `disabled`, `targetDocument`, `onChange` |
+| `ThemePicker` | Select and await a Capillary UI theme link | value props, `options`, `label`/`ariaLabel`, live `disabled`/`readOnly`/`busy`/`error`, `targetDocument`, `onChange` |
 | `ColorPicker` | Select and replace a Capillary UI color link | same contract as `ThemePicker` |
+
+Use `Button icon="add" ariaLabel="Add item" appearance="subtle"` for a compact
+contextual action. Icon-only buttons require `ariaLabel`, which also supplies the
+default tooltip; icons remain decorative and visible while busy. Supported
+`IconName` values are `add`, `remove`, `close`, `delete`, `grip`, `pan`, `zoom-in`,
+`zoom-out`, `fit`, `reset`, `refresh`, `undo`, `redo`, `pin`, `connect`, `download`,
+`play`, `pause`, `first`, `previous`, `next`, `last`.
+
+Popover positions beside its connected anchor, flips/clamps inside the viewport
+and scrolls oversized content. Escape restores focus; outside dismissal preserves
+the outside control's focus. It is not modal and requires the native Popover API.
+The opener owns its name and `aria-expanded`/`aria-controls` relationship;
+Button supplies native `ariaExpanded`, `ariaControls` and `ariaHasPopup` props. Keep
+the panel inside the application's theme boundary even though it paints in the
+top layer. Use Dialog for modal confirmation.
+
+Theme/color selection updates synchronously, but its working texture persists
+until native stylesheet load or failure. Failure offers a compact retry; localize
+`stylesheetLoadError` and `stylesheetRetryLabel` as needed. A changed URL replaces
+the managed link element so stale resource events cannot settle newer work.
 
 The pickers use `capillaryUiThemeOptions` and `capillaryUiColorOptions` by default. An
 application still owns whether runtime selection is offered, which options are

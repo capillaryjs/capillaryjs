@@ -61,14 +61,17 @@ export class CollapsibleOptionGroup<
                 <legend>
                     <button
                         type="button"
-                        className="cap-collapse-toggle"
+                        className="cap-collapse-toggle cap-working"
+                        aria-label={ariaLabel ?? (label == null ? 'Toggle options' : null)}
+                        aria-labelledby={ariaLabel == null && label != null ? `${this.groupId}-label` : null}
+                        aria-busy={busy ? 'true' : null}
                         aria-expanded={!this.collapsed}
                         aria-controls={this.contentId}
                         onClick={() => this.toggle()}
                     >
                         {this.collapsed ? '▸' : '▾'}
                     </button>
-                    {label != null ? <span>{label}</span> : null}
+                    {label != null ? <span id={`${this.groupId}-label`}>{label}</span> : null}
                     {headerEnd}
                 </legend>
                 <div id={this.contentId} hidden={this.collapsed}>

@@ -191,6 +191,19 @@ cap-breadcrumb {
             font-weight: var(--breadcrumb-current-font-weight, 600);
         }
 
+@keyframes cap-working-progress {
+            from { background-position: 0 0, 0 0; }
+            to { background-position: 2rem 0, 0 0; }
+        }
+        .cap-working[aria-busy="true"]:not([aria-invalid="true"]) {
+            background-image: var(--working-background-image);
+            background-size: 2rem 2rem;
+            animation: cap-working-progress .55s linear infinite;
+        }
+        @media (prefers-reduced-motion: reduce) {
+            .cap-working[aria-busy="true"] { animation: none; }
+        }
+
 cap-button,
 cap-checkbox,
 cap-dropdown,
@@ -218,6 +231,7 @@ cap-button > button {
             display: inline-flex;
             align-items: center;
             justify-content: center;
+            gap: .35em;
             min-height: var(--control-min-height, 2em);
             margin: 0;
             padding: var(--ui-control-padding);
@@ -278,6 +292,22 @@ cap-button > button {
         cap-button > button[aria-invalid="true"] {
             border-color: var(--error-control-border);
             box-shadow: var(--error-control-shadow);
+        }
+
+        cap-button.cap-subtle > button {
+            min-height: 1.75em;
+            padding: .2em .3em;
+            background: transparent;
+            border-color: transparent;
+            box-shadow: none;
+        }
+        cap-button.cap-subtle > button:hover:not(:disabled, [aria-disabled="true"]) {
+            background: var(--button-background-hover);
+        }
+        cap-button.cap-subtle > button:focus-visible { box-shadow: var(--focus-ring); }
+        cap-button.cap-subtle > button[aria-busy="true"]:not([aria-invalid="true"]) {
+            background: var(--working-background-image), transparent;
+            background-size: 2rem 2rem, 100% 100%;
         }
 
         @media (prefers-reduced-motion: reduce) {
@@ -377,10 +407,17 @@ cap-error {
             }
         }
 
-@keyframes cap-working-progress {
-            from { background-position: 0 0, 0 0; }
-            to { background-position: 2rem 0, 0 0; }
+cap-icon {
+            display: inline-block;
+            flex: 0 0 auto;
+            inline-size: 1.15em;
+            block-size: 1.15em;
+            vertical-align: -.15em;
+            background: currentColor;
+            mask: var(--_cap-icon-mask) center / contain no-repeat;
+            pointer-events: none;
         }
+        @media (forced-colors: active) { cap-icon { background: ButtonText; } }
 
 cap-checkbox,
 cap-quadcheckbox,
@@ -864,6 +901,21 @@ cap-dropdown:has(> cap-selectshell > select:required:invalid:not(:disabled):not(
             }
         }
 
+cap-dropdown.cap-theme-picker > cap-selectshell > cap-button,
+        cap-dropdown.cap-colors-picker > cap-selectshell > cap-button {
+            flex: 0 0 2em;
+            inline-size: 2em;
+            min-height: 0;
+            padding-block: 0;
+            align-self: stretch;
+        }
+        cap-dropdown.cap-theme-picker > cap-selectshell > cap-button > button,
+        cap-dropdown.cap-colors-picker > cap-selectshell > cap-button > button { inline-size: 100%; }
+        cap-dropdown.cap-theme-picker > cap-selectshell:has(> cap-button) > select,
+        cap-dropdown.cap-colors-picker > cap-selectshell:has(> cap-button) > select { min-inline-size: 0; flex: 1 1 auto; }
+        cap-dropdown.cap-theme-picker > cap-selectshell:has(> cap-button)::before,
+        cap-dropdown.cap-colors-picker > cap-selectshell:has(> cap-button)::before { inset-inline-end: 2em; }
+
 cap-datatable {
             display: block;
             position: relative;
@@ -1034,7 +1086,14 @@ cap-datatable > table > thead {
             border-right: none;
         }
 
-cap-datatable > table > thead > tr > th[aria-sort] {
+cap-datatable th cap-popover cap-filterpanel {
+            position: static;
+            border: 0;
+            box-shadow: none;
+            padding: 0;
+            min-width: min(var(--filter-panel-min-width), 100%);
+        }
+        cap-datatable > table > thead > tr > th[aria-sort] {
             position: sticky;
             inset-block-start: 0;
             padding-right: 24px;
@@ -1133,6 +1192,17 @@ cap-datatable > table > thead > tr > th[aria-sort] {
             opacity: 1;
         }
 
+        cap-datatable > table > thead > tr > th[aria-sort] > button[aria-busy="true"] {
+            background-image: var(--working-background-image);
+            background-size: 2rem 2rem;
+            animation: cap-working-progress .55s linear infinite;
+            opacity: 1;
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            cap-datatable > table > thead > tr > th[aria-sort] > button[aria-busy="true"] { animation: none; }
+        }
+
 cap-filterpanel {
             position: absolute;
             color: var(--filter-panel-color);
@@ -1176,6 +1246,26 @@ cap-filterpanel {
                 animation: none !important;
             }
         }
+
+cap-popover { display: contents; }
+        cap-popover > [popover] {
+            position: fixed;
+            inset: auto;
+            margin: 0;
+            inline-size: max-content;
+            max-inline-size: min(28rem, calc(100vw - 1rem));
+            box-sizing: border-box;
+            overflow: auto;
+            padding: var(--panel-padding, .75rem);
+            color: var(--panel-color, inherit);
+            background: var(--panel-background, Canvas);
+            border: var(--panel-border, 1px solid CanvasText);
+            border-radius: var(--panel-radius, .4rem);
+            box-shadow: var(--dialog-shadow);
+            font: inherit;
+        }
+        cap-popover > [popover]::backdrop { background: transparent; }
+        @media (forced-colors: active) { cap-popover > [popover] { border: 1px solid CanvasText; } }
 
 cap-datepicker,
 cap-datetimepicker,

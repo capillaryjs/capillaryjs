@@ -16,7 +16,7 @@ export class TraceSelection {
         this.state.set({rootId, eventId: rootId, nodeId: null, sourceId: null, targetId: null})
     }
     selectEvent(eventId: string, nodeId: string): void { this.patch({eventId, nodeId}) }
-    selectNode(nodeId: string): void { this.patch({nodeId, eventId: null}) }
+    selectNode(nodeId: string | null): void { this.patch({nodeId, eventId: null}) }
     filter(sourceId: string | null, targetId: string | null): void {
         this.patch({sourceId, targetId, nodeId: targetId ?? sourceId, eventId: null})
     }

@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+### Changed
+
+- Present trace content as selectable lists, tree, table and canvas options,
+  not action buttons. Use named icon buttons for capture and playback while
+  preserving selection, keyboard navigation and diagnostic self-exclusion.
+
 ## 1.3.0 - 2026-09-29
 
 ### Added

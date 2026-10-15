@@ -222,14 +222,16 @@ export class ProjectsView extends Component {
                 <Sidebar island allocation="flexible" header="Project Explorer">
                     <SidebarToolbar>
                         <Toolbar label="Explorer search">
-                            <Textbox
+                            <Button icon="refresh" ariaLabel="Refresh results" appearance="subtle" busy={view.fetchState === "loading"} onClick={() => void this.query.refresh()}/>
+                            <Textbox busy={view.fetchState === "loading"}
                                 label="Search"
                                 placeholder="Filter tree…"
                                 valueEmitter={this.state.field("search") as any}
                             />
                         </Toolbar>
                     </SidebarToolbar>
-                    <TreeView
+                    {view.fetchState === "error" ? <p role="alert">{String(view.error ?? "The results could not be refreshed.")}</p> : null}
+                    <TreeView busy={view.fetchState === "loading"}
                         label="Project structure"
                         nodes={treeNodes}
                         selectedKeyEmitter={this.nodeSelection}
@@ -254,7 +256,7 @@ export class ProjectsView extends Component {
                             </Layout>
                         </Panel>
                         <Panel island allocation="flexible" header="Phases">
-                            <DataTable
+                            <DataTable busy={view.fetchState === "loading"}
                                 caption="Phases"
                                 columns={phaseColumns}
                                 data={rows}

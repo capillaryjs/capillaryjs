@@ -73,12 +73,9 @@ export class LineInputsPage extends Component<GalleryPageProps> {
         return <Layout horizontal allocation="flexible" className="gallery-page">
             <Sidebar island header="Sections" className="gallery-sidebar">
                 <nav class="gallery-section-nav" aria-label="Line input sections">
-                    <Button label="Checkboxes"
-                        onClick={() => scrollToSection('gallery-checkboxes')} />
-                    <Button label="Basic inputs"
-                        onClick={() => scrollToSection('gallery-basic-inputs')} />
-                    <Button label="Date and time"
-                        onClick={() => scrollToSection('gallery-date-time')} />
+                    <a href="#gallery-checkboxes" onClick={event => { event.preventDefault(); scrollToSection('gallery-checkboxes') }}>Checkboxes</a>
+                    <a href="#gallery-basic-inputs" onClick={event => { event.preventDefault(); scrollToSection('gallery-basic-inputs') }}>Basic inputs</a>
+                    <a href="#gallery-date-time" onClick={event => { event.preventDefault(); scrollToSection('gallery-date-time') }}>Date and time</a>
                 </nav>
                 <Layout vertical context="control" className="gallery-control-demo gallery-filter-demo">
                     <GroupBox header="Filters">

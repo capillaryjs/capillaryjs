@@ -1,5 +1,6 @@
 import {Component, css} from '../../component.js'
-import type {ComponentProps, CapillaryUiChild, Key} from '../../component.js'
+import type {ComponentProps, CapillaryUiChild, Key, LivePropContract} from '../../component.js'
+import {StatusPresentation} from '../../status/statusPresentation.js'
 import {
     componentClass,
     createValueEmitter,
@@ -11,9 +12,12 @@ export interface TabLineTab {
     id: Key
     label?: CapillaryUiChild
     disabled?: boolean
+    busy?: boolean
 }
 
-export interface TabLineProps extends ValueControlProps<Key | null> {
+export interface TabLineProps extends ValueControlProps<Key | null>, LivePropContract<'busy'> {
+    /** Pending work for the selected tab, owned by the caller. */
+    busy?: boolean
     tabs?: readonly TabLineTab[]
     activeTabEmitter?: ValueEmitter<Key | null>
     initialActiveTabId?: Key | null
@@ -25,7 +29,8 @@ export interface TabLineProps extends ValueControlProps<Key | null> {
 }
 
 export class TabLine extends Component<TabLineProps> {
-    static override liveProps: readonly string[] = []
+    static override liveProps = ['busy'] as const
+    static override dependencies = [StatusPresentation]
     readonly valueEmitter: ValueEmitter<Key | null>
     readonly activeTabEmitter: ValueEmitter<Key | null>
 
@@ -83,6 +88,8 @@ export class TabLine extends Component<TabLineProps> {
                 id={tabButtonId(baseId, tab.id)}
                 type="button"
                 role="tab"
+                className="cap-working"
+                aria-busy={tab.busy || (this.props.busy && Object.is(activeTabId, tab.id)) ? 'true' : null}
                 disabled={Boolean(tab.disabled)}
                 aria-selected={Object.is(activeTabId, tab.id) ? 'true' : 'false'}
                 aria-controls={tabPanelId(baseId, tab.id)}

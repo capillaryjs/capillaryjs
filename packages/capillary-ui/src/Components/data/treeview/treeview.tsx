@@ -3,7 +3,7 @@ import type {ReadableEmitter} from '@capillaryjs/capillary'
 
 import {Placeholder} from '../../Placeholder.js'
 import {Component, css, isVNode} from '../../component.js'
-import type {ComponentProps, CapillaryUiChild, Key} from '../../component.js'
+import type {ComponentProps, CapillaryUiChild, Key, LivePropContract} from '../../component.js'
 import {componentClass, invoke} from '../../controlUtils.js'
 import type {ValueEmitter} from '../../controlUtils.js'
 import {ErrorMessage} from '../../status/statusPresentation.js'
@@ -17,7 +17,9 @@ import {TreeItem} from './treeitem.js'
 import type {TreeItemProps, TreeNode} from './treeitem.js'
 import {assertTreeNodes} from './treeModel.js'
 
-interface TreeViewCommonProps<TValue = unknown> extends ComponentProps, CommandInteractionOptions {
+interface TreeViewCommonProps<TValue = unknown> extends ComponentProps, CommandInteractionOptions, LivePropContract<'busy'> {
+    /** Pending expansion/selection work owned by the application. Does not disable the tree. */
+    busy?: boolean
     nodes?: readonly TreeNode<TValue>[] | ReadableEmitter<readonly TreeNode<TValue>[] | undefined, unknown>
     label: string
     placeholderCount?: number
@@ -50,7 +52,7 @@ interface VisibleNode<TValue> {
 
 /** Single-select ARIA tree with controlled expansion and selection. */
 export class TreeView<TValue = unknown> extends Component<TreeViewProps<TValue>> {
-    static override liveProps: readonly string[] = []
+    static override liveProps = ['busy'] as const
     readonly nodesEmitter: ReadableEmitter<readonly TreeNode<TValue>[] | undefined, unknown>
     readonly selectedKeyEmitter: ValueEmitter<Key | null>
     readonly expandedKeysEmitter: ValueEmitter<Key[]>
@@ -104,6 +106,7 @@ export class TreeView<TValue = unknown> extends Component<TreeViewProps<TValue>>
                     'TreeView cannot replace static or declarative nodes with an emitter',
                 )
             }
+            this.replaceProps(nextProps)
             this.ownedNodesEmitter.set(
                 nextProps.nodes ?? extractDeclarativeNodes<TValue>(nextProps.children),
                 'tree structure changed',
@@ -129,7 +132,8 @@ export class TreeView<TValue = unknown> extends Component<TreeViewProps<TValue>>
         const isLoading = fetchState === FetchState.Initial || fetchState === FetchState.Loading
         const replacesContent = fetchState === FetchState.Initial
             || (fetchState === FetchState.Loading && result === undefined)
-        const retainedLoading = fetchState === FetchState.Loading && result !== undefined
+        const retainedLoading = (fetchState === FetchState.Loading || this.props.busy === true) && result !== undefined
+        const isBusy = isLoading || commandRunning || this.props.busy === true
         const expanded = new Set(this.expandedKeysEmitter.get())
         const visible = flattenVisible(nodes, expanded)
         const selected = this.selectedKeyEmitter.get()
@@ -141,7 +145,7 @@ export class TreeView<TValue = unknown> extends Component<TreeViewProps<TValue>>
 
         const Host = this.Host
         return <Host className={componentClass(this.props) || null}
-            aria-busy={isLoading || commandRunning ? 'true' : null}
+            aria-busy={isBusy ? 'true' : null}
             data-cap-retained-loading={retainedLoading ? '' : null}>
             {fetchState === FetchState.Error
                 ? <ErrorMessage
@@ -176,7 +180,7 @@ export class TreeView<TValue = unknown> extends Component<TreeViewProps<TValue>>
                 ? <ul
                     role="tree"
                     aria-label={this.props.label}
-                    aria-busy={isLoading || commandRunning ? 'true' : null}
+                    aria-busy={isBusy ? 'true' : null}
                 >
                     {visible.map((item, index) => {
                         const {node, depth, position, setSize} = item

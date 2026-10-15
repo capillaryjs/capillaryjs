@@ -59,7 +59,7 @@ export class LocalizationDemoApp extends Component<LocalizationDemoAppProps> {
             ],
         ] as const
 
-        return <CapillaryUiApp sizing="viewport-width" className="localization-demo-app">
+        return <CapillaryUiApp landmark="none" sizing="viewport-width" className="localization-demo-app">
             <header className="localization-demo-hero">
                 <div>
                     <p className="localization-demo-eyebrow">{copy.eyebrow}</p>

@@ -3,7 +3,7 @@ import {
     Component, Panel, PanelToolbar, InfoPanel, InfoField,
     Button, Dialog, DialogActions, Textbox, Dropdown, DateTimePicker, Label, ListView,
     Sidebar, SidebarToolbar, SplitPrimary, SplitSecondary, SplitView,
-    RouteLink, RouteValue, Placeholder, Toolbar, live, routeTarget,
+    RouteLink, RouteValue, Placeholder, Toolbar, routeTarget,
     combineLocalDateTime, splitLocalDateTime,
 } from "@capillaryjs/capillary-ui";
 import {Emitter, DerivedEmitter} from "@capillaryjs/capillary";
@@ -76,7 +76,7 @@ export class IssueReportView extends Component {
     render(): CapillaryUiChild {
         const b = this.snapshot(bootstrap);
         const view = this.snapshot(this.query);
-        const busy = this.read(mutate.isRunning);
+        const busy = this.read(mutate.isRunning) || (this.read(this.dialogOpen) && view.fetchState === "loading");
         const mode = this.read(this.dialogMode);
         const error = this.read(this.dialogError);
 
@@ -112,6 +112,8 @@ export class IssueReportView extends Component {
                 <Panel island allocation="flexible" header={detail ? detail.title : "Issue Report"}>
                 <PanelToolbar>
                     <Toolbar label="Issue actions">
+                        <Button icon="refresh" ariaLabel="Refresh issue report" appearance="subtle"
+                            busy={view.fetchState === "loading"} onClick={() => void this.query.refresh()}/>
                         <Button
                             label="Edit"
                             disabled={!detail || busy}
@@ -125,6 +127,7 @@ export class IssueReportView extends Component {
                         <RouteLink to={routeTarget(routes["issue-analysis"])}>Back to analysis</RouteLink>
                     </Toolbar>
                 </PanelToolbar>
+                {view.fetchState === "error" && v ? <p role="alert">{String(view.error ?? "The issue report could not be refreshed.")}</p> : null}
                 {!b.value || (view.fetchState === "loading" && !v) ? <Placeholder/>
                     : view.fetchState === "error" && !v ? <>
                         <Placeholder/>
@@ -188,7 +191,7 @@ export class IssueReportView extends Component {
                         <Button label="Cancel" disabled={busy} onClick={() => this.dialogOpen.set(false)}/>
                         <Button
                             label={mode === "resolve" ? "Resolve issue" : "Save"}
-                            busy={live(mutate.isRunning)}
+                            busy={busy}
                             disabled={busy}
                             onClick={() => void this.save()}
                         />
@@ -231,6 +234,8 @@ export class IssueReportView extends Component {
                 dueDate: splitLocalDateTime(this.draft.due.get())?.date ?? undefined,
             });
         if (result) {
+            // Join the refresh already started by revision propagation before closing.
+            await this.query.activate();
             this.dialogOpen.set(false);
             this.dialogError.set("");
         } else {

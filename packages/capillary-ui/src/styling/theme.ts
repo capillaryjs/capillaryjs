@@ -286,6 +286,15 @@ export function replaceCapillaryUiStylesheet(
 
     const selector = `link[data-cap-stylesheet="${kind}"]`
     let link = targetDocument.head.querySelector<HTMLLinkElement>(selector)
+    // A resource gets a fresh element when its URL changes. Late load/error
+    // events on an obsolete element cannot settle observers of the new URL.
+    if (link != null && link.getAttribute('href') !== selection.href) {
+        const replacement = targetDocument.createElement('link')
+        replacement.rel = 'stylesheet'
+        replacement.dataset.capStylesheet = kind
+        link.replaceWith(replacement)
+        link = replacement
+    }
     if (link == null) {
         link = targetDocument.createElement('link')
         link.rel = 'stylesheet'

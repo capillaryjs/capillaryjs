@@ -1,5 +1,8 @@
 import {Component, css} from '../../component.js'
-import type {ComponentProps, CapillaryUiChild} from '../../component.js'
+import {Emitter, FetchState} from '@capillaryjs/capillary'
+import {Popover} from '../../dialog/popover.js'
+import {controlId} from '../../controlUtils.js'
+import type {ComponentProps, CapillaryUiChild, LivePropContract} from '../../component.js'
 import type {ValueEmitter} from '../../controlUtils.js'
 import type {CheckboxSymbol} from '../../lineinputs/checkbox/Checkbox.js'
 import type {FilterModeValue} from '../../../util/filterMode.js'
@@ -32,7 +35,8 @@ export interface TableColumn<TRow extends TableRow = TableRow> extends TableColu
     render?: (row: TRow, index: number) => CapillaryUiChild
 }
 
-export interface TableHeaderCellProps extends ComponentProps, TableColumnBase {
+export interface TableHeaderCellProps extends ComponentProps, TableColumnBase, LivePropContract<'busy'> {
+    busy?: boolean
     sortEmitter: ValueEmitter<TableSort | null>
     filtersEmitter: ValueEmitter<TableFilters>
     filterModes?: readonly CheckboxSymbol<FilterModeValue>[]
@@ -42,16 +46,17 @@ export interface TableHeaderCellProps extends ComponentProps, TableColumnBase {
 
 export class TableHeaderCell extends Component<TableHeaderCellProps> {
     static override diagnosticLabel = 'Table header cell'
-    static override liveProps: readonly string[] = []
-    private filterVisible = false
-    private removeGlobalClickListener: (() => void) | null = null
+    static override liveProps = ['busy'] as const
+    private readonly filterOpen = new Emitter(false, {owner: this, purpose: 'table filter open'})
+    private readonly panelId = controlId('table-filter')
+    private trigger: HTMLElement | null = null
 
     override get diagnosticLabel(): string {
         return `Table header cell: ${this.props.ariaLabel ?? textAlternative(this.props.label) ?? String(this.props.field)}`
     }
 
     initialize(): void {
-        this.watch(this.props.sortEmitter, this.props.filtersEmitter)
+        this.watch(this.props.sortEmitter, this.props.filtersEmitter, this.filterOpen)
     }
 
     toggleSort(): void {
@@ -68,9 +73,7 @@ export class TableHeaderCell extends Component<TableHeaderCellProps> {
 
     toggleFilterPanel(event: MouseEvent): void {
         event.stopPropagation()
-        this.filterVisible = !this.filterVisible
-        this.setGlobalClickListener(this.filterVisible)
-        this.update()
+        this.filterOpen.set(!this.filterOpen.get(), 'table filter toggled')
     }
 
     updateFilters(next: FilterSelection, event: Event | null): void {
@@ -93,14 +96,20 @@ export class TableHeaderCell extends Component<TableHeaderCellProps> {
         const label = this.props.label ?? String(this.props.field)
         const textLabel = this.props.ariaLabel ?? textAlternative(label) ?? String(this.props.field)
         const filterLabel = this.capillaryUiMessage('tableFilterColumnLabel')(textLabel)
+        const optionSource = this.props.filterOptions
+        const optionState = this.filterOpen.get() && optionSource != null && 'subscribe' in optionSource
+            ? this.snapshot(optionSource).fetchState : FetchState.Ready
+        const filterBusy = this.props.busy || optionState === FetchState.Initial || optionState === FetchState.Loading
 
         let panel: CapillaryUiChild = null
-        if (this.filterVisible && this.props.filterOptions != null) {
-            panel = <FilterPanel
+        if (this.filterOpen.get() && this.props.filterOptions != null) {
+            panel = <Popover key="filter-popover" id={this.panelId} label={filterLabel}
+                anchor={this.trigger} valueEmitter={this.filterOpen}><FilterPanel
                 key="filter-panel"
                 label={filterLabel}
                 options={this.props.filterOptions}
                 filters={filters}
+                busy={this.props.busy ?? false}
                 onChange={(next, event) => this.updateFilters(next, event)}
                 {...(this.props.filterModes == null
                     ? {}
@@ -108,7 +117,7 @@ export class TableHeaderCell extends Component<TableHeaderCellProps> {
                 {...(this.props.defaultSemanticState == null
                     ? {}
                     : {defaultSemanticState: this.props.defaultSemanticState})}
-            />
+            /></Popover>
         }
 
         return <th
@@ -116,12 +125,13 @@ export class TableHeaderCell extends Component<TableHeaderCellProps> {
             aria-sort={direction === 'asc'
                 ? 'ascending'
                 : direction === 'desc' ? 'descending' : 'none'}
-            style={{zIndex: this.filterVisible ? 1200 : null}}
+            style={{zIndex: this.filterOpen.get() ? 1200 : null}}
         >
             {this.props.sortable
                 ? <button
                     type="button"
                     class="sort"
+                    aria-busy={this.props.busy ? 'true' : null}
                     aria-label={this.capillaryUiMessage('tableSortColumnLabel')(textLabel)}
                     onClick={() => this.toggleSort()}
                 >
@@ -136,51 +146,30 @@ export class TableHeaderCell extends Component<TableHeaderCellProps> {
                 : <button
                     type="button"
                     class="filter"
+                    aria-busy={filterBusy ? 'true' : null}
                     aria-label={filterLabel}
-                    aria-expanded={String(this.filterVisible)}
+                    aria-expanded={String(this.filterOpen.get())}
+                    aria-haspopup="dialog"
+                    aria-controls={this.filterOpen.get() ? this.panelId : null}
+                    ref={(element: HTMLButtonElement | null) => this.trigger = element}
                     onClick={(event: MouseEvent) => this.toggleFilterPanel(event)}
                 />}
             {panel}
         </th>
     }
 
-    private readonly onGlobalClick = (event: MouseEvent): void => {
-        if (this.filterVisible
-            && this.dom instanceof Node
-            && event.target instanceof Node
-            && !this.dom.contains(event.target)) {
-            this.filterVisible = false
-            this.setGlobalClickListener(false)
-            this.update()
-        }
-    }
+    onDestroy(): void { this.filterOpen.dispose() }
 
-    /**
-     * The outside-click listener exists only while the panel is open. A
-     * permanent document listener would fire — and be traced as an
-     * interaction — on every click in the document, even though it only
-     * acts when the panel is open. listenWhile keeps it on the same traced
-     * native-event path as listen(), so a real outside-click coalesces with
-     * any other listener observing that click instead of opening a
-     * separate root.
-     */
-    private setGlobalClickListener(active: boolean): void {
-        if (active === (this.removeGlobalClickListener != null)) return
-        if (!active) {
-            this.removeGlobalClickListener!()
-            return
-        }
-        const detach = this.listenWhile<MouseEvent>(document, 'click',
-            (event) => this.onGlobalClick(event))
-        this.removeGlobalClickListener = () => {
-            detach()
-            this.removeGlobalClickListener = null
-        }
-    }
-
-    static dependencies = [FilterPanel]
+    static dependencies = [FilterPanel, Popover]
 
     static override css = css`
+        cap-datatable th cap-popover cap-filterpanel {
+            position: static;
+            border: 0;
+            box-shadow: none;
+            padding: 0;
+            min-width: min(var(--filter-panel-min-width), 100%);
+        }
         cap-datatable > table > thead > tr > th[aria-sort] {
             position: sticky;
             inset-block-start: 0;
@@ -278,6 +267,17 @@ export class TableHeaderCell extends Component<TableHeaderCellProps> {
 
         cap-datatable > table > thead > tr > th[aria-sort] > button.filter:hover {
             opacity: 1;
+        }
+
+        cap-datatable > table > thead > tr > th[aria-sort] > button[aria-busy="true"] {
+            background-image: var(--working-background-image);
+            background-size: 2rem 2rem;
+            animation: cap-working-progress .55s linear infinite;
+            opacity: 1;
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            cap-datatable > table > thead > tr > th[aria-sort] > button[aria-busy="true"] { animation: none; }
         }
     `
 }

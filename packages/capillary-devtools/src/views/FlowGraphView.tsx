@@ -1,9 +1,15 @@
-import {h} from '@capillaryjs/capillary-ui'
+import {h, ListView} from '@capillaryjs/capillary-ui'
 import {eventValueText, flowLayout, nodeActivity, nodeValueEvent, projectFlow} from '../model/projection.js'
 import {TraceView} from './shared.js'
 
 export class FlowGraphView extends TraceView {
     static override hostName = 'traceflow'
+    static override dependencies = [ListView]
+    private leafIds: string[] = []
+    private readonly selectedLeaf = this.selectionValue<string | null>(() => {
+        const id = this.props.selection.state.get().nodeId
+        return id != null && this.leafIds.includes(id) ? id : null
+    }, id => this.props.selection.selectNode(id))
     static override css = `
         & .trace-flow-surface { position: relative; min-width: 0; min-height: 0; }
         & .trace-flow-surface > .trace-scroll { height: 100%; min-height: 0; }
@@ -21,6 +27,7 @@ export class FlowGraphView extends TraceView {
         & .trace-node[data-observed="true"][data-reached="false"] { border-inline-start-color: var(--cap-trace-line, #cad4de); }
         & .trace-node[aria-current="step"] { box-shadow: 0 0 0 3px var(--_node-accent); }
         & .trace-node strong { display: block; overflow-wrap: anywhere; line-height: 1.35; }
+        & .trace-node { background: var(--cap-trace-surface, var(--panel-background, #fff)); color: inherit; border: 1px solid var(--cap-trace-line, #cad4de); border-inline-start: 4px solid var(--_node-accent); font: inherit; text-align: start; cursor: pointer; }
         & .trace-node small, & .trace-node span { line-height: 1.35; }
         & .trace-node span { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         & .trace-edge { position: absolute; height: 0; border-top: 2px solid var(--cap-trace-accent, #005bb8); color: var(--cap-trace-accent, #005bb8); transform-origin: left center; }
@@ -36,11 +43,14 @@ export class FlowGraphView extends TraceView {
         & .trace-legend-edge { position: relative; flex: 0 0 2.75rem; height: 0; border-top: 2px solid var(--cap-trace-accent, #005bb8); color: var(--cap-trace-accent, #005bb8); }
         & .trace-legend-edge[data-observed="false"] { border-top-style: dashed; border-top-color: var(--cap-trace-muted, #526477); color: var(--cap-trace-muted, #526477); }
         & .trace-legend-edge[data-observed="true"][data-reached="false"] { border-top-color: var(--cap-trace-line, #cad4de); color: var(--cap-trace-line, #cad4de); }
-        & .trace-leaves { display: flex; flex-wrap: wrap; gap: .5rem; list-style: none; padding: 0; }
+        & .trace-leaves > [role="listbox"] { display: flex; flex-wrap: wrap; gap: .5rem; list-style: none; padding: 0; }
     `
     override render() {
         const events = this.events
         const flow = projectFlow(this.recording, events, {includeConnected: !this.props.selection.state.get().targetId})
+        this.leafIds = flow.nodes.filter(node => node.leaf).map(({node}) => node.id)
+        const selectedId = this.props.selection.state.get().nodeId
+        const tabbable = flow.nodes.find(({node}) => node.id === selectedId)?.node.id ?? flow.nodes[0]?.node.id
         const positions = new Map(flow.nodes.map((node) => [node.node.id, node]))
         const reached = new Set(events.slice(0, this.cursor + 1).map((event) => event.id))
         const byId = new Map(events.map((event) => [event.id, event]))
@@ -51,22 +61,22 @@ export class FlowGraphView extends TraceView {
             h('div', {className: 'trace-flow-surface'},
                 h('details', {className: 'trace-flow-help', open: true}, h('summary', null, 'Legend'),
                     h('ul', {className: 'trace-flow-legend'},
-                        h('li', null, h('span', {className: 'trace-legend-edge', 'aria-hidden': true,
+                        h('li', null, h('span', {className: 'trace-legend-edge', 'aria-hidden': 'true',
                             'data-observed': 'true', 'data-reached': 'true'}), 'Recorded propagation'),
-                        h('li', null, h('span', {className: 'trace-legend-edge', 'aria-hidden': true,
+                        h('li', null, h('span', {className: 'trace-legend-edge', 'aria-hidden': 'true',
                             'data-observed': 'false', 'data-reached': 'false'}), 'Known connection with no observed hop in this trace'),
-                        h('li', null, h('span', {className: 'trace-legend-edge', 'aria-hidden': true,
+                        h('li', null, h('span', {className: 'trace-legend-edge', 'aria-hidden': 'true',
                             'data-observed': 'true', 'data-reached': 'false'}), 'Recorded path not yet reached at this step')),
                     h('p', null, 'Node shape and accent color reflect node kind.'),
                     h('p', null, 'Renders count executions, not visible changes. Own DOM writes exclude nested consumers; UI consumers can also have downstream children.')),
                 !events.length ? h('p', {className: 'trace-empty'}, 'Select a recorded root to follow its flow.')
                     : h('div', {className: 'trace-scroll', tabIndex: 0, 'aria-label': 'Scrollable flow graph'},
-                        h('div', {className: 'trace-canvas', style: {width: `${flow.width}px`, height: `${flow.height}px`}},
+                        h('div', {className: 'trace-canvas', role: 'listbox', 'aria-label': 'Flow nodes', style: {width: `${flow.width}px`, height: `${flow.height}px`}},
                             ...flow.edges.map((edge) => {
                                 const from = positions.get(edge.from)!, to = positions.get(edge.to)!
                                 const x = from.x + flowLayout.nodeWidth, y = from.y + flowLayout.edgeY
                                 const dx = to.x - x, dy = to.y + flowLayout.edgeY - y
-                                return h('div', {key: `${edge.from}:${edge.to}`, className: 'trace-edge', 'aria-hidden': true,
+                                return h('div', {key: `${edge.from}:${edge.to}`, className: 'trace-edge', 'aria-hidden': 'true',
                                     'data-observed': String(edge.observed), 'data-reached': String(reachedEdges.has(`${edge.from}:${edge.to}`)),
                                     style: {left: `${x}px`, top: `${y}px`,
                                         width: `${Math.hypot(dx, dy)}px`, transform: `rotate(${Math.atan2(dy, dx)}rad)`}})
@@ -75,20 +85,21 @@ export class FlowGraphView extends TraceView {
                                 const current = nodeValueEvent(occurrences.filter((event) => reached.has(event.id)))
                                 const kind = node.kind === 'component' || node.kind === 'binding' ? 'UI' : node.kind
                                 const kindLabel = node.kind === 'component' || node.kind === 'binding' ? 'UI consumer' : node.kind
-                                return h('button', {key: node.id, type: 'button', className: 'trace-node',
+                                return h('div', {...this.optionProps(selectedId === node.id, tabbable === node.id, () => this.props.selection.selectNode(node.id)), key: node.id, className: 'trace-node',
                                     'data-node-id': node.id, 'data-kind': node.kind, 'data-observed': String(occurrences.length > 0),
                                     'data-reached': String(Boolean(current)),
                                     'aria-current': events[this.cursor]?.nodeId === node.id ? 'step' : undefined,
-                                    'aria-pressed': this.props.selection.state.get().nodeId === node.id,
-                                    style: {left: `${x}px`, top: `${y}px`}, onClick: () => this.props.selection.selectNode(node.id)},
+                                    style: {left: `${x}px`, top: `${y}px`}},
                                     h('strong', null, node.label), h('small', {title: kindLabel}, `${nodeActivity(node, occurrences)} · ${kind}`),
                                     h('span', {title: current ? eventValueText(current) : undefined}, current ? eventValueText(current) : (occurrences.length ? 'Not reached at this step' : 'No recorded event')),
                                     current?.fetchState ? h('small', null, `State: ${current.fetchState}`) : null,
                                     leaf ? h('small', null, leaf) : null)
                             })))),
             flow.nodes.some((node) => node.leaf) ? h('details', null, h('summary', null, 'Downstream leaves'),
-                h('ul', {className: 'trace-leaves'}, ...flow.nodes.filter((node) => node.leaf).map(({node, leaf, events: occurrences}) =>
-                    h('li', {key: node.id}, h('button', {type: 'button', onClick: () => this.props.selection.selectNode(node.id)},
-                        `${node.label} — ${leaf}${occurrences.length ? '' : ' · unobserved'}`))))) : null)
+                h(ListView<string>, {className: 'trace-leaves', label: 'Downstream leaves', items: this.leafIds,
+                    itemKey: id => id, selectedItemEmitter: this.selectedLeaf, renderItem: id => {
+                        const {node, leaf, events: occurrences} = flow.nodes.find(({node}) => node.id === id)!
+                        return `${node.label} — ${leaf}${occurrences.length ? '' : ' · unobserved'}`
+                    }})) : null)
     }
 }

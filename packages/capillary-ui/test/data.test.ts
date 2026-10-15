@@ -32,11 +32,13 @@ import type {
 } from '../src/index.js'
 import {AsyncCommand, Diagnostics, Emitter, FetchState} from '@capillaryjs/capillary'
 import {requiredAt, requiredQuery} from './testUtils.js'
+import {installPopoverStub} from '../../../test-utils/nativePopover.js'
 
 let window: Window
 
 before(() => {
     window = new Window({url: 'https://example.test/'})
+    installPopoverStub(window.HTMLElement.prototype)
     Object.assign(globalThis, {
         window,
         document: window.document,
@@ -782,7 +784,8 @@ describe('stable data components', () => {
         assert.equal(requiredQuery('[role="alert"] cap-erroricon')
             .getAttribute('aria-hidden'), 'true')
         assert.equal(requiredQuery('[role="alert"]').parentElement?.localName, 'cap-datatable')
-        assert.equal(requiredQuery('button').parentElement?.localName, 'cap-datatable')
+        assert.equal(requiredQuery('button').parentElement?.localName, 'cap-button')
+        assert.equal(requiredQuery('button').closest('cap-datatable'), table.dom)
         assert.equal(requiredQuery('tbody').textContent, 'Stale Ada')
         requiredQuery<HTMLButtonElement>('button').click()
         assert.equal(retries, 1)
@@ -993,7 +996,7 @@ describe('filterable columns', () => {
         }
     })
 
-    test('outside-click listener is traced only while open and coalesces with the click', () => {
+    test('outside-click listener is traced only while open and coalesces with the click', async () => {
         const interactions: string[] = []
         const unsubscribe = Diagnostics.subscribe((fact) => {
             if (fact.type === 'event' && fact.event.diagnostic?.kind === 'interaction')
@@ -1012,6 +1015,8 @@ describe('filterable columns', () => {
             assert.equal(interactions.length, 0)
 
             openFilter()
+            await Promise.resolve()
+            assert.equal(requiredQuery('[popover]').matches(':popover-open'), true)
             interactions.length = 0
             // A click on the sort button bubbles to the document listener; both
             // share one traced interaction rather than opening a second root.
@@ -1023,10 +1028,11 @@ describe('filterable columns', () => {
             // Re-open first: the sort-button click above was an outside click
             // for the Department cell and already closed its panel.
             openFilter()
+            await Promise.resolve()
             interactions.length = 0
             document.body.dispatchEvent(new MouseEvent('click', {bubbles: true}))
             assert.equal(interactions.length, 1)
-            assert.match(interactions[0] ?? '', /Table header cell/)
+            assert.match(interactions[0] ?? '', /popover/i)
         } finally {
             table.destroy()
             unsubscribe()

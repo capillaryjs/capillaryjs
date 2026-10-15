@@ -17,8 +17,8 @@ export class AffectedAssetsPanel extends Component<AffectedAssetsPanelProps> {
             header="Affected assets"
         >
             <PanelToolbar><Toolbar label="Affected asset actions">
-                <Button label="Add affected asset" disabled />
-                <Button label="Remove affected asset" disabled />
+                <Button icon="add" ariaLabel="Add affected asset" disabled />
+                <Button icon="remove" ariaLabel="Remove affected asset" disabled />
             </Toolbar></PanelToolbar>
             <p class="supporting-copy">
                 Asset hierarchy is pending; this list preserves the current source data.

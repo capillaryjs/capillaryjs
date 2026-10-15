@@ -232,7 +232,7 @@ for (const variant of ['App shell', 'Website']) {
         expect(margins[0]).toBeCloseTo(12, 1)
         expect(margins[1]).toBeCloseTo(12, 1)
         await page.setViewportSize({width: 900, height: 700})
-        await page.getByRole('button', {name: 'Date and time', exact: true}).click()
+        await page.getByRole('link', {name: 'Date and time', exact: true}).click()
         await expect(page.locator('#gallery-date-time').getByText('DatePicker', {exact: true}))
             .toBeInViewport()
     })

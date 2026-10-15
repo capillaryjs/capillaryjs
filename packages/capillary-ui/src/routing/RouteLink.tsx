@@ -1,10 +1,15 @@
 import {Component, h} from '../Components/component.js'
-import type {ComponentProps, CapillaryUiChild} from '../Components/component.js'
+import type {ComponentProps, CapillaryUiChild, LivePropContract} from '../Components/component.js'
 import {isRouteDescriptor} from './route.js'
 import type {RouteDescriptor, RouteTarget} from './route.js'
 import type {ResolvedRoute} from './router.js'
+import type {NavigationTransition} from './router.js'
+import {classNames, componentClass} from '../Components/controlUtils.js'
+import {StatusPresentation} from '../Components/status/statusPresentation.js'
 
-export interface RouteLinkProps extends ComponentProps {
+export interface RouteLinkProps extends ComponentProps, LivePropContract<'busy'> {
+    /** Additional pending work associated with this navigation, owned by the caller. */
+    busy?: boolean
     to: RouteDescriptor | RouteTarget | ResolvedRoute
     exact?: boolean
     target?: string
@@ -14,7 +19,10 @@ export interface RouteLinkProps extends ComponentProps {
 
 /** A native anchor that delegates unmodified same-context activation to the router. */
 export class RouteLink extends Component<RouteLinkProps> {
-    static override liveProps: readonly string[] = []
+    static override liveProps = ['busy'] as const
+    static override dependencies = [StatusPresentation]
+    private pendingTransition: NavigationTransition | null = null
+    private pendingHref: string | null = null
     initialize(): void {
         const router = this._runtime.router
         if (router == null) throw new Error('RouteLink requires a router in CapillaryUiRuntime')
@@ -32,17 +40,28 @@ export class RouteLink extends Component<RouteLinkProps> {
             exact = false,
             children = [],
             onClick,
+            busy = false,
+            className: _className,
+            class: _class,
             ...anchorProps
         } = this.props
+        const href = router.href(target)
+        const transition = router.transition.get()
         return h('a', {
             ...anchorProps,
-            href: router.href(target),
+            href,
+            className: classNames(componentClass(this.props), 'cap-working'),
+            'aria-busy': busy || (transition.state === 'pending' && transition === this.pendingTransition
+                && href === this.pendingHref) ? 'true' : null,
             'aria-current': router.isActive(target, exact) ? 'page' : null,
             onClick: (event: MouseEvent) => {
                 onClick?.(event)
                 if (!shouldHandleClick(event, anchorProps.target, anchorProps.download)) return
                 event.preventDefault()
                 void router.navigate(target)
+                this.pendingTransition = router.transition.get()
+                this.pendingHref = href
+                this.update()
             },
         }, children)
     }

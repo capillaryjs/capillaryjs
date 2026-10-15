@@ -126,7 +126,7 @@ export class RoutedSelectionController<TItem extends RoutedSelectionItem> {
         ))
     }
 
-    private pendingItem(items: readonly TItem[]): TItem | undefined {
+    pendingItem(items: readonly TItem[]): TItem | undefined {
         const transition = this.registeredRouter?.transition.get()
         if (transition?.state !== 'pending') return undefined
         const requestedPathname = transition.requestedLocation.split('?', 1)[0] || '/'

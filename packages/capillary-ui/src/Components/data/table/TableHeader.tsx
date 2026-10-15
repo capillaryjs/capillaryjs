@@ -1,5 +1,5 @@
 import {Component, css} from '../../component.js'
-import type {ComponentProps, CapillaryUiChild} from '../../component.js'
+import type {ComponentProps, CapillaryUiChild, LivePropContract} from '../../component.js'
 import type {ValueEmitter} from '../../controlUtils.js'
 import type {CheckboxSymbol} from '../../lineinputs/checkbox/Checkbox.js'
 import type {FilterModeValue} from '../../../util/filterMode.js'
@@ -10,7 +10,8 @@ import type {
 } from './TableHeaderCell.js'
 import type {TableFilters, TableSort} from './tableQuery.js'
 
-export interface TableHeaderProps<TRow extends TableRow = TableRow> extends ComponentProps {
+export interface TableHeaderProps<TRow extends TableRow = TableRow> extends ComponentProps, LivePropContract<'busy'> {
+    busy?: boolean
     columns: readonly TableColumn<TRow>[]
     sortEmitter: ValueEmitter<TableSort | null>
     filtersEmitter: ValueEmitter<TableFilters>
@@ -22,11 +23,12 @@ export interface TableHeaderProps<TRow extends TableRow = TableRow> extends Comp
 export class TableHeader<TRow extends TableRow = TableRow>
     extends Component<TableHeaderProps<TRow>> {
     static override diagnosticLabel = 'Table header'
-    static override liveProps: readonly string[] = []
+    static override liveProps = ['busy'] as const
 
     override setProps(next: TableHeaderProps<TRow>): this {
         const previous = this.props
         const equal = previous.sortEmitter === next.sortEmitter
+            && previous.busy === next.busy
             && previous.filtersEmitter === next.filtersEmitter
             && previous.filterModes === next.filterModes
             && previous.defaultSemanticState === next.defaultSemanticState
@@ -50,6 +52,7 @@ export class TableHeader<TRow extends TableRow = TableRow>
                     field={column.field}
                     sortEmitter={this.props.sortEmitter}
                     filtersEmitter={this.props.filtersEmitter}
+                    busy={this.props.busy ?? false}
                     {...(column.label == null ? {} : {label: column.label})}
                     {...(column.ariaLabel == null ? {} : {ariaLabel: column.ariaLabel})}
                     {...(column.sortable == null ? {} : {sortable: column.sortable})}

@@ -49,11 +49,10 @@ export class DataComponentsPage extends Component<DataComponentsPageProps> {
         return <Layout horizontal allocation="flexible" className="gallery-page">
             <Sidebar island header="Data states" className="gallery-sidebar">
                 <nav class="gallery-section-nav" aria-label="Data component sections">
-                    <Button label="Table" onClick={() => scrollToSection('gallery-table')} />
-                    <Button label="List and tree"
-                        onClick={() => scrollToSection('gallery-collections')} />
-                    <Button label="Block graph" onClick={() => scrollToSection('gallery-blockgraph')} />
-                    <Button label="Empty" onClick={() => scrollToSection('gallery-empty')} />
+                    <a href="#gallery-table" onClick={event => { event.preventDefault(); scrollToSection('gallery-table') }}>Table</a>
+                    <a href="#gallery-collections" onClick={event => { event.preventDefault(); scrollToSection('gallery-collections') }}>List and tree</a>
+                    <a href="#gallery-blockgraph" onClick={event => { event.preventDefault(); scrollToSection('gallery-blockgraph') }}>Block graph</a>
+                    <a href="#gallery-empty" onClick={event => { event.preventDefault(); scrollToSection('gallery-empty') }}>Empty</a>
                 </nav>
                 <p class="gallery-data-state" role="status">
                     Data state: {snapshot.fetchState}

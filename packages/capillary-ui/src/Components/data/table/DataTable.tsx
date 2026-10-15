@@ -3,7 +3,8 @@ import type {ReadableEmitter} from '@capillaryjs/capillary'
 
 import {Placeholder} from '../../Placeholder.js'
 import {Component, css} from '../../component.js'
-import type {ComponentProps, CapillaryUiChild} from '../../component.js'
+import type {ComponentProps, CapillaryUiChild, LivePropContract} from '../../component.js'
+import {Button} from '../../menu/button.js'
 import {componentClass} from '../../controlUtils.js'
 import type {ValueEmitter} from '../../controlUtils.js'
 import type {CheckboxSymbol} from '../../lineinputs/checkbox/Checkbox.js'
@@ -42,7 +43,9 @@ import type {TableFilters, TableSort} from './tableQuery.js'
 const TableBody = Object.assign((props: ComponentProps) =>
     <tbody>{props.children}</tbody>, {diagnosticLabel: 'Table body'})
 
-interface DataTableCommonProps<TRow extends TableRow> extends ComponentProps, CommandInteractionOptions {
+interface DataTableCommonProps<TRow extends TableRow> extends ComponentProps, CommandInteractionOptions, LivePropContract<'busy'> {
+    /** External pending work, such as a selected-row detail query. Presentation only. */
+    busy?: boolean
     columns: readonly TableColumn<TRow>[]
     rowKey?: Extract<keyof TRow, string> | ItemKeyGetter<TRow>
     caption?: CapillaryUiChild
@@ -92,8 +95,9 @@ export type DataTableProps<TRow extends TableRow = TableRow> =
 /** Accessible table over an explicit local, caller-query, or REST data source. */
 export class DataTable<TRow extends TableRow = TableRow>
     extends Component<DataTableProps<TRow>> {
-    static override liveProps: readonly string[] = []
-    readonly columns: readonly TableColumn<TRow>[]
+    static override liveProps = ['busy'] as const
+    private currentColumns: readonly TableColumn<TRow>[]
+    get columns(): readonly TableColumn<TRow>[] { return this.currentColumns }
     readonly rowKey: ItemKeyGetter<TRow>
     readonly sortEmitter: ValueEmitter<TableSort | null>
     readonly filtersEmitter: ValueEmitter<TableFilters>
@@ -106,6 +110,7 @@ export class DataTable<TRow extends TableRow = TableRow>
     private readonly ownedSortEmitter: Emitter<TableSort | null> | null
     private readonly ownedFiltersEmitter: Emitter<TableFilters> | null
     private ownedDataSource: TableDataSource<TRow> | null = null
+    private readonly ownedRows: Emitter<readonly TRow[]> | null
     private readonly derivedFilterOptions =
         new Map<string, ReadableEmitter<FilterOptions, unknown> & {dispose?: () => void}>()
     private readonly commandPresentation = new CommandInvocationPresentation(() => this.update())
@@ -114,7 +119,9 @@ export class DataTable<TRow extends TableRow = TableRow>
         super(props)
         assertDataTableInput(props)
         validateCommandInteractionOptions(props)
-        this.columns = normalizeColumns(props.columns)
+        this.ownedRows = props.dataSource == null && props.rest == null && !isEmitterData(props.data)
+            ? new Emitter<readonly TRow[]>(props.data ?? [], {owner: this, purpose: 'table rows'}) : null
+        this.currentColumns = normalizeColumns(props.columns)
         this.rowKey = normalizeRowKey(props.rowKey)
         this.suppliedDataSource = props.dataSource ?? null
         this.ownedSortEmitter = this.suppliedDataSource == null
@@ -168,7 +175,7 @@ export class DataTable<TRow extends TableRow = TableRow>
             this.dataSource = this.ownedDataSource
         } else {
             this.ownedDataSource = createLocalTableDataSource({
-                data: this.props.data ?? [],
+                data: this.ownedRows ?? this.props.data ?? [],
                 sortEmitter: this.sortEmitter,
                 filtersEmitter: this.filtersEmitter,
                 owner: this,
@@ -177,6 +184,24 @@ export class DataTable<TRow extends TableRow = TableRow>
         }
         this.query = this.dataSource.query
         this.watch(this.query, this.selectedItemsEmitter)
+    }
+
+    override setProps(next: DataTableProps<TRow>): this {
+        assertDataTableInput(next)
+        const columns = normalizeColumns(next.columns)
+        let rows: readonly TRow[] = []
+        if (this.ownedRows != null) {
+            if (next.dataSource != null || next.rest != null || isEmitterData(next.data)) {
+                throw new TypeError('DataTable cannot replace static data with a different data source')
+            }
+            rows = next.data ?? []
+        }
+        this.replaceProps(next)
+        this.currentColumns = columns
+        if (this.ownedRows != null) {
+            this.ownedRows.set(rows, 'table rows changed')
+        }
+        return super.setProps(next)
     }
 
     render(): CapillaryUiChild {
@@ -196,13 +221,15 @@ export class DataTable<TRow extends TableRow = TableRow>
         const isLoading = status === FetchState.Initial || status === FetchState.Loading
         const replacesContent = status === FetchState.Initial
             || (status === FetchState.Loading && result === undefined)
-        const retainedLoading = status === FetchState.Loading && result !== undefined
+        const retainedLoading = (status === FetchState.Loading || this.props.busy === true) && result !== undefined
+        const isBusy = isLoading || commandRunning || this.props.busy === true
         const selectedKeys = new Set(
             this.selectedItemsEmitter.get().map((item, index) => this.rowKey(item, index)),
         )
         const Host = this.Host
         return <Host
             className={componentClass(this.props) || null}
+            aria-busy={isBusy ? 'true' : null}
             data-cap-retained-loading={retainedLoading ? '' : null}
         >
             {replacesContent ? <p role="status">{this.capillaryUiMessage('dataTableLoading')}</p> : null}
@@ -216,12 +243,12 @@ export class DataTable<TRow extends TableRow = TableRow>
             {invocationError == null && commandError == null ? null
                 : <ErrorMessage className="cap-error-banner" error={invocationError ?? commandError} />}
             {status === FetchState.Error && typeof this.dataSource?.retry === 'function'
-                ? <button
-                    type="button"
+                ? <Button
+                    busy={isBusy}
                     onClick={() => this.dataSource?.retry?.('table retry')}
-                >{this.capillaryUiMessage('dataTableRetry')}</button>
+                >{this.capillaryUiMessage('dataTableRetry')}</Button>
                 : null}
-            <table key="table" aria-busy={isLoading || commandRunning ? 'true' : null}>
+            <table key="table" aria-busy={isBusy ? 'true' : null}>
                 {this.props.caption == null ? null : <caption>{this.props.caption}</caption>}
                 <TableHeader
                     key="header"
@@ -231,6 +258,7 @@ export class DataTable<TRow extends TableRow = TableRow>
                     })}
                     sortEmitter={this.sortEmitter}
                     filtersEmitter={this.filtersEmitter}
+                    busy={isBusy}
                     {...(this.props.filterModes == null
                         ? {}
                         : {filterModes: this.props.filterModes})}
@@ -335,6 +363,7 @@ export class DataTable<TRow extends TableRow = TableRow>
     }
 
     onDestroy(): void {
+        this.ownedRows?.dispose()
         this.selectionHandler.destroy()
         this.ownedDataSource?.dispose()
         this.ownedSortEmitter?.dispose()
@@ -368,7 +397,7 @@ export class DataTable<TRow extends TableRow = TableRow>
         return emitter
     }
 
-    static dependencies = [Placeholder, TableHeader, ErrorMessage]
+    static dependencies = [Placeholder, TableHeader, ErrorMessage, Button]
 
     static override hostName = 'data-table'
     static override dataSurface = 'data' as const
@@ -538,6 +567,10 @@ function assertDataTableInput<TRow extends TableRow>(props: DataTableProps<TRow>
             throw new TypeError('DataTable dataSource must implement the table data-source contract')
         }
     }
+}
+
+function isEmitterData<T>(value: readonly T[] | ReadableEmitter<readonly T[], unknown> | undefined): value is ReadableEmitter<readonly T[], unknown> {
+    return value != null && !Array.isArray(value) && typeof Reflect.get(value, 'subscribe') === 'function'
 }
 
 function normalizeRowKey<TRow extends TableRow>(

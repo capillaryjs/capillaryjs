@@ -224,7 +224,10 @@ describe('visualization controls', () => {
         assert.equal(required('[data-split-key="state"]')
             .lastElementChild?.localName, 'cap-draghandle')
         const tagsHandle = required<HTMLElement>('[aria-label="Reorder Tags"]')
-        assert.equal(tagsHandle.textContent, '')
+        assert.equal(tagsHandle.localName, 'li')
+        assert.equal(tagsHandle.getAttribute('role'), null)
+        assert.equal(required('cap-draghandle').getAttribute('aria-hidden'), 'true')
+        assert.match(tagsHandle.textContent ?? '', /Tags/)
         tagsHandle.focus()
         tagsHandle.dispatchEvent(new KeyboardEvent('keydown', {
             key: 'ArrowUp',

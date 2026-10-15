@@ -2,7 +2,7 @@ import {Emitter, FetchState} from '@capillaryjs/capillary'
 import type {ReadableEmitter} from '@capillaryjs/capillary'
 
 import {Component, css} from '../../component.js'
-import type {ComponentConstructor, ComponentProps, CapillaryUiChild} from '../../component.js'
+import type {ComponentConstructor, ComponentProps, CapillaryUiChild, LivePropContract} from '../../component.js'
 import {componentClass} from '../../controlUtils.js'
 import {Checkbox} from '../../lineinputs/checkbox/Checkbox.js'
 import type {
@@ -25,7 +25,8 @@ export type FilterOptions = readonly FilterOptionInput[]
 export type FilterOptionsSource = FilterOptions | ReadableEmitter<FilterOptions, unknown>
 export type FilterSelection = ReadonlyMap<FilterValue, FilterModeValue>
 
-export interface FilterPanelProps extends ComponentProps {
+export interface FilterPanelProps extends ComponentProps, LivePropContract<'busy'> {
+    busy?: boolean
     options?: FilterOptionsSource
     filters?: FilterSelection | readonly (readonly [FilterValue, FilterModeValue])[]
     filterModes?: readonly CheckboxSymbol<FilterModeValue>[]
@@ -36,7 +37,7 @@ export interface FilterPanelProps extends ComponentProps {
 
 /** Filter choices whose option data is always supplied by the caller. */
 export class FilterPanel extends Component<FilterPanelProps> {
-    static override liveProps: readonly string[] = []
+    static override liveProps = ['busy'] as const
     readonly optionsEmitter: ReadableEmitter<FilterOptions, unknown> | null
     private readonly optionStateEmitters = new Map<FilterValue, Emitter<FilterModeValue>>()
     private staleOptionValues = new Set<FilterValue>()
@@ -67,7 +68,7 @@ export class FilterPanel extends Component<FilterPanelProps> {
         )
         const Host = this.Host
 
-        const isLoading = fetchState === FetchState.Initial || fetchState === FetchState.Loading
+        const isLoading = fetchState === FetchState.Initial || fetchState === FetchState.Loading || this.props.busy === true
         const hostClass = componentClass(this.props) || null
         if (fetchState === FetchState.Error && values.length === 0) {
             return <Host className={hostClass}>
@@ -110,6 +111,7 @@ export class FilterPanel extends Component<FilterPanelProps> {
                         label={label}
                         valueEmitter={valueEmitter}
                         symbols={filterModes}
+                        busy={isLoading}
                         onChange={(nextState, event) => {
                             event?.stopPropagation()
                             const next = normalizeFilters(this.props.filters)

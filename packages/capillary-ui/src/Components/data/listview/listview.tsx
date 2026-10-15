@@ -3,7 +3,7 @@ import type {ReadableEmitter} from '@capillaryjs/capillary'
 
 import {Placeholder} from '../../Placeholder.js'
 import {Component, css} from '../../component.js'
-import type {ComponentProps, CapillaryUiChild} from '../../component.js'
+import type {ComponentProps, CapillaryUiChild, LivePropContract} from '../../component.js'
 import {componentClass} from '../../controlUtils.js'
 import {ErrorMessage} from '../../status/statusPresentation.js'
 import type {ValueEmitter} from '../../controlUtils.js'
@@ -23,7 +23,9 @@ import {
 } from '../../commandSupport.js'
 import type {CommandAction, CommandInteractionOptions} from '../../commandSupport.js'
 
-interface ListViewCommonProps<TItem> extends ComponentProps, CommandInteractionOptions {
+interface ListViewCommonProps<TItem> extends ComponentProps, CommandInteractionOptions, LivePropContract<'busy'> {
+    /** Pending work caused by selection but owned outside this list. Does not disable selection. */
+    busy?: boolean
     items?: readonly TItem[] | ReadableEmitter<readonly TItem[] | undefined, unknown>
     itemKey?: string | ItemKeyGetter<TItem>
     label?: string
@@ -52,7 +54,7 @@ export type ListViewProps<TItem = unknown> = ListViewCommonProps<TItem> & (
 
 /** Accessible listbox with stable-key selection. */
 export class ListView<TItem = unknown> extends Component<ListViewProps<TItem>> {
-    static override liveProps: readonly string[] = []
+    static override liveProps = ['busy'] as const
     readonly itemsEmitter: ReadableEmitter<readonly TItem[] | undefined, unknown>
     readonly items$: ReadableEmitter<readonly TItem[] | undefined, unknown>
     readonly selectedItemsEmitter: ValueEmitter<TItem[]>
@@ -118,6 +120,7 @@ export class ListView<TItem = unknown> extends Component<ListViewProps<TItem>> {
                     'ListView cannot replace static or declarative items with an emitter',
                 )
             }
+            this.replaceProps(nextProps)
             this.ownedItemsEmitter.set(nextProps.items ?? [], 'list items changed')
         }
         return super.setProps(nextProps)
@@ -146,14 +149,15 @@ export class ListView<TItem = unknown> extends Component<ListViewProps<TItem>> {
         const isLoading = status === FetchState.Initial || status === FetchState.Loading
         const replacesContent = status === FetchState.Initial
             || (status === FetchState.Loading && result === undefined)
-        const retainedLoading = status === FetchState.Loading && result !== undefined
+        const retainedLoading = (status === FetchState.Loading || this.props.busy === true) && result !== undefined
+        const isBusy = isLoading || commandRunning || this.props.busy === true
         const selectedKeys = new Set(this.selectedItemsEmitter.get()
             .map((item, index) => this.getItemKey(item, index)))
 
         const Host = this.Host
         return <Host
             className={componentClass(this.props) || null}
-            aria-busy={isLoading || commandRunning ? 'true' : null}
+            aria-busy={isBusy ? 'true' : null}
             data-cap-retained-loading={retainedLoading ? '' : null}
         >
             {status === FetchState.Error
@@ -183,7 +187,7 @@ export class ListView<TItem = unknown> extends Component<ListViewProps<TItem>> {
                 ? <ul
                     role="listbox"
                     aria-label={this.props.label ?? this.capillaryUiMessage('listViewLabel')}
-                    aria-busy={isLoading || commandRunning ? 'true' : null}
+                    aria-busy={isBusy ? 'true' : null}
                     aria-multiselectable={this.props.multiSelect ? 'true' : null}
                 >{rows.map((item, index) => {
                     const key = this.getItemKey(item, index)

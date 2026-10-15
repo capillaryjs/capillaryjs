@@ -112,7 +112,7 @@ export const mutate = new AsyncCommand<Mutation, { id: string; message: string }
     concurrency: "reject", execute: async args => {
         const result = await buildco.mutate(args);
         revision.set(revision.get() + 1);
-        void bootstrap.refresh();
+        await bootstrap.refresh();
         demo.notice.set(result.message);
         return result;
     }

@@ -101,12 +101,12 @@ export class QueueView extends Component {
                 <Sidebar island allocation="flexible" header="Work Queue">
                     <SidebarToolbar>
                         <Toolbar label="Queue search">
-                            <Textbox
+                            <Textbox busy={view.fetchState === "loading"}
                                 label="Search"
                                 placeholder="Filter phases…"
                                 valueEmitter={this.state.field("search") as any}
                             />
-                            <Button
+                            <Button busy={view.fetchState === "loading"}
                                 label="Reset"
                                 onClick={() => this.resetCriteria()}
                             />
@@ -115,25 +115,25 @@ export class QueueView extends Component {
                     <OptionsBox header="Conditions">
                         <OptionGroup label="Phase conditions">
                             <OptionGroupHeaderEnd>
-                                <Button
+                                <Button busy={view.fetchState === "loading"}
                                     label="Reset"
                                     onClick={() => this.resetCriteria()}
                                 />
                             </OptionGroupHeaderEnd>
-                            {CONDITIONS.map(c => <QuadCheckbox
+                            {CONDITIONS.map(c => <QuadCheckbox busy={view.fetchState === "loading"}
                                 key={c.value}
                                 label={c.label}
                                 valueEmitter={this.state.field(c.value) as any}
                             />)}
                         </OptionGroup>
                         <OptionGroup label="Type affinities">
-                            {affinities.map(a => <TriCheckbox
+                            {affinities.map(a => <TriCheckbox busy={view.fetchState === "loading"}
                                 key={a.value}
                                 label={a.label}
                                 valueEmitter={this.state.field(affinityKey(a.value)) as any}
                             />)}
                         </OptionGroup>
-                        <Dropdown
+                        <Dropdown busy={view.fetchState === "loading"}
                             label="Project scope"
                             options={[{value: "", label: "All projects"}, ...(b.value.choices.projects ?? [])]}
                             valueEmitter={this.state.field("project") as any}
@@ -145,8 +145,9 @@ export class QueueView extends Component {
                 <Panel island allocation="flexible" header="Matching Phases">
                     <PanelToolbar>
                         <Toolbar label="Queue results">
+                            <Button icon="refresh" ariaLabel="Refresh results" appearance="subtle" busy={view.fetchState === "loading"} onClick={() => void this.query.refresh()}/>
                             <span className="result-count">{v.total} phases</span>
-                            <Dropdown
+                            <Dropdown busy={view.fetchState === "loading"}
                                 label="Order by"
                                 options={[
                                     {value: "", label: "Urgency"},
@@ -157,13 +158,14 @@ export class QueueView extends Component {
                             />
                         </Toolbar>
                     </PanelToolbar>
+                    {view.fetchState === "error" ? <p role="alert">{String(view.error ?? "The results could not be refreshed.")}</p> : null}
                     {rows.length === 0
                         ? <>
                             <Placeholder/>
                             <p className="muted">No phases match the current criteria. Required or denied conditions may have eliminated every result.</p>
-                            <Button label="Reset criteria" onClick={() => this.resetCriteria()}/>
+                            <Button busy={view.fetchState === "loading"} label="Reset criteria" onClick={() => this.resetCriteria()}/>
                         </>
-                        : <ListView
+                        : <ListView busy={view.fetchState === "loading"}
                             label="Queue items"
                             items={rows}
                             itemKey="id"

@@ -33,7 +33,15 @@ Application and inspection runtimes have separate diagnostic ownership scopes.
 The lab opts into bounded snapshot capture for its synthetic rows. Select
 `searchResults` and expand `Value` in details to inspect captured row fields.
 Select `Table body` to inspect render counts and own DOM writes; unchanged table
-headers remain known connections without row-update render events.
+headers contribute only loading-start/loading-finish renders, rather than
+one render per row. Option-value changes do not rerender closed headers.
+
+One themed CapillaryUiApp shell contains both runtime slots and supplies the
+single main landmark. Query triggers show pending work from the existing query
+snapshot; completion/abort/replacement controls remain available. Run command
+also presents its explicitly required query follow-up, without relabelling that
+read as a mutation command. Trace content uses collection/canvas selection;
+capture and playback use named icon actions.
 
 `pnpm test` tests scenario behavior. From the public root,
 `pnpm exec playwright test apps/capillary-devtools-demo/test/browser/flow.spec.ts`

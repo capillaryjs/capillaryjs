@@ -1,24 +1,43 @@
-import {Component, createCapillaryUiRuntime, DataTable, h, live, Textbox} from '@capillaryjs/capillary-ui'
+import {Component, Button, createCapillaryUiRuntime, DataTable, h, live, Textbox} from '@capillaryjs/capillary-ui'
+import {bindCommand, FetchState} from '@capillaryjs/capillary'
 import type {ComponentProps, VNode} from '@capillaryjs/capillary-ui'
 import {TraceRecorder, TraceSelection, TracePlayback, traceRoots, devtoolsDiagnosticScope} from '@capillaryjs/capillary-devtools/model'
 import {FlowScenario, ScenarioClock} from './scenario.js'
+import {LabShell} from './LabShell.js'
+import '@capillaryjs/capillary-ui/themes/base.css'
+import '@capillaryjs/capillary-ui/colors/iceblue/colors.css'
+import '@capillaryjs/capillary-ui/themes/minimal/theme.css'
 import './lab.css'
 
 interface ScenarioProps extends ComponentProps {model: FlowScenario}
 class ScenarioApp extends Component<ScenarioProps> {
     static override diagnosticLabel = 'Search application'
-    static override dependencies = [Textbox, DataTable]
+    static override dependencies = [Textbox, DataTable, Button]
+    private queryOrigin: string | null = null
+    private readonly runCommand = bindCommand(this.props.model.command, () => this.props.model.normalized.get())
+    initialize(): void {
+        this.onCleanup(this.props.model.command.succeeded.subscribe(() => {
+            this.queryOrigin = 'Run command'
+            this.update()
+        }))
+    }
     render() {
         const {model} = this.props
-        const button = (label: string, onClick: () => void) => h('button', {type: 'button', onClick}, label)
+        const loading = this.snapshot(model.query).fetchState === FetchState.Loading
+        const button = (label: string, onClick: () => void, startsQuery = false) => h(Button, {
+            label, busy: loading && this.queryOrigin === label, disableWhileRunning: false,
+            onClick: () => { if (startsQuery) this.queryOrigin = label; onClick(); if (startsQuery) this.update() },
+        })
         return h('section', {className: 'scenario', 'aria-label': 'Live application'},
             h('h2', null, 'Try an interaction'), h('p', null, 'Type a search or run a scenario, then follow its recorded path below.'),
-            h(Textbox, {label: 'Search', valueEmitter: model.search, placeholder: 'Try capillary'}),
-            h('div', {className: 'scenario-actions'}, button('Direct write / diamond', () => model.direct()),
-                button('Unchanged normalization', () => model.unchangedWrite()), button('Fail then retry', () => model.retry()),
-                button('Start pending request', () => model.startPending()), button('Supersede pending request', () => model.supersede()),
+            h(Textbox, {label: 'Search', valueEmitter: model.search, placeholder: 'Try capillary', busy: loading && this.queryOrigin === 'Search',
+                onInput: () => { this.queryOrigin = 'Search'; this.update() }}),
+            h('div', {className: 'scenario-actions'}, button('Direct write / diamond', () => model.direct(), true),
+                button('Unchanged normalization', () => model.unchangedWrite()), button('Fail then retry', () => model.retry(), true),
+                button('Start pending request', () => model.startPending(), true), button('Supersede pending request', () => model.supersede(), true),
                 button('Abort request', () => model.abort()), button('Dispose query', () => model.query.dispose()),
-                button('Run command', () => model.runCommand()), button('Complete command', () => model.completeCommand()),
+                h(Button, {label: 'Run command', command: this.runCommand, disableWhileRunning: false,
+                    busy: loading && this.queryOrigin === 'Run command'}), button('Complete command', () => model.completeCommand()),
                 button('Abort command', () => model.command.abort())),
             h('div', {className: 'scenario-results'},
                 h(DataTable, {dataSource: model.table, caption: 'Search results', rowKey: 'id',
@@ -49,24 +68,16 @@ export function mountDemo(compose: (models: DemoComposition) => Component): void
     const applicationRuntime = createCapillaryUiRuntime()
     applicationRuntime.registerStyles(ScenarioApp)
     const root = document.getElementById('app')!
-    const heading = document.createElement('header')
-    heading.className = 'lab-header'
-    const title = document.createElement('h1'); title.textContent = 'Follow the whole story.'
-    const subtitle = document.createElement('p'); subtitle.textContent = 'CAPILLARY DEVTOOLS / CAUSAL FLOW LAB'
-    const navigation = document.createElement('nav'); navigation.setAttribute('aria-label', 'Demo composition')
-    for (const [label, href] of [['Workbench', './index.html'], ['Compact view', './compact.html'],
-        ['Bounded capture', './index.html?limit=12'], ['Late capture', './index.html?late=1']]) {
-        const link = document.createElement('a'); link.textContent = label!; link.href = href!; navigation.append(link)
-    }
-    heading.append(subtitle, title, navigation); root.append(heading)
+    const shellRuntime = createCapillaryUiRuntime({diagnosticScope: devtoolsDiagnosticScope})
+    const shell = shellRuntime.mount(shellRuntime.create(LabShell), root)
     const application = applicationRuntime.create(ScenarioApp, {model})
-    applicationRuntime.mount(application, root)
+    applicationRuntime.mount(application, shell.applicationTarget!)
     applicationRuntime.injectStyles()
     if (late) recorder.start({roots: model.diagnosticEntryPoints()})
     const runtime = createCapillaryUiRuntime({diagnosticScope: devtoolsDiagnosticScope})
     const inspector = compose({recorder, selection, playback, runtime})
     runtime.registerStyles(inspector.constructor as typeof Component)
-    runtime.mount(inspector, root); runtime.injectStyles()
+    runtime.mount(inspector, shell.inspectorTarget!); runtime.injectStyles()
     recorder.revision.subscribe(() => {
         const recording = recorder.snapshot()
         const root = traceRoots(recording).findLast((event) => event.kind === 'interaction'
@@ -79,6 +90,6 @@ export function mountDemo(compose: (models: DemoComposition) => Component): void
         metrics: () => model.metrics(),
         selected: () => selection.state.get(),
     })
-    window.addEventListener('pagehide', () => { inspector.destroy(); application.destroy(); recorder.dispose();
+    window.addEventListener('pagehide', () => { inspector.destroy(); application.destroy(); shell.destroy(); recorder.dispose();
         selection.dispose(); playback.dispose(); model.dispose() }, {once: true})
 }

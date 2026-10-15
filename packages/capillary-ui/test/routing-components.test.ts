@@ -458,8 +458,10 @@ describe('routed Capillary UI components', () => {
 
         const tabs = [...document.querySelectorAll<HTMLButtonElement>('[role="tab"]')]
         requiredAt(tabs, 0).click()
+        assert.equal(requiredAt(tabs, 0).getAttribute('aria-busy'), 'true')
         await waitUntil(() => router.transition.get().state === 'idle'
             && active.get() === 'first')
+        assert.equal(requiredAt(tabs, 0).hasAttribute('aria-busy'), false)
         assert.equal(adapter.read(), '/first')
         assert.equal(firstMounts, 1)
         assert.equal(adapter.length, 2)
@@ -614,6 +616,46 @@ describe('routed Capillary UI components', () => {
         assert.equal(link.getAttribute('href'), 'https://portal.example/')
         bar.destroy()
     })
+})
+
+test('route-link pending follows its own transition and cannot be cleared or revived by obsolete work', async () => {
+    const fast = defineRoute('fast'), slow = defineRoute('slow')
+    const active = new Emitter('fast')
+    const router = createBrowserRouter({adapter: new MemoryNavigationAdapter('/fast')})
+    const owner = {}, close = router.openScope(router.root, owner)
+    const held: Array<() => void> = []
+    router.registerSelectionRoutes(router.root, owner, [
+        {route: fast, active: () => active.get() === 'fast', activate: () => { active.set('fast') }},
+        {route: slow, active: () => active.get() === 'slow', activate: signal => new Promise<void>(resolve => {
+            held.push(() => { if (!signal.aborted) active.set('slow'); resolve() })
+        })},
+    ], listener => active.subscribe(listener, {emitCurrent: false}))
+    router.completeScope(router.root, owner)
+    class Links extends Component {
+        render() { return h('nav', null, h(RouteLink, {to: fast}, 'Fast'), h(RouteLink, {to: slow}, 'Slow')) }
+        static dependencies = [RouteLink]
+    }
+    const runtime = createCapillaryUiRuntime({router})
+    const links = runtime.mount(runtime.create(Links), document.body)
+    await waitUntil(() => router.transition.get().state === 'idle')
+    const [first, second] = [...document.querySelectorAll<HTMLAnchorElement>('a')]
+    second!.click()
+    await waitUntil(() => held.length === 1)
+    assert.equal(second!.getAttribute('aria-busy'), 'true')
+    assert.equal(first!.hasAttribute('aria-busy'), false)
+    first!.click()
+    await waitUntil(() => router.transition.get().state === 'idle')
+    assert.equal(second!.hasAttribute('aria-busy'), false)
+    held[0]!()
+    await new Promise<void>(resolve => setImmediate(resolve))
+    assert.equal(first!.hasAttribute('aria-busy'), false)
+    assert.equal(second!.hasAttribute('aria-busy'), false)
+    assert.equal(active.get(), 'fast')
+    links.destroy()
+    router.unregisterRoutes(router.root, owner)
+    close()
+    router.dispose()
+    active.dispose()
 })
 
 function visibleTabPanel(): HTMLElement {

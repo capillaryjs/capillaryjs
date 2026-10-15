@@ -1,5 +1,5 @@
 import {Component, css, isVNode} from '../../component.js'
-import type {ComponentProps, CapillaryUiChild, Key} from '../../component.js'
+import type {ComponentProps, CapillaryUiChild, Key, LivePropContract} from '../../component.js'
 import {
     componentClass,
     controlId,
@@ -32,7 +32,9 @@ export interface TabDefinition {
 
 export type TabPanelMountPolicy = ContentMountPolicy
 
-export interface TabPanelProps extends ValueControlProps<Key | null> {
+export interface TabPanelProps extends ValueControlProps<Key | null>, LivePropContract<'busy'> {
+    /** Pending work for the active view; does not disable tab navigation. */
+    busy?: boolean
     id?: string | number | null
     tabs?: readonly TabDefinition[]
     activeTabEmitter?: ValueEmitter<Key | null>
@@ -52,7 +54,7 @@ interface NormalizedTab extends RoutedSelectionItem {
 }
 
 export class TabPanel extends Component<TabPanelProps> {
-    static override liveProps: readonly string[] = []
+    static override liveProps = ['busy'] as const
     readonly valueEmitter: ValueEmitter<Key | null>
     readonly activeTabEmitter: ValueEmitter<Key | null>
     readonly baseId: string
@@ -89,6 +91,7 @@ export class TabPanel extends Component<TabPanelProps> {
         readContentMountPolicy(this.props.mountPolicy, 'TabPanel')
         this.selection.prepare(tabs)
         this.watch(this.valueEmitter)
+        if (this._runtime.router) this.watch(this._runtime.router.transition)
     }
 
     setProps(nextProps: TabPanelProps): this {
@@ -104,6 +107,7 @@ export class TabPanel extends Component<TabPanelProps> {
         const mountPolicy = readContentMountPolicy(this.props.mountPolicy, 'TabPanel')
         const selectedId = this.selection.selected(tabs)?.id
         const mountedTabIds = this.selection.updateMounted(tabs, mountPolicy)
+        const pendingTab = this.selection.pendingItem(tabs)?.id
         const Host = this.Host
         return <Host
             id={this.baseId}
@@ -111,7 +115,8 @@ export class TabPanel extends Component<TabPanelProps> {
         >
             <TabLine
                 key="tab-list"
-                tabs={tabs.map(({id, label, disabled}) => ({id, label, disabled}))}
+                tabs={tabs.map(({id, label, disabled}) => ({id, label, disabled, busy: Object.is(id, pendingTab)}))}
+                busy={this.props.busy ?? false}
                 valueEmitter={this.valueEmitter}
                 baseId={this.baseId}
                 {...(this.props.label == null ? {} : {label: this.props.label})}

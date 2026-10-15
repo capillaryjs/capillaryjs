@@ -1,5 +1,6 @@
 import {Component} from '@capillaryjs/capillary-ui'
 import type {ComponentProps} from '@capillaryjs/capillary-ui'
+import type {ReadableEmitter} from '@capillaryjs/capillary'
 import {TraceRecorder} from '../model/TraceRecorder.js'
 import {devtoolsDiagnosticScope} from '../model/scope.js'
 import {filterTrace} from '../model/projection.js'
@@ -17,14 +18,12 @@ export interface TraceViewProps extends ComponentProps {
 export abstract class TraceView extends Component<TraceViewProps> {
     static override diagnosticScope = devtoolsDiagnosticScope
     static override css = `
-        & { display: block; min-width: 0; color: var(--cap-trace-text, #192c3d); font: 13px/1.5 system-ui, sans-serif; }
-        & button, & select, & input { font: inherit; }
-        & button, & select { color: inherit; background: var(--cap-trace-surface, #fff); border: 1px solid var(--cap-trace-line, #cad4de); border-radius: 5px; padding: .35rem .55rem; }
-        & button { cursor: pointer; text-align: start; }
-        & button:disabled { cursor: default; opacity: .55; }
+        & { display: block; min-width: 0; color: var(--cap-trace-text, var(--ui-color, #192c3d)); font: inherit; line-height: 1.5; --ui-select-bg: var(--cap-trace-selected, #eaf3ff); --ui-select-bg-dark: var(--cap-trace-selected, #eaf3ff); --ui-select-text-color: var(--cap-trace-text, #192c3d); --selected-bg-color: var(--cap-trace-selected, #eaf3ff); }
+        & select, & input { font: inherit; }
+        & select { color: inherit; background: var(--cap-trace-surface, #fff); border: 1px solid var(--cap-trace-line, #cad4de); border-radius: 5px; padding: .35rem .55rem; }
         & :focus-visible { outline: 3px solid var(--cap-trace-accent, #005bb8); outline-offset: 2px; }
-        & button[aria-pressed="true"], & button[aria-current="step"] { outline: 2px solid var(--cap-trace-accent, #005bb8); outline-offset: -2px; background: var(--cap-trace-selected, #eaf3ff); }
-        & h2, & h3 { font: 650 1rem/1.4 system-ui, sans-serif; margin: 0 0 .75rem; }
+        & [role="option"][aria-selected="true"], & [role="treeitem"][aria-selected="true"] { outline: 2px solid var(--cap-trace-accent, #005bb8); outline-offset: -2px; background: var(--cap-trace-selected, #eaf3ff); }
+        & h2, & h3 { font-family: inherit; font-weight: 650; font-size: 1rem; line-height: 1.4; margin: 0 0 .75rem; }
         & p { margin: .4rem 0; }
         & small { display: block; color: var(--cap-trace-muted, #526477); }
         & .trace-actions { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem; }
@@ -56,5 +55,49 @@ export abstract class TraceView extends Component<TraceViewProps> {
     protected choose(event: TraceEvent): void {
         this.props.selection.selectEvent(event.id, event.nodeId)
         this.props.playback?.seek(this.events.findIndex((candidate) => candidate.id === event.id), this.events.length)
+    }
+
+    /** A stateless view of the existing selection owner, not a mirrored store. */
+    protected selectionValue<T>(read: () => T, write: (value: T) => void): ReadableEmitter<T> & {set(value: T): boolean} {
+        const source = this.props.selection.state
+        return {
+            get: read,
+            getError: () => source.getError(),
+            getFetchState: () => source.getFetchState(),
+            subscribe: (listener, options) => source.subscribe(notification =>
+                listener({...notification, value: read()}), options),
+            set: value => {
+                // Collection reconciliation can publish the same logical value.
+                // That is not a new user selection and must not reset playback.
+                if (Object.is(read(), value)) return false
+                const previous = source.get()
+                write(value)
+                return previous !== source.get()
+            },
+        }
+    }
+
+    /** Canvas options use the same direct selection model as other widgets. */
+    protected optionProps(selected: boolean, tabbable: boolean, choose: () => void): ComponentProps {
+        return {
+            role: 'option', 'aria-selected': String(selected), tabIndex: tabbable ? 0 : -1,
+            onClick: (event: MouseEvent) => { choose(); (event.currentTarget as HTMLElement).focus() },
+            onKeyDown: (event: KeyboardEvent) => {
+                if (event.defaultPrevented) return
+                const current = event.currentTarget as HTMLElement
+                if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); current.click(); return }
+                const list = current.closest('[role="listbox"]')
+                const options = [...list?.querySelectorAll<HTMLElement>('[role="option"]') ?? []]
+                    .filter(option => option.closest('[role="listbox"]') === list)
+                const index = options.indexOf(current)
+                const next = event.key === 'Home' ? 0 : event.key === 'End' ? options.length - 1
+                    : ['ArrowRight', 'ArrowDown'].includes(event.key) ? Math.min(index + 1, options.length - 1)
+                        : ['ArrowLeft', 'ArrowUp'].includes(event.key) ? Math.max(0, index - 1) : -1
+                if (next < 0 || !options[next]) return
+                event.preventDefault()
+                options[next]!.click()
+                options[next]!.focus()
+            },
+        }
     }
 }

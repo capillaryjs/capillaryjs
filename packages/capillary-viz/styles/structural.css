@@ -377,6 +377,7 @@ cap-button > button {
             display: inline-flex;
             align-items: center;
             justify-content: center;
+            gap: .35em;
             min-height: var(--control-min-height, 2em);
             margin: 0;
             padding: var(--ui-control-padding);
@@ -437,6 +438,22 @@ cap-button > button {
         cap-button > button[aria-invalid="true"] {
             border-color: var(--error-control-border);
             box-shadow: var(--error-control-shadow);
+        }
+
+        cap-button.cap-subtle > button {
+            min-height: 1.75em;
+            padding: .2em .3em;
+            background: transparent;
+            border-color: transparent;
+            box-shadow: none;
+        }
+        cap-button.cap-subtle > button:hover:not(:disabled, [aria-disabled="true"]) {
+            background: var(--button-background-hover);
+        }
+        cap-button.cap-subtle > button:focus-visible { box-shadow: var(--focus-ring); }
+        cap-button.cap-subtle > button[aria-busy="true"]:not([aria-invalid="true"]) {
+            background: var(--working-background-image), transparent;
+            background-size: 2rem 2rem, 100% 100%;
         }
 
         @media (prefers-reduced-motion: reduce) {
@@ -540,6 +557,26 @@ cap-error {
             from { background-position: 0 0, 0 0; }
             to { background-position: 2rem 0, 0 0; }
         }
+        .cap-working[aria-busy="true"]:not([aria-invalid="true"]) {
+            background-image: var(--working-background-image);
+            background-size: 2rem 2rem;
+            animation: cap-working-progress .55s linear infinite;
+        }
+        @media (prefers-reduced-motion: reduce) {
+            .cap-working[aria-busy="true"] { animation: none; }
+        }
+
+cap-icon {
+            display: inline-block;
+            flex: 0 0 auto;
+            inline-size: 1.15em;
+            block-size: 1.15em;
+            vertical-align: -.15em;
+            background: currentColor;
+            mask: var(--_cap-icon-mask) center / contain no-repeat;
+            pointer-events: none;
+        }
+        @media (forced-colors: active) { cap-icon { background: ButtonText; } }
 
 cap-placeholder {
             display: block;
@@ -1479,7 +1516,7 @@ cap-splitselectionpanel {
             touch-action: none;
         }
 
-        cap-splitselectionpanel cap-draghandle:focus-visible {
+        cap-splitselectionpanel [data-split-key]:focus-visible {
             outline: 2px solid var(--focus-color, var(--ui-accent-color));
             outline-offset: 1px;
         }

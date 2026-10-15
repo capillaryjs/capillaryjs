@@ -63,33 +63,30 @@ extends Component<SplitSelectionPanelProps<TItem>> {
                     key={criterion.key}
                     className={this.draggingKey === criterion.key ? 'dragging' : undefined}
                     data-split-key={criterion.key}
+                    tabIndex={0}
+                    aria-label={`Reorder ${criterion.label}`}
+                    aria-keyshortcuts="Alt+ArrowUp Alt+ArrowDown"
+                    title="Drag the grip to reorder; focus this row and use Alt+Arrow keys"
                     onPointerDown={(event: PointerEvent) => this.startDragging(criterion.key, event)}
                     onClick={(event: MouseEvent) => this.suppressDraggedClick(event)}
+                    onKeyDown={(event: KeyboardEvent) => {
+                        if (event.target !== event.currentTarget) return
+                        if (!event.altKey || (event.key !== 'ArrowUp' && event.key !== 'ArrowDown')) return
+                        event.preventDefault()
+                        const offset = event.key === 'ArrowUp' ? -1 : 1
+                        if (model.moveBy(criterion.key, offset, 'split reordered by keyboard')) {
+                            const position = model.order$.get().findIndex(({key}) => key === criterion.key) + 1
+                            this.announce(`${criterion.label} moved to position ${position}`)
+                            queueMicrotask(() => this.focusRow(criterion.key))
+                        }
+                    }}
                 >
                     <Checkbox<CategoryVisibility>
                         symbols={activeSymbols}
                         label={criterion.label}
                         valueEmitter={model.activeState(criterion.key)}
                     />
-                    <cap-draghandle
-                        role="button"
-                        tabIndex={0}
-                        aria-label={`Reorder ${criterion.label}`}
-                        title="Drag to reorder; use Alt+Arrow keys from the keyboard"
-                        onKeyDown={(event: KeyboardEvent) => {
-                            if (!event.altKey || (event.key !== 'ArrowUp' && event.key !== 'ArrowDown')) {
-                                return
-                            }
-                            event.preventDefault()
-                            const offset = event.key === 'ArrowUp' ? -1 : 1
-                            if (model.moveBy(criterion.key, offset, 'split reordered by keyboard')) {
-                                const position = model.order$.get().findIndex(({key}) =>
-                                    key === criterion.key) + 1
-                                this.announce(`${criterion.label} moved to position ${position}`)
-                                queueMicrotask(() => this.focusHandle(criterion.key))
-                            }
-                        }}
-                    />
+                    <cap-draghandle aria-hidden="true" />
                 </li>)}</ol>
                 <p role="status" aria-live="polite" aria-atomic="true">
                     {this.announcement}
@@ -189,7 +186,7 @@ extends Component<SplitSelectionPanelProps<TItem>> {
             touch-action: none;
         }
 
-        & cap-draghandle:focus-visible {
+        & [data-split-key]:focus-visible {
             outline: 2px solid var(--focus-color, var(--ui-accent-color));
             outline-offset: 1px;
         }
@@ -253,7 +250,7 @@ extends Component<SplitSelectionPanelProps<TItem>> {
             this.suppressClickTimer = null
         }, 0)
         this.update()
-        queueMicrotask(() => this.focusHandle(key))
+        queueMicrotask(() => this.focusRow(key))
     }
 
     private startDragging(key: string, event: PointerEvent): void {
@@ -275,12 +272,12 @@ extends Component<SplitSelectionPanelProps<TItem>> {
         this.update()
     }
 
-    private focusHandle(criterionKey: string): void {
+    private focusRow(criterionKey: string): void {
         const handles = this.dom instanceof Element
-            ? this.dom.querySelectorAll<HTMLElement>('[data-split-key] cap-draghandle')
+            ? this.dom.querySelectorAll<HTMLElement>('[data-split-key]')
             : []
         for (const handle of handles) {
-            if (handle.closest<HTMLElement>('[data-split-key]')?.dataset.splitKey === criterionKey) {
+            if (handle.dataset.splitKey === criterionKey) {
                 handle.focus()
                 return
             }

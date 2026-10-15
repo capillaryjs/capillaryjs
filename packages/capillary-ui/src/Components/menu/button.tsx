@@ -1,7 +1,9 @@
 import {css} from '../component.js'
 import {LineControl} from '../lineinputs/LineControl.js'
 import type {ComponentProps, CapillaryUiChild, LivePropContract} from '../component.js'
-import {componentClass, controlId, invoke} from '../controlUtils.js'
+import {classNames, componentClass, controlId, invoke} from '../controlUtils.js'
+import {Icon} from './icon.js'
+import type {IconName} from './icon.js'
 import {ErrorMessage} from '../status/statusPresentation.js'
 import {
     CommandInvocationPresentation,
@@ -15,6 +17,10 @@ const buttonLiveProps = ['disabled', 'pressed', 'busy', 'error'] as const
 interface ButtonCommonProps extends ComponentProps,
     LivePropContract<(typeof buttonLiveProps)[number]>, CommandInteractionOptions {
     label?: CapillaryUiChild
+    /** Decorative intent icon; icon-only actions require ariaLabel. */
+    icon?: IconName
+    /** Subtle actions retain button semantics without standalone button chrome. */
+    appearance?: 'standard' | 'subtle'
     type?: 'button' | 'reset' | 'submit'
     disabled?: boolean
     pressed?: boolean
@@ -26,7 +32,10 @@ interface ButtonCommonProps extends ComponentProps,
     value?: string | number
     title?: string
     ariaLabel?: string
-    /** Defaults to true when `command` is supplied. */
+    ariaControls?: string
+    ariaExpanded?: boolean
+    ariaHasPopup?: 'dialog' | 'menu' | 'listbox' | 'tree' | 'grid' | 'true'
+    /** Guard command and explicit busy state by default; false delegates repeat policy to the caller. */
     disableWhileRunning?: boolean
 }
 
@@ -45,7 +54,7 @@ export type ButtonProps = ButtonCommonProps & (
 /** Native actionable button primitive. */
 export class Button extends LineControl<ButtonProps> {
     static override liveProps = buttonLiveProps
-    static override dependencies = [ErrorMessage]
+    static override dependencies = [ErrorMessage, Icon]
     readonly errorId: string
     private readonly commandPresentation = new CommandInvocationPresentation(() => this.update())
 
@@ -68,6 +77,8 @@ export class Button extends LineControl<ButtonProps> {
         const {
             children = [],
             label,
+            icon,
+            appearance = 'standard',
             type = 'button',
             disabled = false,
             pressed,
@@ -79,6 +90,9 @@ export class Button extends LineControl<ButtonProps> {
             value,
             title,
             ariaLabel,
+            ariaControls,
+            ariaExpanded,
+            ariaHasPopup,
             command,
             disableWhileRunning = true,
             commandErrors = 'inline',
@@ -95,21 +109,28 @@ export class Button extends LineControl<ButtonProps> {
             ? children.length > 0
             : children != null && typeof children !== 'boolean'
         const normalContent = hasChildren ? children : (label ?? '')
+        if (appearance !== 'standard' && appearance !== 'subtle') throw new TypeError('Unknown Button appearance')
+        if (icon != null && !hasChildren && (label == null || label === '') && !ariaLabel?.trim()) {
+            throw new TypeError('Icon-only Button requires ariaLabel')
+        }
         const isBusy = busy || commandRunning
         const displayedError = error ?? invocationError ?? commandError
         const content = isBusy ? (busyLabel ?? normalContent) : normalContent
-        const unavailable = disabled || busy || (commandRunning && disableWhileRunning)
+        const unavailable = disabled || (isBusy && disableWhileRunning)
 
         const Host = this.Host
-        return <Host className={componentClass(this.props) || null}>
+        return <Host className={classNames(componentClass(this.props), appearance === 'subtle' ? 'cap-subtle' : '') || null}>
             <button
                 id={id}
                 name={name}
                 value={value == null ? undefined : String(value)}
-                title={title}
+                title={title ?? (icon == null ? undefined : ariaLabel)}
                 type={type}
                 disabled={unavailable}
                 aria-label={ariaLabel}
+                aria-controls={ariaControls}
+                aria-expanded={ariaExpanded == null ? null : String(ariaExpanded)}
+                aria-haspopup={ariaHasPopup}
                 aria-pressed={pressed == null ? null : String(Boolean(pressed))}
                 aria-busy={isBusy ? 'true' : null}
                 aria-invalid={displayedError == null ? null : 'true'}
@@ -122,7 +143,7 @@ export class Button extends LineControl<ButtonProps> {
                     })
                     else invoke(onClick, event)
                 }}
-            >{content}</button>
+            >{icon == null ? null : <Icon name={icon} />}{content}</button>
             {displayedError == null ? null : <ErrorMessage id={this.errorId} error={displayedError} />}
         </Host>
     }
@@ -134,6 +155,7 @@ export class Button extends LineControl<ButtonProps> {
             display: inline-flex;
             align-items: center;
             justify-content: center;
+            gap: .35em;
             min-height: var(--control-min-height, 2em);
             margin: 0;
             padding: var(--ui-control-padding);
@@ -194,6 +216,22 @@ export class Button extends LineControl<ButtonProps> {
         & > button[aria-invalid="true"] {
             border-color: var(--error-control-border);
             box-shadow: var(--error-control-shadow);
+        }
+
+        &.cap-subtle > button {
+            min-height: 1.75em;
+            padding: .2em .3em;
+            background: transparent;
+            border-color: transparent;
+            box-shadow: none;
+        }
+        &.cap-subtle > button:hover:not(:disabled, [aria-disabled="true"]) {
+            background: var(--button-background-hover);
+        }
+        &.cap-subtle > button:focus-visible { box-shadow: var(--focus-ring); }
+        &.cap-subtle > button[aria-busy="true"]:not([aria-invalid="true"]) {
+            background: var(--working-background-image), transparent;
+            background-size: 2rem 2rem, 100% 100%;
         }
 
         @media (prefers-reduced-motion: reduce) {

@@ -1,8 +1,9 @@
-import {h} from '@capillaryjs/capillary-ui'
+import {h, Button} from '@capillaryjs/capillary-ui'
 import {TraceView} from './shared.js'
 
 export class TracePlaybackControls extends TraceView {
     static override hostName = 'traceplayback'
+    static override dependencies = [Button]
     private mode: 'events' | 'elapsed' = 'events'
     override render() {
         const playback = this.props.playback
@@ -10,13 +11,13 @@ export class TracePlaybackControls extends TraceView {
         const count = events.length
         const cursor = this.cursor
         return this.host({role: 'group', 'aria-label': 'Trace playback'}, h('div', {className: 'trace-actions'},
-            h('button', {type: 'button', disabled: !playback || !count, onClick: () => playback?.seek(0, count)}, 'First step'),
-            h('button', {type: 'button', disabled: !playback || cursor <= 0, onClick: () => playback?.step(-1, events)}, 'Previous step'),
-            h('button', {type: 'button', disabled: !playback || !count,
-                onClick: () => playback?.state.get().playing ? playback.pause() : playback?.play(events, {mode: this.mode})},
-                playback?.state.get().playing ? 'Pause' : 'Play'),
-            h('button', {type: 'button', disabled: !playback || cursor >= count - 1, onClick: () => playback?.step(1, events)}, 'Next step'),
-            h('button', {type: 'button', disabled: !playback || !count, onClick: () => playback?.seek(null, count)}, 'Complete flow'),
+            h(Button, {icon: 'first', ariaLabel: 'First step', appearance: 'subtle', disabled: !playback || !count, onClick: () => playback?.seek(0, count)}),
+            h(Button, {icon: 'previous', ariaLabel: 'Previous step', appearance: 'subtle', disabled: !playback || cursor <= 0, onClick: () => playback?.step(-1, events)}),
+            h(Button, {icon: playback?.state.get().playing ? 'pause' : 'play', ariaLabel: playback?.state.get().playing ? 'Pause' : 'Play', appearance: 'subtle', disabled: !playback || !count,
+                busy: playback?.state.get().playing ?? false, disableWhileRunning: false,
+                onClick: () => playback?.state.get().playing ? playback.pause() : playback?.play(events, {mode: this.mode})}),
+            h(Button, {icon: 'next', ariaLabel: 'Next step', appearance: 'subtle', disabled: !playback || cursor >= count - 1, onClick: () => playback?.step(1, events)}),
+            h(Button, {icon: 'last', ariaLabel: 'Complete flow', appearance: 'subtle', disabled: !playback || !count, onClick: () => playback?.seek(null, count)}),
             h('label', null, 'Step ', h('input', {type: 'range', min: 0, max: Math.max(0, count - 1), value: Math.max(0, cursor),
                 disabled: !playback || !count, 'aria-label': 'Replay step',
                 onInput: (event: Event) => playback?.seek(Number((event.currentTarget as HTMLInputElement).value), count)})),

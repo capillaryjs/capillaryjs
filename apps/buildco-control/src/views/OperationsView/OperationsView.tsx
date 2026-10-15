@@ -89,7 +89,7 @@ export class OperationsView extends Component {
 
         const table = (id: string, columns: TableColumn<OperationsRow>[]) => rows.length === 0
             ? <Placeholder/>
-            : <DataTable
+            : <DataTable busy={view.fetchState === "loading"}
                 caption={`Operations ${id}`}
                 className={compact === "true" ? "compact-rows" : null}
                 columns={columns}
@@ -111,12 +111,12 @@ export class OperationsView extends Component {
                 <Sidebar island allocation="flexible" header="Operations Register">
                     <SidebarToolbar>
                         <Toolbar label="Register search">
-                            <Textbox
+                            <Textbox busy={view.fetchState === "loading"}
                                 label="Search"
                                 placeholder="Filter records…"
                                 valueEmitter={this.state.field("search") as any}
                             />
-                            <Button
+                            <Button busy={view.fetchState === "loading"}
                                 label="Reset"
                                 onClick={() => {
                                     for (const key of filterFields) this.state.field(key).set(key === "overtime" || key === "standby" || key === "issueOnly" || key === "waste" || key === "blocked" || key === "slip" ? "neutral" : "");
@@ -126,35 +126,35 @@ export class OperationsView extends Component {
                     </SidebarToolbar>
                     <OptionsBox header="Filters">
                         <OptionGroup label="Scope">
-                            <Dropdown
+                            <Dropdown busy={view.fetchState === "loading"}
                                 label="Project"
                                 options={[{value: "", label: "All projects"}, ...(b.value.choices.projects ?? [])]}
                                 valueEmitter={this.state.field("project") as any}
                                 onChange={() => this.state.field("scope").set("")}
                             />
-                            <Dropdown
+                            <Dropdown busy={view.fetchState === "loading"}
                                 label="Scope"
                                 options={[{value: "", label: "All scopes"}, ...scopes]}
                                 valueEmitter={this.state.field("scope") as any}
                             />
                         </OptionGroup>
                         <OptionGroup label="Dates">
-                            <Textbox label="From" type="date" valueEmitter={this.state.field("from") as any}/>
-                            <Textbox label="To" type="date" valueEmitter={this.state.field("to") as any}/>
+                            <Textbox busy={view.fetchState === "loading"} label="From" type="date" valueEmitter={this.state.field("from") as any}/>
+                            <Textbox busy={view.fetchState === "loading"} label="To" type="date" valueEmitter={this.state.field("to") as any}/>
                         </OptionGroup>
                         <OptionGroup label="Register-specific filters">
                             {tab === "labour" && <>
-                                <Checkbox label="Overtime only" valueEmitter={this.state.field("overtime") as any}/>
-                                <Checkbox label="Include standby" valueEmitter={this.state.field("standby") as any}/>
-                                <Checkbox label="Issue-attributed only" valueEmitter={this.state.field("issueOnly") as any}/>
+                                <Checkbox busy={view.fetchState === "loading"} label="Overtime only" valueEmitter={this.state.field("overtime") as any}/>
+                                <Checkbox busy={view.fetchState === "loading"} label="Include standby" valueEmitter={this.state.field("standby") as any}/>
+                                <Checkbox busy={view.fetchState === "loading"} label="Issue-attributed only" valueEmitter={this.state.field("issueOnly") as any}/>
                             </>}
                             {tab === "materials" && <>
-                                <Checkbox label="Waste only" valueEmitter={this.state.field("waste") as any}/>
-                                <Checkbox label="Issue-attributed only" valueEmitter={this.state.field("issueOnly") as any}/>
+                                <Checkbox busy={view.fetchState === "loading"} label="Waste only" valueEmitter={this.state.field("waste") as any}/>
+                                <Checkbox busy={view.fetchState === "loading"} label="Issue-attributed only" valueEmitter={this.state.field("issueOnly") as any}/>
                             </>}
                             {tab === "progress" && <>
-                                <Checkbox label="Blocked reports only" valueEmitter={this.state.field("blocked") as any}/>
-                                <Checkbox label="Forecast slip" valueEmitter={this.state.field("slip") as any}/>
+                                <Checkbox busy={view.fetchState === "loading"} label="Blocked reports only" valueEmitter={this.state.field("blocked") as any}/>
+                                <Checkbox busy={view.fetchState === "loading"} label="Forecast slip" valueEmitter={this.state.field("slip") as any}/>
                             </>}
                         </OptionGroup>
                         <OptionGroup label="Display">
@@ -175,21 +175,23 @@ export class OperationsView extends Component {
                 <Panel island allocation="flexible" header="Operational Records">
                     <PanelToolbar>
                         <Toolbar label="Register paging">
+                            <Button icon="refresh" ariaLabel="Refresh results" appearance="subtle" busy={view.fetchState === "loading"} onClick={() => void this.query.refresh()}/>
                             <span className="result-count">{v.total} records</span>
-                            <Button
-                                label="Previous"
+                            <Button busy={view.fetchState === "loading"}
+                                icon="previous" ariaLabel="Previous" appearance="subtle"
                                 disabled={page <= 0}
                                 onClick={() => this.state.field("page").set(String(page - 1))}
                             />
                             <span className="page-info">Page {page + 1}</span>
-                            <Button
-                                label="Next"
+                            <Button busy={view.fetchState === "loading"}
+                                icon="next" ariaLabel="Next" appearance="subtle"
                                 disabled={page >= lastPage}
                                 onClick={() => this.state.field("page").set(String(page + 1))}
                             />
                         </Toolbar>
                     </PanelToolbar>
-                    <TabPanel
+                    {view.fetchState === "error" ? <p role="alert">{String(view.error ?? "The results could not be refreshed.")}</p> : null}
+                    <TabPanel busy={view.fetchState === "loading"}
                         label="Register tabs"
                         valueEmitter={this.state.tab}
                         mountPolicy="active-only"

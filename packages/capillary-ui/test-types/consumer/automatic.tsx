@@ -1,6 +1,12 @@
 import {Emitter} from '@capillaryjs/capillary'
 import {
     Button,
+    Icon,
+    ListView,
+    TreeView,
+    DataTable,
+    Popover,
+    TabLine,
     CapillaryUiApp,
     Layout,
     NavigationBar,
@@ -20,6 +26,19 @@ import {
 } from '@capillaryjs/capillary-ui'
 
 const tree = <Panel header="Automatic"><Button label="Save" /></Panel>
+const pending = new Emitter(false)
+const interactions = <Panel>
+    <Button icon="add" appearance="subtle" ariaLabel="Add item" busy={live(pending)} disableWhileRunning={false}
+        ariaControls="item-popup" ariaExpanded={false} ariaHasPopup="dialog"/>
+    <Icon name="grip"/>
+    <Popover label="Add relationship" anchor={null} defaultValue={false}>Target</Popover>
+    <ListView items={['one']} busy={live(pending)}/>
+    <TreeView label="Tree" nodes={[{id: 'one', label: 'One'}]} busy={live(pending)}/>
+    <DataTable data={[{name: 'One'}]} columns={[{field: 'name'}]} busy={live(pending)}/>
+    <TabLine tabs={[{id: 'one', label: 'One', busy: true}]} busy={live(pending)}/>
+    <TabPanel tabs={[{id: 'one', label: 'One', content: 'Content'}]} busy={live(pending)}/>
+</Panel>
+void interactions
 const input = <input aria-label="Name" ref={{current: null} as {current: HTMLInputElement | null}} />
 const sidebar = <Sidebar header="Requests">Request one</Sidebar>
 const layout = <Layout vertical scroll>Content</Layout>

@@ -52,12 +52,13 @@ export class EconomicTrendsView extends Component {
             <Panel island allocation="flexible" header="Economic Trends">
                 <PanelToolbar>
                     <Toolbar label="Trend controls">
-                    <Dropdown
+                        <Button icon="refresh" ariaLabel="Refresh results" appearance="subtle" busy={view.fetchState === "loading"} onClick={() => void this.query.refresh()}/>
+                    <Dropdown busy={view.fetchState === "loading"}
                         label="Project"
                         options={[{value: "", label: "All projects"}, ...(b.value.choices.projects ?? [])]}
                         valueEmitter={this.state.field("project") as any}
                     />
-                    <Dropdown
+                    <Dropdown busy={view.fetchState === "loading"}
                         label="Metric"
                         options={[
                             {value: "progress", label: "Progress"},
@@ -69,7 +70,7 @@ export class EconomicTrendsView extends Component {
                         ]}
                         valueEmitter={this.state.field("metric") as any}
                     />
-                    <RadioGroup
+                    <RadioGroup busy={view.fetchState === "loading"}
                         label="Chart mode"
                         options={[
                             ["false", "Individual lines"],
@@ -77,7 +78,7 @@ export class EconomicTrendsView extends Component {
                         ]}
                         valueEmitter={this.state.field("stacked") as any}
                     />
-                    <Toggle
+                    <Toggle busy={view.fetchState === "loading"}
                         label="Rendering"
                         options={[
                             ["true", "Smooth"],
@@ -87,6 +88,7 @@ export class EconomicTrendsView extends Component {
                     />
                     </Toolbar>
                 </PanelToolbar>
+                {view.fetchState === "error" ? <p role="alert">{String(view.error ?? "The results could not be refreshed.")}</p> : null}
                 <LineGraph
                     label={v.chartLabel ?? "Economic trends"}
                     shapes$={this.shapes}

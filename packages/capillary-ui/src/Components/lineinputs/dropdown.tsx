@@ -1,6 +1,6 @@
 import {Emitter, FetchState} from '@capillaryjs/capillary'
 import type {ReadableEmitter} from '@capillaryjs/capillary'
-import type {CapillaryUiChild, LivePropContract} from '../component.js'
+import type {CapillaryUiChild, LivePropContract, ComponentDependency} from '../component.js'
 import {
     assertOptions,
     componentClass,
@@ -56,7 +56,7 @@ export type DropdownProps<TValue extends DropdownValue = string> =
 export class Dropdown<TValue extends DropdownValue = string>
     extends SelectControl<DropdownProps<TValue>> {
     static override liveProps = dropdownLiveProps
-    static override dependencies = [ErrorMessage]
+    static override dependencies: ComponentDependency[] = [ErrorMessage]
     readonly inputId: string
     readonly errorId: string
     readonly optionsEmitter: ReadableEmitter<readonly DropdownOption<TValue>[], unknown>
@@ -126,10 +126,10 @@ export class Dropdown<TValue extends DropdownValue = string>
         const sourceError = hasSourceError
             ? this.optionsEmitter.getError()
             : null
-        const displayedError = error ?? invocationError ?? commandError ?? (hasSourceError
+        const displayedError = error ?? invocationError ?? commandError ?? this.additionalError ?? (hasSourceError
             ? sourceError ?? this.capillaryUiMessage('dropdownLoadError')
             : null)
-        const isBusy = busy || sourceBusy || commandRunning
+        const isBusy = busy || sourceBusy || commandRunning || this.additionalBusy
         const isDisabled = disabled || (commandRunning && disableWhileRunning)
 
         const Host = this.Host
@@ -177,6 +177,7 @@ export class Dropdown<TValue extends DropdownValue = string>
                         >{this.optionLabel(option)}</option>
                     })}
                 </select>
+                {this.additionalContent}
             </cap-selectshell>
             {displayedError == null ? null
                 : <ErrorMessage id={this.errorId} error={displayedError} />}
@@ -187,6 +188,11 @@ export class Dropdown<TValue extends DropdownValue = string>
     protected hostClass(): string {
         return componentClass(this.props)
     }
+
+    /** Subclasses may present a resource lifecycle in addition to value state. */
+    protected get additionalBusy(): boolean { return false }
+    protected get additionalError(): unknown { return null }
+    protected get additionalContent(): CapillaryUiChild { return null }
 
     /** Resolve the rendered label for one option. */
     protected optionLabel(option: DropdownOption<TValue>): CapillaryUiChild {
