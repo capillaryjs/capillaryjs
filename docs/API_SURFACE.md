@@ -156,7 +156,7 @@ custom elements.
 | Layout and navigation | `Breadcrumb`, `CapillaryUiApp`, `Layout`, `Header`, `GroupBox`, `NavigationBar`, `OptionGroup`, `OptionGroupHeaderEnd`, `OptionsBox`, `Panel`, `PanelToolbar`, `Sidebar`, `SidebarToolbar`, `SplitPrimary`, `SplitSecondary`, `SplitView`, `Tab`, `TabLine`, `TabPanel` |
 | Records and collections | `DescriptionItem`, `DescriptionList`, `InfoField`, `InfoPanel`, `Placeholder`, `ListView`, `TreeItem`, `TreeView` |
 | Tables and filters | `DataTable`, `FilterPanel`, `TableHeader`, `TableHeaderCell` |
-| Dialog and status | `Dialog`, `DialogActions`, `Popover`, `ProgressBar`, `StatusPresentation` (shared styling dependency) |
+| Dialog and status | `Dialog`, `DialogActions`, `Popover`, `Tooltip`, `ProgressBar`, `StatusPresentation` (shared styling dependency) |
 | Presentation selection | `ThemePicker`, `ColorPicker` |
 | Date and time (experimental) | `DatePicker`, `DateTimePicker`, `TimePicker` |
 
@@ -308,6 +308,14 @@ name/id/label/ariaLabel/optionsLabel/placeholder and inputRef contracts. Local
 search is not asynchronous work; supplied query errors/replacement do not undo
 selection. Runtime comboBox* messages supply UI-owned copy. Button.tabIndex is
 available for composite-widget indicators excluded from sequential keyboard focus.
+
+`Tooltip` requires nonempty plain `text` and a `trigger` factory receiving
+`{ariaDescribedBy, triggerRef}`. It accepts id and a finite nonnegative delayMs
+(default 350). Merge supplied description ids with other help/error associations
+and attach triggerRef to the native trigger (Button.buttonRef is supported).
+It uses a manual top-layer tooltip, delayed hover/focus, pointer transition grace,
+Escape dismissal and owner cleanup; it never takes/restores focus or contains
+actions. It does not supply the trigger's accessible name.
 
 ### Data helpers
 

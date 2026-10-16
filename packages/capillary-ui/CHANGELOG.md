@@ -8,6 +8,9 @@ Versioning.
 
 ### Added
 
+- Add supplemental `Tooltip` with delayed hover/focus, Escape dismissal,
+  hoverable text and shared native top-layer positioning without moving focus.
+  Button exposes a stable native buttonRef for explicit trigger composition.
 - Add `ComboBox` with separate accepted value/search text, strict or explicit
   custom-string entry, local/live options, native editing and listbox keyboard
   behavior. Option loading/replacement/errors retain accepted selection and

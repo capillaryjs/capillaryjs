@@ -6,6 +6,7 @@ import {
     TreeView,
     DataTable,
     Popover,
+    Tooltip,
     MenuButton,
     DropdownMenu,
     Form,
@@ -34,6 +35,11 @@ import {
 } from '@capillaryjs/capillary-ui'
 
 const tree = <Panel header="Automatic"><Button label="Save" /></Panel>
+const hint = <Tooltip text="Hold Shift for small steps" trigger={({ariaDescribedBy, triggerRef}) =>
+    <Button icon="pan" ariaLabel="Pan" title="" ariaDescribedBy={ariaDescribedBy} buttonRef={triggerRef}/>} />
+// @ts-expect-error Tooltip content is noninteractive plain supplemental text.
+const interactiveHint = <Tooltip text={<Button label="Action"/>} trigger={() => null}/>
+void [hint, interactiveHint]
 const pending = new Emitter(false)
 const interactions = <Panel>
     <MenuButton icon="add" ariaLabel="Create" disabled={live(pending)} items={[{id: 'class', label: 'Class', onSelect: () => {}}]}/>

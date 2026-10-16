@@ -65,6 +65,11 @@ without looking like an ordinary standalone button.
 
 ## Keep manipulation direct and contextual
 
+Supplemental hints may use `Tooltip` with a separately named trigger. Keep
+essential instructions visible, especially for touch, and use Popover rather
+than a tooltip when the surface contains controls. A tooltip must not be the
+only way to identify an icon or discover an essential action.
+
 Use a `MenuButton` for a compact group of commands such as creating different
 definition kinds. A visible, named add icon can open a short anchored menu with
 descriptive labels. Do not present routine commands as an expandable content

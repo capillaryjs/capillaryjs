@@ -1,5 +1,5 @@
 import {AsyncCommand, Emitter, LiveQuery} from '@capillaryjs/capillary'
-import {Button, CapillaryUiApp, ComboBox, Form, FormField, FormLayout, MenuButton, TextArea, Textbox, live} from '../../src/index.js'
+import {Button, CapillaryUiApp, ComboBox, Form, FormField, FormLayout, MenuButton, TextArea, Textbox, Tooltip, live} from '../../src/index.js'
 import type {ComboBoxOption} from '../../src/index.js'
 import '../../themes/base.css'
 import '../../colors/iceblue/colors.css'
@@ -98,10 +98,17 @@ class WorkbenchPrimitivesFixture extends CapillaryUiApp {
                 <Button onClick={() => this.finishChoice?.()}>Finish choice action</Button>
                 <Button onClick={() => this.failChoice?.(new Error('Choice details failed'))}>Fail choice action</Button>
             </section>
+            <section aria-label="Supplemental tooltips">
+                <h2>Supplemental tooltips</h2>
+                <div style={{overflow: 'hidden', inlineSize: '4rem', blockSize: '3rem', marginInlineStart: 'auto'}}>
+                    <Tooltip text="Use arrow keys on the canvas to pan." trigger={({ariaDescribedBy, triggerRef}) =>
+                        <Button icon="pan" ariaLabel="Pan canvas" title="" ariaDescribedBy={ariaDescribedBy} buttonRef={triggerRef}/>} />
+                </div>
+            </section>
             <div style={{blockSize: '70rem'}}/>
         </>
     }
-    static override dependencies = [Button, MenuButton, Form, FormLayout, FormField, TextArea, Textbox, ComboBox]
+    static override dependencies = [Button, MenuButton, Form, FormLayout, FormField, TextArea, Textbox, ComboBox, Tooltip]
     override onDestroy(): void {
         this.save.dispose(); this.formCommand.dispose(); this.submitted.dispose(); this.formError.dispose(); this.formInvocations.dispose()
         this.choose.dispose(); this.optionQuery.dispose(); this.optionSearch.dispose(); this.optionRequests.dispose()

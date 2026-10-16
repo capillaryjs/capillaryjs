@@ -34,7 +34,7 @@ export class Popover<TProps extends PopoverProps = PopoverProps> extends Compone
     render(): CapillaryUiChild {
         const Host = this.Host
         return <Host className={componentClass(this.props) || null}>
-            <div id={this.panelId} popover="auto" role={this.surfaceRole} aria-label={this.props.label}
+            <div id={this.panelId} popover={this.popoverMode} role={this.surfaceRole} aria-label={this.surfaceLabel}
                 aria-busy={this.surfaceBusy ? 'true' : null}
                 tabIndex={-1} ref={(element: HTMLElement | null) => this.panel = element}>
                 {this.renderSurfaceContent()}
@@ -43,7 +43,9 @@ export class Popover<TProps extends PopoverProps = PopoverProps> extends Compone
     }
 
     /** Specialized widgets retain their own semantics and keyboard model. */
-    protected get surfaceRole(): 'dialog' | 'menu' | 'listbox' { return 'dialog' }
+    protected get surfaceRole(): 'dialog' | 'menu' | 'listbox' | 'tooltip' { return 'dialog' }
+    protected get popoverMode(): 'auto' | 'manual' { return 'auto' }
+    protected get surfaceLabel(): string | null { return this.props.label }
     protected get restoreFocusOnClose(): boolean { return true }
     protected get surfaceBusy(): boolean { return false }
     protected containsTrigger(target: Node | null): boolean { return this.props.anchor?.contains(target) ?? false }

@@ -4,6 +4,42 @@ import {AxeBuilder} from '@axe-core/playwright'
 
 test.beforeEach(async ({page}) => { await page.goto('/workbench-primitives.html') })
 
+test('tooltip supplements focus, delays entry, escapes clipping and dismisses without focus movement', async ({page}) => {
+    await page.setViewportSize({width: 375, height: 700})
+    const trigger = page.getByRole('button', {name: 'Pan canvas', exact: true})
+    const tooltip = page.getByRole('tooltip')
+    await trigger.scrollIntoViewIfNeeded(); await trigger.focus()
+    await expect(trigger).toHaveAccessibleDescription('Use arrow keys on the canvas to pan.')
+    await expect(tooltip).not.toBeVisible()
+    await expect(tooltip).toBeVisible()
+    await expect(trigger).toBeFocused()
+    expect(await tooltip.evaluate(element => element.matches(':popover-open'))).toBe(true)
+    const bounds = (await tooltip.boundingBox())!
+    expect(bounds.x).toBeGreaterThanOrEqual(7)
+    expect(bounds.x + bounds.width).toBeLessThanOrEqual(368)
+    await page.keyboard.press('Escape'); await expect(tooltip).not.toBeVisible()
+    await expect(trigger).toBeFocused()
+    await page.waitForTimeout(400); await expect(tooltip).not.toBeVisible()
+    await page.getByRole('textbox', {name: 'After menu'}).focus()
+    await page.mouse.move(0, 0); await trigger.hover(); await expect(tooltip).toBeVisible()
+    await tooltip.hover(); await page.waitForTimeout(180); await expect(tooltip).toBeVisible()
+    await page.mouse.move(0, 0); await expect(tooltip).not.toBeVisible()
+})
+
+test('manual tooltip does not dismiss an open menu or steal its keyboard focus', async ({page}) => {
+    await page.getByRole('button', {name: 'Create definition'}).click()
+    const item = page.getByRole('menuitem', {name: 'Class', exact: true})
+    await expect(item).toBeFocused()
+    await page.getByRole('button', {name: 'Pan canvas', exact: true}).hover()
+    await expect(page.getByRole('tooltip')).toBeVisible()
+    await expect(page.getByRole('menu')).toBeVisible(); await expect(item).toBeFocused()
+    const results = await new AxeBuilder({page}).include('section[aria-label="Supplemental tooltips"]').analyze()
+    expect(results.violations).toEqual([])
+    await page.keyboard.press('Escape'); await expect(page.getByRole('tooltip')).not.toBeVisible()
+    await expect(page.getByRole('menu')).toBeVisible()
+    await page.keyboard.press('Escape'); await expect(page.getByRole('menu')).not.toBeVisible()
+})
+
 test('action menu escapes clipping and supports keyboard, typeahead, disabled items and focus handoff', async ({page}) => {
     await page.setViewportSize({width: 375, height: 700})
     const trigger = page.getByRole('button', {name: 'Create definition'})

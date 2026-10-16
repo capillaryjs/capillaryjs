@@ -1,6 +1,6 @@
 import {css} from '../component.js'
 import {LineControl} from '../lineinputs/LineControl.js'
-import type {ComponentProps, CapillaryUiChild, LivePropContract} from '../component.js'
+import type {ComponentProps, CapillaryUiChild, LivePropContract, Ref} from '../component.js'
 import {classNames, componentClass, controlId, invoke} from '../controlUtils.js'
 import {Icon} from './icon.js'
 import type {IconName} from './icon.js'
@@ -33,6 +33,7 @@ interface ButtonCommonProps extends ComponentProps,
     value?: string | number
     title?: string
     tabIndex?: number
+    buttonRef?: Ref<HTMLButtonElement>
     ariaLabel?: string
     ariaDescribedBy?: string
     formNoValidate?: boolean
@@ -62,7 +63,23 @@ export class Button extends LineControl<ButtonProps> {
     readonly errorId: string
     private readonly commandPresentation = new CommandInvocationPresentation(() => this.update())
     private nativeButton: HTMLButtonElement | null = null
-    private readonly captureButton = (button: HTMLButtonElement | null): void => { this.nativeButton = button }
+    private readonly captureButton = (button: HTMLButtonElement | null): void => {
+        this.nativeButton = button
+        this.assignRef(this.props.buttonRef, button)
+    }
+
+    override setProps(nextProps: ButtonProps): this {
+        const changed = this.props.buttonRef !== nextProps.buttonRef
+        if (changed) this.assignRef(this.props.buttonRef, null)
+        super.setProps(nextProps)
+        if (changed) this.assignRef(nextProps.buttonRef, this.nativeButton)
+        return this
+    }
+
+    private assignRef(ref: Ref<HTMLButtonElement> | undefined, button: HTMLButtonElement | null): void {
+        if (typeof ref === 'function') ref(button)
+        else if (ref) ref.current = button
+    }
 
     constructor(props: ButtonProps = {}) {
         super(props)

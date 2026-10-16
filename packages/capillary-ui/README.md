@@ -482,6 +482,30 @@ Owned UI text is configurable through the `comboBoxOptionsLabel`,
 `comboBoxOpenLabel`, `comboBoxEmpty`, `comboBoxLoading` and `comboBoxRequired`
 runtime messages, with ordinary English fallback.
 
+#### Supplemental tooltips
+
+`Tooltip` supplements an independently named trigger with plain text. It appears
+after 350 ms of hover/focus (override `delayMs`), stays open while the pointer is
+over either surface, and dismisses on Escape or leaving both. Focus never moves.
+It shares native top-layer positioning but does not dismiss an open menu.
+
+```tsx
+<Tooltip text="Use arrow keys on the canvas to pan." trigger={({ariaDescribedBy, triggerRef}) =>
+    <Button icon="pan" ariaLabel="Pan canvas" title=""
+        ariaDescribedBy={ariaDescribedBy} buttonRef={triggerRef}/>} />
+```
+
+Attach `triggerRef` to the actual native element; use Button.buttonRef,
+Textbox.inputRef, or native `ref`. Merge `ariaDescribedBy` with existing help ids
+instead of replacing them. Button preserves its own error/form descriptions.
+Use `title=""` to suppress duplicate native title hints. Optional `id` sets the
+tooltip id. Text must be nonempty and delay finite/nonnegative. The ref, timers
+and listeners are cleaned up with the owner or trigger replacement.
+
+Tooltips cannot contain actions; use Popover for interactive content. Do not put
+an action's only name or essential instructions in hover-only help. Touch users
+must be able to complete the task without discovering a tooltip.
+
 #### Action menus
 
 Use `MenuButton` to offer a compact set of actions, not to select a persistent
@@ -766,6 +790,7 @@ virtualization, and server-specific wire policy remain application concerns.
 | --- | --- | --- |
 | `Dialog` | Controlled native modal with focus containment and restoration | `title`, `description`, `DialogActions` and ordinary content children, `valueEmitter`/`defaultValue`, `closeLabel`, `showCloseButton`, `initialFocusRef`, `onClose` |
 | `Popover` | Anchored native nonmodal top-layer panel | required `label`, `anchor: HTMLElement \| null`, `valueEmitter`/`defaultValue`, `id`, `initialFocusRef`, `onClose`, ordinary content children |
+| `Tooltip` | Noninteractive supplemental text | required `text`, `trigger({ariaDescribedBy, triggerRef})`; optional `id`, `delayMs` (350 ms); trigger keeps its own name and focus |
 | `Icon` | Decorative current-color intent glyph | required `name: IconName`; compose with an accessible control, not as a standalone named action |
 | `ProgressBar` | Labelled native progress with visual track | required `label`, `value` or `valueEmitter`, `max`, `valueText`; fills its available width; `null` is indeterminate; emitter-backed busy chrome (including determinate bars) requires `FetchState.Loading` |
 | `ThemePicker` | Select and await a Capillary UI theme link | value props, `options`, `label`/`ariaLabel`, live `disabled`/`readOnly`/`busy`/`error`, `targetDocument`, `onChange` |
@@ -773,7 +798,7 @@ virtualization, and server-specific wire policy remain application concerns.
 
 Use `Button icon="add" ariaLabel="Add item" appearance="subtle"` for a compact
 contextual action. Icon-only buttons require `ariaLabel`, which also supplies the
-default tooltip; icons remain decorative and visible while busy. Supported
+default native title hint; icons remain decorative and visible while busy. Supported
 `IconName` values are `add`, `remove`, `close`, `delete`, `grip`, `pan`, `zoom-in`,
 `zoom-out`, `fit`, `reset`, `refresh`, `undo`, `redo`, `pin`, `connect`, `download`,
 `play`, `pause`, `first`, `previous`, `next`, `last`.

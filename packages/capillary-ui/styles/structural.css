@@ -1266,9 +1266,11 @@ cap-filterpanel {
         }
 
 cap-popover,
+cap-tooltipsurface,
 cap-comboboxoptions,
 cap-dropdownmenu { display: contents; }
         cap-popover > [popover],
+        cap-tooltipsurface > [popover],
         cap-comboboxoptions > [popover],
         cap-dropdownmenu > [popover] {
             position: fixed;
@@ -1287,9 +1289,11 @@ cap-dropdownmenu { display: contents; }
             font: inherit;
         }
         cap-popover > [popover]::backdrop,
+        cap-tooltipsurface > [popover]::backdrop,
         cap-comboboxoptions > [popover]::backdrop,
         cap-dropdownmenu > [popover]::backdrop { background: transparent; }
         @media (forced-colors: active) { cap-popover > [popover],
+ cap-tooltipsurface > [popover],
  cap-comboboxoptions > [popover],
  cap-dropdownmenu > [popover] { border: 1px solid CanvasText; } }
 
@@ -1518,6 +1522,10 @@ cap-dialog > dialog {
                 background: Canvas;
             }
         }
+
+cap-tooltip { display: contents; }
+
+cap-tooltipsurface > [popover] { max-inline-size: min(22rem, calc(100vw - 1rem)); padding: .4rem .6rem; }
 
 cap-combobox { display: grid; grid-template-columns: minmax(0, 1fr); min-inline-size: 0; }
         cap-combobox:has(> label) { grid-template-columns: max-content minmax(0, 1fr); }
