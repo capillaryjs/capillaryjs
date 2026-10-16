@@ -137,7 +137,7 @@ describe('action and text controls', () => {
         const element = requiredQuery<HTMLButtonElement>('button', host)
         assert.equal(element.disabled, true)
         assert.equal(element.getAttribute('aria-busy'), 'true')
-        assert.equal(element.textContent, 'Refreshing…')
+        assert.equal(element.textContent, 'Refresh', 'brief pending work keeps the ordinary label')
         element.click()
         assert.equal(calls, 0)
 
@@ -177,7 +177,7 @@ describe('action and text controls', () => {
         await Promise.resolve()
         assert.equal(directRuns, 1)
         assert.equal(button.disabled, true)
-        assert.equal(button.textContent, 'Refreshing…')
+        assert.equal(button.textContent, 'Refresh', 'command feedback uses the shared visual delay')
         release()
         await Promise.resolve()
         await Promise.resolve()

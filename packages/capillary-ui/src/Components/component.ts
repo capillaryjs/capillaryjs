@@ -558,6 +558,9 @@ export class Component<TProps extends ComponentProps = ComponentProps> {
     private updating = false
     private updateRequested = false
     private readonly cleanupFunctions = new Set<() => void>()
+    private readonly busyPresentations = new Map<string, {
+        identity: unknown; visible: boolean; timer: ReturnType<typeof setTimeout> | null
+    }>()
     private readonly watched = new Map<Watchable, () => void>()
     private readonly renderReadSubscriptions = new Map<Watchable, () => void>()
     private collectingRenderReads: Set<Watchable> | null = null
@@ -807,6 +810,33 @@ export class Component<TProps extends ComponentProps = ComponentProps> {
         })
     }
 
+    /**
+     * Delay visual loading only. Call every render with actual pending state;
+     * use fixed slot names for independent surfaces and identity for replacement.
+     * ARIA state, errors and interaction guards must use the original state.
+     */
+    protected presentBusy(pending: boolean, slot = 'default', identity: unknown = null): boolean {
+        const previous = this.busyPresentations.get(slot)
+        if (!pending || !Object.is(previous?.identity, identity)) {
+            if (previous?.timer != null) clearTimeout(previous.timer)
+            this.busyPresentations.delete(slot)
+        }
+        if (!pending || this.destroyed) return false
+        const current = this.busyPresentations.get(slot)
+        if (current != null) return current.visible
+        if (this._runtime.busyDelayMs === 0) return true
+        if (!this.mounted) return false
+        const entry = {identity, visible: false, timer: null as ReturnType<typeof setTimeout> | null}
+        this.busyPresentations.set(slot, entry)
+        entry.timer = setTimeout(() => {
+            if (this.destroyed || this.busyPresentations.get(slot) !== entry) return
+            entry.timer = null
+            entry.visible = true
+            this.update()
+        }, this._runtime.busyDelayMs)
+        return false
+    }
+
     onCleanup(cleanup: () => void): () => void {
         if (typeof cleanup !== 'function') throw new TypeError('cleanup must be a function')
         if (this.destroyed) {
@@ -925,6 +955,10 @@ export class Component<TProps extends ComponentProps = ComponentProps> {
         if (this.destroyed) return
         this.destroyed = true
         this.mounted = false
+        for (const entry of this.busyPresentations.values()) {
+            if (entry.timer != null) clearTimeout(entry.timer)
+        }
+        this.busyPresentations.clear()
         Diagnostics.dispose(this)
 
         for (const cleanup of [...this.cleanupFunctions]) cleanup()

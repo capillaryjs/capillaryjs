@@ -6,6 +6,7 @@ import {Component, css} from '../../component.js'
 import type {ComponentProps, CapillaryUiChild, LivePropContract} from '../../component.js'
 import {componentClass} from '../../controlUtils.js'
 import {ErrorMessage} from '../../status/statusPresentation.js'
+import {BusyIdentity} from '../../status/busyIdentity.js'
 import type {ValueEmitter} from '../../controlUtils.js'
 import {
     createSelectionHandler,
@@ -23,9 +24,11 @@ import {
 } from '../../commandSupport.js'
 import type {CommandAction, CommandInteractionOptions} from '../../commandSupport.js'
 
-interface ListViewCommonProps<TItem> extends ComponentProps, CommandInteractionOptions, LivePropContract<'busy'> {
-    /** Pending work caused by selection but owned outside this list. Does not disable selection. */
+interface ListViewCommonProps<TItem> extends ComponentProps, CommandInteractionOptions, LivePropContract<'busy' | 'selectionBusy'> {
+    /** Pending work on the collection's own data. Does not disable selection. */
     busy?: boolean
+    /** Required results for the accepted selection; presented on selected items. */
+    selectionBusy?: boolean
     items?: readonly TItem[] | ReadableEmitter<readonly TItem[] | undefined, unknown>
     itemKey?: string | ItemKeyGetter<TItem>
     label?: string
@@ -54,7 +57,7 @@ export type ListViewProps<TItem = unknown> = ListViewCommonProps<TItem> & (
 
 /** Accessible listbox with stable-key selection. */
 export class ListView<TItem = unknown> extends Component<ListViewProps<TItem>> {
-    static override liveProps = ['busy'] as const
+    static override liveProps = ['busy', 'selectionBusy'] as const
     readonly itemsEmitter: ReadableEmitter<readonly TItem[] | undefined, unknown>
     readonly items$: ReadableEmitter<readonly TItem[] | undefined, unknown>
     readonly selectedItemsEmitter: ValueEmitter<TItem[]>
@@ -65,6 +68,7 @@ export class ListView<TItem = unknown> extends Component<ListViewProps<TItem>> {
     readonly selectionHandler: BaseSelectionHandler<TItem>
     private readonly ownedItemsEmitter: Emitter<readonly TItem[]> | null
     private readonly commandPresentation = new CommandInvocationPresentation(() => this.update())
+    private readonly busySelection = new BusyIdentity()
 
     constructor(props: ListViewProps<TItem> = {}) {
         super(props)
@@ -150,14 +154,19 @@ export class ListView<TItem = unknown> extends Component<ListViewProps<TItem>> {
         const replacesContent = status === FetchState.Initial
             || (status === FetchState.Loading && result === undefined)
         const retainedLoading = (status === FetchState.Loading || this.props.busy === true) && result !== undefined
-        const isBusy = isLoading || commandRunning || this.props.busy === true
+        const isBusy = isLoading || this.props.busy === true
+        const visibleBusy = this.presentBusy(isBusy && error == null, 'data')
+        const selectionBusy = commandRunning || this.props.selectionBusy === true
         const selectedKeys = new Set(this.selectedItemsEmitter.get()
             .map((item, index) => this.getItemKey(item, index)))
+        const visibleSelectionBusy = this.presentBusy(selectionBusy && commandError == null && invocationError == null,
+            'selection', this.busySelection.for(selectedKeys))
 
         const Host = this.Host
         return <Host
             className={componentClass(this.props) || null}
             aria-busy={isBusy ? 'true' : null}
+            data-cap-busy-visible={visibleBusy ? '' : null}
             data-cap-retained-loading={retainedLoading ? '' : null}
         >
             {status === FetchState.Error
@@ -200,6 +209,9 @@ export class ListView<TItem = unknown> extends Component<ListViewProps<TItem>> {
                         role="option"
                         data-cap-selectable-row=""
                         aria-selected={String(selected)}
+                        aria-busy={selected && selectionBusy ? 'true' : null}
+                        data-cap-busy-visible={selected && visibleSelectionBusy ? '' : null}
+                        className="cap-working"
                         tabIndex={index === 0 ? 0 : -1}
                     >{content}</li>
                 })}</ul>
@@ -289,7 +301,7 @@ export class ListView<TItem = unknown> extends Component<ListViewProps<TItem>> {
             list-style: none;
         }
 
-        &[data-cap-retained-loading]::after {
+        &[data-cap-retained-loading][data-cap-busy-visible]::after {
             content: "";
             position: absolute;
             z-index: 1;

@@ -8,6 +8,13 @@ Versioning.
 
 ### Added
 
+- Add runtime `busyDelayMs` (150 ms by default), protected
+  `Component.presentBusy()` and reusable `StatusPresentation` styling. Loading
+  decoration and busy labels are delayed; ARIA, errors and guards are immediate.
+- Add live `selectionBusy` on TreeView, ListView and DataTable. Selection commands
+  mark selected items instead of their entire collection; table query feedback
+  identifies the initiating header rather than every sort/filter control.
+
 - Add decorative `Icon`, icon/subtle Button presentation, and anchored native
   `Popover` with dismissal, viewport positioning and focus restoration.
 - Add live external busy presentation for collections, tabs, table headers and
@@ -17,6 +24,9 @@ Versioning.
 - Document complete application theme boundaries and interaction design rules
   for buttons, widget manipulation, icons and mandatory async pending feedback.
   Include the linked interaction guide in the published package.
+- Distinguish required operation outcomes, selection with required result loading,
+  and independent reactions, including their separate busy/error ownership and
+  successful-write/failed-refresh recovery.
 
 ### Fixed
 

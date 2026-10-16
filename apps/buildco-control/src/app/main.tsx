@@ -24,10 +24,11 @@ import {
 import {bootstrap, demo} from "./services.ts";
 import {routes, router} from "./routing.ts";
 import {palettes, themes} from "./appearance.ts";
+import {OperationFeedback} from "./OperationFeedback.tsx";
 
 class BuildCoApp extends CapillaryUiApp {
     static dependencies = [
-        NavigationBar, RouteOutlet, ThemePicker, ColorPicker,
+        NavigationBar, RouteOutlet, ThemePicker, ColorPicker, OperationFeedback,
         OverviewView, ProjectsView, QueueView, OperationsView,
         IssueAnalysisView, IssueReportView, EconomicTrendsView,
     ];
@@ -63,7 +64,9 @@ class BuildCoApp extends CapillaryUiApp {
                 />
             </header>
             <main id="main-content" className="cap-size-flexible cap-layout-vertical" tabIndex={-1}>
+                <OperationFeedback/>
                 <RouteOutlet
+                    key="main-content-route"
                     className="cap-size-flexible cap-layout-vertical"
                     mountPolicy="active-only"
                     views={[

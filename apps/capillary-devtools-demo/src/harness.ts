@@ -17,7 +17,8 @@ class ScenarioApp extends Component<ScenarioProps> {
     private readonly runCommand = bindCommand(this.props.model.command, () => this.props.model.normalized.get())
     initialize(): void {
         this.onCleanup(this.props.model.command.succeeded.subscribe(() => {
-            this.queryOrigin = 'Run command'
+            // The save is complete; its query refresh is an independent reaction.
+            this.queryOrigin = null
             this.update()
         }))
     }
@@ -36,8 +37,8 @@ class ScenarioApp extends Component<ScenarioProps> {
                 button('Unchanged normalization', () => model.unchangedWrite()), button('Fail then retry', () => model.retry(), true),
                 button('Start pending request', () => model.startPending(), true), button('Supersede pending request', () => model.supersede(), true),
                 button('Abort request', () => model.abort()), button('Dispose query', () => model.query.dispose()),
-                h(Button, {label: 'Run command', command: this.runCommand, disableWhileRunning: false,
-                    busy: loading && this.queryOrigin === 'Run command'}), button('Complete command', () => model.completeCommand()),
+                h(Button, {label: 'Run command', command: this.runCommand, disableWhileRunning: false}),
+                button('Complete command', () => model.completeCommand()),
                 button('Abort command', () => model.command.abort())),
             h('div', {className: 'scenario-results'},
                 h(DataTable, {dataSource: model.table, caption: 'Search results', rowKey: 'id',

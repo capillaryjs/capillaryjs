@@ -155,7 +155,7 @@ custom elements.
 | Layout and navigation | `Breadcrumb`, `CapillaryUiApp`, `Layout`, `Header`, `GroupBox`, `NavigationBar`, `OptionGroup`, `OptionGroupHeaderEnd`, `OptionsBox`, `Panel`, `PanelToolbar`, `Sidebar`, `SidebarToolbar`, `SplitPrimary`, `SplitSecondary`, `SplitView`, `Tab`, `TabLine`, `TabPanel` |
 | Records and collections | `DescriptionItem`, `DescriptionList`, `InfoField`, `InfoPanel`, `Placeholder`, `ListView`, `TreeItem`, `TreeView` |
 | Tables and filters | `DataTable`, `FilterPanel`, `TableHeader`, `TableHeaderCell` |
-| Dialog and status | `Dialog`, `DialogActions`, `Popover`, `ProgressBar` |
+| Dialog and status | `Dialog`, `DialogActions`, `Popover`, `ProgressBar`, `StatusPresentation` (shared styling dependency) |
 | Presentation selection | `ThemePicker`, `ColorPicker` |
 | Date and time (experimental) | `DatePicker`, `DateTimePicker`, `TimePicker` |
 
@@ -172,6 +172,22 @@ Notable public behavior:
   `disableWhileRunning={false}` explicitly permits repeat/replacement while
   retaining busy presentation. Explicit `disabled` always wins. Application
   commands and lifecycle stay in Capillary/application code.
+- Applications define interaction completion: a required operation outcome,
+  accepted state with required result loading, or a complete interaction with
+  independent reactions. Explicit origin `busy` covers required work only;
+  independent reactions expose their own query/command/connection errors.
+  These are composition contracts, not new emitter modes or automatic awaiting
+  of subscribers. A control's own data-loading state remains visible.
+- `CapillaryUiRuntimeOptions.busyDelayMs` controls shared visual loading delay
+  (150 ms by default; zero is immediate). ARIA, activation guards and errors
+  remain immediate. Protected `Component.presentBusy(pending, slot?, identity?)`
+  provides the same disposable timing to custom surfaces; exported
+  `StatusPresentation` supplies their shared `cap-working` decoration using
+  `data-cap-busy-visible`. Completion has no minimum display duration.
+- Collection `busy` describes data loading; live `selectionBusy` describes
+  required selected-item results. Selection commands decorate the selected
+  items. Table loading decorates a header only for its own requested sort/filter;
+  local synchronous sort/filter does not acquire a loading lifecycle.
 - `Icon` renders a decorative, current-color intent glyph. `Button.icon`
   retains the glyph while working; icon-only buttons require `ariaLabel`.
   `appearance="subtle"` gives contextual buttons compact chrome without losing

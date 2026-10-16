@@ -17,18 +17,29 @@ Requires Node 22.6+ and pnpm 10. From the `framework` directory:
 pnpm --filter @sylwellsoftware/buildco-control dev
 ```
 
-Open **http://127.0.0.1:5173/**. The default 40-project scenario is generated in a
-Web Worker; initial generation can take around 30 seconds. Use
-**http://127.0.0.1:5173/?profile=small** for the five-project quick-start dataset.
+Open **http://127.0.0.1:5173/** for the default five-project quick-start dataset.
+The scenario is generated in a Web Worker. Use
+**http://127.0.0.1:5173/?profile=demo** for forty projects; initial generation of
+that larger profile can take around 30 seconds.
 No backend is required in this embedded mode. All data stays local.
 
 The overview's attention items are native links in an ordinary list, so keyboard
 navigation does not nest links inside selectable listbox options. Header/footer
 copy retains its full theme contrast rather than fading text and picker labels.
-Active query filters and result collections share their query's pending state,
+Pending feedback follows the changed criterion, selected item and affected
+results. Explicit refresh/reset/paging actions own commands, so sibling controls
+do not animate during their work. Tree filtering, overview order and chart display
+choices use available data without a transport query. Capillary UI suppresses
+brief loading flashes through its shared 150 ms visual delay. Result collections
 retain old results and expose refresh failures with compact refresh actions.
-Mutation completion includes bootstrap reconciliation; issue Save joins the
-already-started report refresh before closing its dialog.
+Mutation completion ends at backend confirmation; issue Save joins the
+already-started report refresh before closing its dialog. Confirmed mutation
+success remains visible if that read fails; Refresh issue report retries the
+read. Bootstrap/reference-data refresh has separate progress, error and Retry
+presentation and does not extend mutation completion.
+Success consequences are separate `connect()` relationships: even an observer
+failure cannot turn the confirmed write into command failure or suppress the
+other refresh connections.
 
 ```sh
 pnpm --filter @sylwellsoftware/buildco-control build

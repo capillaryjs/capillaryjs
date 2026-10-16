@@ -1,7 +1,7 @@
 import {Emitter, FetchState} from '@capillaryjs/capillary'
 import type {ReadableEmitter} from '@capillaryjs/capillary'
-import {Component, css} from '@capillaryjs/capillary-ui'
-import type {ComponentProps, CapillaryUiChild} from '@capillaryjs/capillary-ui'
+import {Component, StatusPresentation, css} from '@capillaryjs/capillary-ui'
+import type {ComponentProps, CapillaryUiChild, LivePropContract} from '@capillaryjs/capillary-ui'
 
 import {civilDateToDay, dayToCivilDate} from '../dates.js'
 import type {CivilDate} from '../dates.js'
@@ -16,7 +16,9 @@ import type {HistoryShape} from '../series.js'
 
 type Source<TValue> = TValue | ReadableEmitter<TValue>
 
-export interface LineGraphProps extends ComponentProps {
+export interface LineGraphProps extends ComponentProps, LivePropContract<'busy'> {
+    /** Pending replacement data owned by the caller; preserves the current graph. */
+    readonly busy?: boolean
     /** Snapshot data or a readable source that drives the graph. */
     readonly shapes$: Source<readonly HistoryShape[]>
     readonly stacked$: Source<boolean>
@@ -30,7 +32,7 @@ export interface LineGraphProps extends ComponentProps {
 
 /** Responsive SVG history line/area chart with pointer and keyboard readout. */
 export class LineGraph extends Component<LineGraphProps> {
-    static override liveProps: readonly string[] = []
+    static override liveProps = ['busy'] as const
     private readonly cursorDate$ = new Emitter<CivilDate | null>(null, {
         owner: this,
         purpose: 'line graph cursor date',
@@ -89,9 +91,11 @@ export class LineGraph extends Component<LineGraphProps> {
         const formatValue = this.props.formatValue ?? ((value: number) => String(value))
         const Host = this.Host
         return <Host
-            className={(this.props.className ?? this.props.class ?? '') || null}
+            className={`${this.props.className ?? this.props.class ?? ''} cap-working`.trim()}
             aria-label={label}
-            aria-busy={state !== FetchState.Ready ? 'true' : null}
+            aria-busy={state === FetchState.Loading || this.props.busy ? 'true' : null}
+            data-cap-busy-visible={this.presentBusy((state === FetchState.Loading || this.props.busy === true)
+                && state !== FetchState.Error && calculationError == null) ? '' : null}
         >
             <header>
                 <h2>{label}</h2>
@@ -145,6 +149,7 @@ export class LineGraph extends Component<LineGraphProps> {
     }
 
     static override hostName = 'line-graph'
+    static override dependencies = [StatusPresentation]
 
     static css = css`
         & {

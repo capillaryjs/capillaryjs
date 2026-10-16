@@ -6,6 +6,11 @@ Versioning.
 
 ## Unreleased
 
+### Changed
+
+- Clarify application-owned interaction completion, independent reaction errors,
+  and successful-write recovery without replaying a failed follow-up refresh.
+
 ## 1.6.0 - 2026-09-30
 
 ### Added

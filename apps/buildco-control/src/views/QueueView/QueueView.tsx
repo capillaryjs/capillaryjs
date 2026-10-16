@@ -1,3 +1,4 @@
+import {ViewFeedback} from "../ViewFeedback.js";
 import type {CapillaryUiChild} from "@capillaryjs/capillary-ui";
 import {
     Component, ListView, Panel, PanelToolbar, Sidebar, SidebarToolbar,
@@ -49,6 +50,10 @@ export class QueueView extends Component {
         affinities: encodeModes(params, this.affinityKeys),
     }));
     private query = buildco.view("queue", {params: this.queryParams, revision}, {owner: this});
+    private readonly feedback = new ViewFeedback(this.query, this.queryParams, this);
+    private readonly resetSearch = this.feedback.operation('reset search criteria', () => this.resetCriteria());
+    private readonly resetConditions = this.feedback.operation('reset condition criteria', () => this.resetCriteria());
+    private readonly resetEmpty = this.feedback.operation('reset empty results', () => this.resetCriteria());
 
     initialize(): void {
         void this.query.activate();
@@ -63,7 +68,7 @@ export class QueueView extends Component {
         if (view.fetchState === "error" && !view.value) return <Panel island header="Work Queue">
             <Placeholder/>
             <p className="muted">{String(view.error ?? "The work queue could not be loaded.")}</p>
-            <Button label="Retry" onClick={() => void this.query.refresh()}/>
+            <Button label="Retry" command={this.feedback.refresh}/>
         </Panel>;
         if (!view.value) return <Panel island header="Work Queue"><Placeholder/></Panel>;
 
@@ -101,39 +106,37 @@ export class QueueView extends Component {
                 <Sidebar island allocation="flexible" header="Work Queue">
                     <SidebarToolbar>
                         <Toolbar label="Queue search">
-                            <Textbox busy={view.fetchState === "loading"}
+                            <Textbox busy={this.feedback.busyFor("search")}
                                 label="Search"
                                 placeholder="Filter phases…"
                                 valueEmitter={this.state.field("search") as any}
                             />
-                            <Button busy={view.fetchState === "loading"}
-                                label="Reset"
-                                onClick={() => this.resetCriteria()}
+                            <Button label="Reset"
+                                command={this.resetSearch}
                             />
                         </Toolbar>
                     </SidebarToolbar>
                     <OptionsBox header="Conditions">
                         <OptionGroup label="Phase conditions">
                             <OptionGroupHeaderEnd>
-                                <Button busy={view.fetchState === "loading"}
-                                    label="Reset"
-                                    onClick={() => this.resetCriteria()}
+                                <Button label="Reset"
+                                    command={this.resetConditions}
                                 />
                             </OptionGroupHeaderEnd>
-                            {CONDITIONS.map(c => <QuadCheckbox busy={view.fetchState === "loading"}
+                            {CONDITIONS.map(c => <QuadCheckbox busy={this.feedback.busyFor(c.value)}
                                 key={c.value}
                                 label={c.label}
                                 valueEmitter={this.state.field(c.value) as any}
                             />)}
                         </OptionGroup>
                         <OptionGroup label="Type affinities">
-                            {affinities.map(a => <TriCheckbox busy={view.fetchState === "loading"}
+                            {affinities.map(a => <TriCheckbox busy={this.feedback.busyFor(affinityKey(a.value))}
                                 key={a.value}
                                 label={a.label}
                                 valueEmitter={this.state.field(affinityKey(a.value)) as any}
                             />)}
                         </OptionGroup>
-                        <Dropdown busy={view.fetchState === "loading"}
+                        <Dropdown busy={this.feedback.busyFor("project")}
                             label="Project scope"
                             options={[{value: "", label: "All projects"}, ...(b.value.choices.projects ?? [])]}
                             valueEmitter={this.state.field("project") as any}
@@ -145,9 +148,9 @@ export class QueueView extends Component {
                 <Panel island allocation="flexible" header="Matching Phases">
                     <PanelToolbar>
                         <Toolbar label="Queue results">
-                            <Button icon="refresh" ariaLabel="Refresh results" appearance="subtle" busy={view.fetchState === "loading"} onClick={() => void this.query.refresh()}/>
+                            <Button icon="refresh" ariaLabel="Refresh results" appearance="subtle" command={this.feedback.refresh}/>
                             <span className="result-count">{v.total} phases</span>
-                            <Dropdown busy={view.fetchState === "loading"}
+                            <Dropdown busy={this.feedback.busyFor("sort")}
                                 label="Order by"
                                 options={[
                                     {value: "", label: "Urgency"},
@@ -163,9 +166,9 @@ export class QueueView extends Component {
                         ? <>
                             <Placeholder/>
                             <p className="muted">No phases match the current criteria. Required or denied conditions may have eliminated every result.</p>
-                            <Button busy={view.fetchState === "loading"} label="Reset criteria" onClick={() => this.resetCriteria()}/>
+                            <Button label="Reset criteria" command={this.resetEmpty}/>
                         </>
-                        : <ListView busy={view.fetchState === "loading"}
+                        : <ListView busy={this.feedback.dataBusy()} selectionBusy={this.feedback.busyFor("selected", "phase")}
                             label="Queue items"
                             items={rows}
                             itemKey="id"

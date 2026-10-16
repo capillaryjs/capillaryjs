@@ -105,6 +105,7 @@ export class RadioButton extends CheckableControl<RadioButtonProps> {
                     required={required}
                     aria-readonly={readOnly ? 'true' : null}
                     aria-busy={isBusy ? 'true' : null}
+                data-cap-busy-visible={this.presentBusy(isBusy && displayedError == null) ? '' : null}
                     aria-invalid={displayedError == null ? null : 'true'}
                     aria-describedby={displayedError == null ? null : this.errorId}
                     onClick={(event: MouseEvent) => {
@@ -286,6 +287,7 @@ export class RadioGroup<TValue extends Key = string>
                 aria-label={label == null ? this.props.ariaLabel : null}
                 aria-required={required ? 'true' : null}
                 aria-busy={isBusy ? 'true' : null}
+                data-cap-busy-visible={this.presentBusy(isBusy && displayedError == null) ? '' : null}
                 aria-invalid={displayedError == null ? null : 'true'}
                 aria-describedby={displayedError == null ? null : this.errorId}
                 onClick={(event: MouseEvent) => {
@@ -302,7 +304,7 @@ export class RadioGroup<TValue extends Key = string>
                     checked={Object.is(selectedValue, value)}
                     disabled={isDisabled}
                     required={required}
-                    busy={isBusy && displayedError == null}
+                    busy={isBusy && displayedError == null && Object.is(selectedValue, value)}
                     onChange={(checked, event) => {
                         if (checked) this.selectOption(value, event)
                     }}

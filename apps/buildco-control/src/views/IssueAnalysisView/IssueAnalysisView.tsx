@@ -1,3 +1,4 @@
+import {ViewFeedback} from "../ViewFeedback.js";
 import type {CapillaryUiChild} from "@capillaryjs/capillary-ui";
 import {
     Component, ListView, Panel, Sidebar, SidebarToolbar, SplitPrimary, SplitSecondary, SplitView,
@@ -94,6 +95,12 @@ export class IssueAnalysisView extends Component {
 
     private state = screens["issue-analysis"];
     private query = buildco.view("issue-analysis", {params: this.state.params, revision}, {owner: this});
+    private readonly feedback = new ViewFeedback(this.query, this.state.params, this);
+    private readonly resetFilters = this.feedback.operation('reset distribution filters', () => {
+        this.blockSelection.clear();
+        for (const criterion of this.criteria) criterion.setAllVisible(true);
+        this.state.field('project').set('');
+    });
 
     private items$ = new DerivedEmitter(
         [this.query] as const,
@@ -136,7 +143,7 @@ export class IssueAnalysisView extends Component {
         if (view.fetchState === "error" && !view.value) return <Panel island header="Issue Analysis">
             <Placeholder/>
             <p className="muted">{String(view.error ?? "The issue analysis could not be loaded.")}</p>
-            <Button label="Retry" onClick={() => void this.query.refresh()}/>
+            <Button label="Retry" command={this.feedback.refresh}/>
         </Panel>;
         if (!view.value) return <Panel island header="Issue Analysis"><Placeholder/></Panel>;
 
@@ -152,8 +159,8 @@ export class IssueAnalysisView extends Component {
                 <Sidebar island allocation="flexible" header="Issue Analysis">
                     <SidebarToolbar>
                         <Toolbar label="Analysis controls">
-                            <Button icon="refresh" ariaLabel="Refresh results" appearance="subtle" busy={view.fetchState === "loading"} onClick={() => void this.query.refresh()}/>
-                            <Dropdown busy={view.fetchState === "loading"}
+                            <Button icon="refresh" ariaLabel="Refresh results" appearance="subtle" command={this.feedback.refresh}/>
+                            <Dropdown busy={this.feedback.busyFor("tab")}
                                 label="Subject"
                                 options={[
                                     {value: "issues", label: "Issues"},
@@ -161,18 +168,13 @@ export class IssueAnalysisView extends Component {
                                 ]}
                                 valueEmitter={this.state.tab as any}
                             />
-                            <Dropdown busy={view.fetchState === "loading"}
+                            <Dropdown busy={this.feedback.busyFor("project")}
                                 label="Project"
                                 options={[{value: "", label: "All projects"}, ...(b.value.choices.projects ?? [])]}
                                 valueEmitter={this.state.field("project") as any}
                             />
-                            <Button busy={view.fetchState === "loading"}
-                                label="Reset"
-                                onClick={() => {
-                                    this.blockSelection.clear();
-                                    for (const criterion of this.criteria) criterion.setAllVisible(true);
-                                    this.state.field("project").set("");
-                                }}
+                            <Button label="Reset"
+                                command={this.resetFilters}
                             />
                         </Toolbar>
                     </SidebarToolbar>
@@ -191,11 +193,12 @@ export class IssueAnalysisView extends Component {
             <SplitSecondary>
                 <Panel island allocation="flexible" header="Distribution">
                     <BlockGraph
+                        busy={view.fetchState === 'loading'}
                         model={this.blockSelection}
                         label="Record distribution"
                         emptyMessage="No records match the current subject."
                     />
-                    <ListView busy={view.fetchState === "loading"}
+                    <ListView busy={this.feedback.dataBusy()} selectionBusy={this.feedback.busyFor("selected", "phase")}
                         label="Records in selected block"
                         items={selectedItems}
                         itemKey="id"

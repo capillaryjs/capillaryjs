@@ -15,6 +15,7 @@ import {
     Layout,
     Panel,
     ProgressBar,
+    StatusPresentation,
     RouteLink,
     RouteOutlet,
     SplitPrimary,
@@ -61,6 +62,15 @@ new SplitView({children: [
 ]})
 new ProgressBar({label: 'Loading', value: null})
 new TreeView({label: 'Projects', nodes: [{id: 'one', label: 'One'}]})
+class LoadingSurface extends Component {
+    static override dependencies = [StatusPresentation]
+    render() {
+        const pending = true
+        return h('p', {className: 'cap-working', 'aria-busy': String(pending),
+            'data-cap-busy-visible': this.presentBusy(pending, 'result', 'current') ? '' : null}, 'Results')
+    }
+}
+createCapillaryUiRuntime({busyDelayMs: 200}).create(LoadingSurface)
 new Dialog({
     title: 'Confirm',
     children: ['Continue?', h(DialogActions, null, 'Apply')],

@@ -136,21 +136,21 @@ ${requiredPresentationCss({
             box-shadow: var(--focus-ring);
         }
 
-        & > cap-selectshell:has(> select[aria-busy="true"]:not([aria-invalid="true"]))::after {
+        & > cap-selectshell:has(> select[data-cap-busy-visible]:not([aria-invalid="true"]))::after {
             background: var(--working-background-image), var(--dropdown-underlay-background);
             background-repeat: repeat, no-repeat;
             background-size: 2rem 2rem, 100% 100%;
             animation: cap-working-progress .55s linear infinite;
         }
 
-        & > cap-selectshell > select[aria-busy="true"]:not([aria-invalid="true"]) {
+        & > cap-selectshell > select[data-cap-busy-visible]:not([aria-invalid="true"]) {
             background: var(--working-background-image), var(--dropdown-select-background);
             background-repeat: repeat, no-repeat;
             background-size: 2rem 2rem, 100% 100%;
             animation: cap-working-progress .55s linear infinite;
         }
 
-        & > cap-selectshell:has(> select[aria-readonly="true"][aria-busy="true"]:not([aria-invalid="true"]))::after {
+        & > cap-selectshell:has(> select[aria-readonly="true"][data-cap-busy-visible]:not([aria-invalid="true"]))::after {
             background: var(--working-background-image), var(--dropdown-underlay-background-readonly);
             background-repeat: repeat, no-repeat;
             background-size: 2rem 2rem, 100% 100%;
@@ -168,8 +168,8 @@ ${requiredPresentationCss({
         }
 
         @media (prefers-reduced-motion: reduce) {
-            & > cap-selectshell:has(> select[aria-busy="true"])::after,
-            & > cap-selectshell > select[aria-busy="true"] {
+            & > cap-selectshell:has(> select[data-cap-busy-visible])::after,
+            & > cap-selectshell > select[data-cap-busy-visible] {
                 animation: none !important;
             }
         }

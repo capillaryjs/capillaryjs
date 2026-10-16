@@ -1,5 +1,5 @@
 import type {LiveQuery, ReadableEmitter} from "@capillaryjs/capillary";
-import {AsyncCommand, DerivedEmitter, Emitter, FetchState} from "@capillaryjs/capillary";
+import {AsyncCommand, connect, DerivedEmitter, Emitter, FetchState} from "@capillaryjs/capillary";
 import type {Bootstrap, Mutation, Parameters} from "../api/ScenarioApi.ts";
 import type {ScenarioFetch} from "../api/ScenarioFetch.js";
 import {BuildcoService} from "../services/BuildcoService.ts";
@@ -109,14 +109,15 @@ export const reset = new AsyncCommand<{ seed: number; profile: string }, Bootstr
     }
 });
 export const mutate = new AsyncCommand<Mutation, { id: string; message: string }>({
-    concurrency: "reject", execute: async args => {
-        const result = await buildco.mutate(args);
-        revision.set(revision.get() + 1);
-        await bootstrap.refresh();
-        demo.notice.set(result.message);
-        return result;
-    }
+    concurrency: "reject", execute: args => buildco.mutate(args)
 });
+
+// Page-lifetime consequences share these command/query owners. A failed observer
+// must not turn a confirmed write into a failed command or prevent other effects.
+const reportMutationEffect = (error: unknown) => console.error("Confirmed mutation follow-up failed", error);
+connect({on: mutate.succeeded, action: ({result}) => {demo.notice.set(result.message);}, onError: reportMutationEffect});
+connect({on: mutate.succeeded, action: () => {revision.set(revision.get() + 1);}, onError: reportMutationEffect});
+connect({on: mutate.succeeded, action: () => bootstrap.refresh(), onError: reportMutationEffect});
 
 export function forceResult<T>(source: LiveQuery<T, {
     params: ReadableEmitter<Parameters>

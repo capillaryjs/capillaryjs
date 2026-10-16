@@ -147,6 +147,7 @@ export class Dropdown<TValue extends DropdownValue = string>
                     aria-readonly={readOnly ? 'true' : null}
                     aria-label={label == null ? ariaLabel : null}
                     aria-busy={isBusy ? 'true' : null}
+                data-cap-busy-visible={this.presentBusy(isBusy && displayedError == null) ? '' : null}
                     aria-invalid={displayedError == null ? null : 'true'}
                     aria-describedby={displayedError == null ? null : this.errorId}
                     onMouseDown={(event: MouseEvent) => {

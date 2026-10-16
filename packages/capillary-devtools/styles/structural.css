@@ -395,7 +395,7 @@ cap-button > button {
             pointer-events: none;
         }
 
-        cap-button > button[aria-busy="true"]:not([aria-invalid="true"]) {
+        cap-button > button[data-cap-busy-visible]:not([aria-invalid="true"]) {
             /* Busy is unavailable for activation, but remains a normal button
              * surface with the loading texture layered on top. */
             background: var(--working-background-image), var(--button-background);
@@ -420,13 +420,13 @@ cap-button > button {
             background: var(--button-background-hover);
         }
         cap-button.cap-subtle > button:focus-visible { box-shadow: var(--focus-ring); }
-        cap-button.cap-subtle > button[aria-busy="true"]:not([aria-invalid="true"]) {
+        cap-button.cap-subtle > button[data-cap-busy-visible]:not([aria-invalid="true"]) {
             background: var(--working-background-image), transparent;
             background-size: 2rem 2rem, 100% 100%;
         }
 
         @media (prefers-reduced-motion: reduce) {
-            cap-button > button[aria-busy="true"] {
+            cap-button > button[data-cap-busy-visible] {
                 animation: none !important;
             }
         }
@@ -526,13 +526,13 @@ cap-error {
             from { background-position: 0 0, 0 0; }
             to { background-position: 2rem 0, 0 0; }
         }
-        .cap-working[aria-busy="true"]:not([aria-invalid="true"]) {
+        .cap-working[data-cap-busy-visible]:not([aria-invalid="true"]) {
             background-image: var(--working-background-image);
             background-size: 2rem 2rem;
             animation: cap-working-progress .55s linear infinite;
         }
         @media (prefers-reduced-motion: reduce) {
-            .cap-working[aria-busy="true"] { animation: none; }
+            .cap-working[data-cap-busy-visible] { animation: none; }
         }
 
 cap-icon {
@@ -577,7 +577,7 @@ cap-listview {
             list-style: none;
         }
 
-        cap-listview[data-cap-retained-loading]::after {
+        cap-listview[data-cap-retained-loading][data-cap-busy-visible]::after {
             content: "";
             position: absolute;
             z-index: 1;
@@ -652,7 +652,7 @@ cap-placeholder {
             position: relative;
         }
 
-        cap-placeholder::after {
+        cap-placeholder[data-cap-busy-visible]::after {
             content: "";
             display: block;
             position: absolute;
@@ -670,7 +670,7 @@ cap-placeholder {
         }
 
         @media (prefers-reduced-motion: reduce) {
-            cap-placeholder::after {
+            cap-placeholder[data-cap-busy-visible]::after {
                 animation: none !important;
             }
         }
@@ -681,7 +681,7 @@ cap-placeholder {
                 forced-color-adjust: none;
             }
 
-            cap-placeholder::after {
+            cap-placeholder[data-cap-busy-visible]::after {
                 display: none;
             }
         }
@@ -743,7 +743,7 @@ cap-treeview {
             list-style: none;
         }
 
-        cap-treeview[data-cap-retained-loading]::after {
+        cap-treeview[data-cap-retained-loading][data-cap-busy-visible]::after {
             content: "";
             position: absolute;
             z-index: 1;
@@ -860,7 +860,7 @@ cap-datatable {
             width: 100%;
         }
 
-        cap-datatable[data-cap-retained-loading]::after {
+        cap-datatable[data-cap-retained-loading][data-cap-busy-visible]::after {
             content: "";
             position: absolute;
             z-index: 3;
@@ -1069,7 +1069,7 @@ cap-datatable th cap-popover cap-filterpanel {
             opacity: 1;
         }
 
-        cap-datatable > table > thead > tr > th[aria-sort] > button[aria-busy="true"] {
+        cap-datatable > table > thead > tr > th[aria-sort] > button[data-cap-busy-visible] {
             background-image: var(--working-background-image);
             background-size: 2rem 2rem;
             animation: cap-working-progress .55s linear infinite;
@@ -1077,7 +1077,7 @@ cap-datatable th cap-popover cap-filterpanel {
         }
 
         @media (prefers-reduced-motion: reduce) {
-            cap-datatable > table > thead > tr > th[aria-sort] > button[aria-busy="true"] { animation: none; }
+            cap-datatable > table > thead > tr > th[aria-sort] > button[data-cap-busy-visible] { animation: none; }
         }
 
 cap-filterpanel {
@@ -1102,7 +1102,7 @@ cap-filterpanel {
             margin: 0;
         }
 
-        cap-filterpanel[aria-busy="true"]::after {
+        cap-filterpanel[data-cap-busy-visible]::after {
             content: "";
             position: absolute;
             z-index: 1;
@@ -1119,7 +1119,7 @@ cap-filterpanel {
         }
 
         @media (prefers-reduced-motion: reduce) {
-            cap-filterpanel[aria-busy="true"]::after {
+            cap-filterpanel[data-cap-busy-visible]::after {
                 animation: none !important;
             }
         }
@@ -1263,7 +1263,7 @@ cap-checkbox > label:has(> input:required:invalid:not(:disabled):not([aria-inval
             filter: saturate(0.6);
         }
 
-        cap-checkbox > label > input[aria-busy="true"]:not([aria-invalid="true"]) + cap-checkshell {
+        cap-checkbox > label > input[data-cap-busy-visible]:not([aria-invalid="true"]) + cap-checkshell {
             background: var(--working-background-image), var(--checkbox-box-background,
                 var(--ui-input-bg, transparent));
             background-repeat: repeat, no-repeat;
@@ -1277,7 +1277,7 @@ cap-checkbox > label:has(> input:required:invalid:not(:disabled):not([aria-inval
         }
 
         @media (prefers-reduced-motion: reduce) {
-            cap-checkbox > label > input[aria-busy="true"] + cap-checkshell {
+            cap-checkbox > label > input[data-cap-busy-visible] + cap-checkshell {
                 animation: none !important;
             }
         }

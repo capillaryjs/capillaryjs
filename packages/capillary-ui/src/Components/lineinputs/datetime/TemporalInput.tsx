@@ -187,6 +187,7 @@ export abstract class TemporalInput<
                     ref={inputRef}
                     aria-label={label == null ? ariaLabel : null}
                     aria-busy={isBusy ? 'true' : null}
+                data-cap-busy-visible={this.presentBusy(isBusy && displayedError == null) ? '' : null}
                     aria-invalid={displayedError == null ? null : 'true'}
                     aria-describedby={displayedError == null ? null : this.errorId}
                     onInput={(event: Event) => this.handleEvent(event)}
@@ -253,20 +254,20 @@ ${requiredPresentationCss({
             box-shadow: var(--focus-ring);
         }
 
-        & > input[aria-busy="true"]:not([aria-invalid="true"]) {
+        & > input[data-cap-busy-visible]:not([aria-invalid="true"]) {
             background: var(--working-background-image), var(--input-background);
             background-repeat: repeat, no-repeat;
             background-size: 2rem 2rem, 100% 100%;
             animation: cap-working-progress .55s linear infinite;
         }
 
-        & > input:disabled[aria-busy="true"]:not([aria-invalid="true"]) {
+        & > input:disabled[data-cap-busy-visible]:not([aria-invalid="true"]) {
             background: var(--working-background-image), var(--input-background-disabled);
             background-repeat: repeat, no-repeat;
             background-size: 2rem 2rem, 100% 100%;
         }
 
-        & > input[readonly]:not(:disabled)[aria-busy="true"]:not([aria-invalid="true"]) {
+        & > input[readonly]:not(:disabled)[data-cap-busy-visible]:not([aria-invalid="true"]) {
             background: var(--working-background-image), var(--input-background-readonly);
             background-repeat: repeat, no-repeat;
             background-size: 2rem 2rem, 100% 100%;
@@ -278,7 +279,7 @@ ${requiredPresentationCss({
         }
 
         @media (prefers-reduced-motion: reduce) {
-            & > input[aria-busy="true"] {
+            & > input[data-cap-busy-visible] {
                 animation: none !important;
             }
         }

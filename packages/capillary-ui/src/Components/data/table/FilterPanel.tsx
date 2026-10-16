@@ -37,6 +37,8 @@ export interface FilterPanelProps extends ComponentProps, LivePropContract<'busy
 
 /** Filter choices whose option data is always supplied by the caller. */
 export class FilterPanel extends Component<FilterPanelProps> {
+    private pendingOption: FilterValue | null = null
+    private wasLoading = false
     static override liveProps = ['busy'] as const
     readonly optionsEmitter: ReadableEmitter<FilterOptions, unknown> | null
     private readonly optionStateEmitters = new Map<FilterValue, Emitter<FilterModeValue>>()
@@ -69,6 +71,9 @@ export class FilterPanel extends Component<FilterPanelProps> {
         const Host = this.Host
 
         const isLoading = fetchState === FetchState.Initial || fetchState === FetchState.Loading || this.props.busy === true
+        if (this.wasLoading && !isLoading) this.pendingOption = null
+        this.wasLoading = isLoading
+        const visibleBusy = this.presentBusy(isLoading && fetchState !== FetchState.Error)
         const hostClass = componentClass(this.props) || null
         if (fetchState === FetchState.Error && values.length === 0) {
             return <Host className={hostClass}>
@@ -80,7 +85,7 @@ export class FilterPanel extends Component<FilterPanelProps> {
             </Host>
         }
         if (isLoading && values.length === 0) {
-            return <Host className={hostClass} aria-busy="true">
+            return <Host className={hostClass} aria-busy="true" data-cap-busy-visible={visibleBusy ? '' : null}>
                 <p role="status">{this.capillaryUiMessage('filterPanelLoading')}</p>
             </Host>
         }
@@ -90,6 +95,7 @@ export class FilterPanel extends Component<FilterPanelProps> {
             role="group"
             aria-label={this.props.label ?? this.capillaryUiMessage('filterPanelLabel')}
             aria-busy={isLoading ? 'true' : null}
+            data-cap-busy-visible={visibleBusy ? '' : null}
         >
             {fetchState === FetchState.Error
                 ? <ErrorMessage
@@ -98,7 +104,7 @@ export class FilterPanel extends Component<FilterPanelProps> {
                     fallback={this.capillaryUiMessage('filterPanelLoadError')}
                 />
                 : null}
-            {isLoading ? <p role="status">{this.capillaryUiMessage('filterPanelLoading')}</p> : null}
+            {visibleBusy ? <p role="status">{this.capillaryUiMessage('filterPanelLoading')}</p> : null}
             {values.length === 0
                 ? <p>{this.capillaryUiMessage('filterPanelEmpty')}</p>
                 : values.map((option) => {
@@ -111,13 +117,20 @@ export class FilterPanel extends Component<FilterPanelProps> {
                         label={label}
                         valueEmitter={valueEmitter}
                         symbols={filterModes}
-                        busy={isLoading}
+                        busy={isLoading && Object.is(this.pendingOption, value)}
                         onChange={(nextState, event) => {
+                            this.pendingOption = value
                             event?.stopPropagation()
                             const next = normalizeFilters(this.props.filters)
                             if (nextState === FilterMode.Neutral) next.delete(value)
                             else next.set(value, nextState)
                             this.props.onChange?.(next, event)
+                            queueMicrotask(() => {
+                                if (this.props.busy !== true) {
+                                    this.pendingOption = null
+                                    this.update()
+                                }
+                            })
                         }}
                     />
                 })}
@@ -178,7 +191,7 @@ export class FilterPanel extends Component<FilterPanelProps> {
             margin: 0;
         }
 
-        &[aria-busy="true"]::after {
+        &[data-cap-busy-visible]::after {
             content: "";
             position: absolute;
             z-index: 1;
@@ -195,7 +208,7 @@ export class FilterPanel extends Component<FilterPanelProps> {
         }
 
         @media (prefers-reduced-motion: reduce) {
-            &[aria-busy="true"]::after {
+            &[data-cap-busy-visible]::after {
                 animation: none !important;
             }
         }

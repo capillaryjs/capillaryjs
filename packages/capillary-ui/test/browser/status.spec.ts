@@ -372,6 +372,7 @@ test('status presentation retains visible edges in forced colors', async ({page,
 })
 
 test('busy and error presentation remains active across shipped themes', async ({page}) => {
+    await expect(page.locator('.busy-controls cap-textbox > input')).toHaveAttribute('data-cap-busy-visible', '')
     for (const {name, path} of themePaths) {
         const theme = await page.addStyleTag({content: await readFile(path, 'utf8')})
         const presentation = await page.evaluate(() => {

@@ -1,3 +1,4 @@
+import {ViewFeedback, viewParameters} from "../ViewFeedback.js";
 import type {CapillaryUiChild} from "@capillaryjs/capillary-ui";
 import {
     Component, Layout, InfoPanel, InfoField, Panel, PanelToolbar,
@@ -16,7 +17,9 @@ export class OverviewView extends Component {
     ];
 
     private state = screens.overview;
-    private query = buildco.view("overview", {params: this.state.params, revision}, {owner: this});
+    private readonly retrievalParams = viewParameters(this.state.params, ["sort"], this);
+    private query = buildco.view("overview", {params: this.retrievalParams, revision}, {owner: this});
+    private readonly feedback = new ViewFeedback(this.query, this.retrievalParams, this);
 
     initialize(): void {
         void this.query.activate();
@@ -31,7 +34,7 @@ export class OverviewView extends Component {
         if (view.fetchState === "error" && !view.value) return <Panel island header="Overview">
             <Placeholder/>
             <p className="muted">{String(view.error ?? "The overview could not be loaded.")}</p>
-            <Button label="Retry" onClick={() => void this.query.refresh()}/>
+            <Button label="Retry" command={this.feedback.refresh}/>
         </Panel>;
         if (!view.value) return <Panel island header="Overview"><Placeholder/></Panel>;
 
@@ -67,7 +70,7 @@ export class OverviewView extends Component {
             <Panel island allocation="flexible" header="Attention Items">
                 <PanelToolbar>
                     <Toolbar label="Attention controls">
-                    <Dropdown busy={view.fetchState === "loading"}
+                    <Dropdown busy={this.feedback.busyFor("scope")}
                         label="Scope"
                         options={[
                             {value: "all", label: "All"},
@@ -76,7 +79,7 @@ export class OverviewView extends Component {
                         ]}
                         valueEmitter={this.state.field("scope") as any}
                     />
-                    <Dropdown busy={view.fetchState === "loading"}
+                    <Dropdown busy={this.feedback.busyFor("sort")}
                         label="Order"
                         options={[
                             {value: "", label: "Urgency"},
@@ -86,16 +89,16 @@ export class OverviewView extends Component {
                         ]}
                         valueEmitter={this.state.field("sort") as any}
                     />
-                    <Button busy={view.fetchState === "loading"}
-                        icon="refresh" ariaLabel="Refresh" appearance="subtle"
-                        onClick={() => void this.query.refresh()}
+                    <Button icon="refresh" ariaLabel="Refresh" appearance="subtle"
+                        command={this.feedback.refresh}
                     />
                     </Toolbar>
                 </PanelToolbar>
                 {view.fetchState === "error" ? <p role="alert">{String(view.error ?? "The results could not be refreshed.")}</p> : null}
                 {attention.length === 0
                     ? <p className="muted">No portfolio items currently require attention.</p>
-                    : <ul className="attention-list" aria-label="Attention items">
+                    : <ul className="attention-list cap-working" aria-label="Attention items" aria-busy={view.fetchState === 'loading' ? 'true' : null}
+                        data-cap-busy-visible={this.presentBusy(view.fetchState === 'loading') ? '' : null}>
                         {attention.map(r => {
                             const isIssue = r.id?.startsWith("issue-");
                             const link = isIssue

@@ -65,6 +65,7 @@ export * from './Components/menu/button.js'
 export * from './Components/menu/icon.js'
 export * from './Components/menu/toolbar.js'
 export * from './Components/status/progressBar.js'
+export {StatusPresentation} from './Components/status/statusPresentation.js'
 export * from './Components/theme/stylesheetPicker.js'
 export {Component, css, h, live} from './Components/component.js'
 export type {

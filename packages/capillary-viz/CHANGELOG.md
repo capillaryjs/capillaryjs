@@ -6,7 +6,15 @@ and Semantic Versioning.
 
 ## Unreleased
 
+### Added
+
+- Add live replacement-data `busy` presentation to BlockGraph and LineGraph,
+  using Capillary UI's shared visual delay while retaining current plots.
+
 ### Fixed
+
+- Keep completed local option-group disclosure idle during unrelated group
+  loading, and do not mark a failed LineGraph query as busy.
 
 - Use a persistent decorative split-reorder grip with keyboard reordering on
   its focusable row, rather than an action button. Name option disclosures and

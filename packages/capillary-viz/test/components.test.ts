@@ -5,7 +5,7 @@ import {fileURLToPath} from 'node:url'
 import {Window} from 'happy-dom'
 
 import {Emitter, FetchState} from '@capillaryjs/capillary'
-import {GroupBox, OptionGroupHeaderEnd, h} from '@capillaryjs/capillary-ui'
+import {GroupBox, OptionGroupHeaderEnd, createCapillaryUiRuntime, h} from '@capillaryjs/capillary-ui'
 
 import {
     BlockGraph,
@@ -479,19 +479,27 @@ describe('BlockGraph', () => {
 })
 
 describe('LineGraph', () => {
-    test('accepts static graph input values', () => {
+    test('accepts static graph values and retains plot contents during external replacement', () => {
         const shapes = new SeriesBuilder([{key: 'open', label: 'Open', color: '#c33'}])
             .addOne('2026-01-01', 'open')
             .buildCumulative()
-        const graph = new LineGraph({
+        const props = {
             shapes$: shapes,
             stacked$: false,
             smooth$: false,
             range$: {minX: '2026-01-01', maxX: '2026-01-05'},
-        })
+        }
+        const graph = createCapillaryUiRuntime({busyDelayMs: 0}).create(LineGraph, props)
         graph.mount(document.body)
 
         assert.equal(document.querySelectorAll('.seriesline').length, 1)
+        const plot = required('.seriesline').getAttribute('d')
+        graph.setProps({...props, busy: true})
+        assert.equal(required('cap-linegraph').getAttribute('aria-busy'), 'true')
+        assert.equal(required('cap-linegraph').hasAttribute('data-cap-busy-visible'), true)
+        assert.equal(required('.seriesline').getAttribute('d'), plot)
+        graph.setProps(props)
+        assert.equal(required('cap-linegraph').hasAttribute('data-cap-busy-visible'), false)
         graph.destroy()
     })
 

@@ -121,7 +121,7 @@ ${requiredPresentationCss({
             filter: saturate(0.6);
         }
 
-        & > label > input[aria-busy="true"]:not([aria-invalid="true"]) + cap-checkshell {
+        & > label > input[data-cap-busy-visible]:not([aria-invalid="true"]) + cap-checkshell {
             background: var(--working-background-image), var(--checkbox-box-background,
                 var(--ui-input-bg, transparent));
             background-repeat: repeat, no-repeat;
@@ -135,7 +135,7 @@ ${requiredPresentationCss({
         }
 
         @media (prefers-reduced-motion: reduce) {
-            & > label > input[aria-busy="true"] + cap-checkshell {
+            & > label > input[data-cap-busy-visible] + cap-checkshell {
                 animation: none !important;
             }
         }

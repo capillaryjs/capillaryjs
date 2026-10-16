@@ -9,6 +9,7 @@ import {componentClass} from '../../controlUtils.js'
 import type {ValueEmitter} from '../../controlUtils.js'
 import type {CheckboxSymbol} from '../../lineinputs/checkbox/Checkbox.js'
 import {ErrorMessage} from '../../status/statusPresentation.js'
+import {BusyIdentity} from '../../status/busyIdentity.js'
 import type {FilterModeValue} from '../../../util/filterMode.js'
 import {
     createSelectionHandler,
@@ -43,9 +44,11 @@ import type {TableFilters, TableSort} from './tableQuery.js'
 const TableBody = Object.assign((props: ComponentProps) =>
     <tbody>{props.children}</tbody>, {diagnosticLabel: 'Table body'})
 
-interface DataTableCommonProps<TRow extends TableRow> extends ComponentProps, CommandInteractionOptions, LivePropContract<'busy'> {
-    /** External pending work, such as a selected-row detail query. Presentation only. */
+interface DataTableCommonProps<TRow extends TableRow> extends ComponentProps, CommandInteractionOptions, LivePropContract<'busy' | 'selectionBusy'> {
+    /** Pending work on the table's own data. Presentation only. */
     busy?: boolean
+    /** Required results for the accepted selection; presented on selected rows. */
+    selectionBusy?: boolean
     columns: readonly TableColumn<TRow>[]
     rowKey?: Extract<keyof TRow, string> | ItemKeyGetter<TRow>
     caption?: CapillaryUiChild
@@ -95,7 +98,7 @@ export type DataTableProps<TRow extends TableRow = TableRow> =
 /** Accessible table over an explicit local, caller-query, or REST data source. */
 export class DataTable<TRow extends TableRow = TableRow>
     extends Component<DataTableProps<TRow>> {
-    static override liveProps = ['busy'] as const
+    static override liveProps = ['busy', 'selectionBusy'] as const
     private currentColumns: readonly TableColumn<TRow>[]
     get columns(): readonly TableColumn<TRow>[] { return this.currentColumns }
     readonly rowKey: ItemKeyGetter<TRow>
@@ -114,6 +117,20 @@ export class DataTable<TRow extends TableRow = TableRow>
     private readonly derivedFilterOptions =
         new Map<string, ReadableEmitter<FilterOptions, unknown> & {dispose?: () => void}>()
     private readonly commandPresentation = new CommandInvocationPresentation(() => this.update())
+    private readonly busySelection = new BusyIdentity()
+    private headerInteraction: {field: string; kind: 'sort' | 'filter'} | null = null
+    private headerWasBusy = false
+    private readonly startHeaderInteraction = (field: string, kind: 'sort' | 'filter', change: () => void): void => {
+        this.headerInteraction = {field, kind}
+        change()
+        this.update()
+        queueMicrotask(() => {
+            if (this.query?.getFetchState() !== FetchState.Loading) {
+                this.headerInteraction = null
+                this.update()
+            }
+        })
+    }
 
     constructor(props: DataTableProps<TRow>) {
         super(props)
@@ -222,14 +239,21 @@ export class DataTable<TRow extends TableRow = TableRow>
         const replacesContent = status === FetchState.Initial
             || (status === FetchState.Loading && result === undefined)
         const retainedLoading = (status === FetchState.Loading || this.props.busy === true) && result !== undefined
-        const isBusy = isLoading || commandRunning || this.props.busy === true
+        const isBusy = isLoading || this.props.busy === true
+        if (this.headerWasBusy && !isLoading) this.headerInteraction = null
+        this.headerWasBusy = isLoading
+        const visibleBusy = this.presentBusy(isBusy && error == null, 'data')
+        const selectionBusy = commandRunning || this.props.selectionBusy === true
         const selectedKeys = new Set(
             this.selectedItemsEmitter.get().map((item, index) => this.rowKey(item, index)),
         )
+        const visibleSelectionBusy = this.presentBusy(selectionBusy && commandError == null && invocationError == null,
+            'selection', this.busySelection.for(selectedKeys))
         const Host = this.Host
         return <Host
             className={componentClass(this.props) || null}
             aria-busy={isBusy ? 'true' : null}
+            data-cap-busy-visible={visibleBusy ? '' : null}
             data-cap-retained-loading={retainedLoading ? '' : null}
         >
             {replacesContent ? <p role="status">{this.capillaryUiMessage('dataTableLoading')}</p> : null}
@@ -258,7 +282,9 @@ export class DataTable<TRow extends TableRow = TableRow>
                     })}
                     sortEmitter={this.sortEmitter}
                     filtersEmitter={this.filtersEmitter}
-                    busy={isBusy}
+                    busy={isLoading}
+                    busyInteraction={this.headerInteraction}
+                    onInteraction={this.startHeaderInteraction}
                     {...(this.props.filterModes == null
                         ? {}
                         : {filterModes: this.props.filterModes})}
@@ -274,7 +300,7 @@ export class DataTable<TRow extends TableRow = TableRow>
                         ? this.renderPlaceholders()
                         : rows.length > 0
                             ? rows.map((row, index) =>
-                                this.renderRow(row, index, selectedKeys))
+                                this.renderRow(row, index, selectedKeys, selectionBusy, visibleSelectionBusy))
                             : status === FetchState.Error
                                 ? null
                                 : <tr key="empty">
@@ -291,6 +317,8 @@ export class DataTable<TRow extends TableRow = TableRow>
         row: TRow,
         index: number,
         selectedKeys: ReadonlySet<unknown>,
+        selectionBusy: boolean,
+        visibleSelectionBusy: boolean,
     ): CapillaryUiChild {
         const key = this.rowKey(row, index)
         const selected = selectedKeys.has(key)
@@ -298,6 +326,9 @@ export class DataTable<TRow extends TableRow = TableRow>
             key={String(key)}
             data-cap-selectable-row=""
             aria-selected={String(selected)}
+            aria-busy={selected && selectionBusy ? 'true' : null}
+            data-cap-busy-visible={selected && visibleSelectionBusy ? '' : null}
+            className="cap-working"
             tabIndex={index === 0 ? 0 : -1}
         >
             {this.columns.map((column) => <td key={String(column.field)}>
@@ -427,7 +458,7 @@ export class DataTable<TRow extends TableRow = TableRow>
             width: 100%;
         }
 
-        &[data-cap-retained-loading]::after {
+        &[data-cap-retained-loading][data-cap-busy-visible]::after {
             content: "";
             position: absolute;
             z-index: 3;

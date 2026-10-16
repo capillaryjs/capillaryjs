@@ -1,13 +1,14 @@
 import {Emitter} from '@capillaryjs/capillary'
 import {
     BlockGraph,
+    LineGraph,
     CategoryHidePanel,
     CollapsibleOptionGroup,
     createBlockSelection,
     createSplitSelection,
     staticCriterion,
 } from '@capillaryjs/capillary-viz'
-import {OptionGroupHeaderEnd} from '@capillaryjs/capillary-ui'
+import {OptionGroupHeaderEnd, live} from '@capillaryjs/capillary-ui'
 
 type Row = {id: number; state: 'open' | 'closed'}
 const rows$ = new Emitter<readonly Row[]>([{id: 1, state: 'open'}])
@@ -35,6 +36,11 @@ const collapsible = <CollapsibleOptionGroup label="Kinds">
     Options
 </CollapsibleOptionGroup>
 new BlockGraph({model: selection})
+const pending = new Emitter(false)
+const pendingBlocks = <BlockGraph model={selection} busy={live(pending)} />
+const pendingLines = <LineGraph shapes$={[]} stacked$={false} smooth$={false} range$={{}} busy={live(pending)} />
+void pendingBlocks
+void pendingLines
 
 // @ts-expect-error BlockGraph requires a block-selection model.
 new BlockGraph({model: rows$})

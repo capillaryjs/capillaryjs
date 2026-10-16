@@ -1,3 +1,4 @@
+import {ViewFeedback, viewParameters} from "../ViewFeedback.js";
 import type {CapillaryUiChild, Key} from "@capillaryjs/capillary-ui";
 import {
     Breadcrumb, Component, DataTable, InfoField, Layout,
@@ -135,7 +136,9 @@ export class ProjectsView extends Component {
     ];
 
     private state = screens.projects;
-    private query = buildco.view("projects", {params: this.state.params, revision}, {owner: this});
+    private readonly retrievalParams = viewParameters(this.state.params, ["search"], this);
+    private query = buildco.view("projects", {params: this.retrievalParams, revision}, {owner: this});
+    private readonly feedback = new ViewFeedback(this.query, this.retrievalParams, this);
     private readonly nodeSelection = new Emitter<Key | null>(null);
     // Separate from state.tab: that emitter clears selection/sort/filters on change,
     // which would deselect a phase when switching detail sections.
@@ -195,7 +198,7 @@ export class ProjectsView extends Component {
         if (view.fetchState === "error" && !view.value) return <Panel island header="Projects">
             <Placeholder/>
             <p className="muted">{String(view.error ?? "The project explorer could not be loaded.")}</p>
-            <Button label="Retry" onClick={() => void this.query.refresh()}/>
+            <Button label="Retry" command={this.feedback.refresh}/>
         </Panel>;
         if (!view.value) return <Panel island header="Projects"><Placeholder/></Panel>;
 
@@ -203,7 +206,7 @@ export class ProjectsView extends Component {
         const rows = v.rows as readonly Row[];
         const scopes = (v.tree ?? []) as readonly ScopeNode[];
         const detail = v.detail;
-        const search = this.state.field("search").get();
+        const search = this.read(this.state.field("search"));
 
         this.scopeProject = new Map(scopes.map(s => [String(s.id), String(s.projectId)]));
         const fullTree = buildTree(b.value.choices.projects ?? [], scopes);
@@ -222,8 +225,8 @@ export class ProjectsView extends Component {
                 <Sidebar island allocation="flexible" header="Project Explorer">
                     <SidebarToolbar>
                         <Toolbar label="Explorer search">
-                            <Button icon="refresh" ariaLabel="Refresh results" appearance="subtle" busy={view.fetchState === "loading"} onClick={() => void this.query.refresh()}/>
-                            <Textbox busy={view.fetchState === "loading"}
+                            <Button icon="refresh" ariaLabel="Refresh results" appearance="subtle" command={this.feedback.refresh}/>
+                            <Textbox busy={this.feedback.busyFor("search")}
                                 label="Search"
                                 placeholder="Filter tree…"
                                 valueEmitter={this.state.field("search") as any}
@@ -231,7 +234,7 @@ export class ProjectsView extends Component {
                         </Toolbar>
                     </SidebarToolbar>
                     {view.fetchState === "error" ? <p role="alert">{String(view.error ?? "The results could not be refreshed.")}</p> : null}
-                    <TreeView busy={view.fetchState === "loading"}
+                    <TreeView busy={this.read(this.feedback.refresh.isRunning)} selectionBusy={this.feedback.busyFor("project", "scope")}
                         label="Project structure"
                         nodes={treeNodes}
                         selectedKeyEmitter={this.nodeSelection}
@@ -256,7 +259,7 @@ export class ProjectsView extends Component {
                             </Layout>
                         </Panel>
                         <Panel island allocation="flexible" header="Phases">
-                            <DataTable busy={view.fetchState === "loading"}
+                            <DataTable busy={this.feedback.dataBusy()} selectionBusy={this.feedback.busyFor("selected", "phase")}
                                 caption="Phases"
                                 columns={phaseColumns}
                                 data={rows}

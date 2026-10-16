@@ -1,3 +1,4 @@
+import {ViewFeedback, viewParameters} from "../ViewFeedback.js";
 import type {CapillaryUiChild} from "@capillaryjs/capillary-ui";
 import {
     Component, DataTable, Panel, PanelToolbar, Sidebar, SidebarToolbar,
@@ -56,7 +57,16 @@ export class OperationsView extends Component {
     ];
 
     private state = screens.operations;
-    private query = buildco.view("operations", {params: this.state.params, revision}, {owner: this});
+    private readonly retrievalParams = viewParameters(this.state.params, ["compact"], this);
+    private query = buildco.view("operations", {params: this.retrievalParams, revision}, {owner: this});
+    private readonly feedback = new ViewFeedback(this.query, this.retrievalParams, this);
+    private readonly previousPage = this.feedback.operation('previous page', () =>
+        this.state.field('page').set(String(Math.max(0, Number(this.state.field('page').get() || 0) - 1))));
+    private readonly nextPage = this.feedback.operation('next page', () =>
+        this.state.field('page').set(String(Number(this.state.field('page').get() || 0) + 1)));
+    private readonly resetFilters = this.feedback.operation('reset register filters', () => {
+        for (const key of filterFields) this.state.field(key).set(['overtime', 'standby', 'issueOnly', 'waste', 'blocked', 'slip'].includes(key) ? 'neutral' : '');
+    });
     // Compact rows are presentation state and stay out of the query contract.
     private readonly compact = new Emitter<string>("false", {owner: this, purpose: "compact rows"});
 
@@ -74,7 +84,7 @@ export class OperationsView extends Component {
         if (view.fetchState === "error" && !view.value) return <Panel island header="Operations">
             <Placeholder/>
             <p className="muted">{String(view.error ?? "The operations register could not be loaded.")}</p>
-            <Button label="Retry" onClick={() => void this.query.refresh()}/>
+            <Button label="Retry" command={this.feedback.refresh}/>
         </Panel>;
         if (!view.value) return <Panel island header="Operations"><Placeholder/></Panel>;
 
@@ -89,7 +99,7 @@ export class OperationsView extends Component {
 
         const table = (id: string, columns: TableColumn<OperationsRow>[]) => rows.length === 0
             ? <Placeholder/>
-            : <DataTable busy={view.fetchState === "loading"}
+            : <DataTable busy={this.feedback.dataBusy()} selectionBusy={this.feedback.busyFor("selected", "phase")}
                 caption={`Operations ${id}`}
                 className={compact === "true" ? "compact-rows" : null}
                 columns={columns}
@@ -111,50 +121,47 @@ export class OperationsView extends Component {
                 <Sidebar island allocation="flexible" header="Operations Register">
                     <SidebarToolbar>
                         <Toolbar label="Register search">
-                            <Textbox busy={view.fetchState === "loading"}
+                            <Textbox busy={this.feedback.busyFor("search")}
                                 label="Search"
                                 placeholder="Filter records…"
                                 valueEmitter={this.state.field("search") as any}
                             />
-                            <Button busy={view.fetchState === "loading"}
-                                label="Reset"
-                                onClick={() => {
-                                    for (const key of filterFields) this.state.field(key).set(key === "overtime" || key === "standby" || key === "issueOnly" || key === "waste" || key === "blocked" || key === "slip" ? "neutral" : "");
-                                }}
+                            <Button label="Reset"
+                                command={this.resetFilters}
                             />
                         </Toolbar>
                     </SidebarToolbar>
                     <OptionsBox header="Filters">
                         <OptionGroup label="Scope">
-                            <Dropdown busy={view.fetchState === "loading"}
+                            <Dropdown busy={this.feedback.busyFor("project")}
                                 label="Project"
                                 options={[{value: "", label: "All projects"}, ...(b.value.choices.projects ?? [])]}
                                 valueEmitter={this.state.field("project") as any}
                                 onChange={() => this.state.field("scope").set("")}
                             />
-                            <Dropdown busy={view.fetchState === "loading"}
+                            <Dropdown busy={this.feedback.busyFor("scope")}
                                 label="Scope"
                                 options={[{value: "", label: "All scopes"}, ...scopes]}
                                 valueEmitter={this.state.field("scope") as any}
                             />
                         </OptionGroup>
                         <OptionGroup label="Dates">
-                            <Textbox busy={view.fetchState === "loading"} label="From" type="date" valueEmitter={this.state.field("from") as any}/>
-                            <Textbox busy={view.fetchState === "loading"} label="To" type="date" valueEmitter={this.state.field("to") as any}/>
+                            <Textbox busy={this.feedback.busyFor("from")} label="From" type="date" valueEmitter={this.state.field("from") as any}/>
+                            <Textbox busy={this.feedback.busyFor("to")} label="To" type="date" valueEmitter={this.state.field("to") as any}/>
                         </OptionGroup>
                         <OptionGroup label="Register-specific filters">
                             {tab === "labour" && <>
-                                <Checkbox busy={view.fetchState === "loading"} label="Overtime only" valueEmitter={this.state.field("overtime") as any}/>
-                                <Checkbox busy={view.fetchState === "loading"} label="Include standby" valueEmitter={this.state.field("standby") as any}/>
-                                <Checkbox busy={view.fetchState === "loading"} label="Issue-attributed only" valueEmitter={this.state.field("issueOnly") as any}/>
+                                <Checkbox busy={this.feedback.busyFor("overtime")} label="Overtime only" valueEmitter={this.state.field("overtime") as any}/>
+                                <Checkbox busy={this.feedback.busyFor("standby")} label="Include standby" valueEmitter={this.state.field("standby") as any}/>
+                                <Checkbox busy={this.feedback.busyFor("issueOnly")} label="Issue-attributed only" valueEmitter={this.state.field("issueOnly") as any}/>
                             </>}
                             {tab === "materials" && <>
-                                <Checkbox busy={view.fetchState === "loading"} label="Waste only" valueEmitter={this.state.field("waste") as any}/>
-                                <Checkbox busy={view.fetchState === "loading"} label="Issue-attributed only" valueEmitter={this.state.field("issueOnly") as any}/>
+                                <Checkbox busy={this.feedback.busyFor("waste")} label="Waste only" valueEmitter={this.state.field("waste") as any}/>
+                                <Checkbox busy={this.feedback.busyFor("issueOnly")} label="Issue-attributed only" valueEmitter={this.state.field("issueOnly") as any}/>
                             </>}
                             {tab === "progress" && <>
-                                <Checkbox busy={view.fetchState === "loading"} label="Blocked reports only" valueEmitter={this.state.field("blocked") as any}/>
-                                <Checkbox busy={view.fetchState === "loading"} label="Forecast slip" valueEmitter={this.state.field("slip") as any}/>
+                                <Checkbox busy={this.feedback.busyFor("blocked")} label="Blocked reports only" valueEmitter={this.state.field("blocked") as any}/>
+                                <Checkbox busy={this.feedback.busyFor("slip")} label="Forecast slip" valueEmitter={this.state.field("slip") as any}/>
                             </>}
                         </OptionGroup>
                         <OptionGroup label="Display">
@@ -175,23 +182,21 @@ export class OperationsView extends Component {
                 <Panel island allocation="flexible" header="Operational Records">
                     <PanelToolbar>
                         <Toolbar label="Register paging">
-                            <Button icon="refresh" ariaLabel="Refresh results" appearance="subtle" busy={view.fetchState === "loading"} onClick={() => void this.query.refresh()}/>
+                            <Button icon="refresh" ariaLabel="Refresh results" appearance="subtle" command={this.feedback.refresh}/>
                             <span className="result-count">{v.total} records</span>
-                            <Button busy={view.fetchState === "loading"}
-                                icon="previous" ariaLabel="Previous" appearance="subtle"
+                            <Button icon="previous" ariaLabel="Previous" appearance="subtle"
                                 disabled={page <= 0}
-                                onClick={() => this.state.field("page").set(String(page - 1))}
+                                command={this.previousPage}
                             />
                             <span className="page-info">Page {page + 1}</span>
-                            <Button busy={view.fetchState === "loading"}
-                                icon="next" ariaLabel="Next" appearance="subtle"
+                            <Button icon="next" ariaLabel="Next" appearance="subtle"
                                 disabled={page >= lastPage}
-                                onClick={() => this.state.field("page").set(String(page + 1))}
+                                command={this.nextPage}
                             />
                         </Toolbar>
                     </PanelToolbar>
                     {view.fetchState === "error" ? <p role="alert">{String(view.error ?? "The results could not be refreshed.")}</p> : null}
-                    <TabPanel busy={view.fetchState === "loading"}
+                    <TabPanel busy={this.feedback.busyFor("tab")}
                         label="Register tabs"
                         valueEmitter={this.state.tab}
                         mountPolicy="active-only"

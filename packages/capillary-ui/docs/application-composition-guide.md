@@ -361,6 +361,21 @@ selection and close action, while a details component presents the selected
 information. A page can conditionally include details without making every
 shared layout aware of selection policy.
 
+Define what completes the user's request. A Save command awaits its required
+outcome; selecting an item to load details accepts selection while its required
+query remains pending; independent reactions own their own loading and errors.
+Connect only required work to the originating control's busy state. A failed
+detail load keeps selection and offers read recovery; a failed independent
+refresh does not invalidate confirmed persistence. See the
+[interaction completion contracts](interaction-design-guide.md#decide-what-completes-the-interaction).
+
+Scope feedback within that relationship: selected-item detail work uses
+collection `selectionBusy`; collection `busy` describes its own rows/nodes.
+Refresh actions own their command state, and criteria describe their own requested
+results. The runtime delays standard visual loading by 150 ms (`busyDelayMs`),
+while ARIA, guards and errors remain immediate. Synchronous derivations need no
+busy lifecycle. See [feedback scope and timing](interaction-design-guide.md#scope-feedback-to-the-work-and-allow-brief-operations-to-finish).
+
 See [component lifecycle](../README.md#components-and-lifecycle),
 [reactive templates](../README.md#reactive-templates),
 [application services](../README.md#application-services), and

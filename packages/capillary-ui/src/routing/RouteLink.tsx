@@ -47,12 +47,14 @@ export class RouteLink extends Component<RouteLinkProps> {
         } = this.props
         const href = router.href(target)
         const transition = router.transition.get()
+        const isBusy = busy || (transition.state === 'pending' && transition === this.pendingTransition
+            && href === this.pendingHref)
         return h('a', {
             ...anchorProps,
             href,
             className: classNames(componentClass(this.props), 'cap-working'),
-            'aria-busy': busy || (transition.state === 'pending' && transition === this.pendingTransition
-                && href === this.pendingHref) ? 'true' : null,
+            'aria-busy': isBusy ? 'true' : null,
+            'data-cap-busy-visible': this.presentBusy(isBusy, 'navigation', href) ? '' : null,
             'aria-current': router.isActive(target, exact) ? 'page' : null,
             onClick: (event: MouseEvent) => {
                 onClick?.(event)

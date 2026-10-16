@@ -56,6 +56,7 @@ export class ProgressBar extends LineControl<ProgressBarProps> {
                 value={value == null ? undefined : value}
                 max={max}
                 aria-busy={busy ? 'true' : null}
+                data-cap-busy-visible={this.presentBusy(busy) ? '' : null}
                 aria-valuetext={valueText}
             >{valueText}</progress>
             <cap-content aria-hidden="true">
@@ -143,15 +144,15 @@ export class ProgressBar extends LineControl<ProgressBarProps> {
             white-space: nowrap;
         }
 
-        &:has(> progress:indeterminate[aria-busy="true"]) > cap-content > cap-progress {
+        &:has(> progress:indeterminate[data-cap-busy-visible]) > cap-content > cap-progress {
             display: none;
         }
 
-        &:has(> progress:indeterminate[aria-busy="true"]) > cap-content > cap-label {
+        &:has(> progress:indeterminate[data-cap-busy-visible]) > cap-content > cap-label {
             z-index: 2;
         }
 
-        &:has(> progress[aria-busy="true"]) > cap-content::after {
+        &:has(> progress[data-cap-busy-visible]) > cap-content::after {
             position: absolute;
             z-index: 2;
             inset: 1px;
@@ -165,12 +166,12 @@ export class ProgressBar extends LineControl<ProgressBarProps> {
             pointer-events: none;
         }
 
-        &:has(> progress[aria-busy="true"]) > cap-content > cap-label {
+        &:has(> progress[data-cap-busy-visible]) > cap-content > cap-label {
             z-index: 3;
         }
 
         @media (prefers-reduced-motion: reduce) {
-            &:has(> progress[aria-busy="true"]) > cap-content::after {
+            &:has(> progress[data-cap-busy-visible]) > cap-content::after {
                 animation: none !important;
             }
         }

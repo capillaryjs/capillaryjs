@@ -1,3 +1,4 @@
+import {ViewFeedback, viewParameters} from "../ViewFeedback.js";
 import type {CapillaryUiChild} from "@capillaryjs/capillary-ui";
 import {
     Component, Layout, Panel, PanelToolbar, Dropdown, RadioGroup, Toggle,
@@ -16,7 +17,9 @@ export class EconomicTrendsView extends Component {
     ];
 
     private state = screens["economic-trends"];
-    private query = buildco.view("economic-trends", {params: this.state.params, revision}, {owner: this});
+    private readonly retrievalParams = viewParameters(this.state.params, ["stacked","smooth"], this);
+    private query = buildco.view("economic-trends", {params: this.retrievalParams, revision}, {owner: this});
+    private readonly feedback = new ViewFeedback(this.query, this.retrievalParams, this);
 
     private readonly stacked = this.state.field("stacked").map(v => v === "true");
     private readonly smooth = this.state.field("smooth").map(v => v !== "false");
@@ -36,7 +39,7 @@ export class EconomicTrendsView extends Component {
         if (view.fetchState === "error" && !view.value) return <Panel island header="Economic Trends">
             <Placeholder/>
             <p className="muted">{String(view.error ?? "The economic trends could not be loaded.")}</p>
-            <Button label="Retry" onClick={() => void this.query.refresh()}/>
+            <Button label="Retry" command={this.feedback.refresh}/>
         </Panel>;
         if (!view.value) return <Panel island header="Economic Trends"><Placeholder/></Panel>;
 
@@ -52,13 +55,13 @@ export class EconomicTrendsView extends Component {
             <Panel island allocation="flexible" header="Economic Trends">
                 <PanelToolbar>
                     <Toolbar label="Trend controls">
-                        <Button icon="refresh" ariaLabel="Refresh results" appearance="subtle" busy={view.fetchState === "loading"} onClick={() => void this.query.refresh()}/>
-                    <Dropdown busy={view.fetchState === "loading"}
+                        <Button icon="refresh" ariaLabel="Refresh results" appearance="subtle" command={this.feedback.refresh}/>
+                    <Dropdown busy={this.feedback.busyFor("project")}
                         label="Project"
                         options={[{value: "", label: "All projects"}, ...(b.value.choices.projects ?? [])]}
                         valueEmitter={this.state.field("project") as any}
                     />
-                    <Dropdown busy={view.fetchState === "loading"}
+                    <Dropdown busy={this.feedback.busyFor("metric")}
                         label="Metric"
                         options={[
                             {value: "progress", label: "Progress"},
@@ -70,7 +73,7 @@ export class EconomicTrendsView extends Component {
                         ]}
                         valueEmitter={this.state.field("metric") as any}
                     />
-                    <RadioGroup busy={view.fetchState === "loading"}
+                    <RadioGroup busy={this.feedback.busyFor("stacked")}
                         label="Chart mode"
                         options={[
                             ["false", "Individual lines"],
@@ -78,7 +81,7 @@ export class EconomicTrendsView extends Component {
                         ]}
                         valueEmitter={this.state.field("stacked") as any}
                     />
-                    <Toggle busy={view.fetchState === "loading"}
+                    <Toggle busy={this.feedback.busyFor("smooth")}
                         label="Rendering"
                         options={[
                             ["true", "Smooth"],
@@ -90,6 +93,7 @@ export class EconomicTrendsView extends Component {
                 </PanelToolbar>
                 {view.fetchState === "error" ? <p role="alert">{String(view.error ?? "The results could not be refreshed.")}</p> : null}
                 <LineGraph
+                    busy={view.fetchState === 'loading'}
                     label={v.chartLabel ?? "Economic trends"}
                     shapes$={this.shapes}
                     stacked$={this.stacked}

@@ -58,6 +58,8 @@ test('real search reaches the table, UI bindings and every non-UI leaf; replay i
 })
 
 test('failure/retry, supersession, abort/disposal and command completion are inspectable', async ({page}) => {
+    // Several complete recording exports and inspector rebuilds share this case.
+    test.setTimeout(60_000)
     await page.goto(url)
     await page.getByRole('button', {name: 'Fail then retry', exact: true}).click()
     await expect(page.getByTestId('summary')).toHaveText('2 results')
@@ -110,6 +112,22 @@ test('table rendering and captured row contents include bounded header busy feed
     await details.locator('summary').filter({hasText: /^Array/}).click()
     await details.locator('summary').filter({hasText: /^0: Object/}).click()
     await expect(details.getByText('title: "plumbing · first"', {exact: true})).toBeVisible()
+})
+
+test('command completion is independent of its held success-triggered result refresh', async ({page}) => {
+    await page.goto(url)
+    await page.getByRole('button', {name: 'Start pending request', exact: true}).click()
+    const command = page.getByRole('button', {name: 'Run command', exact: true})
+    await command.click()
+    await expect(command).toHaveAttribute('aria-busy', 'true')
+    await page.getByRole('button', {name: 'Complete command', exact: true}).click()
+    await expect(page.getByLabel('Command result')).toContainText('Saved')
+    await expect(command).not.toHaveAttribute('aria-busy')
+    await expect(page.getByRole('table', {name: 'Search results'})).toHaveAttribute('aria-busy', 'true')
+    await expect(page.getByRole('button', {name: 'Start pending request', exact: true})).not.toHaveAttribute('aria-busy')
+    await page.getByRole('button', {name: 'Abort request', exact: true}).click()
+    await expect(page.getByLabel('Command result')).toContainText('Saved')
+    await expect(command).not.toHaveAttribute('aria-busy')
 })
 
 test('unchanged branches, source/target convergence filters, capture limits and compact composition', async ({page}) => {

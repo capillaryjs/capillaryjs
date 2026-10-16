@@ -244,6 +244,7 @@ unavailable until loading ends. Error and ready-empty states remain distinct.
 | Prop | Meaning |
 | --- | --- |
 | `model` | Required caller-owned block selection model |
+| `busy` | Live pending replacement data; keeps the current layout and uses Capillary UI's visual delay |
 | `label` | Accessible graph name and visible heading |
 | `description` | Visible explanation of the area encoding |
 | `emptyMessage` | Message for an empty valid layout |
@@ -275,6 +276,7 @@ areas.
 | Prop | Meaning |
 | --- | --- |
 | `shapes$` | Static `HistoryShape[]` or readable source |
+| `busy` | Live pending replacement data; keeps the current graph and uses Capillary UI's visual delay |
 | `stacked$` | Static boolean or readable source |
 | `smooth$` | Static boolean or readable source |
 | `range$` | Static or readable `{minX?, maxX?, minY?}` |

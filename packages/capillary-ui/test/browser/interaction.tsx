@@ -32,7 +32,7 @@ class InteractionFixture extends CapillaryUiApp {
             <ListView label="Records" items={[{id: 'one', label: 'One'}, {id: 'two', label: 'Two'}]} itemKey="id" busy={live(this.related.isRunning)} />
             <TreeView label="Definitions" nodes={[{id: 'one', label: 'One', children: [{id: 'two', label: 'Two'}]}]} busy={live(this.related.isRunning)} />
             <DataTable caption="Fields" data={[{id: 'one', name: 'One'}]} rowKey="id"
-                columns={[{field: 'name', label: 'Name', sortable: true, filterOptions: ['One']}]}
+                columns={[{field: 'name', label: 'Name', sortable: true, filterOptions: ['One']}, {field: 'id', label: 'Key', sortable: true}]}
                 busy={live(this.related.isRunning)} />
             <div className="clipped-anchor" style={{overflow: 'hidden', width: '10rem', height: '3rem', marginInlineStart: 'auto', marginTop: '4rem'}}>
                 <Button icon="connect" ariaLabel="Connect node" appearance="subtle" onClick={event => {

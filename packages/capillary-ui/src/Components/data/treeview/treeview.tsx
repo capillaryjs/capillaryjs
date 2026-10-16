@@ -17,9 +17,11 @@ import {TreeItem} from './treeitem.js'
 import type {TreeItemProps, TreeNode} from './treeitem.js'
 import {assertTreeNodes} from './treeModel.js'
 
-interface TreeViewCommonProps<TValue = unknown> extends ComponentProps, CommandInteractionOptions, LivePropContract<'busy'> {
-    /** Pending expansion/selection work owned by the application. Does not disable the tree. */
+interface TreeViewCommonProps<TValue = unknown> extends ComponentProps, CommandInteractionOptions, LivePropContract<'busy' | 'selectionBusy'> {
+    /** Pending work on the tree's own data. Does not disable the tree. */
     busy?: boolean
+    /** Required results for the accepted selection; presented on the selected node. */
+    selectionBusy?: boolean
     nodes?: readonly TreeNode<TValue>[] | ReadableEmitter<readonly TreeNode<TValue>[] | undefined, unknown>
     label: string
     placeholderCount?: number
@@ -52,7 +54,7 @@ interface VisibleNode<TValue> {
 
 /** Single-select ARIA tree with controlled expansion and selection. */
 export class TreeView<TValue = unknown> extends Component<TreeViewProps<TValue>> {
-    static override liveProps = ['busy'] as const
+    static override liveProps = ['busy', 'selectionBusy'] as const
     readonly nodesEmitter: ReadableEmitter<readonly TreeNode<TValue>[] | undefined, unknown>
     readonly selectedKeyEmitter: ValueEmitter<Key | null>
     readonly expandedKeysEmitter: ValueEmitter<Key[]>
@@ -133,10 +135,14 @@ export class TreeView<TValue = unknown> extends Component<TreeViewProps<TValue>>
         const replacesContent = fetchState === FetchState.Initial
             || (fetchState === FetchState.Loading && result === undefined)
         const retainedLoading = (fetchState === FetchState.Loading || this.props.busy === true) && result !== undefined
-        const isBusy = isLoading || commandRunning || this.props.busy === true
+        const isBusy = isLoading || this.props.busy === true
+        const visibleBusy = this.presentBusy(isBusy && sourceError == null, 'data')
+        const selectionBusy = commandRunning || this.props.selectionBusy === true
         const expanded = new Set(this.expandedKeysEmitter.get())
         const visible = flattenVisible(nodes, expanded)
         const selected = this.selectedKeyEmitter.get()
+        const visibleSelectionBusy = this.presentBusy(selectionBusy && commandError == null && invocationError == null,
+            'selection', selected)
         const active = visible.find(({node}) => Object.is(node.id, this.focusedKey))
             ?? visible.find(({node}) => Object.is(node.id, selected))
             ?? visible[0]
@@ -146,6 +152,7 @@ export class TreeView<TValue = unknown> extends Component<TreeViewProps<TValue>>
         const Host = this.Host
         return <Host className={componentClass(this.props) || null}
             aria-busy={isBusy ? 'true' : null}
+            data-cap-busy-visible={visibleBusy ? '' : null}
             data-cap-retained-loading={retainedLoading ? '' : null}>
             {fetchState === FetchState.Error
                 ? <ErrorMessage
@@ -199,6 +206,9 @@ export class TreeView<TValue = unknown> extends Component<TreeViewProps<TValue>>
                             aria-setsize={setSize}
                             aria-expanded={hasChildren ? String(isExpanded) : null}
                             aria-selected={String(isSelected)}
+                            aria-busy={isSelected && selectionBusy ? 'true' : null}
+                            data-cap-busy-visible={isSelected && visibleSelectionBusy ? '' : null}
+                            className="cap-working"
                             tabIndex={Object.is(node.id, active?.node.id) ? 0 : -1}
                             style={{'--tree-depth': depth}}
                             onClick={(event: MouseEvent) => {
@@ -262,7 +272,7 @@ export class TreeView<TValue = unknown> extends Component<TreeViewProps<TValue>>
             list-style: none;
         }
 
-        &[data-cap-retained-loading]::after {
+        &[data-cap-retained-loading][data-cap-busy-visible]::after {
             content: "";
             position: absolute;
             z-index: 1;

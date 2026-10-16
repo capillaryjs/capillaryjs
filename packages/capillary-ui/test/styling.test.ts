@@ -199,17 +199,17 @@ describe('style registry', () => {
         const stylesheet = runtime.styleRegistry.generateCSS()
 
         assert.equal(stylesheet.match(/@keyframes cap-working-progress/g)?.length, 1)
-        assert.match(stylesheet, /cap-button > button\[aria-busy="true"\][^{]*\{[^}]*animation:\s*cap-working-progress/)
-        assert.match(stylesheet, /cap-textbox > input\[aria-busy="true"\][^{]*\{[^}]*background:\s*var\(--working-background-image\)/)
-        assert.match(stylesheet, /cap-dropdown > cap-selectshell:has\(> select\[aria-busy="true"\]/)
-        assert.match(stylesheet, /input\[aria-busy="true"\][^{]*\+ cap-checkshell\s*\{[^}]*animation:\s*cap-working-progress/)
-        assert.match(stylesheet, /cap-toggle > cap-options\[aria-busy="true"\][\s\S]*button\[role="radio"\][\s\S]*animation:\s*cap-working-progress/)
-        assert.match(stylesheet, /cap-progressbar:has\(> progress\[aria-busy="true"\]\) > cap-content::after[\s\S]*animation:\s*cap-working-progress/)
+        assert.match(stylesheet, /cap-button > button\[data-cap-busy-visible\][^{]*\{[^}]*animation:\s*cap-working-progress/)
+        assert.match(stylesheet, /cap-textbox > input\[data-cap-busy-visible\][^{]*\{[^}]*background:\s*var\(--working-background-image\)/)
+        assert.match(stylesheet, /cap-dropdown > cap-selectshell:has\(> select\[data-cap-busy-visible\]/)
+        assert.match(stylesheet, /input\[data-cap-busy-visible\][^{]*\+ cap-checkshell\s*\{[^}]*animation:\s*cap-working-progress/)
+        assert.match(stylesheet, /cap-toggle > cap-options\[data-cap-busy-visible\][\s\S]*button\[role="radio"\][\s\S]*animation:\s*cap-working-progress/)
+        assert.match(stylesheet, /cap-progressbar:has\(> progress\[data-cap-busy-visible\]\) > cap-content::after[\s\S]*animation:\s*cap-working-progress/)
         assert.match(stylesheet, /cap-button > button:disabled:not\(\[aria-busy="true"\]\)/)
-        assert.match(stylesheet, /cap-button > button\[aria-busy="true"\][^}]*background:\s*var\(--working-background-image\), var\(--button-background\)/)
-        assert.match(stylesheet, /cap-placeholder::after[\s\S]*animation:\s*cap-working-progress/)
+        assert.match(stylesheet, /cap-button > button\[data-cap-busy-visible\][^}]*background:\s*var\(--working-background-image\), var\(--button-background\)/)
+        assert.match(stylesheet, /cap-placeholder\[data-cap-busy-visible\]::after[\s\S]*animation:\s*cap-working-progress/)
         for (const host of ['cap-datatable', 'cap-listview', 'cap-treeview']) {
-            assert.match(stylesheet, new RegExp(`${host}\\[data-cap-retained-loading\\]::after`))
+            assert.match(stylesheet, new RegExp(`${host}\\[data-cap-retained-loading\\]\\[data-cap-busy-visible\\]::after`))
         }
         assert.doesNotMatch(stylesheet, /td::after|\[role="option"\]::after|\[role="treeitem"\]::after/)
 
@@ -322,9 +322,9 @@ describe('style registry', () => {
         const stylesheet = runtime.styleRegistry.generateCSS()
 
         assert.match(stylesheet, /cap-placeholder\s*\{[^}]*width:\s*5em[^}]*height:\s*1em[^}]*background:\s*#ccc/)
-        assert.match(stylesheet, /cap-placeholder::after\s*\{[^}]*animation:\s*cap-working-progress \.55s linear infinite[^}]*background-image:\s*var\(--working-background-image\)/)
+        assert.match(stylesheet, /cap-placeholder\[data-cap-busy-visible\]::after\s*\{[^}]*animation:\s*cap-working-progress \.55s linear infinite[^}]*background-image:\s*var\(--working-background-image\)/)
         assert.match(stylesheet, /@keyframes cap-working-progress\s*\{[\s\S]*background-position:\s*2rem 0/)
-        assert.match(stylesheet, /@media \(prefers-reduced-motion: reduce\)\s*\{[\s\S]*cap-placeholder::after\s*\{[^}]*animation:\s*none/)
+        assert.match(stylesheet, /@media \(prefers-reduced-motion: reduce\)\s*\{[\s\S]*cap-placeholder\[data-cap-busy-visible\]::after\s*\{[^}]*animation:\s*none/)
         assert.doesNotMatch(stylesheet, /(?:^|\n)placeholder\s*\{|data-part|data-state|cap-panel|cap-sidebar/)
     })
 
@@ -339,7 +339,7 @@ describe('style registry', () => {
         assert.match(stylesheet, /cap-listview > \[role="listbox"\] > \[role="option"\]:hover\s*\{[^}]*background:\s*var\(--hover-bg-color, #f5f5f5\)/)
         assert.match(stylesheet, /cap-listview\s*\{[^}]*flex:\s*1 1 auto[^}]*min-block-size:\s*0[^}]*max-block-size:\s*100%[^}]*overflow:\s*auto/)
         assert.match(stylesheet, /cap-listview > \[role="listbox"\] > \[role="option"\]\[aria-selected="true"\]\s*\{[^}]*background:\s*var\(--selected-bg-color, #e0e7ff\)/)
-        assert.match(stylesheet, /cap-placeholder::after/)
+        assert.match(stylesheet, /cap-placeholder\[data-cap-busy-visible\]::after/)
         assert.doesNotMatch(stylesheet, /cap-list-view|data-part|(?:^|\n)div\s*\{|cap-panel|cap-sidebar/)
     })
 
@@ -502,7 +502,7 @@ describe('style registry', () => {
         assert.match(stylesheet, /cap-progressbar > cap-content\s*\{[^}]*background:\s*var\(--progress-track-background\)[^}]*box-shadow:\s*var\(--progress-track-shadow\)/)
         assert.match(stylesheet, /cap-progressbar > cap-content > cap-progress\s*\{[^}]*width:\s*var\(--progress-width, 0%\)[^}]*background:\s*var\(--progress-value-background\)[^}]*box-shadow:\s*var\(--progress-value-shadow\)/)
         assert.match(stylesheet, /cap-progressbar > cap-content > cap-progress > cap-inverse\s*\{[^}]*width:\s*var\(--progress-inverse-width, 10000%\)[^}]*color:\s*var\(--progress-value-color\)/)
-        assert.match(stylesheet, /cap-progressbar:has\(> progress:indeterminate\[aria-busy="true"\]\) > cap-content > cap-progress\s*\{[^}]*display:\s*none/)
+        assert.match(stylesheet, /cap-progressbar:has\(> progress:indeterminate\[data-cap-busy-visible\]\) > cap-content > cap-progress\s*\{[^}]*display:\s*none/)
         assert.match(stylesheet, /@media \(forced-colors: active\)[\s\S]*cap-progressbar > cap-content > cap-progress\s*\{[^}]*background:\s*Highlight/)
         assert.doesNotMatch(stylesheet, /data-part|cap-checkbox|cap-dropdown|cap-panel/)
     })

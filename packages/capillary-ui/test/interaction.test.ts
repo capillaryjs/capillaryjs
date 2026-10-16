@@ -44,7 +44,7 @@ test('external busy retains collection content and permits application-controlle
         row.click()
         assert.equal(row.getAttribute('aria-selected'), 'true')
     }
-    for (const button of document.querySelectorAll('th button')) assert.equal(button.getAttribute('aria-busy'), 'true')
+    for (const button of document.querySelectorAll('th button')) assert.equal(button.hasAttribute('aria-busy'), false)
     pending.set(false)
     for (const host of document.querySelectorAll('cap-listview,cap-treeview,cap-datatable')) {
         assert.equal(host.hasAttribute('aria-busy'), false)
@@ -102,7 +102,7 @@ test('filter choices use standard busy presentation without preventing refinemen
     }
     const panel = Owner.new().attachTo(document.body)
     const input = document.querySelector<HTMLInputElement>('input')!
-    assert.equal(input.getAttribute('aria-busy'), 'true')
+    assert.equal(input.hasAttribute('aria-busy'), false, 'data loading does not make every filter choice busy')
     assert.equal(input.disabled, false)
     input.click()
     assert.equal(changes, 1)

@@ -150,6 +150,7 @@ export class Toggle<TValue extends Key = string> extends LabeledInputControl<Tog
                 aria-required={required ? 'true' : null}
                 aria-readonly={readOnly ? 'true' : null}
                 aria-busy={isBusy ? 'true' : null}
+                data-cap-busy-visible={this.presentBusy(isBusy && displayedError == null) ? '' : null}
                 aria-invalid={displayedError == null ? null : 'true'}
                 aria-describedby={displayedError == null ? null : this.errorId}
             >{options.map(([value, optionLabel], index) => <button
@@ -365,7 +366,7 @@ export class Toggle<TValue extends Key = string> extends LabeledInputControl<Tog
             border-inline-end: var(--toggle-button-border-readonly);
         }
 
-        & > cap-options[aria-busy="true"]:not([aria-invalid="true"])
+        & > cap-options[data-cap-busy-visible]:not([aria-invalid="true"])
         > button[role="radio"]::before {
             background: var(--working-background-image), var(--toggle-button-background);
             background-repeat: repeat, no-repeat;
@@ -373,7 +374,7 @@ export class Toggle<TValue extends Key = string> extends LabeledInputControl<Tog
             animation: cap-working-progress .55s linear infinite;
         }
 
-        & > cap-options[aria-busy="true"]:not([aria-invalid="true"])
+        & > cap-options[data-cap-busy-visible]:not([aria-invalid="true"])
         > button[role="radio"][aria-checked="true"]::before {
             background: var(--working-background-image), var(--toggle-button-background-checked);
             background-repeat: repeat, no-repeat;
@@ -400,7 +401,7 @@ export class Toggle<TValue extends Key = string> extends LabeledInputControl<Tog
         }
 
         @media (prefers-reduced-motion: reduce) {
-            & > cap-options[aria-busy="true"] > button[role="radio"]::before {
+            & > cap-options[data-cap-busy-visible] > button[role="radio"]::before {
                 animation: none !important;
             }
         }

@@ -97,3 +97,11 @@ void radio
 void invalid
 void invalidRadioOptions
 void invalidRawRadioOptions
+
+const selectionPending = new Emitter(false)
+const pendingTree = <TreeView label="Pending selection" nodes={[{id: 'a', label: 'Alpha'}]} selectionBusy={live(selectionPending)} />
+const pendingList = <ListView items={['Alpha']} selectionBusy={live(selectionPending)} />
+const pendingTable = <DataTable data={[{id: 'a'}]} columns={[{field: 'id'}]} selectionBusy={live(selectionPending)} />
+void pendingTree
+void pendingList
+void pendingTable

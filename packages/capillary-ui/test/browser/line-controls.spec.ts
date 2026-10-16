@@ -195,6 +195,7 @@ for (const theme of ['base', 'capillary', 'shiny', 'soft', 'white', 'minimal']) 
 
         test('toggle paint keeps busy, error and reduced-motion feedback', async ({page}) => {
             const surface = page.locator('#busy cap-options button').first()
+            await expect.poll(() => surface.evaluate(e => getComputedStyle(e, '::before').animationName)).toBe('cap-working-progress')
             const paint = await surface.evaluate((e) => {
                 const s = getComputedStyle(e, '::before')
                 return {animation: s.animationName, background: s.backgroundImage}

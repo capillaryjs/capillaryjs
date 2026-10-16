@@ -11,13 +11,13 @@ export class StatusPresentation extends Component {
             from { background-position: 0 0, 0 0; }
             to { background-position: 2rem 0, 0 0; }
         }
-        .cap-working[aria-busy="true"]:not([aria-invalid="true"]) {
+        .cap-working[data-cap-busy-visible]:not([aria-invalid="true"]) {
             background-image: var(--working-background-image);
             background-size: 2rem 2rem;
             animation: cap-working-progress .55s linear infinite;
         }
         @media (prefers-reduced-motion: reduce) {
-            .cap-working[aria-busy="true"] { animation: none; }
+            .cap-working[data-cap-busy-visible] { animation: none; }
         }
     `
 }

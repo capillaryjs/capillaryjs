@@ -39,8 +39,9 @@ one render per row. Option-value changes do not rerender closed headers.
 One themed CapillaryUiApp shell contains both runtime slots and supplies the
 single main landmark. Query triggers show pending work from the existing query
 snapshot; completion/abort/replacement controls remain available. Run command
-also presents its explicitly required query follow-up, without relabelling that
-read as a mutation command. Trace content uses collection/canvas selection;
+finishes at save confirmation. Its success-triggered query refresh presents
+loading/errors independently in the results, including while that query is held
+or fails. Trace content uses collection/canvas selection;
 capture and playback use named icon actions.
 
 `pnpm test` tests scenario behavior. From the public root,

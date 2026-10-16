@@ -195,13 +195,13 @@ cap-breadcrumb {
             from { background-position: 0 0, 0 0; }
             to { background-position: 2rem 0, 0 0; }
         }
-        .cap-working[aria-busy="true"]:not([aria-invalid="true"]) {
+        .cap-working[data-cap-busy-visible]:not([aria-invalid="true"]) {
             background-image: var(--working-background-image);
             background-size: 2rem 2rem;
             animation: cap-working-progress .55s linear infinite;
         }
         @media (prefers-reduced-motion: reduce) {
-            .cap-working[aria-busy="true"] { animation: none; }
+            .cap-working[data-cap-busy-visible] { animation: none; }
         }
 
 cap-button,
@@ -280,7 +280,7 @@ cap-button > button {
             pointer-events: none;
         }
 
-        cap-button > button[aria-busy="true"]:not([aria-invalid="true"]) {
+        cap-button > button[data-cap-busy-visible]:not([aria-invalid="true"]) {
             /* Busy is unavailable for activation, but remains a normal button
              * surface with the loading texture layered on top. */
             background: var(--working-background-image), var(--button-background);
@@ -305,13 +305,13 @@ cap-button > button {
             background: var(--button-background-hover);
         }
         cap-button.cap-subtle > button:focus-visible { box-shadow: var(--focus-ring); }
-        cap-button.cap-subtle > button[aria-busy="true"]:not([aria-invalid="true"]) {
+        cap-button.cap-subtle > button[data-cap-busy-visible]:not([aria-invalid="true"]) {
             background: var(--working-background-image), transparent;
             background-size: 2rem 2rem, 100% 100%;
         }
 
         @media (prefers-reduced-motion: reduce) {
-            cap-button > button[aria-busy="true"] {
+            cap-button > button[data-cap-busy-visible] {
                 animation: none !important;
             }
         }
@@ -594,10 +594,10 @@ cap-tricheckbox > label:has(> input:required:invalid:not(:disabled):not([aria-in
             filter: saturate(0.6);
         }
 
-        cap-checkbox > label > input[aria-busy="true"]:not([aria-invalid="true"]) + cap-checkshell,
-        cap-quadcheckbox > label > input[aria-busy="true"]:not([aria-invalid="true"]) + cap-checkshell,
-        cap-radiobutton > label > input[aria-busy="true"]:not([aria-invalid="true"]) + cap-checkshell,
-        cap-tricheckbox > label > input[aria-busy="true"]:not([aria-invalid="true"]) + cap-checkshell {
+        cap-checkbox > label > input[data-cap-busy-visible]:not([aria-invalid="true"]) + cap-checkshell,
+        cap-quadcheckbox > label > input[data-cap-busy-visible]:not([aria-invalid="true"]) + cap-checkshell,
+        cap-radiobutton > label > input[data-cap-busy-visible]:not([aria-invalid="true"]) + cap-checkshell,
+        cap-tricheckbox > label > input[data-cap-busy-visible]:not([aria-invalid="true"]) + cap-checkshell {
             background: var(--working-background-image), var(--checkbox-box-background,
                 var(--ui-input-bg, transparent));
             background-repeat: repeat, no-repeat;
@@ -614,10 +614,10 @@ cap-tricheckbox > label:has(> input:required:invalid:not(:disabled):not([aria-in
         }
 
         @media (prefers-reduced-motion: reduce) {
-            cap-checkbox > label > input[aria-busy="true"] + cap-checkshell,
-            cap-quadcheckbox > label > input[aria-busy="true"] + cap-checkshell,
-            cap-radiobutton > label > input[aria-busy="true"] + cap-checkshell,
-            cap-tricheckbox > label > input[aria-busy="true"] + cap-checkshell {
+            cap-checkbox > label > input[data-cap-busy-visible] + cap-checkshell,
+            cap-quadcheckbox > label > input[data-cap-busy-visible] + cap-checkshell,
+            cap-radiobutton > label > input[data-cap-busy-visible] + cap-checkshell,
+            cap-tricheckbox > label > input[data-cap-busy-visible] + cap-checkshell {
                 animation: none !important;
             }
         }
@@ -846,21 +846,21 @@ cap-dropdown:has(> cap-selectshell > select:required:invalid:not(:disabled):not(
             box-shadow: var(--focus-ring);
         }
 
-        cap-dropdown > cap-selectshell:has(> select[aria-busy="true"]:not([aria-invalid="true"]))::after {
+        cap-dropdown > cap-selectshell:has(> select[data-cap-busy-visible]:not([aria-invalid="true"]))::after {
             background: var(--working-background-image), var(--dropdown-underlay-background);
             background-repeat: repeat, no-repeat;
             background-size: 2rem 2rem, 100% 100%;
             animation: cap-working-progress .55s linear infinite;
         }
 
-        cap-dropdown > cap-selectshell > select[aria-busy="true"]:not([aria-invalid="true"]) {
+        cap-dropdown > cap-selectshell > select[data-cap-busy-visible]:not([aria-invalid="true"]) {
             background: var(--working-background-image), var(--dropdown-select-background);
             background-repeat: repeat, no-repeat;
             background-size: 2rem 2rem, 100% 100%;
             animation: cap-working-progress .55s linear infinite;
         }
 
-        cap-dropdown > cap-selectshell:has(> select[aria-readonly="true"][aria-busy="true"]:not([aria-invalid="true"]))::after {
+        cap-dropdown > cap-selectshell:has(> select[aria-readonly="true"][data-cap-busy-visible]:not([aria-invalid="true"]))::after {
             background: var(--working-background-image), var(--dropdown-underlay-background-readonly);
             background-repeat: repeat, no-repeat;
             background-size: 2rem 2rem, 100% 100%;
@@ -878,8 +878,8 @@ cap-dropdown:has(> cap-selectshell > select:required:invalid:not(:disabled):not(
         }
 
         @media (prefers-reduced-motion: reduce) {
-            cap-dropdown > cap-selectshell:has(> select[aria-busy="true"])::after,
-            cap-dropdown > cap-selectshell > select[aria-busy="true"] {
+            cap-dropdown > cap-selectshell:has(> select[data-cap-busy-visible])::after,
+            cap-dropdown > cap-selectshell > select[data-cap-busy-visible] {
                 animation: none !important;
             }
         }
@@ -940,7 +940,7 @@ cap-datatable {
             width: 100%;
         }
 
-        cap-datatable[data-cap-retained-loading]::after {
+        cap-datatable[data-cap-retained-loading][data-cap-busy-visible]::after {
             content: "";
             position: absolute;
             z-index: 3;
@@ -1033,7 +1033,7 @@ cap-placeholder {
             position: relative;
         }
 
-        cap-placeholder::after {
+        cap-placeholder[data-cap-busy-visible]::after {
             content: "";
             display: block;
             position: absolute;
@@ -1051,7 +1051,7 @@ cap-placeholder {
         }
 
         @media (prefers-reduced-motion: reduce) {
-            cap-placeholder::after {
+            cap-placeholder[data-cap-busy-visible]::after {
                 animation: none !important;
             }
         }
@@ -1062,7 +1062,7 @@ cap-placeholder {
                 forced-color-adjust: none;
             }
 
-            cap-placeholder::after {
+            cap-placeholder[data-cap-busy-visible]::after {
                 display: none;
             }
         }
@@ -1192,7 +1192,7 @@ cap-datatable th cap-popover cap-filterpanel {
             opacity: 1;
         }
 
-        cap-datatable > table > thead > tr > th[aria-sort] > button[aria-busy="true"] {
+        cap-datatable > table > thead > tr > th[aria-sort] > button[data-cap-busy-visible] {
             background-image: var(--working-background-image);
             background-size: 2rem 2rem;
             animation: cap-working-progress .55s linear infinite;
@@ -1200,7 +1200,7 @@ cap-datatable th cap-popover cap-filterpanel {
         }
 
         @media (prefers-reduced-motion: reduce) {
-            cap-datatable > table > thead > tr > th[aria-sort] > button[aria-busy="true"] { animation: none; }
+            cap-datatable > table > thead > tr > th[aria-sort] > button[data-cap-busy-visible] { animation: none; }
         }
 
 cap-filterpanel {
@@ -1225,7 +1225,7 @@ cap-filterpanel {
             margin: 0;
         }
 
-        cap-filterpanel[aria-busy="true"]::after {
+        cap-filterpanel[data-cap-busy-visible]::after {
             content: "";
             position: absolute;
             z-index: 1;
@@ -1242,7 +1242,7 @@ cap-filterpanel {
         }
 
         @media (prefers-reduced-motion: reduce) {
-            cap-filterpanel[aria-busy="true"]::after {
+            cap-filterpanel[data-cap-busy-visible]::after {
                 animation: none !important;
             }
         }
@@ -1359,26 +1359,26 @@ cap-timepicker:has(> input:required:invalid:not(:disabled):not([readonly]):not([
             box-shadow: var(--focus-ring);
         }
 
-        cap-datepicker > input[aria-busy="true"]:not([aria-invalid="true"]),
-        cap-datetimepicker > input[aria-busy="true"]:not([aria-invalid="true"]),
-        cap-timepicker > input[aria-busy="true"]:not([aria-invalid="true"]) {
+        cap-datepicker > input[data-cap-busy-visible]:not([aria-invalid="true"]),
+        cap-datetimepicker > input[data-cap-busy-visible]:not([aria-invalid="true"]),
+        cap-timepicker > input[data-cap-busy-visible]:not([aria-invalid="true"]) {
             background: var(--working-background-image), var(--input-background);
             background-repeat: repeat, no-repeat;
             background-size: 2rem 2rem, 100% 100%;
             animation: cap-working-progress .55s linear infinite;
         }
 
-        cap-datepicker > input:disabled[aria-busy="true"]:not([aria-invalid="true"]),
-        cap-datetimepicker > input:disabled[aria-busy="true"]:not([aria-invalid="true"]),
-        cap-timepicker > input:disabled[aria-busy="true"]:not([aria-invalid="true"]) {
+        cap-datepicker > input:disabled[data-cap-busy-visible]:not([aria-invalid="true"]),
+        cap-datetimepicker > input:disabled[data-cap-busy-visible]:not([aria-invalid="true"]),
+        cap-timepicker > input:disabled[data-cap-busy-visible]:not([aria-invalid="true"]) {
             background: var(--working-background-image), var(--input-background-disabled);
             background-repeat: repeat, no-repeat;
             background-size: 2rem 2rem, 100% 100%;
         }
 
-        cap-datepicker > input[readonly]:not(:disabled)[aria-busy="true"]:not([aria-invalid="true"]),
-        cap-datetimepicker > input[readonly]:not(:disabled)[aria-busy="true"]:not([aria-invalid="true"]),
-        cap-timepicker > input[readonly]:not(:disabled)[aria-busy="true"]:not([aria-invalid="true"]) {
+        cap-datepicker > input[readonly]:not(:disabled)[data-cap-busy-visible]:not([aria-invalid="true"]),
+        cap-datetimepicker > input[readonly]:not(:disabled)[data-cap-busy-visible]:not([aria-invalid="true"]),
+        cap-timepicker > input[readonly]:not(:disabled)[data-cap-busy-visible]:not([aria-invalid="true"]) {
             background: var(--working-background-image), var(--input-background-readonly);
             background-repeat: repeat, no-repeat;
             background-size: 2rem 2rem, 100% 100%;
@@ -1392,9 +1392,9 @@ cap-timepicker:has(> input:required:invalid:not(:disabled):not([readonly]):not([
         }
 
         @media (prefers-reduced-motion: reduce) {
-            cap-datepicker > input[aria-busy="true"],
-            cap-datetimepicker > input[aria-busy="true"],
-            cap-timepicker > input[aria-busy="true"] {
+            cap-datepicker > input[data-cap-busy-visible],
+            cap-datetimepicker > input[data-cap-busy-visible],
+            cap-timepicker > input[data-cap-busy-visible] {
                 animation: none !important;
             }
         }
@@ -1886,7 +1886,7 @@ cap-listview {
             list-style: none;
         }
 
-        cap-listview[data-cap-retained-loading]::after {
+        cap-listview[data-cap-retained-loading][data-cap-busy-visible]::after {
             content: "";
             position: absolute;
             z-index: 1;
@@ -2067,7 +2067,7 @@ cap-optiongroup {
             min-width: 0;
         }
 
-        cap-optiongroup > fieldset[aria-busy="true"]:not([aria-invalid="true"]) {
+        cap-optiongroup > fieldset[data-cap-busy-visible]:not([aria-invalid="true"]) {
             background-image: var(--working-background-image);
             background-repeat: repeat;
             background-size: 2rem 2rem;
@@ -2081,7 +2081,7 @@ cap-optiongroup {
         }
 
         @media (prefers-reduced-motion: reduce) {
-            cap-optiongroup > fieldset[aria-busy="true"] {
+            cap-optiongroup > fieldset[data-cap-busy-visible] {
                 animation: none !important;
             }
         }
@@ -2241,15 +2241,15 @@ cap-progressbar {
             white-space: nowrap;
         }
 
-        cap-progressbar:has(> progress:indeterminate[aria-busy="true"]) > cap-content > cap-progress {
+        cap-progressbar:has(> progress:indeterminate[data-cap-busy-visible]) > cap-content > cap-progress {
             display: none;
         }
 
-        cap-progressbar:has(> progress:indeterminate[aria-busy="true"]) > cap-content > cap-label {
+        cap-progressbar:has(> progress:indeterminate[data-cap-busy-visible]) > cap-content > cap-label {
             z-index: 2;
         }
 
-        cap-progressbar:has(> progress[aria-busy="true"]) > cap-content::after {
+        cap-progressbar:has(> progress[data-cap-busy-visible]) > cap-content::after {
             position: absolute;
             z-index: 2;
             inset: 1px;
@@ -2263,12 +2263,12 @@ cap-progressbar {
             pointer-events: none;
         }
 
-        cap-progressbar:has(> progress[aria-busy="true"]) > cap-content > cap-label {
+        cap-progressbar:has(> progress[data-cap-busy-visible]) > cap-content > cap-label {
             z-index: 3;
         }
 
         @media (prefers-reduced-motion: reduce) {
-            cap-progressbar:has(> progress[aria-busy="true"]) > cap-content::after {
+            cap-progressbar:has(> progress[data-cap-busy-visible]) > cap-content::after {
                 animation: none !important;
             }
         }
@@ -2725,20 +2725,20 @@ cap-textbox:has(> input:required:invalid:not(:disabled):not([readonly]):not([ari
             box-shadow: var(--focus-ring);
         }
 
-        cap-textbox > input[aria-busy="true"]:not([aria-invalid="true"]) {
+        cap-textbox > input[data-cap-busy-visible]:not([aria-invalid="true"]) {
             background: var(--working-background-image), var(--input-background);
             background-repeat: repeat, no-repeat;
             background-size: 2rem 2rem, 100% 100%;
             animation: cap-working-progress .55s linear infinite;
         }
 
-        cap-textbox > input:disabled[aria-busy="true"]:not([aria-invalid="true"]) {
+        cap-textbox > input:disabled[data-cap-busy-visible]:not([aria-invalid="true"]) {
             background: var(--working-background-image), var(--input-background-disabled);
             background-repeat: repeat, no-repeat;
             background-size: 2rem 2rem, 100% 100%;
         }
 
-        cap-textbox > input[readonly]:not(:disabled)[aria-busy="true"]:not([aria-invalid="true"]) {
+        cap-textbox > input[readonly]:not(:disabled)[data-cap-busy-visible]:not([aria-invalid="true"]) {
             background: var(--working-background-image), var(--input-background-readonly);
             background-repeat: repeat, no-repeat;
             background-size: 2rem 2rem, 100% 100%;
@@ -2750,7 +2750,7 @@ cap-textbox:has(> input:required:invalid:not(:disabled):not([readonly]):not([ari
         }
 
         @media (prefers-reduced-motion: reduce) {
-            cap-textbox > input[aria-busy="true"] {
+            cap-textbox > input[data-cap-busy-visible] {
                 animation: none !important;
             }
         }
@@ -2926,7 +2926,7 @@ cap-toggle {
             border-inline-end: var(--toggle-button-border-readonly);
         }
 
-        cap-toggle > cap-options[aria-busy="true"]:not([aria-invalid="true"])
+        cap-toggle > cap-options[data-cap-busy-visible]:not([aria-invalid="true"])
         > button[role="radio"]::before {
             background: var(--working-background-image), var(--toggle-button-background);
             background-repeat: repeat, no-repeat;
@@ -2934,7 +2934,7 @@ cap-toggle {
             animation: cap-working-progress .55s linear infinite;
         }
 
-        cap-toggle > cap-options[aria-busy="true"]:not([aria-invalid="true"])
+        cap-toggle > cap-options[data-cap-busy-visible]:not([aria-invalid="true"])
         > button[role="radio"][aria-checked="true"]::before {
             background: var(--working-background-image), var(--toggle-button-background-checked);
             background-repeat: repeat, no-repeat;
@@ -2961,7 +2961,7 @@ cap-toggle {
         }
 
         @media (prefers-reduced-motion: reduce) {
-            cap-toggle > cap-options[aria-busy="true"] > button[role="radio"]::before {
+            cap-toggle > cap-options[data-cap-busy-visible] > button[role="radio"]::before {
                 animation: none !important;
             }
         }
@@ -3016,7 +3016,7 @@ cap-treeview {
             list-style: none;
         }
 
-        cap-treeview[data-cap-retained-loading]::after {
+        cap-treeview[data-cap-retained-loading][data-cap-busy-visible]::after {
             content: "";
             position: absolute;
             z-index: 1;

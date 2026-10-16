@@ -1,6 +1,7 @@
 import {Component, css} from '../../component.js'
 import type {ComponentProps, CapillaryUiChild, Key, LivePropContract} from '../../component.js'
 import {StatusPresentation} from '../../status/statusPresentation.js'
+import {BusyIdentity} from '../../status/busyIdentity.js'
 import {
     componentClass,
     createValueEmitter,
@@ -29,6 +30,7 @@ export interface TabLineProps extends ValueControlProps<Key | null>, LivePropCon
 }
 
 export class TabLine extends Component<TabLineProps> {
+    private readonly busyTabs = new BusyIdentity()
     static override liveProps = ['busy'] as const
     static override dependencies = [StatusPresentation]
     readonly valueEmitter: ValueEmitter<Key | null>
@@ -76,6 +78,8 @@ export class TabLine extends Component<TabLineProps> {
         } = this.props
         validateTabs(tabs)
         const activeTabId = this.valueEmitter.get()
+        const busyTabs = tabs.filter(tab => tab.busy || (this.props.busy && Object.is(activeTabId, tab.id)))
+        const visibleBusy = this.presentBusy(busyTabs.length > 0, 'tabs', this.busyTabs.for(busyTabs.map(tab => tab.id)))
 
         const Host = this.Host
         return <Host
@@ -90,6 +94,7 @@ export class TabLine extends Component<TabLineProps> {
                 role="tab"
                 className="cap-working"
                 aria-busy={tab.busy || (this.props.busy && Object.is(activeTabId, tab.id)) ? 'true' : null}
+                data-cap-busy-visible={visibleBusy && busyTabs.includes(tab) ? '' : null}
                 disabled={Boolean(tab.disabled)}
                 aria-selected={Object.is(activeTabId, tab.id) ? 'true' : 'false'}
                 aria-controls={tabPanelId(baseId, tab.id)}

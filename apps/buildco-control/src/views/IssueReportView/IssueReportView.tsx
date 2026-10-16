@@ -1,3 +1,4 @@
+import {ViewFeedback} from "../ViewFeedback.js";
 import type {LocalDateTime, CapillaryUiChild} from "@capillaryjs/capillary-ui";
 import {
     Component, Panel, PanelToolbar, InfoPanel, InfoField,
@@ -10,7 +11,7 @@ import {Emitter, DerivedEmitter} from "@capillaryjs/capillary";
 import type {Row} from "../../api/ScenarioApi.ts";
 import {human} from "../../api/ScenarioApi.ts";
 import {screens, routes, issueIdParam} from "../../app/routing.ts";
-import {buildco, revision, bootstrap, mutate} from "../../app/services.ts";
+import {buildco, revision, bootstrap, mutate, demo} from "../../app/services.ts";
 import {formatValue, renderRows} from "../shared.tsx";
 
 const severities = ["low", "medium", "high", "critical"].map(value => ({value, label: human(value)}));
@@ -31,6 +32,7 @@ export class IssueReportView extends Component {
         {owner: this, purpose: 'issue report params'},
     );
     private query = buildco.view("issue-report", {params: this.params, revision}, {owner: this});
+    private readonly feedback = new ViewFeedback(this.query, this.params, this);
     private readonly dialogOpen = new Emitter<boolean>(false, {owner: this, purpose: "issue dialog open"});
     private readonly dialogMode = new Emitter<"edit" | "resolve">("edit", {owner: this, purpose: "issue dialog mode"});
     private readonly dialogError = new Emitter<string>("", {owner: this, purpose: "issue dialog error"});
@@ -95,6 +97,7 @@ export class IssueReportView extends Component {
                     </SidebarToolbar>
                     <ListView
                         label="Issues"
+                        selectionBusy={this.feedback.busyFor('issueId')}
                         items={this.filteredIssues}
                         itemKey="id"
                         selectedItemEmitter={this.issueSelection}
@@ -113,7 +116,7 @@ export class IssueReportView extends Component {
                 <PanelToolbar>
                     <Toolbar label="Issue actions">
                         <Button icon="refresh" ariaLabel="Refresh issue report" appearance="subtle"
-                            busy={view.fetchState === "loading"} onClick={() => void this.query.refresh()}/>
+                            command={this.feedback.refresh}/>
                         <Button
                             label="Edit"
                             disabled={!detail || busy}
@@ -132,7 +135,7 @@ export class IssueReportView extends Component {
                     : view.fetchState === "error" && !v ? <>
                         <Placeholder/>
                         <p className="muted">{String(view.error ?? "The issue report could not be loaded.")}</p>
-                        <Button label="Retry" onClick={() => void this.query.refresh()}/>
+                        <Button label="Retry" command={this.feedback.refresh}/>
                     </>
                     : !detail ? <>
                         <Placeholder/>
@@ -236,6 +239,9 @@ export class IssueReportView extends Component {
         if (result) {
             // Join the refresh already started by revision propagation before closing.
             await this.query.activate();
+            if (this.query.getFetchState() === "error") {
+                demo.notice.set(`${result.message} The report could not be refreshed; use Refresh issue report.`);
+            }
             this.dialogOpen.set(false);
             this.dialogError.set("");
         } else {

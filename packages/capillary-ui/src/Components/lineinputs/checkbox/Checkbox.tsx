@@ -197,6 +197,7 @@ export class Checkbox<TValue extends CheckboxValue = FilterModeValue>
                     name={this.props.name}
                     value={String(semanticState)}
                     aria-busy={isBusy ? 'true' : null}
+                data-cap-busy-visible={this.presentBusy(isBusy && displayedError == null) ? '' : null}
                     aria-label={textLabel == null
                         ? null
                         : this.capillaryUiMessage('checkboxStateLabel')(textLabel, localizedStateName)}

@@ -26,6 +26,8 @@ const RESERVED_CUSTOM_ELEMENT_NAMES = new Set([
 ])
 
 export interface CapillaryUiRuntimeOptions {
+    /** Delay standard visual loading feedback; lifecycle and ARIA remain immediate. Default: 150 ms. */
+    busyDelayMs?: number
     /** Inherited by component and binding diagnostic identities. */
     diagnosticScope?: DiagnosticScope
     /** Service scope inherited by every component created or mounted here. */
@@ -38,6 +40,7 @@ export interface CapillaryUiRuntimeOptions {
 
 /** Application scope for structural styles, browser integrations, and localization. */
 export class CapillaryUiRuntime {
+    readonly busyDelayMs: number
     readonly styleRegistry: StyleRegistry
     readonly services: ServiceScope
     readonly router: BrowserRouter | null
@@ -56,6 +59,11 @@ export class CapillaryUiRuntime {
             throw new TypeError('CapillaryUiRuntime no longer supports configurable element names')
         }
         this.styleRegistry = registry
+        const busyDelayMs = options.busyDelayMs ?? 150
+        if (!Number.isFinite(busyDelayMs) || busyDelayMs < 0) {
+            throw new RangeError('busyDelayMs must be a non-negative finite number')
+        }
+        this.busyDelayMs = busyDelayMs
         this.diagnosticScope = options.diagnosticScope ?? defaultDiagnosticScope
         this.localization = createRuntimeLocalization(options.localization)
         this.services = options.services ?? createServiceScope()

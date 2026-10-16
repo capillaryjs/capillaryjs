@@ -503,6 +503,15 @@ button.onclick = () => void submit()
 submit.command.isRunning.get()
 ```
 
+Applications define which work completes an interaction. Await a required
+operation in its command executor; observe a selection-driven query separately
+when the user is requesting details; give independent reactions their own
+loading and error handling. A causal connection does not make its action part
+of command completion. Observe the connection's `errors` source or provide
+`onError`, alongside any query/command error snapshot. If a write succeeds and
+a later refresh fails, preserve the successful write outcome and retry the
+refresh rather than replaying the write.
+
 `writableProjection(source, {read, write})` exposes one writable field or
 membership view over an authoritative writable aggregate. `write` receives the
 current source value and returns the application-defined immutable replacement;

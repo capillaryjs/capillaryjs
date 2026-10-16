@@ -159,6 +159,12 @@ A class component has explicit phases:
 `watch()` schedules a component update when an observable changes.
 `read(emitter)` returns its value and tracks it only for the current render.
 `snapshot(emitter)` tracks and returns `{value, fetchState, error}`.
+`presentBusy(pending, slot?, identity?)` is protected shared visual timing for
+custom components. Use fixed slot names for separate surfaces and an operation
+identity when replacement should restart the delay. Declare `StatusPresentation`
+as a style dependency and apply its `cap-working` trait with
+`data-cap-busy-visible` from this method; keep `aria-busy` tied to actual pending
+state. Timers are cancelled on completion, identity replacement and destruction.
 `onCleanup()` registers listeners or other cleanup functions that Capillary UI invokes
 on destruction.
 
@@ -331,6 +337,14 @@ expansion never execute a command. The callback for the same interaction
 Applications retain arguments, validation, confirmation, navigation, and
 success effects; use `succeeded`, `connect`, and `refreshOn` for the latter.
 
+First define what completes the user's request. A command owns its required
+outcome; a selection-driven query can load required details while selection
+remains accepted and replaceable; independent reactions own their own loading
+and errors. Only work required by the interaction contributes to its origin's
+busy state. Connections do not extend command completion. See the
+[three completion contracts](docs/interaction-design-guide.md#decide-what-completes-the-interaction)
+for failure, replacement and partial-success guidance.
+
 Controls show command executor errors and argument-sampler/concurrency
 invocation failures inline by default. Set `commandErrors="external"` together
 with `onCommandInvocationError` to own invocation-error presentation elsewhere;
@@ -381,8 +395,12 @@ the tables below denotes that TypeScript type parameter.
 Arrow keys move backward or forward through a multi-state checkbox; Space uses
 the native forward cycle.
 
-`busy` is presentational state: it sets native/ARIA busy semantics and paints
-the theme's moving working texture without disabling an input or choice.
+`busy` sets native/ARIA busy semantics immediately. Standard visual loading
+treatment and `Button.busyLabel` appear after 150 ms, configured once with
+`createCapillaryUiRuntime({busyDelayMs})`. Zero selects immediate presentation.
+Brief work finishes without a loading flash; completion and errors have no visual
+delay. Reduced motion uses delayed static feedback. Actual interaction guards
+remain immediate. Input and choice busy state does not itself disable them.
 `Button` guards activation while busy by default. Use `disableWhileRunning={false}`
 only when the application deliberately supports repeat/replacement; explicit
 `disabled` still wins. A busy action
@@ -552,10 +570,18 @@ selection behavior already owned by `ListView` and `DataTable`.
 `itemLabelClassName` and `itemLabelStyle` when only the label beside the
 expander needs a reusable presentation trait such as `colored`.
 
-Collections also accept live `busy` for work triggered by selection or filters
-outside their data emitter. Tabs and table headers/filters accept the same explicit
-relationship; routed tabs and RouteLink also track their own router transition.
+Collections accept live `busy` for their own data and live `selectionBusy` for
+required results of the selected items. Selection commands present pending work
+on selected rows/nodes automatically. Detail loading does not mark the entire
+collection busy. Independent reactions keep their own pending/error state.
+Table query loading marks only the initiating sort/filter header; synchronous
+local sort/filter does not show busy on its controls. Tabs track selected-tab
+work; routed tabs and RouteLink also track their own router transition.
 This presentation does not disable selection or infer asynchronous subscribers.
+
+Advanced direct `TableHeader` compositions identify their pending criterion with
+`busyInteraction={{field: 'name', kind: 'sort'}}` (or `kind: 'filter'`) alongside
+`busy`. `DataTable` supplies this attribution automatically for its own query.
 
 #### DataTable inputs and ownership
 

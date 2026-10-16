@@ -12,9 +12,28 @@ choices within an already agreed design.
 
 Do not turn every clickable element into a button, hide basic manipulation
 behind an unexplained selection step, replace contextual panels with detached
-forms for implementation convenience, or omit busy feedback from async work.
+forms for implementation convenience, or omit busy feedback from work the user
+is waiting for.
 Inspect existing primitives and examples before inventing private replacements.
 Keep application policy, presentation and reactive/async ownership separate.
+
+Before wiring busy state, identify what completes the user's request: a required
+operation outcome, accepted state followed by a required result, or an already
+complete interaction with independent reactions. Classify each relationship;
+one interaction may have both required and independent work. Never aggregate all
+subscriber activity into the originating control. Keep independent failures
+observable in their own query/command/connection owner, preserve accepted
+selection on detail-load failure, and distinguish a successful write followed
+by refresh failure from a failed or unknown write. Audit downstream handlers as
+well as the initiating control; do not infer completion from subscriber count.
+
+Scope pending presentation to the changed criterion, selected item and affected
+results. Do not apply a shared query's loading flag to every sibling control.
+Use collection `selectionBusy` for required detail work and `busy` for the
+collection's own data. Refresh actions own their own command lifecycle. Keep
+derivation from available data synchronous where appropriate. Use the framework's
+shared visual delay and `Component.presentBusy()` for custom surfaces; do not
+reimplement timers or suppress actual errors/activation guards for brief work.
 
 Use the same human-facing review checklist as any other developer. Keep
 AI-specific process language out of primary package documentation and examples.

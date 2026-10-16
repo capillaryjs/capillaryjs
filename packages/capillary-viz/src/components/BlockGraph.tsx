@@ -1,6 +1,6 @@
 import {FetchState} from '@capillaryjs/capillary'
 import {Button, Component, Placeholder, css} from '@capillaryjs/capillary-ui'
-import type {ComponentProps, CapillaryUiChild} from '@capillaryjs/capillary-ui'
+import type {ComponentProps, CapillaryUiChild, LivePropContract} from '@capillaryjs/capillary-ui'
 
 import type {BlockNode, BlockPath} from '../block.js'
 import {BlockSelectionModel, findBlock} from '../block.js'
@@ -12,7 +12,9 @@ const fallbackCategoryColors = [
     'var(--colored-light)',
 ] as const
 
-export interface BlockGraphProps<TItem> extends ComponentProps {
+export interface BlockGraphProps<TItem> extends ComponentProps, LivePropContract<'busy'> {
+    /** Pending replacement data owned by the caller; preserves the current layout. */
+    readonly busy?: boolean
     readonly model: BlockSelectionModel<TItem>
     readonly label?: string
     readonly description?: string
@@ -26,7 +28,7 @@ type ResolvedBlockLabelOrientation = Exclude<BlockLabelOrientation, 'auto'>
 
 /** Accessible nested proportional mosaic backed by an explicit selection model. */
 export class BlockGraph<TItem = unknown> extends Component<BlockGraphProps<TItem>> {
-    static override liveProps: readonly string[] = []
+    static override liveProps = ['busy'] as const
     private labelResizeObserver: ResizeObserver | null = null
     private readonly measuredLabelOrientations = new Map<string, ResolvedBlockLabelOrientation>()
     render(): CapillaryUiChild {
@@ -50,9 +52,11 @@ export class BlockGraph<TItem = unknown> extends Component<BlockGraphProps<TItem
         const firstKey = nodes[0]?.key
         const Host = this.Host
         return <Host
-            className={(this.props.className ?? this.props.class ?? '') || null}
+            className={`${this.props.className ?? this.props.class ?? ''} cap-working`.trim()}
             aria-label={label}
-            aria-busy={isLoading ? 'true' : null}
+            aria-busy={isLoading || this.props.busy ? 'true' : null}
+            data-cap-busy-visible={this.presentBusy((isLoading || this.props.busy === true)
+                && layoutSnapshot.fetchState !== FetchState.Error) ? '' : null}
         >
             <header>
                 <cap-summary>

@@ -50,21 +50,22 @@ export class CollapsibleOptionGroup<
         } = this.props
         return <Host className={this.props.className ?? this.props.class ?? null}>
             <fieldset
+                className="cap-working"
                 id={this.groupId}
                 disabled={disabled}
                 aria-label={label == null ? ariaLabel : null}
                 aria-required={required ? 'true' : null}
                 aria-busy={busy ? 'true' : null}
+                data-cap-busy-visible={this.presentBusy(busy && error == null) ? '' : null}
                 aria-invalid={error == null ? null : 'true'}
                 aria-describedby={error == null ? null : this.errorId}
             >
                 <legend>
                     <button
                         type="button"
-                        className="cap-collapse-toggle cap-working"
+                        className="cap-collapse-toggle"
                         aria-label={ariaLabel ?? (label == null ? 'Toggle options' : null)}
                         aria-labelledby={ariaLabel == null && label != null ? `${this.groupId}-label` : null}
-                        aria-busy={busy ? 'true' : null}
                         aria-expanded={String(!this.collapsed)}
                         aria-controls={this.contentId}
                         onClick={() => this.toggle()}

@@ -115,7 +115,8 @@ export class Button extends LineControl<ButtonProps> {
         }
         const isBusy = busy || commandRunning
         const displayedError = error ?? invocationError ?? commandError
-        const content = isBusy ? (busyLabel ?? normalContent) : normalContent
+        const visibleBusy = this.presentBusy(isBusy && displayedError == null)
+        const content = visibleBusy ? (busyLabel ?? normalContent) : normalContent
         const unavailable = disabled || (isBusy && disableWhileRunning)
 
         const Host = this.Host
@@ -133,6 +134,7 @@ export class Button extends LineControl<ButtonProps> {
                 aria-haspopup={ariaHasPopup}
                 aria-pressed={pressed == null ? null : String(Boolean(pressed))}
                 aria-busy={isBusy ? 'true' : null}
+                data-cap-busy-visible={visibleBusy ? '' : null}
                 aria-invalid={displayedError == null ? null : 'true'}
                 aria-describedby={displayedError == null ? null : this.errorId}
                 onClick={(event: MouseEvent) => {
@@ -204,7 +206,7 @@ export class Button extends LineControl<ButtonProps> {
             pointer-events: none;
         }
 
-        & > button[aria-busy="true"]:not([aria-invalid="true"]) {
+        & > button[data-cap-busy-visible]:not([aria-invalid="true"]) {
             /* Busy is unavailable for activation, but remains a normal button
              * surface with the loading texture layered on top. */
             background: var(--working-background-image), var(--button-background);
@@ -229,13 +231,13 @@ export class Button extends LineControl<ButtonProps> {
             background: var(--button-background-hover);
         }
         &.cap-subtle > button:focus-visible { box-shadow: var(--focus-ring); }
-        &.cap-subtle > button[aria-busy="true"]:not([aria-invalid="true"]) {
+        &.cap-subtle > button[data-cap-busy-visible]:not([aria-invalid="true"]) {
             background: var(--working-background-image), transparent;
             background-size: 2rem 2rem, 100% 100%;
         }
 
         @media (prefers-reduced-motion: reduce) {
-            & > button[aria-busy="true"] {
+            & > button[data-cap-busy-visible] {
                 animation: none !important;
             }
         }

@@ -37,6 +37,8 @@ export interface TableColumn<TRow extends TableRow = TableRow> extends TableColu
 
 export interface TableHeaderCellProps extends ComponentProps, TableColumnBase, LivePropContract<'busy'> {
     busy?: boolean
+    busyKind?: 'sort' | 'filter' | null
+    onInteraction?: (field: string, kind: 'sort' | 'filter', change: () => void) => void
     sortEmitter: ValueEmitter<TableSort | null>
     filtersEmitter: ValueEmitter<TableFilters>
     filterModes?: readonly CheckboxSymbol<FilterModeValue>[]
@@ -68,7 +70,9 @@ export class TableHeaderCell extends Component<TableHeaderCellProps> {
         } else if (current.direction === 'asc') {
             next = {field: this.props.field, direction: 'desc'}
         } else next = null
-        this.props.sortEmitter.set(next, 'table sort changed')
+        const change = () => this.props.sortEmitter.set(next, 'table sort changed')
+        if (this.props.onInteraction) this.props.onInteraction(this.props.field, 'sort', change)
+        else change()
     }
 
     toggleFilterPanel(event: MouseEvent): void {
@@ -80,8 +84,12 @@ export class TableHeaderCell extends Component<TableHeaderCellProps> {
         const filters: TableFilters = {...this.props.filtersEmitter.get()}
         if (next.size === 0) delete filters[this.props.field]
         else filters[this.props.field] = [...next.entries()]
-        this.props.filtersEmitter.set(filters, 'table filters changed')
-        this.props.onFilterChange?.(filters, event)
+        const change = () => {
+            this.props.filtersEmitter.set(filters, 'table filters changed')
+            this.props.onFilterChange?.(filters, event)
+        }
+        if (this.props.onInteraction) this.props.onInteraction(this.props.field, 'filter', change)
+        else change()
     }
 
     render(): CapillaryUiChild {
@@ -99,7 +107,9 @@ export class TableHeaderCell extends Component<TableHeaderCellProps> {
         const optionSource = this.props.filterOptions
         const optionState = this.filterOpen.get() && optionSource != null && 'subscribe' in optionSource
             ? this.snapshot(optionSource).fetchState : FetchState.Ready
-        const filterBusy = this.props.busy || optionState === FetchState.Initial || optionState === FetchState.Loading
+        const sortBusy = this.props.busy === true && this.props.busyKind !== 'filter'
+        const filterBusy = (this.props.busy === true && this.props.busyKind === 'filter')
+            || optionState === FetchState.Initial || optionState === FetchState.Loading
 
         let panel: CapillaryUiChild = null
         if (this.filterOpen.get() && this.props.filterOptions != null) {
@@ -109,7 +119,7 @@ export class TableHeaderCell extends Component<TableHeaderCellProps> {
                 label={filterLabel}
                 options={this.props.filterOptions}
                 filters={filters}
-                busy={this.props.busy ?? false}
+                busy={this.props.busy === true && this.props.busyKind === 'filter'}
                 onChange={(next, event) => this.updateFilters(next, event)}
                 {...(this.props.filterModes == null
                     ? {}
@@ -131,7 +141,8 @@ export class TableHeaderCell extends Component<TableHeaderCellProps> {
                 ? <button
                     type="button"
                     class="sort"
-                    aria-busy={this.props.busy ? 'true' : null}
+                    aria-busy={sortBusy ? 'true' : null}
+                    data-cap-busy-visible={this.presentBusy(sortBusy, 'sort') ? '' : null}
                     aria-label={this.capillaryUiMessage('tableSortColumnLabel')(textLabel)}
                     onClick={() => this.toggleSort()}
                 >
@@ -147,6 +158,7 @@ export class TableHeaderCell extends Component<TableHeaderCellProps> {
                     type="button"
                     class="filter"
                     aria-busy={filterBusy ? 'true' : null}
+                    data-cap-busy-visible={this.presentBusy(filterBusy, 'filter') ? '' : null}
                     aria-label={filterLabel}
                     aria-expanded={String(this.filterOpen.get())}
                     aria-haspopup="dialog"
@@ -269,7 +281,7 @@ export class TableHeaderCell extends Component<TableHeaderCellProps> {
             opacity: 1;
         }
 
-        cap-datatable > table > thead > tr > th[aria-sort] > button[aria-busy="true"] {
+        cap-datatable > table > thead > tr > th[aria-sort] > button[data-cap-busy-visible] {
             background-image: var(--working-background-image);
             background-size: 2rem 2rem;
             animation: cap-working-progress .55s linear infinite;
@@ -277,7 +289,7 @@ export class TableHeaderCell extends Component<TableHeaderCellProps> {
         }
 
         @media (prefers-reduced-motion: reduce) {
-            cap-datatable > table > thead > tr > th[aria-sort] > button[aria-busy="true"] { animation: none; }
+            cap-datatable > table > thead > tr > th[aria-sort] > button[data-cap-busy-visible] { animation: none; }
         }
     `
 }

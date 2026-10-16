@@ -12,6 +12,8 @@ import type {TableFilters, TableSort} from './tableQuery.js'
 
 export interface TableHeaderProps<TRow extends TableRow = TableRow> extends ComponentProps, LivePropContract<'busy'> {
     busy?: boolean
+    busyInteraction?: {field: string; kind: 'sort' | 'filter'} | null
+    onInteraction?: (field: string, kind: 'sort' | 'filter', change: () => void) => void
     columns: readonly TableColumn<TRow>[]
     sortEmitter: ValueEmitter<TableSort | null>
     filtersEmitter: ValueEmitter<TableFilters>
@@ -29,6 +31,8 @@ export class TableHeader<TRow extends TableRow = TableRow>
         const previous = this.props
         const equal = previous.sortEmitter === next.sortEmitter
             && previous.busy === next.busy
+            && previous.busyInteraction === next.busyInteraction
+            && previous.onInteraction === next.onInteraction
             && previous.filtersEmitter === next.filtersEmitter
             && previous.filterModes === next.filterModes
             && previous.defaultSemanticState === next.defaultSemanticState
@@ -52,7 +56,9 @@ export class TableHeader<TRow extends TableRow = TableRow>
                     field={column.field}
                     sortEmitter={this.props.sortEmitter}
                     filtersEmitter={this.props.filtersEmitter}
-                    busy={this.props.busy ?? false}
+                    busy={this.props.busy === true && this.props.busyInteraction?.field === column.field}
+                    busyKind={this.props.busyInteraction?.kind ?? null}
+                    {...(this.props.onInteraction == null ? {} : {onInteraction: this.props.onInteraction})}
                     {...(column.label == null ? {} : {label: column.label})}
                     {...(column.ariaLabel == null ? {} : {ariaLabel: column.ariaLabel})}
                     {...(column.sortable == null ? {} : {sortable: column.sortable})}

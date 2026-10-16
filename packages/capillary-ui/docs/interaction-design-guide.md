@@ -96,17 +96,93 @@ button. Do not shorten an unclear action merely to remove its text.
 For native widget markup, supply ARIA states as strings, for example
 `aria-expanded={String(expanded)}`. ARIA values are not HTML boolean attributes.
 
-## Show pending work for every asynchronous interaction
+## Decide what completes the interaction
 
-Every proper button must use the standard busy/loading mechanism. Prefer
-`AsyncCommand` for asynchronous action buttons:
+Every asynchronous operation needs an owned lifecycle and appropriate error
+handling. Show pending state at an initiating control for work that belongs to
+completing the user's intended interaction. The existence of subscribers does
+not establish that relationship; the application declares it.
+
+Three common contracts need different presentation:
+
+| Contract | Example | Completion and failure |
+| --- | --- | --- |
+| An operation with a required outcome | Save a draft to the backend | Keep the action busy until its required outcome is known. Report failure at the action and retain the input needed for recovery. |
+| A state change whose purpose includes a result | Select a customer to view their details | Accept selection immediately and show pending feedback for the requested details at the selector and result panel. Keep selection available for replacement; a failed load belongs to the selected customer's details, not to the accepted selection itself. |
+| A complete interaction with independent reactions | Select an item while another subscriber updates recent activity | Selection is complete when accepted. Each reaction owns its pending/error state; it does not keep the selector busy or reverse selection when it fails. |
+
+Classify the relationship to each operation, rather than assigning a permanent
+class to a control. One selection can start required detail loading and an
+independent recent-activity update. Only the detail loading contributes to that
+selection's pending presentation. Show a collection's own data loading even when
+that refresh was started independently; this describes its data, not a failed
+selection.
+
+For result-driven selection, retain the selected item on load failure and offer
+recovery in its result panel. Label retained older results or clear them when
+they belong to a different item. An older request must not supply the result,
+error or completion of a newer selection. Busy does not require disabling input.
+
+Independent reactions still need error handling. Observe query/command error
+snapshots, or a connection's `errors`/`onError`, and present failures where they
+can be understood and recovered from. Use an inline error, notification or
+diagnostic sink according to the reaction's meaning. Do not label a successful
+selection or save as failed because an independent reaction failed.
+
+Required outcomes can have distinct phases. If persistence succeeds but a view
+refresh fails, report "Saved; refresh failed" and retry the refresh. Do not offer
+a blind repeat of a write whose success is already known. A lost write response
+may instead mean an unknown outcome, which needs inspection or the application's
+idempotency/reconciliation policy before retry.
+
+## Scope feedback to the work and allow brief operations to finish
+
+Place loading feedback on the specific interaction and results that are waiting.
+A selected tree node can be waiting for details while the tree's own data is
+already complete. Use `selectionBusy` for required selected-item results on
+TreeView, ListView and DataTable; use `busy` for collection data loading. Command
+selection feedback follows the selected items automatically. Do not mark the
+whole collection busy for a detail query. Keep selection available for replacement
+where the task allows it.
+
+A Refresh button shows its own refresh operation. A search/filter/sort control
+shows work requested by that criterion, not every request sharing a result
+query. For example, selecting a project must not mark an unchanged tree filter
+or an idle Refresh action busy. Result loading does not imply that every
+control above the result is working.
+
+Synchronous filtering, sorting and other derivations from available data need
+no busy lifecycle. Local worker operations can still take time, while cached
+remote data may be immediate; transport location does not determine feedback.
+Preserve actual pending/error state and let the framework suppress brief flashes.
+
+Standard loading decoration and busy labels appear after 150 ms by default.
+Configure `createCapillaryUiRuntime({busyDelayMs: 200})` once to choose another
+delay, or use zero for immediate visual feedback. ARIA busy state and activation
+guards apply immediately, and errors appear immediately. Completion removes
+loading decoration immediately without extending the operation or forcing a
+minimum display time. Reduced motion retains delayed static feedback.
+
+Custom components use `this.presentBusy(pending)` during render and apply
+`data-cap-busy-visible={visible ? '' : null}` with `className="cap-working"`
+and immediate `aria-busy`. Named slots and an optional operation identity let
+independent surfaces and replacement selections share the same component safely.
+The component owns and disposes the timers; consumers need no delay logic.
+Declare `StatusPresentation` in the custom component's static `dependencies`
+when using the shared `cap-working` decoration.
+
+## Present the declared asynchronous work
+
+Use the standard busy/loading mechanism for asynchronous action buttons. Prefer
+`AsyncCommand` for an operation with a required outcome:
 
 ```tsx
 <Button command={saveCommand} label="Save" busyLabel="Saving…" />
 ```
 
-The application owns the command and returns the entire operation's promise
-from its executor. Use `bindCommand()` when arguments must be sampled at
+The application owns the command and returns the work required by that command
+from its executor. Independent success reactions keep their own lifecycles.
+Use `bindCommand()` when arguments must be sampled at
 activation. `changeCommand` and `selectionCommand` provide the same lifecycle
 at supported value-change and completed-selection boundaries. See the
 [command reference](../README.md#commands-at-declared-interactions).
@@ -140,9 +216,10 @@ return <Dropdown
 ```
 
 Read all relevant query snapshots before combining pending flags when several
-results belong to one operation. Keep that relationship scoped: unrelated
-polling must not lock an initiating control indefinitely. A result panel alone
-is insufficient feedback for an action control that otherwise appears idle.
+results belong to one interaction. Exclude independent reactions and unrelated
+polling. Required detail loading belongs to its selection; an independent
+recent-activity update does not. A result panel alone is insufficient feedback
+for an action control whose required operation is still running.
 
 `onClick`, `onChange`, subscriptions and command success listeners do not
 automatically await a returned promise. Do not discard an async result and
@@ -167,7 +244,9 @@ already represented by a query or command.
   using both pointer and keyboard?
 - Are familiar actions recognizable without turning ambiguous decisions into
   unexplained icons?
-- Does every async interaction show pending state for all work the user awaits,
-  then settle correctly on success, failure, cancellation or replacement?
+- Is each interaction's completion defined, with required work reflected at its
+  origin and independent reactions owning their own loading and errors?
+- Do failures distinguish an unsuccessful operation, unavailable requested
+  results, an independent reaction failure and an unknown write outcome?
 - Do narrow layouts, repeated input, focus return and component disposal retain
   the same contract?

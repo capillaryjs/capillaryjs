@@ -62,6 +62,7 @@ export class OptionGroup<TProps extends OptionGroupBaseProps = OptionGroupBasePr
                 aria-label={label == null ? ariaLabel : null}
                 aria-required={required ? 'true' : null}
                 aria-busy={busy ? 'true' : null}
+                data-cap-busy-visible={this.presentBusy(busy && error == null) ? '' : null}
                 aria-invalid={error == null ? null : 'true'}
                 aria-describedby={error == null ? null : this.errorId}
             >
@@ -118,7 +119,7 @@ export class OptionGroup<TProps extends OptionGroupBaseProps = OptionGroupBasePr
             min-width: 0;
         }
 
-        & > fieldset[aria-busy="true"]:not([aria-invalid="true"]) {
+        & > fieldset[data-cap-busy-visible]:not([aria-invalid="true"]) {
             background-image: var(--working-background-image);
             background-repeat: repeat;
             background-size: 2rem 2rem;
@@ -132,7 +133,7 @@ export class OptionGroup<TProps extends OptionGroupBaseProps = OptionGroupBasePr
         }
 
         @media (prefers-reduced-motion: reduce) {
-            & > fieldset[aria-busy="true"] {
+            & > fieldset[data-cap-busy-visible] {
                 animation: none !important;
             }
         }

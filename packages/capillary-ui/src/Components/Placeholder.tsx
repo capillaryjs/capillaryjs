@@ -13,7 +13,7 @@ export class Placeholder extends Component<PlaceholderProps> {
     render() {
         const width = normalizeWidth(this.props.width ?? 65)
         const Host = this.Host
-        return <Host style={{width: `${width}%`}} aria-hidden="true" />
+        return <Host style={{width: `${width}%`}} aria-hidden="true" data-cap-busy-visible={this.presentBusy(true) ? '' : null} />
     }
 
     static override hostName = 'placeholder'
@@ -28,7 +28,7 @@ export class Placeholder extends Component<PlaceholderProps> {
             position: relative;
         }
 
-        &::after {
+        &[data-cap-busy-visible]::after {
             content: "";
             display: block;
             position: absolute;
@@ -46,7 +46,7 @@ export class Placeholder extends Component<PlaceholderProps> {
         }
 
         @media (prefers-reduced-motion: reduce) {
-            &::after {
+            &[data-cap-busy-visible]::after {
                 animation: none !important;
             }
         }
@@ -57,7 +57,7 @@ export class Placeholder extends Component<PlaceholderProps> {
                 forced-color-adjust: none;
             }
 
-            &::after {
+            &[data-cap-busy-visible]::after {
                 display: none;
             }
         }
