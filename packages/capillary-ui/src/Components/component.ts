@@ -1781,6 +1781,12 @@ function patchDOMProp(
     }
 
     const property = normalizePropertyName(key)
+    // An explicit -1 must still create the attribute: a non-focusable host's
+    // default tabIndex is already -1, but it cannot receive focus without it.
+    if (property === 'tabIndex') {
+        setAttribute(node, 'tabindex', next)
+        return
+    }
     if (BOOLEAN_ATTRIBUTES.has(property)) {
         const enabled = Boolean(next)
         if (property in node && Reflect.get(node, property) !== enabled) {

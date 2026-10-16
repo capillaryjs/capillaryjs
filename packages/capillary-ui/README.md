@@ -664,6 +664,11 @@ const view = new Emitter<'list' | 'grid'>('list')
 | `SplitView` | Resizable two-pane layout | required `SplitPrimary` and `SplitSecondary` Layout panes; `horizontal`/`vertical`, `allocation`, initial/minimum sizes, separator label, `onResize`, live `collapsed`, `collapseFocusRef` |
 | `Drawer` | Inline nonmodal edge region | required `label`; Boolean value-control state, logical `edge`, CSS `size`, `mountPolicy`, `scroll`, `closeLabel`, initial/return focus refs, `onClose` |
 | `PanZoomViewport` | Bounded, scrollable coordinate plane | `label`, worldWidth/worldHeight; controlled camera/onCameraChange or defaultCamera; limits/steps, height, disabled, panEnabled, canStartPan, interactionKey, fitRequest, direct PanZoomToolbar child, viewportRef, ariaDescribedBy, onResize |
+
+`Layout scroll` supplies a default `tabIndex={0}` so keyboard users can reach
+and scroll read-only content, including a scrolling Panel body. An explicit
+`tabIndex` overrides that default. A non-scrolling Layout has no default tab stop;
+removing scrolling clears the generated focus entry, not an explicit override.
 | `NavigationBar` | Labelled native navigation list over router-aware or external anchors | required `label`, `items`; route items accept `exact`; external items use `{kind: 'external', href}` plus disabled/link options |
 | `Tab` | Declarative tab definition consumed by `TabPanel` | `id`, `label`, `disabled`, optional literal `route`, content |
 | `TabLine` | Standalone keyboard-operable tab list | `tabs`, `valueEmitter`/`activeTabEmitter`, initial value, `label`, `onChange` |

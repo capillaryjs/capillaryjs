@@ -1,5 +1,5 @@
 import {AsyncCommand, Emitter, LiveQuery} from '@capillaryjs/capillary'
-import {Button, CapillaryUiApp, ComboBox, Drawer, Form, FormField, FormLayout, MenuButton, Popover, SplitPrimary, SplitSecondary, SplitView, TextArea, Textbox, Tooltip, live} from '../../src/index.js'
+import {Button, CapillaryUiApp, ComboBox, Drawer, Form, FormField, FormLayout, Layout, MenuButton, Popover, SplitPrimary, SplitSecondary, SplitView, TextArea, Textbox, Tooltip, live} from '../../src/index.js'
 import type {CollapsedSplitPane, ComboBoxOption} from '../../src/index.js'
 import {DragFixture} from './dragFixture.js'
 import {ViewportFixture} from './viewportFixture.js'
@@ -8,6 +8,7 @@ import '../../colors/iceblue/colors.css'
 import '../../themes/minimal/theme.css'
 
 class WorkbenchPrimitivesFixture extends CapillaryUiApp {
+    private readonly layoutScroll = new Emitter(true)
     private readonly contextualOpen = new Emitter(false)
     private readonly contextualTrigger: {current: HTMLButtonElement | null} = {current: null}
     private finishContextual: (() => void) | null = null
@@ -15,7 +16,7 @@ class WorkbenchPrimitivesFixture extends CapillaryUiApp {
     private readonly contextualApply = new AsyncCommand<void, void>({execute: () => new Promise((resolve, reject) => {
         this.finishContextual = resolve; this.failContextual = reject
     })})
-    initialize(): void {this.watch(this.contextualOpen)}
+    initialize(): void {this.watch(this.contextualOpen, this.layoutScroll)}
     private readonly collapsedPane = new Emitter<CollapsedSplitPane>(null)
     private readonly reviewOpen = new Emitter(false)
     private readonly retainedOpen = new Emitter(false)
@@ -60,6 +61,18 @@ class WorkbenchPrimitivesFixture extends CapillaryUiApp {
     protected override renderContent() {
         return <>
             <h1>Workbench primitives</h1>
+            <section aria-label="Keyboard scroll layout">
+                <h2>Keyboard scroll layout</h2>
+                <Button onClick={() => this.layoutScroll.set(!this.layoutScroll.get())}>Toggle layout scrolling</Button>
+                <div style={{blockSize: '7rem', inlineSize: '18rem', display: 'flex'}}>
+                    <Layout vertical allocation="flexible" scroll={this.layoutScroll.get()} ariaLabel="Keyboard scroll owner">
+                        <div style={{minBlockSize: '28rem'}}>Scrollable read-only text.</div>
+                    </Layout>
+                </div>
+                <Layout vertical scroll ariaLabel="Programmatic scroll owner" tabIndex={-1}>
+                    <p>Explicit programmatic focus remains available without a tab stop.</p>
+                </Layout>
+            </section>
             <MenuButton label="Edit contextual details" buttonRef={this.contextualTrigger} busy={live(this.contextualApply.isRunning)} error={this.snapshot(this.contextualApply).error}
                 items={[{id: 'details', label: 'Edit details', onSelect: () => this.contextualOpen.set(true)}]}/>
             <Popover label="Contextual details" anchor={this.contextualTrigger.current} valueEmitter={this.contextualOpen}>
@@ -159,9 +172,9 @@ class WorkbenchPrimitivesFixture extends CapillaryUiApp {
             <div style={{blockSize: '70rem'}}/>
         </>
     }
-    static override dependencies = [Button, MenuButton, Popover, Form, FormLayout, FormField, TextArea, Textbox, ComboBox, Tooltip, Drawer, SplitView, SplitPrimary, SplitSecondary, DragFixture, ViewportFixture]
+    static override dependencies = [Button, MenuButton, Popover, Form, FormLayout, FormField, Layout, TextArea, Textbox, ComboBox, Tooltip, Drawer, SplitView, SplitPrimary, SplitSecondary, DragFixture, ViewportFixture]
     override onDestroy(): void {
-        this.contextualApply.dispose(); this.contextualOpen.dispose()
+        this.contextualApply.dispose(); this.contextualOpen.dispose(); this.layoutScroll.dispose()
         this.collapsedPane.dispose(); this.reviewOpen.dispose(); this.retainedOpen.dispose()
         this.save.dispose(); this.formCommand.dispose(); this.submitted.dispose(); this.formError.dispose(); this.formInvocations.dispose()
         this.choose.dispose(); this.optionQuery.dispose(); this.optionSearch.dispose(); this.optionRequests.dispose()

@@ -58,6 +58,11 @@ Versioning.
 
 ### Fixed
 
+- Give scrolling Layout hosts an explicit default keyboard focus entry, including
+  Panel bodies. Preserve caller tab order and clear only the default when scrolling
+  is disabled; do not rely on a stale native tabindex left by the renderer.
+  Explicit tabIndex -1 creates the native attribute even when the default property
+  already reads -1, preserving intentional programmatic focus on custom hosts.
 - Preserve a popup opened by a menu action; its opening click must not be
   mistaken for a later outside click during event bubbling.
 - Remove the actual native `tabindex` attribute when a JSX tabIndex is cleared,

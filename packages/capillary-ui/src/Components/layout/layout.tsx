@@ -26,7 +26,7 @@ export type LayoutContainerProps = ComponentProps
     role?: string
     ariaLabel?: string
     tabIndex?: number
-    /** Make this bounded Layout host its own overflow owner. */
+    /** Make this bounded Layout host its own keyboard-focusable overflow owner. */
     scroll?: boolean
 }
 
@@ -55,7 +55,7 @@ export class Layout<TProps extends LayoutContainerProps = LayoutProps> extends C
         return {
             role: role ?? (ariaLabel == null ? null : 'region'),
             'aria-label': ariaLabel ?? null,
-            tabIndex: tabIndex ?? null,
+            tabIndex: tabIndex ?? ((this.props.scroll ?? this.defaultScroll()) ? 0 : null),
         }
     }
 

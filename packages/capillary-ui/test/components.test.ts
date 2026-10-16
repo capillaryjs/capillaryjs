@@ -1094,12 +1094,29 @@ describe('layout controls', () => {
         )
         assert.equal(layout.getAttribute('role'), 'region')
         assert.equal(layout.getAttribute('aria-label'), 'Comparison layout')
+        assert.equal(layout.getAttribute('tabindex'), '0')
         assert.equal(layout.textContent, 'Content')
         assert.throws(
             () => Layout.new({horizontal: true, vertical: true} as never).mount(),
             /cannot be both horizontal and vertical/,
         )
         assert.throws(() => Layout.new().mount(), /requires either horizontal or vertical/)
+    })
+
+    test('Layout scrolling owns a default focus entry and preserves explicit tab order', () => {
+        const layout = Layout.new({vertical: true, scroll: true}).attachTo(document.body)
+        const host = requiredQuery<HTMLElement>('cap-layout')
+        assert.equal(host.getAttribute('tabindex'), '0')
+        layout.setProps({vertical: true, scroll: false})
+        assert.equal(host.hasAttribute('tabindex'), false)
+        layout.setProps({vertical: true, scroll: true, tabIndex: -1})
+        assert.equal(host.getAttribute('tabindex'), '-1')
+        layout.setProps({vertical: true, scroll: false, tabIndex: 0})
+        assert.equal(host.getAttribute('tabindex'), '0')
+        layout.setProps({vertical: true})
+        assert.equal(host.hasAttribute('tabindex'), false)
+        Panel.new({header: 'Scrollable text', children: 'Read-only content'}).attachTo(document.body)
+        assert.equal(requiredQuery<HTMLElement>('cap-panel > cap-layout').getAttribute('tabindex'), '0')
     })
 
     test('Layout and Panel render presentation-context markers', () => {

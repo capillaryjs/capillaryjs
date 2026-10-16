@@ -514,7 +514,9 @@ Collection data-surface components own their local overflow when constrained;
 this component contract does not change generic trait behavior.
 
 The `Layout` component maps required `horizontal` or `vertical` modifiers to
-the direction traits. Panel uses Layout for its body. SplitView requires its
+the direction traits. Scrolling Layout hosts default to tabIndex 0 for keyboard
+scrolling, unless explicitly overridden; non-scrolling hosts have no default
+focus entry. Panel uses Layout for its body. SplitView requires its
 named SplitPrimary and SplitSecondary Layout panes and inserts a focusable
 separator supporting pointer drag, arrow keys, Home, and End.
 

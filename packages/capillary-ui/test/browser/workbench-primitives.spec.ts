@@ -4,6 +4,21 @@ import {AxeBuilder} from '@axe-core/playwright'
 
 test.beforeEach(async ({page}) => { await page.goto('/workbench-primitives.html') })
 
+test('scrolling Layout supplies a real keyboard focus entry and clears it when scrolling is disabled', async ({page}) => {
+    const toggle = page.getByRole('button', {name: 'Toggle layout scrolling', exact: true})
+    const owner = page.getByRole('region', {name: 'Keyboard scroll owner', exact: true})
+    await expect(owner).toHaveAttribute('tabindex', '0')
+    await toggle.focus(); await page.keyboard.press('Tab'); await expect(owner).toBeFocused()
+    await page.keyboard.press('PageDown')
+    await expect.poll(() => owner.evaluate(element => element.scrollTop)).toBeGreaterThan(0)
+    expect((await new AxeBuilder({page}).include('section[aria-label="Keyboard scroll layout"]').analyze()).violations).toEqual([])
+    await toggle.click(); await expect(owner).not.toHaveAttribute('tabindex')
+    await toggle.click(); await expect(owner).toHaveAttribute('tabindex', '0')
+    const programmatic = page.getByRole('region', {name: 'Programmatic scroll owner', exact: true})
+    await expect(programmatic).toHaveAttribute('tabindex', '-1')
+    await programmatic.focus(); await expect(programmatic).toBeFocused()
+})
+
 test('contextual form outcomes remain at a stable menu trigger after popup dismissal', async ({page}) => {
     const trigger = page.getByRole('button', {name: 'Edit contextual details'})
     const open = async () => {await trigger.click(); await page.getByRole('menuitem', {name: 'Edit details', exact: true}).click()}

@@ -34,7 +34,10 @@ surface, component boundary and scroll container are different decisions.
 ```
 
 Here the explorer pane owns its scrolling; Workspace and Review explicitly own
-theirs. A workspace can compose another SplitView for its inspector. Keep the
+theirs. A workspace can compose another SplitView for its inspector. Preserve the
+scroll owner's keyboard entry: Layout scroll supplies tabIndex 0 by
+default, including Panel bodies. Only override it when a complete alternative
+keyboard path exists. Keep the
 expanded width while collapsed; do not set it to zero or hide framework pane
 internals with application selectors. Hidden split content stays mounted.
 
