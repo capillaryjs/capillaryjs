@@ -203,7 +203,8 @@ Callbacks are synchronous, not implicitly awaited; explicit commands and owned
 feedback handle required async outcomes.
 
 `active`, `dragging` and `context` describe the current gesture. `cancel(reason?)`
-clears it; cancellation reports the last pointer snapshot and a reason such as
+clears it; calling cancel while idle also clears pending click suppression.
+Cancellation reports the last pointer snapshot and a reason such as
 replaced, pointercancel, lostcapture, escape, blur, capturefailed or disposed.
 Listeners/capture are released on every terminal path and owner destruction;
 `dispose()` allows earlier cleanup. `consumeClick(event)` consumes only the
@@ -660,6 +661,7 @@ const view = new Emitter<'list' | 'grid'>('list')
 | `Sidebar` | Labelled complementary region with fixed header/toolbar and scrolling content | `header`, `ariaLabel`; `SidebarToolbar` and ordinary content children |
 | `SplitView` | Resizable two-pane layout | required `SplitPrimary` and `SplitSecondary` Layout panes; `horizontal`/`vertical`, `allocation`, initial/minimum sizes, separator label, `onResize`, live `collapsed`, `collapseFocusRef` |
 | `Drawer` | Inline nonmodal edge region | required `label`; Boolean value-control state, logical `edge`, CSS `size`, `mountPolicy`, `scroll`, `closeLabel`, initial/return focus refs, `onClose` |
+| `PanZoomViewport` | Bounded, scrollable coordinate plane | `label`, worldWidth/worldHeight; controlled camera/onCameraChange or defaultCamera; limits/steps, height, disabled, panEnabled, canStartPan, interactionKey, fitRequest, toolbar, viewportRef, ariaDescribedBy, onResize |
 | `NavigationBar` | Labelled native navigation list over router-aware or external anchors | required `label`, `items`; route items accept `exact`; external items use `{kind: 'external', href}` plus disabled/link options |
 | `Tab` | Declarative tab definition consumed by `TabPanel` | `id`, `label`, `disabled`, optional literal `route`, content |
 | `TabLine` | Standalone keyboard-operable tab list | `tabs`, `valueEmitter`/`activeTabEmitter`, initial value, `label`, `onChange` |
@@ -752,6 +754,59 @@ close. Choose explicitly when hidden content may own queries or buffered input.
 The body scrolls by default; `scroll={false}` delegates scrolling to its content.
 Drawer owns neither persistence nor responsive policy; provide a narrow-screen
 alternative in the application. Optional `id` names the region's DOM target.
+
+`PanZoomViewport` hosts arbitrary application-rendered world content; it is not
+a graph editor. Supply finite nonnegative `worldWidth`/`worldHeight` and a named
+viewport. Children use world coordinates within the bounded plane. The framework
+owns the scaled scroll range, not nodes, edges, layout algorithms or selection.
+
+```tsx
+<PanZoomViewport label="Diagram viewport" worldWidth={world.width} worldHeight={world.height}
+    camera={view.camera} onCameraChange={camera => updateView({camera})}
+    interactionKey={sourceRevision}>
+    <DiagramObjects />
+</PanZoomViewport>
+```
+
+A camera is `{x, y, zoom}`: x/y are native CSS-pixel scroll offsets, not world
+translation. With `camera`, accept `onCameraChange` synchronously into app state;
+without a callback a supplied camera is read-only. Without `camera`, the control
+owns state initialized by `defaultCamera` (default `{x: 0, y: 0, zoom: 1}`).
+`onCameraChange` may observe owned-state changes too. Native scroll quantization
+is reconciled into accepted state. No camera persistence or async waiting is
+inferred. Runtime `panZoom*` messages supply control names and visible help.
+
+Named icon controls provide zoom, reset, fit and a pan menu. Defaults are zoom
+0.25–2 in 0.25 steps, 80-pixel pan steps, and a 32rem viewport height. Limits,
+`zoomStep`, `panStep` and CSS `height` are configurable. Zoom preserves the visible
+center (or a method's explicit inner-viewport anchor), subject to world bounds.
+Fit uses 30px padding and caps enlargement at 1 (or the minimum allowed zoom).
+Reset restores defaultCamera. `toolbar` adds app actions such as Fit selection.
+
+Use `fitRequest={{key, bounds: {x, y, width, height}}}` to request application
+bounds once per key. A hidden/zero-sized viewport defers fitting until visible;
+ordinary resize clamps offsets but does not replay an old fit. `viewportRef`
+provides a stable native-element ref; `onResize` reports client dimensions.
+`zoomTo`, `panBy`, `fit`, `reset`, `clientToWorld` and `worldToClient` are also
+available on a directly owned component instance. `id` and `ariaDescribedBy`
+support external association; built-in visible instructions are retained.
+
+Mouse/pen background dragging uses the owner-scoped pointer helper. Native wheel
+and touch scrolling remain native. Focus the viewport for arrow pan (+ Shift
+for larger steps), +/− zoom or 0 reset; child editing and browser modifier keys
+are not intercepted. World coordinates remain left-to-right in RTL applications,
+while content text keeps the surrounding direction. Focusable/interactive
+children and `data-cap-pan-exclude` are excluded from background gestures;
+`canStartPan` supports app-owned hit policy. `panEnabled={false}` disables only
+background dragging; `disabled` freezes camera interaction. Change
+`interactionKey` or the controlled camera to cancel obsolete gestures without
+restoring stale state. Hidden cameras are retained; destruction releases drag,
+resize, ref and emitter resources without writing back an old camera.
+
+Pure `panZoomClampCamera`, `panZoomZoomAt`, `panZoomFitCamera`,
+`panZoomClientToWorld` and `panZoomWorldToClient` support independent geometry.
+Conversion origins are the viewport's client-space inner corner (rect plus
+border); fit/zoom results can be passed through clamp with world/viewport sizes.
 
 `NavigationBar` uses a native `nav`, list, and anchors. It preserves
 `RouteLink` href generation, current-route state, modified clicks, targets,
@@ -891,7 +946,7 @@ contextual action. Icon-only buttons require `ariaLabel`, which also supplies th
 default native title hint; icons remain decorative and visible while busy. Supported
 `IconName` values are `add`, `remove`, `close`, `delete`, `grip`, `pan`, `zoom-in`,
 `zoom-out`, `fit`, `reset`, `refresh`, `undo`, `redo`, `pin`, `connect`, `download`,
-`play`, `pause`, `first`, `previous`, `next`, `last`.
+`play`, `pause`, `first`, `previous`, `next`, `up`, `down`, `last`.
 
 Popover positions beside its connected anchor, flips/clamps inside the viewport
 and scrolls oversized content. Escape restores focus; outside dismissal preserves

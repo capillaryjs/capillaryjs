@@ -164,7 +164,7 @@ custom elements.
 | Actions | `Button`, `Icon`, `Toolbar`, `MenuButton`, `DropdownMenu` |
 | Text and choices | `Label`, `Textbox`, `TextArea`, `Dropdown`, `ComboBox`, `RadioButton`, `RadioGroup`, `Toggle`, `Checkbox`, `TriCheckbox`, `QuadCheckbox` |
 | Forms | `Form`, `FormSubmission`, `FormField`, `FormFieldControlProps`, `FormLayout` |
-| Layout and navigation | `Breadcrumb`, `CapillaryUiApp`, `Layout`, `Drawer`, `Header`, `GroupBox`, `NavigationBar`, `OptionGroup`, `OptionGroupHeaderEnd`, `OptionsBox`, `Panel`, `PanelToolbar`, `Sidebar`, `SidebarToolbar`, `SplitPrimary`, `SplitSecondary`, `SplitView`, `Tab`, `TabLine`, `TabPanel` |
+| Layout and navigation | `Breadcrumb`, `CapillaryUiApp`, `Layout`, `Drawer`, `PanZoomViewport`, `Header`, `GroupBox`, `NavigationBar`, `OptionGroup`, `OptionGroupHeaderEnd`, `OptionsBox`, `Panel`, `PanelToolbar`, `Sidebar`, `SidebarToolbar`, `SplitPrimary`, `SplitSecondary`, `SplitView`, `Tab`, `TabLine`, `TabPanel` |
 | Records and collections | `DescriptionItem`, `DescriptionList`, `InfoField`, `InfoPanel`, `Placeholder`, `ListView`, `TreeItem`, `TreeView` |
 | Tables and filters | `DataTable`, `FilterPanel`, `TableHeader`, `TableHeaderCell` |
 | Dialog and status | `Dialog`, `DialogActions`, `Popover`, `Tooltip`, `ProgressBar`, `StatusPresentation` (shared styling dependency) |
@@ -338,6 +338,19 @@ ContentMountPolicy, closeLabel, object initial/return focus refs and onClose.
 It is an inline nonmodal region with no focus trap/default autofocus. Closing
 only restores focus from inside or its own close activation; nested widgets can consume Escape. Mount policy
 defaults to eager. App layout axis, breakpoints and persistence remain explicit.
+
+`PanZoomViewport` accepts label/world dimensions, controlled camera/onCameraChange
+or defaultCamera, limits/steps/height, disabled/panEnabled, canStartPan,
+interactionKey, keyed fitRequest, toolbar, viewportRef, ariaDescribedBy and
+onResize. Camera x/y are CSS scroll offsets; zoom is positive. It owns bounded
+scaling, native scrolling and named controls, not graph/domain/selection policy.
+Methods expose zoomTo/panBy/fit/reset and client/world conversion. Hidden fitting
+is deferred, stale gestures never overwrite replacements, and wheel/touch/child
+editing remain native. Runtime panZoom* messages supply UI text. World coordinates
+stay LTR while content inherits surrounding text direction.
+Pure panZoomClampCamera/panZoomZoomAt/panZoomFitCamera/panZoomClientToWorld/
+panZoomWorldToClient and PanZoomCamera/Point/Size/Bounds/Limits types are exported.
+Fit/zoom helpers do not know the world extent; apply clamp separately as needed.
 
 ### Data helpers
 

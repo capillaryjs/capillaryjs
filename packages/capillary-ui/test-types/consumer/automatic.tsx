@@ -10,6 +10,8 @@ import {
     Drawer,
     Component,
     createPointerDrag,
+    PanZoomViewport,
+    panZoomClientToWorld,
     MenuButton,
     DropdownMenu,
     Form,
@@ -55,6 +57,15 @@ const dragOwner = new Component({})
 const drag = createPointerDrag<{id: string}>(dragOwner, {onCommit: state => {state.context.id.toUpperCase(); state.dx.toFixed()}})
 dragOwner.listenWhile(document, 'pointerup', () => {})()
 drag.dispose(); dragOwner.destroy()
+const canvas = <PanZoomViewport label="Canvas" worldWidth={1200} worldHeight={800}
+    camera={{x: 100, y: 50, zoom: 1}} onCameraChange={camera => camera.zoom.toFixed()}
+    fitRequest={{key: 1, bounds: {x: 300, y: 200, width: 400, height: 200}}}>
+    <article tabIndex={0}>Application object</article>
+</PanZoomViewport>
+void [canvas, panZoomClientToWorld({x: 1, y: 2}, {x: 0, y: 0}, {x: 0, y: 0, zoom: 1})]
+// @ts-expect-error World dimensions are numeric, not CSS lengths.
+const invalidCanvas = <PanZoomViewport label="Canvas" worldWidth="100%" worldHeight={800}/>
+void invalidCanvas
 const pending = new Emitter(false)
 const interactions = <Panel>
     <MenuButton icon="add" ariaLabel="Create" disabled={live(pending)} items={[{id: 'class', label: 'Class', onSelect: () => {}}]}/>

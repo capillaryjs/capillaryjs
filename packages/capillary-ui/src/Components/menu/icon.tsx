@@ -26,6 +26,8 @@ const paths = {
     first: 'M5 4v16M19 5l-9 7 9 7Z',
     previous: 'M16 5l-9 7 9 7',
     next: 'M8 5l9 7-9 7',
+    up: 'M5 16l7-9 7 9',
+    down: 'M5 8l7 9 7-9',
     last: 'M19 4v16M5 5l9 7-9 7Z',
 } as const
 

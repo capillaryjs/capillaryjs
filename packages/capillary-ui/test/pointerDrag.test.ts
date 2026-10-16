@@ -71,6 +71,8 @@ test('only the post-drag pointer click on the captured widget is consumed', () =
     assert.equal(f.drag.consumeClick(outside), false)
     const click = new MouseEvent('click', {detail: 1}); f.element.dispatchEvent(click)
     assert.equal(f.drag.consumeClick(click), true); assert.equal(f.drag.consumeClick(click), false)
+    f.drag.begin(f.event('pointerdown'), 'next', f.element); f.send('pointermove', 10); f.send('pointerup', 10)
+    f.drag.cancel(); assert.equal(f.drag.consumeClick(click), false, 'idle cancellation clears pending suppression')
     f.destroy()
 })
 test('invalid thresholds and secondary pointer starts are rejected', () => {

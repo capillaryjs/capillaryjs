@@ -15,6 +15,7 @@ import {TreeView} from '../src/Components/data/treeview/treeview.tsx'
 import {Dialog} from '../src/Components/dialog/dialog.tsx'
 import {Tooltip} from '../src/Components/dialog/tooltip.tsx'
 import {Drawer} from '../src/Components/layout/drawer.tsx'
+import {PanZoomViewport} from '../src/Components/layout/panZoomViewport.tsx'
 import {GroupBox} from '../src/Components/layout/groupBox.tsx'
 import {Header} from '../src/Components/layout/header.tsx'
 import {OptionGroup} from '../src/Components/layout/optionGroup.tsx'
@@ -63,6 +64,7 @@ const components = [
     Dialog,
     Tooltip,
     Drawer,
+    PanZoomViewport,
     Dropdown,
     ComboBox,
     FilterPanel,

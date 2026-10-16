@@ -120,7 +120,7 @@ class OwnedPointerDrag<TContext> implements PointerDrag<TContext> {
     }
     cancel(reason = 'cancelled'): boolean {
         const gesture = this.gesture
-        if (!gesture) return false
+        if (!gesture) {this.suppress = null; return false}
         const state = this.snapshot(gesture)
         this.finish(gesture)
         this.options.onCancel?.(state, reason)

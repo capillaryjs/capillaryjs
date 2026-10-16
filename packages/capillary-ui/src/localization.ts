@@ -43,6 +43,18 @@ export interface CapillaryUiMessageOverrides {
     readonly listViewLoadError?: string
     readonly listViewLoading?: string
     readonly progressInProgress?: string
+    readonly panZoomControlsLabel?: string
+    readonly panZoomOutLabel?: string
+    readonly panZoomInLabel?: string
+    readonly panZoomResetLabel?: string
+    readonly panZoomFitLabel?: string
+    readonly panZoomPanLabel?: string
+    readonly panZoomLeftLabel?: string
+    readonly panZoomRightLabel?: string
+    readonly panZoomUpLabel?: string
+    readonly panZoomDownLabel?: string
+    readonly panZoomLevelLabel?: string
+    readonly panZoomHelp?: string
     readonly radioOptionLabel?: string
     readonly splitViewSeparatorLabel?: string
     readonly stylesheetLoadError?: string
@@ -120,6 +132,18 @@ const englishCapillaryUiMessages = Object.freeze({
     listViewLoadError: 'Unable to load items',
     listViewLoading: 'Loading items…',
     progressInProgress: 'In progress',
+    panZoomControlsLabel: 'View controls',
+    panZoomOutLabel: 'Zoom out',
+    panZoomInLabel: 'Zoom in',
+    panZoomResetLabel: 'Reset view',
+    panZoomFitLabel: 'Fit view',
+    panZoomPanLabel: 'Pan view',
+    panZoomLeftLabel: 'Pan left',
+    panZoomRightLabel: 'Pan right',
+    panZoomUpLabel: 'Pan up',
+    panZoomDownLabel: 'Pan down',
+    panZoomLevelLabel: 'Zoom level',
+    panZoomHelp: 'Drag the background or use the pan menu. Focus the viewport for arrow-key panning, +/− zoom, or 0 to reset. Wheel and touch scrolling remain native.',
     radioOptionLabel: 'Option',
     splitViewSeparatorLabel: 'Resize panes',
     stylesheetLoadError: 'Unable to load the selected stylesheet',

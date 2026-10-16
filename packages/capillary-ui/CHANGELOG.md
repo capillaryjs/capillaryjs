@@ -8,6 +8,10 @@ Versioning.
 
 ### Added
 
+- Add bounded `PanZoomViewport` with controlled/owned camera, anchor-preserving
+  zoom, pan/fit/reset, native scrolling, named icon/menu/keyboard controls,
+  deferred fit requests, resize/ref cleanup and independent geometry helpers.
+  Preserve child editing and RTL text; add up/down intent icons.
 - Add owner-scoped `createPointerDrag` with thresholded preview/commit,
   capture/identity/cancellation cleanup and keyboard-safe pointer-click
   suppression. Expose Component.listenWhile for temporary traced integrations.
