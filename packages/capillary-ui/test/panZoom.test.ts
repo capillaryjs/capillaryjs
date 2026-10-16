@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict'
 import {after, before, test} from 'node:test'
 import {Window} from 'happy-dom'
-import {PanZoomViewport, panZoomClampCamera, panZoomClientToWorld, panZoomFitCamera, panZoomWorldToClient, panZoomZoomAt} from '../src/index.js'
+import {Button, PanZoomToolbar, PanZoomViewport, h, panZoomClampCamera, panZoomClientToWorld, panZoomFitCamera, panZoomWorldToClient, panZoomZoomAt} from '../src/index.js'
 import type {PanZoomCamera, PanZoomViewportProps} from '../src/index.js'
 import {installPopoverStub} from '../../../test-utils/nativePopover.js'
 let window: Window
@@ -13,6 +13,18 @@ before(() => {
         MouseEvent: window.MouseEvent, KeyboardEvent: window.KeyboardEvent, PointerEvent: window.PointerEvent, DocumentFragment: window.DocumentFragment})
 })
 after(() => window.close())
+test('viewport named toolbar is outside scaled content and rejects duplicate/legacy regions', () => {
+    const props = {label: 'Canvas', worldWidth: 100, worldHeight: 100}
+    const viewport = new PanZoomViewport({...props, children: [h(PanZoomToolbar, {}, h(Button, {label: 'Fit selection'})), h('article', {}, 'World')]}).attachTo(document.body)
+    const host = viewport.dom as HTMLElement
+    const action = [...host.querySelectorAll('button')].find(button => button.textContent === 'Fit selection')
+    assert.equal(action?.closest('.cap-viewport-toolbar')?.parentElement, host)
+    assert.equal(host.querySelector('.cap-viewport-world button'), null)
+    assert.equal(host.querySelector('cap-panzoomtoolbar'), null)
+    viewport.destroy()
+    assert.throws(() => new PanZoomViewport({...props, toolbar: 'Legacy'} as never).attachTo(document.body), /PanZoomToolbar/)
+    assert.throws(() => new PanZoomViewport({...props, children: [h(PanZoomToolbar, {}), h(PanZoomToolbar, {})]}).attachTo(document.body), /duplicate/)
+})
 test('client/world conversion has independently expected offsets and zoom', () => {
     const camera = {x: 100, y: 50, zoom: 2}, origin = {x: 20, y: 30}
     assert.deepEqual(panZoomClientToWorld({x: 120, y: 130}, origin, camera), {x: 100, y: 75})

@@ -1,5 +1,5 @@
 import {Component, css} from '../component.js'
-import type {CapillaryUiChild, Key, LivePropContract} from '../component.js'
+import type {CapillaryUiChild, Key, LivePropContract, Ref} from '../component.js'
 import {componentClass, controlId, createValueEmitter} from '../controlUtils.js'
 import type {ValueControlProps, ValueEmitter} from '../controlUtils.js'
 import {Button} from './button.js'
@@ -9,20 +9,25 @@ import {DropdownMenu} from './dropdownMenu.js'
 import type {MenuAction, MenuEntry} from './dropdownMenu.js'
 import {commandSource} from '../commandSupport.js'
 
-export interface MenuButtonProps extends ValueControlProps<boolean>, LivePropContract<'disabled'> {
+export interface MenuButtonProps extends ValueControlProps<boolean>, LivePropContract<'disabled' | 'busy' | 'error'> {
     id?: string
     label?: string
     icon?: IconName
     ariaLabel?: string
     appearance?: 'standard' | 'subtle'
     disabled?: boolean
+    busy?: boolean
+    error?: unknown
+    buttonRef?: Ref<HTMLButtonElement>
+    ariaDescribedBy?: string
+    title?: string
     items: readonly MenuEntry[]
 }
 
 /** Named action trigger plus menu; the invoked command retains feedback when closed. */
 export class MenuButton extends Component<MenuButtonProps> {
     static override hostName = 'menubutton'
-    static override liveProps = ['disabled'] as const
+    static override liveProps = ['disabled', 'busy', 'error'] as const
     static override dependencies = [Button, Icon, DropdownMenu]
     readonly openEmitter: ValueEmitter<boolean>
     readonly menuId: string
@@ -40,7 +45,7 @@ export class MenuButton extends Component<MenuButtonProps> {
     initialize(): void { this.watch(this.openEmitter) }
     render(): CapillaryUiChild {
         const {label, ariaLabel, icon, appearance, disabled, items, id} = this.props
-        let running = false, commandError: unknown = null
+        let running = this.props.busy === true, commandError: unknown = null
         for (const [key, action] of this.invokedActions) {
             const command = commandSource(action.command)
             if (command == null) { this.invokedActions.delete(key); continue }
@@ -48,7 +53,7 @@ export class MenuButton extends Component<MenuButtonProps> {
             running = running || active
             commandError ??= failure
         }
-        const error = this.invocationError ?? commandError
+        const error = this.props.error ?? this.invocationError ?? commandError
         const open = this.openEmitter.get(), Host = this.Host
         return <Host className={componentClass(this.props) || null}
             onKeyDown={(event: KeyboardEvent) => {
@@ -59,6 +64,9 @@ export class MenuButton extends Component<MenuButtonProps> {
             }}>
             <Button {...(id ? {id} : {})} {...(label ? {label} : {})} {...(icon ? {icon} : {})}
                 {...(ariaLabel ? {ariaLabel} : {})} {...(appearance ? {appearance} : {})}
+                {...(this.props.buttonRef ? {buttonRef: this.props.buttonRef} : {})}
+                {...(this.props.ariaDescribedBy ? {ariaDescribedBy: this.props.ariaDescribedBy} : {})}
+                {...(this.props.title != null ? {title: this.props.title} : {})}
                 disabled={disabled ?? false} busy={running} error={error} disableWhileRunning={false}
                 ariaControls={this.menuId} ariaExpanded={open} ariaHasPopup="menu"
                 onClick={event => {

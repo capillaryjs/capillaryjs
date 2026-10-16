@@ -4,6 +4,24 @@ import {AxeBuilder} from '@axe-core/playwright'
 
 test.beforeEach(async ({page}) => { await page.goto('/workbench-primitives.html') })
 
+test('contextual form outcomes remain at a stable menu trigger after popup dismissal', async ({page}) => {
+    const trigger = page.getByRole('button', {name: 'Edit contextual details'})
+    const open = async () => {await trigger.click(); await page.getByRole('menuitem', {name: 'Edit details', exact: true}).click()}
+    await open()
+    await page.getByRole('button', {name: 'Apply contextual details'}).click()
+    await page.getByRole('button', {name: 'Close contextual details'}).click()
+    await expect(page.getByRole('dialog', {name: 'Contextual details'})).not.toBeVisible()
+    await expect(trigger).toHaveAttribute('aria-busy', 'true'); await expect(trigger).toHaveAttribute('data-cap-busy-visible', '')
+    await expect(trigger).toBeEnabled(); await expect(page.getByRole('button', {name: 'Create definition'})).not.toHaveAttribute('aria-busy')
+    await page.getByRole('button', {name: 'Fail contextual action'}).click()
+    await expect(trigger).toHaveAttribute('aria-invalid', 'true'); await expect(trigger).not.toHaveAttribute('aria-busy')
+    await open(); await page.getByRole('button', {name: 'Apply contextual details'}).click()
+    await expect(trigger).not.toHaveAttribute('aria-invalid')
+    await page.getByRole('button', {name: 'Close contextual details'}).click()
+    await page.getByRole('button', {name: 'Finish contextual action'}).click()
+    await expect(trigger).not.toHaveAttribute('aria-busy'); await expect(trigger).not.toHaveAttribute('aria-invalid')
+})
+
 test('viewport zoom preserves center, fits the scaled world and keeps child/native editing in RTL surroundings', async ({page}) => {
     const viewport = page.getByRole('region', {name: 'Fixture canvas', exact: true})
     const owner = viewport.locator('..')
@@ -11,6 +29,8 @@ test('viewport zoom preserves center, fits the scaled world and keeps child/nati
     await viewport.scrollIntoViewIfNeeded()
     await expect(owner.getByRole('button', {name: 'Zoom in', exact: true})).toBeEnabled()
     const size = await viewport.evaluate(element => ({width: element.clientWidth, height: element.clientHeight}))
+    const extra = owner.getByRole('button', {name: 'Pin viewport region'})
+    const extraWidth = (await extra.boundingBox())!.width
     await owner.getByRole('button', {name: 'Zoom in', exact: true}).click()
     await expect.poll(async () => JSON.parse((await camera.textContent())!).zoom).toBe(1.25)
     const zoomed = JSON.parse((await camera.textContent())!)
@@ -31,6 +51,8 @@ test('viewport zoom preserves center, fits the scaled world and keeps child/nati
     await owner.getByRole('button', {name: 'Fit view', exact: true}).click()
     await expect.poll(async () => JSON.parse((await camera.textContent())!).zoom).toBeLessThan(1)
     expect(await viewport.evaluate(element => ({horizontal: element.scrollWidth - element.clientWidth, vertical: element.scrollHeight - element.clientHeight}))).toEqual({horizontal: 0, vertical: 0})
+    expect((await extra.boundingBox())!.width).toBeCloseTo(extraWidth, 1)
+    await extra.click(); await expect(page.getByRole('status', {name: 'Viewport extra actions'})).toHaveText('1')
     await owner.getByRole('button', {name: 'Reset view', exact: true}).click()
     await viewport.focus(); await page.keyboard.press('ArrowRight')
     await expect.poll(async () => JSON.parse((await camera.textContent())!).x).toBe(80)
@@ -204,6 +226,9 @@ test('tooltip supplements focus, delays entry, escapes clipping and dismisses wi
     await page.mouse.move(0, 0); await trigger.hover(); await expect(tooltip).toBeVisible()
     await tooltip.hover(); await page.waitForTimeout(180); await expect(tooltip).toBeVisible()
     await page.mouse.move(0, 0); await expect(tooltip).not.toBeVisible()
+    await trigger.focus(); await expect(tooltip).toBeVisible()
+    await page.keyboard.press('Enter'); await expect(tooltip).not.toBeVisible()
+    await page.waitForTimeout(400); await expect(tooltip).not.toBeVisible()
 })
 
 test('manual tooltip does not dismiss an open menu or steal its keyboard focus', async ({page}) => {

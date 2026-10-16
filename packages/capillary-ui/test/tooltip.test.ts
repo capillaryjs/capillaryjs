@@ -33,6 +33,8 @@ test('tooltip supplements a separately named trigger without taking focus', asyn
     assert.equal(visible(), false); assert.equal(document.activeElement, trigger())
     await pause(10); assert.equal(visible(), false)
     trigger().blur(); trigger().focus(); await pause(10); assert.equal(visible(), true)
+    trigger().click(); assert.equal(visible(), false)
+    await pause(10); assert.equal(visible(), false)
     tooltip.destroy()
 })
 

@@ -108,13 +108,16 @@ export class Popover<TProps extends PopoverProps = PopoverProps> extends Compone
                     const target = event.target as Node | null
                     this.lightDismiss = !panel.contains(target) && !this.containsTrigger(target)
                 }, true))
+                // Capture has already passed for the click opening this surface
+                // from another widget. Do not dismiss it on that same click's
+                // remaining bubble path (for example, a menu-item handoff).
                 this.detachViewport.push(this.listenWhile<MouseEvent>(doc, 'click', event => {
                     const target = event.target as Node | null
                     if (!panel.contains(target) && !this.containsTrigger(target)) {
                         this.lightDismiss = true
                         this.close()
                     }
-                }))
+                }, true))
                 this.detachViewport.push(this.listenWhile<KeyboardEvent>(panel, 'keydown', event => this.onSurfaceKeyDown(event)))
                 if (view) {
                     this.detachViewport.push(this.listenWhile(view, 'resize', () => this.position()))

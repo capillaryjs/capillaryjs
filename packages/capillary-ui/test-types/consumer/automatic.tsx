@@ -11,6 +11,7 @@ import {
     Component,
     createPointerDrag,
     PanZoomViewport,
+    PanZoomToolbar,
     panZoomClientToWorld,
     MenuButton,
     DropdownMenu,
@@ -40,6 +41,7 @@ import {
 } from '@capillaryjs/capillary-ui'
 
 const tree = <Panel header="Automatic"><Button label="Save" /></Panel>
+const pending = new Emitter(false)
 const hint = <Tooltip text="Hold Shift for small steps" trigger={({ariaDescribedBy, triggerRef}) =>
     <Button icon="pan" ariaLabel="Pan" title="" ariaDescribedBy={ariaDescribedBy} buttonRef={triggerRef}/>} />
 // @ts-expect-error Tooltip content is noninteractive plain supplemental text.
@@ -60,13 +62,18 @@ drag.dispose(); dragOwner.destroy()
 const canvas = <PanZoomViewport label="Canvas" worldWidth={1200} worldHeight={800}
     camera={{x: 100, y: 50, zoom: 1}} onCameraChange={camera => camera.zoom.toFixed()}
     fitRequest={{key: 1, bounds: {x: 300, y: 200, width: 400, height: 200}}}>
+    <PanZoomToolbar><Button icon="fit" ariaLabel="Fit selection"/></PanZoomToolbar>
     <article tabIndex={0}>Application object</article>
 </PanZoomViewport>
 void [canvas, panZoomClientToWorld({x: 1, y: 2}, {x: 0, y: 0}, {x: 0, y: 0, zoom: 1})]
 // @ts-expect-error World dimensions are numeric, not CSS lengths.
 const invalidCanvas = <PanZoomViewport label="Canvas" worldWidth="100%" worldHeight={800}/>
 void invalidCanvas
-const pending = new Emitter(false)
+// @ts-expect-error Viewport toolbar content uses a direct named region.
+const legacyCanvas = <PanZoomViewport label="Canvas" worldWidth={100} worldHeight={100} toolbar={<Button label="Legacy"/>}/>
+const describedMenu = <Tooltip text="Create an item" trigger={({ariaDescribedBy, triggerRef}) =>
+    <MenuButton label="Create" ariaDescribedBy={ariaDescribedBy} buttonRef={triggerRef} title="" busy={live(pending)} error={null} items={[]}/>} />
+void [legacyCanvas, describedMenu]
 const interactions = <Panel>
     <MenuButton icon="add" ariaLabel="Create" disabled={live(pending)} items={[{id: 'class', label: 'Class', onSelect: () => {}}]}/>
     <DropdownMenu label="Commands" anchor={null} items={[{id: 'group', kind: 'group', label: 'Create', items: [{id: 'type', label: 'Type', onSelect: () => {}}]}]}/>

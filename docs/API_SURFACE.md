@@ -164,7 +164,7 @@ custom elements.
 | Actions | `Button`, `Icon`, `Toolbar`, `MenuButton`, `DropdownMenu` |
 | Text and choices | `Label`, `Textbox`, `TextArea`, `Dropdown`, `ComboBox`, `RadioButton`, `RadioGroup`, `Toggle`, `Checkbox`, `TriCheckbox`, `QuadCheckbox` |
 | Forms | `Form`, `FormSubmission`, `FormField`, `FormFieldControlProps`, `FormLayout` |
-| Layout and navigation | `Breadcrumb`, `CapillaryUiApp`, `Layout`, `Drawer`, `PanZoomViewport`, `Header`, `GroupBox`, `NavigationBar`, `OptionGroup`, `OptionGroupHeaderEnd`, `OptionsBox`, `Panel`, `PanelToolbar`, `Sidebar`, `SidebarToolbar`, `SplitPrimary`, `SplitSecondary`, `SplitView`, `Tab`, `TabLine`, `TabPanel` |
+| Layout and navigation | `Breadcrumb`, `CapillaryUiApp`, `Layout`, `Drawer`, `PanZoomViewport`, `PanZoomToolbar`, `Header`, `GroupBox`, `NavigationBar`, `OptionGroup`, `OptionGroupHeaderEnd`, `OptionsBox`, `Panel`, `PanelToolbar`, `Sidebar`, `SidebarToolbar`, `SplitPrimary`, `SplitSecondary`, `SplitView`, `Tab`, `TabLine`, `TabPanel` |
 | Records and collections | `DescriptionItem`, `DescriptionList`, `InfoField`, `InfoPanel`, `Placeholder`, `ListView`, `TreeItem`, `TreeView` |
 | Tables and filters | `DataTable`, `FilterPanel`, `TableHeader`, `TableHeaderCell` |
 | Dialog and status | `Dialog`, `DialogActions`, `Popover`, `Tooltip`, `ProgressBar`, `StatusPresentation` (shared styling dependency) |
@@ -285,7 +285,9 @@ Notable public behavior:
 synchronous `onSelect`; optional fields are `icon` and `disabled`. `MenuEntry`
 also supports `kind: 'separator'` and labelled `kind: 'group'` entries.
 MenuButton accepts Boolean value-control open state, items, disabled/name/icon/
-appearance/id props and retains invoked command busy/error feedback when closed.
+appearance/id, buttonRef/ariaDescribedBy/title and external busy/error props.
+It retains invoked command feedback when closed; external outcomes cover
+associated forms without disabling unrelated actions.
 DropdownMenu requires label/anchor/items and accepts Boolean open state, id,
 initialFocus, onClose, onAction and onActionError. It uses menu rather than dialog
 semantics, composite keyboard focus, typeahead, native top-layer anchoring and
@@ -341,7 +343,7 @@ defaults to eager. App layout axis, breakpoints and persistence remain explicit.
 
 `PanZoomViewport` accepts label/world dimensions, controlled camera/onCameraChange
 or defaultCamera, limits/steps/height, disabled/panEnabled, canStartPan,
-interactionKey, keyed fitRequest, toolbar, viewportRef, ariaDescribedBy and
+interactionKey, keyed fitRequest, direct PanZoomToolbar region, viewportRef, ariaDescribedBy and
 onResize. Camera x/y are CSS scroll offsets; zoom is positive. It owns bounded
 scaling, native scrolling and named controls, not graph/domain/selection policy.
 Methods expose zoomTo/panBy/fit/reset and client/world conversion. Hidden fitting

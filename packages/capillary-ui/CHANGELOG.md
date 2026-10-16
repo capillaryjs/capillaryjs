@@ -8,6 +8,9 @@ Versioning.
 
 ### Added
 
+- Document workbench, buffered-editing, persistent-feedback and native-disclosure
+  recipes. Add MenuButton trigger refs/descriptions and external outcome inputs;
+  dismiss supplemental tooltips on activation and use a named PanZoomToolbar region.
 - Add bounded `PanZoomViewport` with controlled/owned camera, anchor-preserving
   zoom, pan/fit/reset, native scrolling, named icon/menu/keyboard controls,
   deferred fit requests, resize/ref cleanup and independent geometry helpers.
@@ -55,6 +58,8 @@ Versioning.
 
 ### Fixed
 
+- Preserve a popup opened by a menu action; its opening click must not be
+  mistaken for a later outside click during event bubbling.
 - Remove the actual native `tabindex` attribute when a JSX tabIndex is cleared,
   rather than trying to remove `tab-index`.
 - Reconcile static DataTable rows and updated collection render callbacks

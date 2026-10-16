@@ -4,6 +4,7 @@ import type {CapillaryUiChild, ComponentProps, Key, LivePropContract, Ref} from 
 import {componentClass, controlId} from '../controlUtils.js'
 import {Button} from '../menu/button.js'
 import {MenuButton} from '../menu/menuButton.js'
+import {DeclarativeRegion, readDeclarativeRegions} from './declarativeRegion.js'
 import {createPointerDrag} from '../../interaction/pointerDrag.js'
 import {panZoomClampCamera, panZoomClientToWorld, panZoomFitCamera, panZoomWorldToClient, panZoomZoomAt,
     readPanZoomCamera, readPanZoomLimits, readPanZoomSize} from '../../interaction/panZoomGeometry.js'
@@ -28,17 +29,20 @@ export interface PanZoomViewportProps extends ComponentProps, LivePropContract<'
     canStartPan?: (event: PointerEvent) => boolean
     interactionKey?: unknown
     fitRequest?: {readonly key: Key; readonly bounds: PanZoomBounds}
-    toolbar?: CapillaryUiChild
+    /** Supply a direct PanZoomToolbar child. */
+    toolbar?: never
     viewportRef?: Ref<HTMLElement>
     ariaDescribedBy?: string
     onResize?: (size: PanZoomSize) => void
 }
 const sameCamera = (a: PanZoomCamera, b: PanZoomCamera) => a.zoom === b.zoom && Math.abs(a.x - b.x) < .001 && Math.abs(a.y - b.y) < .001
+/** Application-specific actions following the standard viewport controls. */
+export class PanZoomToolbar extends DeclarativeRegion {}
 /** A bounded coordinate plane, not a diagram editor or model store. */
 export class PanZoomViewport extends Component<PanZoomViewportProps> {
     static override hostName = 'panzoomviewport'
     static override liveProps = ['disabled'] as const
-    static override dependencies = [Button, MenuButton]
+    static override dependencies = [Button, MenuButton, PanZoomToolbar]
     readonly viewportId: string
     private readonly localCamera: Emitter<PanZoomCamera>
     private viewport: HTMLElement | null = null
@@ -87,6 +91,8 @@ export class PanZoomViewport extends Component<PanZoomViewportProps> {
         return this
     }
     render(): CapillaryUiChild {
+        if (this.props.toolbar != null) throw new TypeError('Viewport toolbar must use a direct PanZoomToolbar child')
+        const {content, regions} = readDeclarativeRegions('PanZoomViewport', this.props.children, {toolbar: PanZoomToolbar})
         if (typeof this.props.label !== 'string' || !this.props.label.trim()) throw new TypeError('PanZoomViewport requires a nonempty label')
         for (const callback of ['onCameraChange', 'canStartPan', 'onResize'] as const) {
             if (this.props[callback] != null && typeof this.props[callback] !== 'function') throw new TypeError(`Viewport ${callback} must be a function`)
@@ -112,7 +118,7 @@ export class PanZoomViewport extends Component<PanZoomViewportProps> {
                     {id: 'up', label: this.capillaryUiMessage('panZoomUpLabel'), icon: 'up', onSelect: () => this.panBy(0, -step)},
                     {id: 'down', label: this.capillaryUiMessage('panZoomDownLabel'), icon: 'down', onSelect: () => this.panBy(0, step)},
                 ]}/>
-                {this.props.toolbar}
+                {regions.toolbar}
             </div>
             <div id={this.viewportId} className="cap-viewport" role="region" aria-label={this.props.label} tabIndex={0} dir="ltr"
                 aria-describedby={[this.props.ariaDescribedBy, `${this.viewportId}-help`].filter(Boolean).join(' ')}
@@ -121,7 +127,7 @@ export class PanZoomViewport extends Component<PanZoomViewportProps> {
                 onPointerDown={(event: PointerEvent) => this.beginPan(event)} onScroll={() => this.readScroll()}
                 onKeyDown={(event: KeyboardEvent) => this.keyDown(event)}>
                 <div className="cap-viewport-spacer" style={{width: `${this.props.worldWidth * scale}px`, height: `${this.props.worldHeight * scale}px`}}>
-                    <div className="cap-viewport-world" dir={this.textDirection} style={{width: `${this.props.worldWidth}px`, height: `${this.props.worldHeight}px`, transform: `scale(${scale})`}}>{this.props.children}</div>
+                    <div className="cap-viewport-world" dir={this.textDirection} style={{width: `${this.props.worldWidth}px`, height: `${this.props.worldHeight}px`, transform: `scale(${scale})`}}>{content}</div>
                 </div>
             </div>
             <p id={`${this.viewportId}-help`} className="cap-viewport-help">{this.capillaryUiMessage('panZoomHelp')}</p>

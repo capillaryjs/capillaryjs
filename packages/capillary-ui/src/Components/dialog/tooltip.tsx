@@ -83,6 +83,8 @@ export class Tooltip extends Component<TooltipProps> {
             this.listenWhile(element, 'pointerenter', () => {this.hover = true; this.reconcile()}),
             this.listenWhile(element, 'pointerleave', () => {this.hover = false; this.reconcile()}),
             this.listenWhile(element, 'focusin', () => {this.focus = true; this.reconcile()}),
+            this.listenWhile(element, 'pointerdown', () => this.dismiss()),
+            this.listenWhile(element, 'click', () => this.dismiss()),
             this.listenWhile<FocusEvent>(element, 'focusout', event => {
                 if (element.contains(event.relatedTarget as Node | null)) return
                 this.focus = false; this.reconcile()
@@ -110,9 +112,10 @@ export class Tooltip extends Component<TooltipProps> {
         if (doc && !this.detachEscape) this.detachEscape = this.listenWhile<KeyboardEvent>(doc, 'keydown', event => {
             if (event.key !== 'Escape' || !this.open.get() || event.defaultPrevented) return
             event.preventDefault(); event.stopPropagation()
-            this.dismissed = true; this.clearTimers(); this.open.set(false)
+            this.dismiss()
         }, true)
     }
+    private dismiss(): void {this.dismissed = true; this.clearTimers(); this.open.set(false)}
     private reconcile(): void {
         const interested = this.hover || this.focus || this.overTip
         if (!interested) this.dismissed = false

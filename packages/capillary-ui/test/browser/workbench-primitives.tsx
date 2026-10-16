@@ -1,5 +1,5 @@
 import {AsyncCommand, Emitter, LiveQuery} from '@capillaryjs/capillary'
-import {Button, CapillaryUiApp, ComboBox, Drawer, Form, FormField, FormLayout, MenuButton, SplitPrimary, SplitSecondary, SplitView, TextArea, Textbox, Tooltip, live} from '../../src/index.js'
+import {Button, CapillaryUiApp, ComboBox, Drawer, Form, FormField, FormLayout, MenuButton, Popover, SplitPrimary, SplitSecondary, SplitView, TextArea, Textbox, Tooltip, live} from '../../src/index.js'
 import type {CollapsedSplitPane, ComboBoxOption} from '../../src/index.js'
 import {DragFixture} from './dragFixture.js'
 import {ViewportFixture} from './viewportFixture.js'
@@ -8,6 +8,14 @@ import '../../colors/iceblue/colors.css'
 import '../../themes/minimal/theme.css'
 
 class WorkbenchPrimitivesFixture extends CapillaryUiApp {
+    private readonly contextualOpen = new Emitter(false)
+    private readonly contextualTrigger: {current: HTMLButtonElement | null} = {current: null}
+    private finishContextual: (() => void) | null = null
+    private failContextual: ((error: Error) => void) | null = null
+    private readonly contextualApply = new AsyncCommand<void, void>({execute: () => new Promise((resolve, reject) => {
+        this.finishContextual = resolve; this.failContextual = reject
+    })})
+    initialize(): void {this.watch(this.contextualOpen)}
     private readonly collapsedPane = new Emitter<CollapsedSplitPane>(null)
     private readonly reviewOpen = new Emitter(false)
     private readonly retainedOpen = new Emitter(false)
@@ -52,6 +60,16 @@ class WorkbenchPrimitivesFixture extends CapillaryUiApp {
     protected override renderContent() {
         return <>
             <h1>Workbench primitives</h1>
+            <MenuButton label="Edit contextual details" buttonRef={this.contextualTrigger} busy={live(this.contextualApply.isRunning)} error={this.snapshot(this.contextualApply).error}
+                items={[{id: 'details', label: 'Edit details', onSelect: () => this.contextualOpen.set(true)}]}/>
+            <Popover label="Contextual details" anchor={this.contextualTrigger.current} valueEmitter={this.contextualOpen}>
+                <Form label="Contextual details" submitCommand={this.contextualApply}>
+                    <Button type="submit">Apply contextual details</Button>
+                    <Button onClick={() => this.contextualOpen.set(false)}>Close contextual details</Button>
+                </Form>
+            </Popover>
+            <Button onClick={() => this.finishContextual?.()}>Finish contextual action</Button>
+            <Button onClick={() => this.failContextual?.(new Error('Contextual apply failed'))}>Fail contextual action</Button>
             <input aria-label="Before menu"/>
             <div style={{overflow: 'hidden', inlineSize: '4rem', blockSize: '3rem', marginInlineStart: 'auto'}}>
                 <MenuButton icon="add" appearance="subtle" ariaLabel="Create definition" items={[
@@ -141,8 +159,9 @@ class WorkbenchPrimitivesFixture extends CapillaryUiApp {
             <div style={{blockSize: '70rem'}}/>
         </>
     }
-    static override dependencies = [Button, MenuButton, Form, FormLayout, FormField, TextArea, Textbox, ComboBox, Tooltip, Drawer, SplitView, SplitPrimary, SplitSecondary, DragFixture, ViewportFixture]
+    static override dependencies = [Button, MenuButton, Popover, Form, FormLayout, FormField, TextArea, Textbox, ComboBox, Tooltip, Drawer, SplitView, SplitPrimary, SplitSecondary, DragFixture, ViewportFixture]
     override onDestroy(): void {
+        this.contextualApply.dispose(); this.contextualOpen.dispose()
         this.collapsedPane.dispose(); this.reviewOpen.dispose(); this.retainedOpen.dispose()
         this.save.dispose(); this.formCommand.dispose(); this.submitted.dispose(); this.formError.dispose(); this.formInvocations.dispose()
         this.choose.dispose(); this.optionQuery.dispose(); this.optionSearch.dispose(); this.optionRequests.dispose()

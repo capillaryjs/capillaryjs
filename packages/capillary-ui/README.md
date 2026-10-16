@@ -536,7 +536,7 @@ runtime messages, with ordinary English fallback.
 
 `Tooltip` supplements an independently named trigger with plain text. It appears
 after 350 ms of hover/focus (override `delayMs`), stays open while the pointer is
-over either surface, and dismisses on Escape or leaving both. Focus never moves.
+over either surface, and dismisses on activation, Escape or leaving both. Focus never moves.
 It shares native top-layer positioning but does not dismiss an open menu.
 
 ```tsx
@@ -586,8 +586,10 @@ discovery but cannot run. Closing precedes activation so an action may safely
 open its own dialog or remove its trigger.
 
 MenuButton retains busy/error presentation for commands invoked from that menu
-after it closes; other actions remain accessible while a command runs. Each
-item presents only its own command. An independently composed DropdownMenu must
+after it closes, and accepts external `busy`/`error` for work owned by an associated form. These
+inputs do not disable unrelated menu actions. `buttonRef`, `ariaDescribedBy`
+and `title` compose stable triggers/help with Tooltip or an anchored Popover.
+Each item presents only its own command. An independently composed DropdownMenu must
 provide persistent outcome/error feedback in its owning view when it closes;
 observe command errors and use `onActionError` for invocation/handler failures.
 Do not pass async work as a synchronous `onSelect` handler. Use an explicit command.
@@ -661,7 +663,7 @@ const view = new Emitter<'list' | 'grid'>('list')
 | `Sidebar` | Labelled complementary region with fixed header/toolbar and scrolling content | `header`, `ariaLabel`; `SidebarToolbar` and ordinary content children |
 | `SplitView` | Resizable two-pane layout | required `SplitPrimary` and `SplitSecondary` Layout panes; `horizontal`/`vertical`, `allocation`, initial/minimum sizes, separator label, `onResize`, live `collapsed`, `collapseFocusRef` |
 | `Drawer` | Inline nonmodal edge region | required `label`; Boolean value-control state, logical `edge`, CSS `size`, `mountPolicy`, `scroll`, `closeLabel`, initial/return focus refs, `onClose` |
-| `PanZoomViewport` | Bounded, scrollable coordinate plane | `label`, worldWidth/worldHeight; controlled camera/onCameraChange or defaultCamera; limits/steps, height, disabled, panEnabled, canStartPan, interactionKey, fitRequest, toolbar, viewportRef, ariaDescribedBy, onResize |
+| `PanZoomViewport` | Bounded, scrollable coordinate plane | `label`, worldWidth/worldHeight; controlled camera/onCameraChange or defaultCamera; limits/steps, height, disabled, panEnabled, canStartPan, interactionKey, fitRequest, direct PanZoomToolbar child, viewportRef, ariaDescribedBy, onResize |
 | `NavigationBar` | Labelled native navigation list over router-aware or external anchors | required `label`, `items`; route items accept `exact`; external items use `{kind: 'external', href}` plus disabled/link options |
 | `Tab` | Declarative tab definition consumed by `TabPanel` | `id`, `label`, `disabled`, optional literal `route`, content |
 | `TabLine` | Standalone keyboard-operable tab list | `tabs`, `valueEmitter`/`activeTabEmitter`, initial value, `label`, `onChange` |
@@ -781,7 +783,9 @@ Named icon controls provide zoom, reset, fit and a pan menu. Defaults are zoom
 `zoomStep`, `panStep` and CSS `height` are configurable. Zoom preserves the visible
 center (or a method's explicit inner-viewport anchor), subject to world bounds.
 Fit uses 30px padding and caps enlargement at 1 (or the minimum allowed zoom).
-Reset restores defaultCamera. `toolbar` adds app actions such as Fit selection.
+Reset restores defaultCamera. A direct `PanZoomToolbar` child adds app actions
+such as Fit selection, outside the scaled world. Toolbar content uses this named
+region, not a toolbar prop; duplicate/foreign regions are rejected.
 
 Use `fitRequest={{key, bounds: {x, y, width, height}}}` to request application
 bounds once per key. A hidden/zero-sized viewport defers fitting until visible;
@@ -1475,6 +1479,7 @@ legacy browsers, or a concurrent rendering scheduler.
 - [Public API surface](../../docs/API_SURFACE.md)
 - [Architecture](../../docs/architecture.md)
 - [Application composition guide](docs/application-composition-guide.md) — design screens, component boundaries, state lifetimes, and layouts.
+- [Workbench recipes](docs/workbench-composition-guide.md) — compose editing, menus, contextual feedback, panes and direct manipulation.
 - [Repository layout guide](docs/application-layout-guide.md) — organize application source by responsibility and feature.
 - [Theme contract](themes/README.md)
 - [Color palette contract](colors/README.md)

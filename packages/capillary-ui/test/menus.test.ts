@@ -22,6 +22,31 @@ const key = (element: HTMLElement, value: string) => element.dispatchEvent(new K
 const trigger = () => document.querySelector<HTMLButtonElement>('cap-menubutton > cap-button > button')!
 const actions = () => [...document.querySelectorAll<HTMLButtonElement>('[role="menuitem"]')]
 
+test('a menu action can open an anchored popup without its opening click dismissing it', () => {
+    let popup: Popover
+    const menu = new MenuButton({label: 'Edit', items: [{id: 'details', label: 'Details', onSelect: () => popup.openEmitter.set(true)}]}).attachTo(document.body)
+    popup = new Popover({label: 'Details', anchor: trigger(), children: 'Contextual form'}).attachTo(document.body)
+    trigger().click(); actions()[0]!.click()
+    assert.equal(menu.openEmitter.get(), false)
+    assert.equal(popup.openEmitter.get(), true)
+    assert.equal(document.querySelector('[role="dialog"]')!.matches(':popover-open'), true)
+    popup.destroy(); menu.destroy()
+})
+
+test('menu trigger composes external outcomes and stable refs without guarding unrelated actions', () => {
+    const ref: {current: HTMLButtonElement | null} = {current: null}
+    const props = {label: 'Actions', buttonRef: ref, title: '', ariaDescribedBy: 'help', busy: true,
+        items: [{id: 'local', label: 'Local', onSelect: () => {}}]}
+    const menu = new MenuButton(props).attachTo(document.body), element = trigger()
+    assert.equal(ref.current, element); assert.equal(element.disabled, false)
+    assert.equal(element.getAttribute('aria-busy'), 'true'); assert.equal(element.getAttribute('title'), '')
+    menu.setProps({...props, busy: false, error: new Error('Popup action failed')})
+    assert.equal(ref.current, element); assert.equal(element.getAttribute('aria-invalid'), 'true')
+    assert.match(element.getAttribute('aria-describedby')!, /^help /)
+    element.click(); assert.equal(actions()[0]!.getAttribute('aria-disabled'), null)
+    menu.destroy(); assert.equal(ref.current, null)
+})
+
 test('menus use action semantics, groups, disabled focus and keyboard navigation', () => {
     let count = 0
     const menu = new MenuButton({icon: 'add', ariaLabel: 'Create definition', items: [

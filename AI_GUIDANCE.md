@@ -15,6 +15,9 @@ behind an unexplained selection step, replace contextual panels with detached
 forms for implementation convenience, or omit busy feedback from work the user
 is waiting for.
 Inspect existing primitives and examples before inventing private replacements.
+Use the [workbench recipes](packages/capillary-ui/docs/workbench-composition-guide.md)
+for menus/forms, buffered input, persistent outcomes, panes and manipulation.
+Keep named content regions visible in TSX rather than hiding markup in props.
 Keep application policy, presentation and reactive/async ownership separate.
 
 Before wiring busy state, identify what completes the user's request: a required

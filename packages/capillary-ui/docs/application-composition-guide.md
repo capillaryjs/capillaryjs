@@ -20,6 +20,10 @@ theme boundaries, action versus widget semantics, direct manipulation, icons
 and pending feedback. These interaction rules complement the layout and
 lifetime decisions below.
 
+The [workbench recipes](workbench-composition-guide.md) apply these contracts to
+buffered editors, command menus, contextual feedback, collapsible panes and
+direct manipulation.
+
 ## 1. Start with workflows and relationships
 
 For each screen, write down the question it answers and the actions it supports.
@@ -444,7 +448,7 @@ class RecordsView extends Component {
             <Panel island allocation="flexible" header="Matching records" scroll={false}>
                 <PanelToolbar>
                     <Toolbar allocation="natural" label="Result actions">
-                        <button type="button" onClick={exportRecords}>Export</button>
+                        <Button command={exportRecordsCommand}>Export</Button>
                     </Toolbar>
                 </PanelToolbar>
                 <Layout vertical allocation="flexible" scroll
@@ -455,11 +459,12 @@ class RecordsView extends Component {
         </Layout>
     }
 
-    static dependencies = [Layout, Panel, PanelToolbar, RecordFilters, RecordsResults, Toolbar]
+    static dependencies = [Layout, Panel, PanelToolbar, RecordFilters, RecordsResults, Toolbar, Button]
 }
 ```
 
-`exportRecords` is an application action. `islands` supplies one shared gutter
+`exportRecordsCommand` is an application-owned AsyncCommand with explicit
+completion/error state. `islands` supplies one shared gutter
 and an outer inset, without doubling surface margins. When already inside an
 enabled app/layout, this nested scope inherits that composition without another
 inset. Application CSS still supplies dimensions, for example:
@@ -675,7 +680,7 @@ label props remain configuration:
 <Panel header="Matching records">
     <PanelToolbar>
         <Toolbar label="Result actions">
-            <Button label="Export" onClick={exportRecords} />
+            <Button label="Export" command={exportRecordsCommand} />
         </Toolbar>
     </PanelToolbar>
     <RecordsResults />
