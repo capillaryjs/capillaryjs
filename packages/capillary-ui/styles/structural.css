@@ -213,6 +213,7 @@ cap-progressbar,
 cap-quadcheckbox,
 cap-radiobutton,
 cap-textbox,
+cap-textarea,
 cap-timepicker,
 cap-toggle,
 cap-tricheckbox {
@@ -636,6 +637,7 @@ cap-dropdown,
 cap-datepicker,
 cap-datetimepicker,
 cap-textbox,
+cap-textarea,
 cap-timepicker,
 cap-toggle {
             display: flex;
@@ -671,6 +673,11 @@ cap-toggle {
            direct body so their label/control row keeps labels left and native
            input surfaces right; an explicitly nested Layout remains supported
            for non-standard arrangements. */
+        cap-groupbox > cap-content > cap-textarea,
+        /* GroupBox owns the ordinary body layout. Labeled controls fill its
+           direct body so their label/control row keeps labels left and native
+           input surfaces right; an explicitly nested Layout remains supported
+           for non-standard arrangements. */
         cap-groupbox > cap-content > cap-timepicker,
         /* GroupBox owns the ordinary body layout. Labeled controls fill its
            direct body so their label/control row keeps labels left and native
@@ -681,6 +688,7 @@ cap-toggle {
         cap-groupbox > cap-content > cap-layout > cap-datepicker,
         cap-groupbox > cap-content > cap-layout > cap-datetimepicker,
         cap-groupbox > cap-content > cap-layout > cap-textbox,
+        cap-groupbox > cap-content > cap-layout > cap-textarea,
         cap-groupbox > cap-content > cap-layout > cap-timepicker,
         cap-groupbox > cap-content > cap-layout > cap-toggle {
             align-self: stretch;
@@ -690,6 +698,7 @@ cap-toggle {
         cap-datepicker > label,
         cap-datetimepicker > label,
         cap-textbox > label,
+        cap-textarea > label,
         cap-timepicker > label,
         cap-toggle > label {
             align-self: center;
@@ -2764,6 +2773,74 @@ cap-textbox:has(> input:required:invalid:not(:disabled):not([readonly]):not([ari
                 outline: 2px solid Mark;
                 outline-offset: 1px;
             }
+        }
+
+cap-textarea { display: grid; grid-template-columns: minmax(var(--input-min-width, 6rem), 1fr); min-inline-size: 0; }
+        cap-textarea:has(> label) { grid-template-columns: max-content minmax(var(--input-min-width, 6rem), 1fr); }
+        cap-textarea > label { align-self: start; }
+        cap-textarea > textarea {
+            inline-size: var(--input-width, 20rem); max-inline-size: 100%; min-inline-size: 0;
+            box-sizing: border-box; margin: 0; padding: var(--ui-control-padding); resize: vertical;
+            color: var(--input-color); background: var(--input-background); border: var(--input-border);
+            border-radius: var(--ui-border-radius); box-shadow: var(--input-shadow); font: inherit;
+            user-select: text; line-height: 1.4;
+        }
+        cap-textarea > textarea:focus-visible { outline: 2px solid transparent; outline-offset: 1px; box-shadow: var(--focus-ring); }
+        cap-textarea > textarea:disabled { color: var(--input-color-disabled); background: var(--input-background-disabled); cursor: not-allowed; }
+        cap-textarea > textarea[readonly]:not(:disabled) { color: var(--input-color-readonly); background: var(--input-background-readonly); border: var(--input-border-readonly); }
+
+
+cap-textarea > textarea:required:invalid:not(:disabled):not([readonly]):not([aria-invalid="true"]) {
+    outline: 1px dashed var(--required-color);
+    outline-offset: 3px;
+}
+
+
+cap-textarea:has(> textarea:required:invalid:not(:disabled):not([readonly]):not([aria-invalid="true"]))::after {
+    content: "✲";
+    position: absolute;
+    z-index: 3;
+    inset-block-start: .35em;
+    inset-inline-end: .35em;
+    display: flex;
+    inline-size: 1rem;
+    block-size: 1rem;
+    align-items: center;
+    justify-content: center;
+    color: var(--required-indicator-color);
+    background: var(--required-indicator-background);
+    font-size: .75rem;
+    font-weight: 700;
+    line-height: 1;
+    pointer-events: none;
+}
+
+        cap-textarea > textarea[data-cap-busy-visible]:not([aria-invalid="true"]) {
+            background-image: var(--working-background-image); background-size: 2rem 2rem; animation: cap-working-progress .55s linear infinite;
+        }
+        cap-textarea > textarea[aria-invalid="true"] { border-color: var(--error-control-border); box-shadow: var(--error-control-shadow); }
+        @media (prefers-reduced-motion: reduce) { cap-textarea > textarea[data-cap-busy-visible] { animation: none; } }
+        @media (forced-colors: active) { cap-textarea > textarea[aria-invalid="true"] { outline: 2px solid Mark; } }
+
+cap-form { display: block; min-inline-size: 0; }
+        cap-form > form { margin: 0; min-inline-size: 0; }
+        cap-form .cap-form-error { color: var(--error-color); margin-block: .5rem; white-space: pre-wrap; }
+
+cap-formfield { display: grid; grid-template-columns: minmax(0, 1fr); gap: .25rem .75rem; min-inline-size: 0; }
+        cap-formfield > label { align-self: center; overflow-wrap: anywhere; }
+        cap-formfield .cap-field-control { min-inline-size: 0; --input-width: 100%; --input-min-width: 0px; }
+        cap-formfield .cap-field-control > * { inline-size: 100%; }
+        cap-formfield .cap-field-help { font-size: .9em; overflow-wrap: anywhere; }
+        cap-formfield .cap-field-error { color: var(--error-color); white-space: pre-wrap; overflow-wrap: anywhere; }
+
+cap-formlayout { display: block; container-type: inline-size; min-inline-size: 0; }
+        cap-formlayout > div { display: grid; grid-template-columns: fit-content(40%) minmax(0, 1fr); gap: .5rem .75rem; }
+        cap-formlayout > div > * { grid-column: 1 / -1; }
+        cap-formlayout > div > cap-formfield { grid-template-columns: subgrid; }
+        cap-formlayout > div > cap-formfield > :is(.cap-field-help, .cap-field-error) { grid-column: 2; }
+        @container (max-width: 30rem) {
+            cap-formlayout > div { grid-template-columns: minmax(0, 1fr); }
+            cap-formlayout > div > cap-formfield > :is(.cap-field-help, .cap-field-error) { grid-column: 1; }
         }
 
 cap-toggle {

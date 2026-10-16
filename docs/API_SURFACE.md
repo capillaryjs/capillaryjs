@@ -151,7 +151,8 @@ custom elements.
 | Family | Public components |
 | --- | --- |
 | Actions | `Button`, `Icon`, `Toolbar`, `MenuButton`, `DropdownMenu` |
-| Text and choices | `Label`, `Textbox`, `Dropdown`, `RadioButton`, `RadioGroup`, `Toggle`, `Checkbox`, `TriCheckbox`, `QuadCheckbox` |
+| Text and choices | `Label`, `Textbox`, `TextArea`, `Dropdown`, `RadioButton`, `RadioGroup`, `Toggle`, `Checkbox`, `TriCheckbox`, `QuadCheckbox` |
+| Forms | `Form`, `FormSubmission`, `FormField`, `FormFieldControlProps`, `FormLayout` |
 | Layout and navigation | `Breadcrumb`, `CapillaryUiApp`, `Layout`, `Header`, `GroupBox`, `NavigationBar`, `OptionGroup`, `OptionGroupHeaderEnd`, `OptionsBox`, `Panel`, `PanelToolbar`, `Sidebar`, `SidebarToolbar`, `SplitPrimary`, `SplitSecondary`, `SplitView`, `Tab`, `TabLine`, `TabPanel` |
 | Records and collections | `DescriptionItem`, `DescriptionList`, `InfoField`, `InfoPanel`, `Placeholder`, `ListView`, `TreeItem`, `TreeView` |
 | Tables and filters | `DataTable`, `FilterPanel`, `TableHeader`, `TableHeaderCell` |
@@ -279,6 +280,20 @@ initialFocus, onClose, onAction and onActionError. It uses menu rather than dial
 semantics, composite keyboard focus, typeahead, native top-layer anchoring and
 dismissal. Arbitrary form children, nested menus and persistent value selection
 are not menu contracts. Standalone menu owners retain visible operation feedback.
+
+`Form<TArguments>` owns native validity and one `submitCommand` invocation with
+optional typed `submitArguments({form, submitter, event})` (required for non-void
+arguments). It accepts id/name/label, submission disabled/repeat policy,
+noValidate/formRef and command error options. Descendant Button type=submit
+reuses the command and scoped origin feedback; no duplicate click command or
+form-value store is created. Button exposes native formNoValidate and composed
+ariaDescribedBy. Native submit() bypasses this adapter; use requestSubmit().
+`TextArea` follows Textbox's string/change-command contract with native multiline
+rows/cols/wrap/spellCheck and textarea ref. Textbox/TextArea/Dropdown/Checkbox
+accept ariaDescribedBy/ariaInvalid for outer field associations. `FormField`
+requires controlId/label/control and supplies id/required/description/invalid
+props to the explicit control factory; help/error remain presentation, not domain
+validation. `FormLayout` supplies width-dependent aligned/stacked fields.
 
 ### Data helpers
 

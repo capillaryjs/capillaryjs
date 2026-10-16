@@ -185,6 +185,14 @@ when using the shared `cap-working` decoration.
 
 ## Present the declared asynchronous work
 
+For a native form, declare one `Form submitCommand` rather than separately
+executing work from a submit button's click and the form's submit event.
+Use `Button type="submit"` for automatic origin feedback and native Enter/
+validation/submitter behavior. Keep editable buffers and domain validation in
+the application. Form submission guards do not automatically lock every field
+or Cancel action. Use FormField for explicit label/help/error associations and
+FormLayout for aligned or stacked fields; native elements remain supported.
+
 Use the standard busy/loading mechanism for asynchronous action buttons. Prefer
 `AsyncCommand` for an operation with a required outcome:
 

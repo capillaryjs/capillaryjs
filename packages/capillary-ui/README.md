@@ -374,6 +374,69 @@ the tables below denotes that TypeScript type parameter.
 
 ### Actions, inputs, and choices
 
+#### Native forms and associated fields
+
+`Form` retains native validation and Enter/click submission while invoking one
+explicit command. It does not own field values or business validation rules.
+Use ordinary `Button type="submit"` children, including through nested components;
+do not also attach a click command. Only the initiating submit button receives
+busy/error presentation. Other submitters are guarded by default without busy
+decoration; editable fields and ordinary Cancel buttons remain independent.
+
+```tsx
+<Form submitCommand={saveDetails} submitArguments={({form, submitter}) => {
+    const values = new FormData(form, submitter as HTMLButtonElement | null)
+    return {name: String(values.get('name') ?? ''), description: String(values.get('description') ?? '')}
+}}>
+    <FormLayout>
+        <FormField controlId="name" label="Name" required help="Choose a unique name"
+            control={field => <Textbox {...field} name="name" valueEmitter={name}/>}/>
+        <FormField controlId="description" label="Description"
+            control={field => <TextArea {...field} name="description" rows={4} valueEmitter={description}/>}/>
+    </FormLayout>
+    <Button type="submit">Save</Button>
+    <Button onClick={() => closeEditor()}>Cancel</Button>
+</Form>
+```
+
+`Form<TArguments>` requires `submitCommand` and, for non-void arguments,
+`submitArguments({form, submitter, event})`. A pre-bound command needs no second
+sampler. Optional props are `id`, `name`, `label`, `disabled` (submission only),
+`disableWhileRunning`, `noValidate`, `formRef` and the normal command-error
+options. `disabled` does not disable an entire fieldset. Use an explicit fieldset
+when the application requires locking edits. Native `formNoValidate` on a submit
+Button is respected. Programmatic submission must use `requestSubmit()`;
+native `form.submit()` bypasses both validation and the submit event.
+
+A sampling failure is reported without invoking the command. Form displays its
+inline error once and associates the originating Button with it. An external
+error owner uses `commandErrors="external"` and an explicit invocation-error sink.
+Raw native submit controls still submit through Form; automatic button feedback
+is supplied by Capillary UI Button. Closing a form does not abort an app-owned
+command: its persistent owning view must present any remaining outcome/recovery.
+
+`TextArea` uses the same string value-control, `onInput`/committed `onChange` or
+`changeCommand`, disabled/readOnly/required/busy/error and command-error contracts
+as Textbox. It adds `rows`, `cols`, `wrap`, `spellCheck`, and a textarea `inputRef`;
+name, placeholder, autoComplete and min/maxLength are native attributes. Native
+editing/IME and textarea newline behavior remain native; source codecs belong
+to the application. It is not a code editor or a lossless source-file codec.
+
+`FormField` requires `controlId`, `label` and a `control` function, with optional
+help/error/required props. The function receives `id`, `ariaDescribedBy`,
+`ariaInvalid` and `required`. Spread these onto Textbox/TextArea/Dropdown/Checkbox,
+or map them explicitly to native attributes. Do not add a second inner label.
+Control-owned errors append to, rather than replace, field descriptions.
+FormField's error is presentation; it does not invent a native validity rule.
+Use OptionGroup/fieldset for groups rather than labelling a composite as one input.
+
+`FormLayout` aligns direct FormField children in two columns and stacks them in
+narrow containers. Give it an available width; contextual forms should have an
+intentional panel width. It does not provide scrolling, model state or persistence.
+`Button.ariaDescribedBy` also composes supplementary help with its own errors.
+
+#### Action menus
+
 Use `MenuButton` to offer a compact set of actions, not to select a persistent
 field value. `DropdownMenu` exposes the separately anchored menu surface.
 

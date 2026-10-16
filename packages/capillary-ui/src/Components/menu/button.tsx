@@ -5,6 +5,7 @@ import {classNames, componentClass, controlId, invoke} from '../controlUtils.js'
 import {Icon} from './icon.js'
 import type {IconName} from './icon.js'
 import {ErrorMessage} from '../status/statusPresentation.js'
+import {findFormFeedback} from '../forms/formFeedback.js'
 import {
     CommandInvocationPresentation,
     commandSource,
@@ -32,6 +33,8 @@ interface ButtonCommonProps extends ComponentProps,
     value?: string | number
     title?: string
     ariaLabel?: string
+    ariaDescribedBy?: string
+    formNoValidate?: boolean
     ariaControls?: string
     ariaExpanded?: boolean
     ariaHasPopup?: 'dialog' | 'menu' | 'listbox' | 'tree' | 'grid' | 'true'
@@ -57,6 +60,8 @@ export class Button extends LineControl<ButtonProps> {
     static override dependencies = [ErrorMessage, Icon]
     readonly errorId: string
     private readonly commandPresentation = new CommandInvocationPresentation(() => this.update())
+    private nativeButton: HTMLButtonElement | null = null
+    private readonly captureButton = (button: HTMLButtonElement | null): void => { this.nativeButton = button }
 
     constructor(props: ButtonProps = {}) {
         super(props)
@@ -90,6 +95,8 @@ export class Button extends LineControl<ButtonProps> {
             value,
             title,
             ariaLabel,
+            ariaDescribedBy,
+            formNoValidate,
             ariaControls,
             ariaExpanded,
             ariaHasPopup,
@@ -105,6 +112,13 @@ export class Button extends LineControl<ButtonProps> {
         const commandError = commandErrors === 'external' || commandState == null
             ? null : this.snapshot(commandState).error
         const invocationError = this.commandPresentation.error(commandErrors)
+        const form = type === 'submit' ? findFormFeedback(this) : null
+        const formSettings = form == null ? null : this.read(form.settings)
+        const formCommand = formSettings?.source
+        const formRunning = formCommand == null ? false : this.read(formCommand.isRunning)
+        const formOrigin = form != null && this.read(form.submitter) === this.nativeButton && this.nativeButton != null
+        const formError = form != null && formOrigin && formSettings?.errorsInline
+            ? this.read(form.invocationError) ?? this.snapshot(formCommand!).error : null
         const hasChildren = Array.isArray(children)
             ? children.length > 0
             : children != null && typeof children !== 'boolean'
@@ -113,20 +127,23 @@ export class Button extends LineControl<ButtonProps> {
         if (icon != null && !hasChildren && (label == null || label === '') && !ariaLabel?.trim()) {
             throw new TypeError('Icon-only Button requires ariaLabel')
         }
-        const isBusy = busy || commandRunning
-        const displayedError = error ?? invocationError ?? commandError
+        const isBusy = busy || commandRunning || formOrigin && formRunning
+        const displayedError = error ?? invocationError ?? commandError ?? formError
         const visibleBusy = this.presentBusy(isBusy && displayedError == null)
         const content = visibleBusy ? (busyLabel ?? normalContent) : normalContent
-        const unavailable = disabled || (isBusy && disableWhileRunning)
+        const unavailable = disabled || ((busy || commandRunning) && disableWhileRunning) || formSettings?.disabled === true
+            || (formRunning && formSettings?.guardRunning === true)
 
         const Host = this.Host
         return <Host className={classNames(componentClass(this.props), appearance === 'subtle' ? 'cap-subtle' : '') || null}>
             <button
+                ref={this.captureButton}
                 id={id}
                 name={name}
                 value={value == null ? undefined : String(value)}
                 title={title ?? (icon == null ? undefined : ariaLabel)}
                 type={type}
+                formNoValidate={formNoValidate}
                 disabled={unavailable}
                 aria-label={ariaLabel}
                 aria-controls={ariaControls}
@@ -136,7 +153,7 @@ export class Button extends LineControl<ButtonProps> {
                 aria-busy={isBusy ? 'true' : null}
                 data-cap-busy-visible={visibleBusy ? '' : null}
                 aria-invalid={displayedError == null ? null : 'true'}
-                aria-describedby={displayedError == null ? null : this.errorId}
+                aria-describedby={[ariaDescribedBy, displayedError == null ? null : displayedError === formError ? form!.errorId : this.errorId].filter(Boolean).join(' ') || null}
                 onClick={(event: MouseEvent) => {
                     if (unavailable) return
                     if (command != null) this.commandPresentation.invoke(command, undefined, event, {
@@ -146,7 +163,7 @@ export class Button extends LineControl<ButtonProps> {
                     else invoke(onClick, event)
                 }}
             >{icon == null ? null : <Icon name={icon} />}{content}</button>
-            {displayedError == null ? null : <ErrorMessage id={this.errorId} error={displayedError} />}
+            {displayedError == null || displayedError === formError ? null : <ErrorMessage id={this.errorId} error={displayedError} />}
         </Host>
     }
 

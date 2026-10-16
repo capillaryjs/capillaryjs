@@ -1,6 +1,8 @@
 import {css} from '../../component.js'
 import type {ComponentProps, CapillaryUiChild, LivePropContract} from '../../component.js'
 import {CheckableControl} from '../CheckableControl.js'
+import {inputDescription} from '../inputDescription.js'
+import type {InputDescriptionProps} from '../inputDescription.js'
 import {
     componentClass,
     controlId,
@@ -58,7 +60,7 @@ export const semanticCheckboxCss = css`
 const checkboxLiveProps = ['disabled', 'required', 'readOnly', 'busy', 'error'] as const
 
 interface CheckboxCommonProps<TValue extends CheckboxValue = FilterModeValue>
-    extends ValueControlProps<TValue>, LivePropContract<(typeof checkboxLiveProps)[number]>, CommandInteractionOptions {
+    extends ValueControlProps<TValue>, LivePropContract<(typeof checkboxLiveProps)[number]>, CommandInteractionOptions, InputDescriptionProps {
     id?: string | number | null
     symbols?: readonly CheckboxSymbol<TValue>[]
     initialSemanticState?: TValue
@@ -201,8 +203,7 @@ export class Checkbox<TValue extends CheckboxValue = FilterModeValue>
                     aria-label={textLabel == null
                         ? null
                         : this.capillaryUiMessage('checkboxStateLabel')(textLabel, localizedStateName)}
-                    aria-invalid={displayedError == null ? null : 'true'}
-                    aria-describedby={displayedError == null ? null : this.errorId}
+                    {...inputDescription(this.props, displayedError, this.errorId)}
                     onClick={(event: MouseEvent) => {
                         if (readOnly) event.preventDefault()
                     }}

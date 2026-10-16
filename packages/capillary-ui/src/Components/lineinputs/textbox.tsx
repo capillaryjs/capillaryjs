@@ -9,6 +9,8 @@ import {
 import type {ValueControlProps, ValueEmitter} from '../controlUtils.js'
 import {ErrorMessage} from '../status/statusPresentation.js'
 import {LabeledInputControl} from './LabeledInputControl.js'
+import {inputDescription} from './inputDescription.js'
+import type {InputDescriptionProps} from './inputDescription.js'
 import {requiredInputInvalidSelector, requiredPresentationCss} from './requiredPresentation.js'
 import {
     CommandInvocationPresentation,
@@ -20,7 +22,7 @@ import type {CommandAction, CommandInteractionOptions} from '../commandSupport.j
 const textboxLiveProps = ['disabled', 'required', 'readOnly', 'busy', 'error'] as const
 
 interface TextboxCommonProps extends ValueControlProps<string>,
-    LivePropContract<(typeof textboxLiveProps)[number]>, CommandInteractionOptions {
+    LivePropContract<(typeof textboxLiveProps)[number]>, CommandInteractionOptions, InputDescriptionProps {
     id?: string | number | null
     label?: CapillaryUiChild
     placeholder?: string
@@ -130,8 +132,7 @@ export class Textbox extends LabeledInputControl<TextboxProps> {
                 aria-label={label == null ? ariaLabel : null}
                 aria-busy={isBusy ? 'true' : null}
                 data-cap-busy-visible={this.presentBusy(isBusy && displayedError == null) ? '' : null}
-                aria-invalid={displayedError == null ? null : 'true'}
-                aria-describedby={displayedError == null ? null : this.errorId}
+                {...inputDescription(this.props, displayedError, this.errorId)}
                 onInput={(event: Event) => {
                     if (readOnly || isDisabled) {
                         ;(event.currentTarget as HTMLInputElement).value = value

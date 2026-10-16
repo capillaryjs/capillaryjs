@@ -1,4 +1,4 @@
-import {Emitter} from '@capillaryjs/capillary'
+import {AsyncCommand, Emitter} from '@capillaryjs/capillary'
 import {
     Button,
     Icon,
@@ -8,6 +8,11 @@ import {
     Popover,
     MenuButton,
     DropdownMenu,
+    Form,
+    FormField,
+    FormLayout,
+    TextArea,
+    Textbox,
     TabLine,
     CapillaryUiApp,
     Layout,
@@ -46,6 +51,21 @@ void interactions
 // @ts-expect-error Menu actions cannot be passive value options.
 const invalidMenu = <MenuButton label="Create" items={[{id: 'one', label: 'One'}]}/>
 void invalidMenu
+const formCommand = new AsyncCommand<{intent: string}, void>({execute: async () => {}})
+const form = <Form submitCommand={formCommand} submitArguments={({submitter}) => ({intent: submitter?.getAttribute('value') ?? ''})}>
+    <FormLayout>
+        <FormField controlId="name" label="Name" help="Unique name" control={field => <Textbox {...field}/>}/>
+        <FormField controlId="description" label="Description" control={field => <TextArea {...field} rows={4} inputRef={{current: null}}/>}/>
+    </FormLayout>
+    <Button type="submit" formNoValidate ariaDescribedBy="submit-help">Save</Button>
+</Form>
+// @ts-expect-error Non-void form command arguments require explicit sampling.
+const invalidForm = <Form<string> submitCommand={new AsyncCommand<string, void>({execute: async () => {}})}/>
+// @ts-expect-error Form has one submit owner, not another onSubmit callback.
+const duplicateFormSubmit = <Form submitCommand={formCommand} submitArguments={() => ({intent: ''})} onSubmit={() => {}}/>
+// @ts-expect-error TextArea exposes a textarea ref, not an input ref.
+const invalidAreaRef = <TextArea inputRef={{current: null} as {current: HTMLInputElement | null}}/>
+void [form, invalidForm, duplicateFormSubmit, invalidAreaRef]
 const input = <input aria-label="Name" ref={{current: null} as {current: HTMLInputElement | null}} />
 const sidebar = <Sidebar header="Requests">Request one</Sidebar>
 const layout = <Layout vertical scroll>Content</Layout>

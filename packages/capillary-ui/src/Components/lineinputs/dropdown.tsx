@@ -11,6 +11,8 @@ import {
 import type {ValueControlProps, ValueEmitter} from '../controlUtils.js'
 import {ErrorMessage} from '../status/statusPresentation.js'
 import {SelectControl} from './SelectControl.js'
+import {inputDescription} from './inputDescription.js'
+import type {InputDescriptionProps} from './inputDescription.js'
 import {
     CommandInvocationPresentation,
     commandSource,
@@ -29,7 +31,7 @@ export interface DropdownOption<TValue extends DropdownValue = string> {
 const dropdownLiveProps = ['disabled', 'required', 'readOnly', 'busy', 'error'] as const
 
 interface DropdownCommonProps<TValue extends DropdownValue = string>
-    extends ValueControlProps<TValue>, LivePropContract<(typeof dropdownLiveProps)[number]>, CommandInteractionOptions {
+    extends ValueControlProps<TValue>, LivePropContract<(typeof dropdownLiveProps)[number]>, CommandInteractionOptions, InputDescriptionProps {
     id?: string | number | null
     options?: readonly DropdownOption<TValue>[]
         | ReadableEmitter<readonly DropdownOption<TValue>[], unknown>
@@ -148,8 +150,7 @@ export class Dropdown<TValue extends DropdownValue = string>
                     aria-label={label == null ? ariaLabel : null}
                     aria-busy={isBusy ? 'true' : null}
                 data-cap-busy-visible={this.presentBusy(isBusy && displayedError == null) ? '' : null}
-                    aria-invalid={displayedError == null ? null : 'true'}
-                    aria-describedby={displayedError == null ? null : this.errorId}
+                    {...inputDescription(this.props, displayedError, this.errorId)}
                     onMouseDown={(event: MouseEvent) => {
                         if (!readOnly) return
                         event.preventDefault()

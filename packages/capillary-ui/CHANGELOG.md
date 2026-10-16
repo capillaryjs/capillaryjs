@@ -8,6 +8,11 @@ Versioning.
 
 ### Added
 
+- Add native command-aware `Form`, responsive `FormField`/`FormLayout`, and
+  multiline `TextArea`. Submit buttons reuse their form's explicit lifecycle,
+  with native validation/submitter semantics and busy feedback scoped to the origin.
+- Associate outer field help/validation with Textbox, TextArea, Dropdown and
+  checkboxes without replacing control-owned error descriptions.
 - Add `MenuButton` and `DropdownMenu` for named command actions with native
   top-layer anchoring, keyboard/typeahead navigation, grouping, dismissal and
   focus restoration. Trigger feedback retains invoked command outcomes after close.

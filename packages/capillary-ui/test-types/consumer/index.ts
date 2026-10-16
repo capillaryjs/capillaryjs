@@ -1,4 +1,4 @@
-import {Emitter} from '@capillaryjs/capillary'
+import {AsyncCommand, Emitter, bindCommand} from '@capillaryjs/capillary'
 import {
     Component,
     DeclarativeRegion,
@@ -12,6 +12,10 @@ import {
     Dropdown,
     MenuButton,
     DropdownMenu,
+    Form,
+    FormField,
+    FormLayout,
+    TextArea,
     NavigationBar,
     CapillaryUiApp,
     Layout,
@@ -48,6 +52,11 @@ import type {
 import {Fragment, jsx} from '@capillaryjs/capillary-ui/jsx-runtime'
 
 const text = new Emitter('typed')
+const submit = new AsyncCommand<string, void>({execute: async () => {}})
+new Form<string>({submitCommand: submit, submitArguments: ({form}) => form.id})
+new Form({submitCommand: bindCommand(submit, () => 'saved')})
+new TextArea({valueEmitter: text, rows: 4, ariaDescribedBy: 'help', ariaInvalid: false})
+new FormLayout({children: h(FormField, {controlId: 'field', label: 'Name', control: props => h(Textbox, {...props})})})
 new MenuButton({ariaLabel: 'Create', icon: 'add', items: [{id: 'class', label: 'Class', onSelect() {}}]})
 new DropdownMenu({label: 'Commands', anchor: null, initialFocus: 'last', items: []})
 new Textbox({valueEmitter: text}).valueEmitter.get().toUpperCase()

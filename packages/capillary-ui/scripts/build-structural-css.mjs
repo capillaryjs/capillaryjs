@@ -34,6 +34,9 @@ import {TimePicker} from '../src/Components/lineinputs/datetime/TimePicker.tsx'
 import {Dropdown} from '../src/Components/lineinputs/dropdown.tsx'
 import {RadioGroup} from '../src/Components/lineinputs/radio.tsx'
 import {Textbox} from '../src/Components/lineinputs/textbox.tsx'
+import {TextArea} from '../src/Components/lineinputs/textarea.tsx'
+import {Form} from '../src/Components/forms/form.tsx'
+import {FormField, FormLayout} from '../src/Components/forms/formField.tsx'
 import {Toggle} from '../src/Components/lineinputs/toggle.tsx'
 import {Button} from '../src/Components/menu/button.tsx'
 import {Toolbar} from '../src/Components/menu/toolbar.tsx'
@@ -79,6 +82,10 @@ const components = [
     TableHeader,
     TableHeaderCell,
     Textbox,
+    TextArea,
+    Form,
+    FormField,
+    FormLayout,
     ThemePicker,
     TimePicker,
     Toggle,
