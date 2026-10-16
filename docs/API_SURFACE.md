@@ -153,7 +153,7 @@ custom elements.
 | Actions | `Button`, `Icon`, `Toolbar`, `MenuButton`, `DropdownMenu` |
 | Text and choices | `Label`, `Textbox`, `TextArea`, `Dropdown`, `ComboBox`, `RadioButton`, `RadioGroup`, `Toggle`, `Checkbox`, `TriCheckbox`, `QuadCheckbox` |
 | Forms | `Form`, `FormSubmission`, `FormField`, `FormFieldControlProps`, `FormLayout` |
-| Layout and navigation | `Breadcrumb`, `CapillaryUiApp`, `Layout`, `Header`, `GroupBox`, `NavigationBar`, `OptionGroup`, `OptionGroupHeaderEnd`, `OptionsBox`, `Panel`, `PanelToolbar`, `Sidebar`, `SidebarToolbar`, `SplitPrimary`, `SplitSecondary`, `SplitView`, `Tab`, `TabLine`, `TabPanel` |
+| Layout and navigation | `Breadcrumb`, `CapillaryUiApp`, `Layout`, `Drawer`, `Header`, `GroupBox`, `NavigationBar`, `OptionGroup`, `OptionGroupHeaderEnd`, `OptionsBox`, `Panel`, `PanelToolbar`, `Sidebar`, `SidebarToolbar`, `SplitPrimary`, `SplitSecondary`, `SplitView`, `Tab`, `TabLine`, `TabPanel` |
 | Records and collections | `DescriptionItem`, `DescriptionList`, `InfoField`, `InfoPanel`, `Placeholder`, `ListView`, `TreeItem`, `TreeView` |
 | Tables and filters | `DataTable`, `FilterPanel`, `TableHeader`, `TableHeaderCell` |
 | Dialog and status | `Dialog`, `DialogActions`, `Popover`, `Tooltip`, `ProgressBar`, `StatusPresentation` (shared styling dependency) |
@@ -266,7 +266,7 @@ Notable public behavior:
   `OptionGroup` creates redundant nested fieldsets unless the outer legend has
   separate semantic value.
 - `ContentMountPolicy` selects eager, lazy-retained, or active-only content
-  lifetime for `TabPanel` and `RouteOutlet`; `TabPanelMountPolicy` remains an
+  lifetime for `TabPanel`, `RouteOutlet` and `Drawer`; `TabPanelMountPolicy` remains an
   alias while tabs preserve semantic tabpanel shells.
 
 `MenuButton` composes a named icon/text action trigger with `DropdownMenu`.
@@ -316,6 +316,17 @@ and attach triggerRef to the native trigger (Button.buttonRef is supported).
 It uses a manual top-layer tooltip, delayed hover/focus, pointer transition grace,
 Escape dismissal and owner cleanup; it never takes/restores focus or contains
 actions. It does not supply the trigger's accessible name.
+
+`SplitView.collapsed` is a controlled live-capable `CollapsedSplitPane` (primary,
+secondary or null). It hides the pane/separator, retains expanded primary size,
+fills the other pane and cancels resizing. Hidden children stay mounted. Only
+focus inside a closing pane/separator returns to collapseFocusRef.current or the
+programmatically focusable split host. The app owns show/hide controls and policy.
+`Drawer` accepts a label, Boolean value state, logical edge/CSS size, scroll,
+ContentMountPolicy, closeLabel, object initial/return focus refs and onClose.
+It is an inline nonmodal region with no focus trap/default autofocus. Closing
+only restores focus from inside or its own close activation; nested widgets can consume Escape. Mount policy
+defaults to eager. App layout axis, breakpoints and persistence remain explicit.
 
 ### Data helpers
 

@@ -7,6 +7,7 @@ import {
     DataTable,
     Popover,
     Tooltip,
+    Drawer,
     MenuButton,
     DropdownMenu,
     Form,
@@ -40,6 +41,14 @@ const hint = <Tooltip text="Hold Shift for small steps" trigger={({ariaDescribed
 // @ts-expect-error Tooltip content is noninteractive plain supplemental text.
 const interactiveHint = <Tooltip text={<Button label="Action"/>} trigger={() => null}/>
 void [hint, interactiveHint]
+const collapse = new Emitter<'primary' | 'secondary' | null>(null)
+const panels = <>
+    <SplitView horizontal collapsed={live(collapse)}><SplitPrimary/><SplitSecondary/></SplitView>
+    <Drawer label="Changes" edge="block-end" size="12rem" mountPolicy="active-only" valueEmitter={new Emitter(false)}/>
+</>
+// @ts-expect-error Drawer edges are logical, not physical.
+const physicalDrawer = <Drawer label="Changes" edge="left"/>
+void [panels, physicalDrawer]
 const pending = new Emitter(false)
 const interactions = <Panel>
     <MenuButton icon="add" ariaLabel="Create" disabled={live(pending)} items={[{id: 'class', label: 'Class', onSelect: () => {}}]}/>

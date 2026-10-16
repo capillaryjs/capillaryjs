@@ -27,6 +27,7 @@ export interface CapillaryUiMessageOverrides {
     readonly dataTableLoading?: string
     readonly dataTableRetry?: string
     readonly dialogCloseLabel?: string
+    readonly drawerCloseLabel?: string
     readonly dropdownLoadError?: string
     readonly dropdownPlaceholder?: string
     readonly filterModeDenyLabel?: string
@@ -103,6 +104,7 @@ const englishCapillaryUiMessages = Object.freeze({
     dataTableLoading: 'Loading rows…',
     dataTableRetry: 'Retry',
     dialogCloseLabel: 'Close',
+    drawerCloseLabel: 'Close panel',
     dropdownLoadError: 'Unable to load options',
     dropdownPlaceholder: 'Select…',
     filterModeDenyLabel: 'deny',

@@ -609,7 +609,8 @@ const view = new Emitter<'list' | 'grid'>('list')
 | `Layout` | Presentation-only arrangement of arbitrary children | exactly one of `horizontal`/`vertical`; `allocation`, `scroll`, inherited `islands` spacing, optional accessible-region configuration |
 | `Panel` | Optional labelled, themed region composed over a Layout body | `header`, `horizontal`/`vertical`, `allocation`, `scroll`, `disabled`; `PanelToolbar` and ordinary content children; live: `disabled` |
 | `Sidebar` | Labelled complementary region with fixed header/toolbar and scrolling content | `header`, `ariaLabel`; `SidebarToolbar` and ordinary content children |
-| `SplitView` | Resizable two-pane layout | required `SplitPrimary` and `SplitSecondary` Layout panes; `horizontal`/`vertical`, `allocation`, initial/minimum sizes, separator label, `onResize` |
+| `SplitView` | Resizable two-pane layout | required `SplitPrimary` and `SplitSecondary` Layout panes; `horizontal`/`vertical`, `allocation`, initial/minimum sizes, separator label, `onResize`, live `collapsed`, `collapseFocusRef` |
+| `Drawer` | Inline nonmodal edge region | required `label`; Boolean value-control state, logical `edge`, CSS `size`, `mountPolicy`, `scroll`, `closeLabel`, initial/return focus refs, `onClose` |
 | `NavigationBar` | Labelled native navigation list over router-aware or external anchors | required `label`, `items`; route items accept `exact`; external items use `{kind: 'external', href}` plus disabled/link options |
 | `Tab` | Declarative tab definition consumed by `TabPanel` | `id`, `label`, `disabled`, optional literal `route`, content |
 | `TabLine` | Standalone keyboard-operable tab list | `tabs`, `valueEmitter`/`activeTabEmitter`, initial value, `label`, `onChange` |
@@ -662,6 +663,46 @@ pane. Home and End move to the configured minimum and maximum; Shift multiplies
 the keyboard step. SplitView reports pixel sizes through `onResize`, while the
 application owns persistence and responsive policy. Set `resizable={false}`
 only when a fixed divider is deliberate.
+
+Set `collapsed="primary"`, `collapsed="secondary"`, or null to control pane
+visibility; `collapsed={live(pane)}` is supported. Keep passing the expanded
+primary size: the framework retains its resize override and fills the remaining
+pane while collapsed. Do not fake collapse with zero sizes or selectors targeting
+pane internals. Hidden content stays mounted; remove app children explicitly if
+hidden work should stop. Collapse hides the separator from layout/tab order and
+cancels an active resize. If focus was inside the hidden pane or separator,
+`collapseFocusRef.current` is focused, falling back to the split host. Unrelated
+focus is not moved. The app supplies named show/hide controls and breakpoints.
+
+`Drawer` is an inline nonmodal named region, not a dialog or overlay. Put it in
+a flex layout whose axis matches its logical edge; start edges precede ordinary
+siblings and end edges follow them. It supports `inline-start`, `inline-end`
+(default), `block-start`, `block-end` and CSS `size` (default `20rem`).
+
+```tsx
+<Drawer label="Changes" edge="block-end" size="12rem"
+    valueEmitter={changesOpen} mountPolicy="active-only">
+    <ChangeReview />
+</Drawer>
+```
+
+Boolean value-control conventions apply; call `close()` or use the named close
+icon/Escape inside the drawer. `closeLabel` overrides runtime `drawerCloseLabel`.
+Nested controls can consume Escape first. `onClose` notifies once per close
+transition. There is no focus trap or default autofocus. An optional object
+`initialFocusRef` requests focus inside on opening. Closing/unmounting restores
+focus only if it was inside (or its own close icon was activated), to
+`returnFocusRef.current` or the element focused
+when opened. Supply an explicit return ref for pointer openers that do not take
+focus on the user's browser/platform.
+Use a Dialog for modality and a Popover for an anchored interactive popup.
+
+`mountPolicy` shares the existing `ContentMountPolicy`: eager (default) mounts
+immediately, lazy retains after first open, and active-only disposes content on
+close. Choose explicitly when hidden content may own queries or buffered input.
+The body scrolls by default; `scroll={false}` delegates scrolling to its content.
+Drawer owns neither persistence nor responsive policy; provide a narrow-screen
+alternative in the application. Optional `id` names the region's DOM target.
 
 `NavigationBar` uses a native `nav`, list, and anchors. It preserves
 `RouteLink` href generation, current-route state, modified clicks, targets,

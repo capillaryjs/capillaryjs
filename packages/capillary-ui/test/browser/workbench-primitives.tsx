@@ -1,11 +1,16 @@
 import {AsyncCommand, Emitter, LiveQuery} from '@capillaryjs/capillary'
-import {Button, CapillaryUiApp, ComboBox, Form, FormField, FormLayout, MenuButton, TextArea, Textbox, Tooltip, live} from '../../src/index.js'
-import type {ComboBoxOption} from '../../src/index.js'
+import {Button, CapillaryUiApp, ComboBox, Drawer, Form, FormField, FormLayout, MenuButton, SplitPrimary, SplitSecondary, SplitView, TextArea, Textbox, Tooltip, live} from '../../src/index.js'
+import type {CollapsedSplitPane, ComboBoxOption} from '../../src/index.js'
 import '../../themes/base.css'
 import '../../colors/iceblue/colors.css'
 import '../../themes/minimal/theme.css'
 
 class WorkbenchPrimitivesFixture extends CapillaryUiApp {
+    private readonly collapsedPane = new Emitter<CollapsedSplitPane>(null)
+    private readonly reviewOpen = new Emitter(false)
+    private readonly retainedOpen = new Emitter(false)
+    private readonly restorePane: {current: HTMLButtonElement | null} = {current: null}
+    private readonly reviewOpener: {current: HTMLButtonElement | null} = {current: null}
     private finish: (() => void) | null = null
     private fail: ((error: Error) => void) | null = null
     private readonly save = new AsyncCommand<void, void>({execute: () => new Promise((resolve, reject) => {
@@ -105,11 +110,36 @@ class WorkbenchPrimitivesFixture extends CapillaryUiApp {
                         <Button icon="pan" ariaLabel="Pan canvas" title="" ariaDescribedBy={ariaDescribedBy} buttonRef={triggerRef}/>} />
                 </div>
             </section>
+            <section aria-label="Collapsible panes and drawers">
+                <h2>Collapsible panes and drawers</h2>
+                <Button onClick={() => this.collapsedPane.set('primary')}>Collapse navigation</Button>
+                <Button onClick={() => this.collapsedPane.set('secondary')}>Collapse workspace</Button>
+                <Button buttonRef={this.restorePane} onClick={() => this.collapsedPane.set(null)}>Restore panes</Button>
+                <div style={{display: 'flex', blockSize: '15rem', inlineSize: 'min(800px, 100%)'}}>
+                    <SplitView horizontal primarySize="200px" separatorLabel="Resize fixture panes" collapsed={live(this.collapsedPane)} collapseFocusRef={this.restorePane}>
+                        <SplitPrimary label="Fixture navigation"><input aria-label="Pane filter"/>
+                            <Button onClick={() => this.collapsedPane.set('primary')}>Hide own pane</Button></SplitPrimary>
+                        <SplitSecondary label="Fixture workspace"><input aria-label="Pane details"/></SplitSecondary>
+                    </SplitView>
+                </div>
+                <Button buttonRef={this.reviewOpener} onClick={() => this.reviewOpen.set(!this.reviewOpen.get())}>Toggle review</Button>
+                <Drawer label="Review panel" edge="block-end" size="12rem" valueEmitter={this.reviewOpen} mountPolicy="active-only"
+                    closeLabel="Close review" returnFocusRef={this.reviewOpener}>
+                    <input aria-label="Review notes" defaultValue="Seed"/>
+                    <MenuButton label="Review actions" items={[{id: 'inspect', label: 'Inspect', onSelect: () => {}}]}/>
+                </Drawer>
+                <Button onClick={() => this.retainedOpen.set(!this.retainedOpen.get())}>Toggle retained</Button>
+                <Drawer label="Retained panel" edge="block-end" size="12rem" valueEmitter={this.retainedOpen} mountPolicy="lazy" closeLabel="Close retained">
+                    <input aria-label="Retained note" defaultValue="Seed"/>
+                </Drawer>
+                <input aria-label="After drawers"/>
+            </section>
             <div style={{blockSize: '70rem'}}/>
         </>
     }
-    static override dependencies = [Button, MenuButton, Form, FormLayout, FormField, TextArea, Textbox, ComboBox, Tooltip]
+    static override dependencies = [Button, MenuButton, Form, FormLayout, FormField, TextArea, Textbox, ComboBox, Tooltip, Drawer, SplitView, SplitPrimary, SplitSecondary]
     override onDestroy(): void {
+        this.collapsedPane.dispose(); this.reviewOpen.dispose(); this.retainedOpen.dispose()
         this.save.dispose(); this.formCommand.dispose(); this.submitted.dispose(); this.formError.dispose(); this.formInvocations.dispose()
         this.choose.dispose(); this.optionQuery.dispose(); this.optionSearch.dispose(); this.optionRequests.dispose()
         this.localChoice.dispose(); this.customChoice.dispose(); this.requiredChoice.dispose(); this.remoteChoice.dispose()

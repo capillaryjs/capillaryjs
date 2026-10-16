@@ -1,5 +1,5 @@
 import {Component, css, h, isVNode} from '../component.js'
-import type {ComponentProps, CapillaryUiChild, VNode} from '../component.js'
+import type {ComponentProps, CapillaryUiChild, LivePropContract, VNode} from '../component.js'
 import {classNames, componentClass, invoke} from '../controlUtils.js'
 import {Layout} from './layout.js'
 import type {LayoutContainerProps} from './layout.js'
@@ -61,7 +61,9 @@ export class SplitSecondary extends SplitPane {
     static override hostName = 'secondary'
 }
 
+export type CollapsedSplitPane = 'primary' | 'secondary' | null
 export type SplitViewProps = ComponentProps
+& LivePropContract<'collapsed'>
 & CapillaryUiOptionalLayoutDirectionProps
 & CapillaryUiLayoutParticipantProps
 & {
@@ -87,11 +89,16 @@ export type SplitViewProps = ComponentProps
     separatorLabel?: string
     /** Enable separator interaction. Defaults to true. */
     resizable?: boolean
+    /** Controlled collapsed pane; null leaves both expanded. Content stays mounted. */
+    collapsed?: CollapsedSplitPane
+    /** Focus destination when collapse hides the focused pane/separator. */
+    collapseFocusRef?: {current: HTMLElement | null}
     /** Receives the current primary-pane pixel size after an interaction. */
     onResize?: (primarySize: string, event: PointerEvent | KeyboardEvent) => void
 }
 
 interface PointerResize {
+    axis: CapillaryUiLayoutDirection
     pointerId: number
     startCoordinate: number
     startSize: number
@@ -99,9 +106,11 @@ interface PointerResize {
 
 /** Resizable two-pane layout with named Layout children and an accessible separator. */
 export class SplitView extends Component<SplitViewProps> {
-    static override liveProps: readonly string[] = []
+    static override liveProps = ['collapsed'] as const
     private pointerResize: PointerResize | null = null
     private primarySizeOverride: string | null = null
+    private previousCollapsed: CollapsedSplitPane = null
+    private restoreCollapsedFocus = false
 
     override setProps(nextProps: SplitViewProps): this {
         if (nextProps.primarySize !== this.props.primarySize) this.primarySizeOverride = null
@@ -132,6 +141,16 @@ export class SplitView extends Component<SplitViewProps> {
             throw new TypeError('SplitView direction modifier conflicts with direction')
         }
         const axis = layoutDirectionFromProps(this.props, direction ?? 'horizontal', 'SplitView')
+        const collapsed = this.props.collapsed ?? null
+        if (collapsed !== null && collapsed !== 'primary' && collapsed !== 'secondary') throw new TypeError('SplitView collapsed must be primary, secondary or null')
+        if (collapsed !== this.previousCollapsed) {
+            const host = this.hostElement(), focused = host?.ownerDocument.activeElement
+            const closing = collapsed == null ? null : host?.querySelector(`:scope > cap-${collapsed}`)
+            if (focused && (closing?.contains(focused) || collapsed && this.separatorElement()?.contains(focused))) this.restoreCollapsedFocus = true
+            this.previousCollapsed = collapsed
+        }
+        if (this.pointerResize && (collapsed || !resizable || this.pointerResize.axis !== axis)) this.cancelResize()
+        const interactive = resizable && collapsed == null
         validateCSSSize(primarySize, 'primarySize')
         validateNonNegativeNumber(primaryMinSize, 'primaryMinSize')
         validateNonNegativeNumber(secondaryMinSize, 'secondaryMinSize')
@@ -151,6 +170,8 @@ export class SplitView extends Component<SplitViewProps> {
                 '--split-secondary-min-size': `${secondaryMinSize}px`,
             }}
             data-resizable={resizable ? 'true' : 'false'}
+            data-collapsed={collapsed}
+            tabIndex={-1}
         >
             {withFallbackLabel(primary, primaryLabel)}
             <cap-separator
@@ -160,13 +181,14 @@ export class SplitView extends Component<SplitViewProps> {
                 aria-valuemin="0"
                 aria-valuemax="100"
                 aria-valuenow="40"
-                aria-disabled={resizable ? null : 'true'}
-                tabIndex={resizable ? 0 : null}
-                {...(resizable ? {
+                aria-disabled={interactive ? null : 'true'}
+                tabIndex={interactive ? 0 : null}
+                {...(interactive ? {
                     onPointerDown: this.handlePointerDown,
                     onPointerMove: this.handlePointerMove,
                     onPointerUp: this.handlePointerEnd,
                     onPointerCancel: this.handlePointerEnd,
+                    onLostPointerCapture: this.handlePointerEnd,
                     onKeyDown: this.handleKeyDown,
                 } : {})}
             />
@@ -180,14 +202,22 @@ export class SplitView extends Component<SplitViewProps> {
 
     override afterUpdate(): void {
         this.updateSeparatorValue()
+        if (this.restoreCollapsedFocus) {
+            this.restoreCollapsedFocus = false
+            const target = this.props.collapseFocusRef?.current
+            const hidden = this.props.collapsed == null ? null : this.hostElement()?.querySelector(`:scope > cap-${this.props.collapsed}`)
+            ;(target?.isConnected && !hidden?.contains(target) ? target : this.hostElement())?.focus({preventScroll: true})
+        }
     }
+    override onDestroy(): void { this.cancelResize() }
 
     private readonly handlePointerDown = (event: PointerEvent & {currentTarget: HTMLElement}): void => {
-        if (event.button !== 0) return
+        if (event.button !== 0 || this.props.collapsed || this.props.resizable === false) return
         const primary = this.primaryElement()
         if (primary == null) return
         const axis = this.axis()
         this.pointerResize = {
+            axis,
             pointerId: event.pointerId,
             startCoordinate: axis === 'horizontal' ? event.clientX : event.clientY,
             startSize: this.primaryExtent(primary),
@@ -208,13 +238,20 @@ export class SplitView extends Component<SplitViewProps> {
 
     private readonly handlePointerEnd = (event: PointerEvent & {currentTarget: HTMLElement}): void => {
         if (this.pointerResize?.pointerId !== event.pointerId) return
-        event.currentTarget.releasePointerCapture?.(event.pointerId)
+        this.cancelResize()
+    }
+
+    private cancelResize(): void {
+        const resize = this.pointerResize
         this.pointerResize = null
+        const separator = this.separatorElement()
+        if (resize && separator?.hasPointerCapture?.(resize.pointerId)) separator.releasePointerCapture?.(resize.pointerId)
     }
 
     private readonly handleKeyDown = (
         event: KeyboardEvent & {currentTarget: HTMLElement},
     ): void => {
+        if (this.props.collapsed || this.props.resizable === false) return
         const axis = this.axis()
         const reversed = this.axisSign() < 0
         const decreaseKey = axis === 'horizontal' ? (reversed ? 'ArrowRight' : 'ArrowLeft') : 'ArrowUp'
@@ -271,6 +308,7 @@ export class SplitView extends Component<SplitViewProps> {
     }
 
     private updateSeparatorValue(): void {
+        if (this.props.collapsed) return
         const host = this.hostElement()
         const primary = this.primaryElement()
         const separator = this.separatorElement()
@@ -348,6 +386,11 @@ export class SplitView extends Component<SplitViewProps> {
         & > cap-secondary {
             flex: 1 1 0;
         }
+
+        &[data-collapsed="primary"] > cap-primary,
+        &[data-collapsed="secondary"] > cap-secondary,
+        &[data-collapsed] > cap-separator { display: none; }
+        &[data-collapsed="secondary"] > cap-primary { flex: 1 1 0; }
 
         /* Pane sizes describe content allocation. The compensated scrollport
          * padding must stay outside that size, even on an explicit islands scope. */

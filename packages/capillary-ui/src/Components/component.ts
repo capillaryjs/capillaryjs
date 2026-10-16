@@ -1871,6 +1871,7 @@ function normalizePropertyName(key: string): string {
 function normalizeAttributeName(key: string): string {
     if (key === 'className') return 'class'
     if (key === 'htmlFor') return 'for'
+    if (key === 'tabIndex') return 'tabindex'
     if (key === 'minLength') return 'minlength'
     if (key === 'maxLength') return 'maxlength'
     if (key === 'autoComplete') return 'autocomplete'

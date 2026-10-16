@@ -8,6 +8,9 @@ Versioning.
 
 ### Added
 
+- Add controlled live SplitView pane collapse/restore, retained expanded sizes
+  and focus-safe resize cancellation. Add inline nonmodal Drawer with logical
+  edges, named close/focus behavior and explicit content-mount policy.
 - Add supplemental `Tooltip` with delayed hover/focus, Escape dismissal,
   hoverable text and shared native top-layer positioning without moving focus.
   Button exposes a stable native buttonRef for explicit trigger composition.
@@ -45,6 +48,8 @@ Versioning.
 
 ### Fixed
 
+- Remove the actual native `tabindex` attribute when a JSX tabIndex is cleared,
+  rather than trying to remove `tab-index`.
 - Reconcile static DataTable rows and updated collection render callbacks
   coherently. Keep closed table filter headers isolated from option updates.
 
