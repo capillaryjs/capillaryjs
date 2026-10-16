@@ -8,6 +8,10 @@ Versioning.
 
 ### Added
 
+- Add `ComboBox` with separate accepted value/search text, strict or explicit
+  custom-string entry, local/live options, native editing and listbox keyboard
+  behavior. Option loading/replacement/errors retain accepted selection and
+  reuse scoped delayed feedback; native forms serialize the accepted value.
 - Add native command-aware `Form`, responsive `FormField`/`FormLayout`, and
   multiline `TextArea`. Submit buttons reuse their form's explicit lifecycle,
   with native validation/submitter semantics and busy feedback scoped to the origin.

@@ -1,5 +1,6 @@
-import {AsyncCommand, Emitter} from '@capillaryjs/capillary'
-import {Button, CapillaryUiApp, Form, FormField, FormLayout, MenuButton, TextArea, Textbox, live} from '../../src/index.js'
+import {AsyncCommand, Emitter, LiveQuery} from '@capillaryjs/capillary'
+import {Button, CapillaryUiApp, ComboBox, Form, FormField, FormLayout, MenuButton, TextArea, Textbox, live} from '../../src/index.js'
+import type {ComboBoxOption} from '../../src/index.js'
 import '../../themes/base.css'
 import '../../colors/iceblue/colors.css'
 import '../../themes/minimal/theme.css'
@@ -21,6 +22,26 @@ class WorkbenchPrimitivesFixture extends CapillaryUiApp {
         this.submitted.set(JSON.stringify(values))
         return new Promise((resolve, reject) => { this.finishForm = resolve; this.failForm = reject })
     }})
+    private readonly localChoice = new Emitter<string | null>('a')
+    private readonly customChoice = new Emitter<string | null>(null)
+    private readonly requiredChoice = new Emitter<string | null>('a')
+    private finishChoice: (() => void) | null = null
+    private failChoice: ((error: Error) => void) | null = null
+    private readonly choose = new AsyncCommand<string | null, void>({execute: () => new Promise((resolve, reject) => {
+        this.finishChoice = resolve; this.failChoice = reject
+    })})
+    private readonly optionSearch = new Emitter('')
+    private readonly remoteChoice = new Emitter<string | null>('a')
+    private readonly optionRequests = new Emitter(0)
+    private readonly optionQuery = new LiveQuery<readonly ComboBoxOption[], {search: Emitter<string>}>({
+        args: {search: this.optionSearch}, handler: {fetch: async ({search}, options) => {
+            this.optionRequests.set(this.optionRequests.get() + 1)
+            if (!search) return [{value: 'a', label: 'Alpha'}, {value: 'b', label: 'Beta'}]
+            const response = await fetch(`/fixture-options?search=${encodeURIComponent(search)}`, {signal: options?.signal as AbortSignal})
+            if (!response.ok) throw new Error('Options unavailable')
+            return response.json() as Promise<readonly ComboBoxOption[]>
+        }},
+    })
     protected override renderContent() {
         return <>
             <h1>Workbench primitives</h1>
@@ -61,10 +82,30 @@ class WorkbenchPrimitivesFixture extends CapillaryUiApp {
                 <Button onClick={() => this.failForm?.(new Error('Details could not be saved'))}>Fail form action</Button>
                 <Button onClick={() => this.formError.set(this.formError.get() == null ? 'Name already exists' : null)}>Toggle field validation</Button>
             </section>
+            <section aria-label="Searchable choices">
+                <h2>Searchable choices</h2>
+                <form aria-label="Choice serialization" onSubmit={(event: Event) => event.preventDefault()}>
+                    <ComboBox label="Local choice" id="local-choice" name="choice" valueEmitter={this.localChoice}
+                        options={[{value: 'a', label: 'Alpha'}, {value: 'disabled', label: 'Unavailable', disabled: true}, {value: 'b', label: 'Beta'}]} required/>
+                </form>
+                <ComboBox<string> label="Custom type" valueEmitter={this.customChoice} options={[]} allowCustomValue/>
+                <ComboBox label="Required choice" valueEmitter={this.requiredChoice} options={[{value: 'a', label: 'Alpha'}, {value: 'b', label: 'Beta'}]} changeCommand={this.choose}/>
+                <ComboBox label="Remote choice" valueEmitter={this.remoteChoice} options={this.optionQuery} searchEmitter={this.optionSearch} filter="none"/>
+                <output aria-label="Local selected value">{this.localChoice}</output>
+                <output aria-label="Custom selected value">{this.customChoice}</output>
+                <output aria-label="Remote selected value">{this.remoteChoice}</output>
+                <output aria-label="Option requests">{this.optionRequests}</output>
+                <Button onClick={() => this.finishChoice?.()}>Finish choice action</Button>
+                <Button onClick={() => this.failChoice?.(new Error('Choice details failed'))}>Fail choice action</Button>
+            </section>
             <div style={{blockSize: '70rem'}}/>
         </>
     }
-    static override dependencies = [Button, MenuButton, Form, FormLayout, FormField, TextArea, Textbox]
-    override onDestroy(): void { this.save.dispose(); this.formCommand.dispose(); this.submitted.dispose(); this.formError.dispose(); this.formInvocations.dispose() }
+    static override dependencies = [Button, MenuButton, Form, FormLayout, FormField, TextArea, Textbox, ComboBox]
+    override onDestroy(): void {
+        this.save.dispose(); this.formCommand.dispose(); this.submitted.dispose(); this.formError.dispose(); this.formInvocations.dispose()
+        this.choose.dispose(); this.optionQuery.dispose(); this.optionSearch.dispose(); this.optionRequests.dispose()
+        this.localChoice.dispose(); this.customChoice.dispose(); this.requiredChoice.dispose(); this.remoteChoice.dispose()
+    }
 }
 WorkbenchPrimitivesFixture.new().attachTo(document.querySelector('#app')!)

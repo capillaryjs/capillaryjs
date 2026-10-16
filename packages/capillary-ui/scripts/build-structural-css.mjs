@@ -32,6 +32,7 @@ import {DatePicker} from '../src/Components/lineinputs/datetime/DatePicker.tsx'
 import {DateTimePicker} from '../src/Components/lineinputs/datetime/DateTimePicker.tsx'
 import {TimePicker} from '../src/Components/lineinputs/datetime/TimePicker.tsx'
 import {Dropdown} from '../src/Components/lineinputs/dropdown.tsx'
+import {ComboBox} from '../src/Components/lineinputs/combobox.tsx'
 import {RadioGroup} from '../src/Components/lineinputs/radio.tsx'
 import {Textbox} from '../src/Components/lineinputs/textbox.tsx'
 import {TextArea} from '../src/Components/lineinputs/textarea.tsx'
@@ -59,6 +60,7 @@ const components = [
     DescriptionList,
     Dialog,
     Dropdown,
+    ComboBox,
     FilterPanel,
     CapillaryUiApp,
     GroupBox,

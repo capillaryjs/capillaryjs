@@ -9,6 +9,11 @@ export interface CapillaryUiMessageOverrides {
     readonly breadcrumbLabel?: string
     readonly checkboxOptionLabel?: string
     readonly checkboxStateLabel?: (label: string, state: string) => string
+    readonly comboBoxOptionsLabel?: string
+    readonly comboBoxOpenLabel?: string
+    readonly comboBoxEmpty?: string
+    readonly comboBoxLoading?: string
+    readonly comboBoxRequired?: string
     readonly colorOptionGrayLabel?: string
     readonly colorOptionGreenLabel?: string
     readonly colorOptionIceBlueLabel?: string
@@ -80,6 +85,11 @@ const englishCapillaryUiMessages = Object.freeze({
     breadcrumbLabel: 'Breadcrumb',
     checkboxOptionLabel: 'Option',
     checkboxStateLabel: (label: string, state: string) => `${label}: ${state}`,
+    comboBoxOptionsLabel: 'Options',
+    comboBoxOpenLabel: 'Show options',
+    comboBoxEmpty: 'No matching options',
+    comboBoxLoading: 'Loading options…',
+    comboBoxRequired: 'Choose a value',
     colorOptionGrayLabel: 'Gray',
     colorOptionGreenLabel: 'Green',
     colorOptionIceBlueLabel: 'Ice blue',

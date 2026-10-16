@@ -209,6 +209,7 @@ cap-checkbox,
 cap-dropdown,
 cap-datepicker,
 cap-datetimepicker,
+cap-combobox,
 cap-progressbar,
 cap-quadcheckbox,
 cap-radiobutton,
@@ -636,6 +637,7 @@ cap-tricheckbox > label:has(> input:required:invalid:not(:disabled):not([aria-in
 cap-dropdown,
 cap-datepicker,
 cap-datetimepicker,
+cap-combobox,
 cap-textbox,
 cap-textarea,
 cap-timepicker,
@@ -668,6 +670,11 @@ cap-toggle {
            direct body so their label/control row keeps labels left and native
            input surfaces right; an explicitly nested Layout remains supported
            for non-standard arrangements. */
+        cap-groupbox > cap-content > cap-combobox,
+        /* GroupBox owns the ordinary body layout. Labeled controls fill its
+           direct body so their label/control row keeps labels left and native
+           input surfaces right; an explicitly nested Layout remains supported
+           for non-standard arrangements. */
         cap-groupbox > cap-content > cap-textbox,
         /* GroupBox owns the ordinary body layout. Labeled controls fill its
            direct body so their label/control row keeps labels left and native
@@ -687,6 +694,7 @@ cap-toggle {
         cap-groupbox > cap-content > cap-layout > cap-dropdown,
         cap-groupbox > cap-content > cap-layout > cap-datepicker,
         cap-groupbox > cap-content > cap-layout > cap-datetimepicker,
+        cap-groupbox > cap-content > cap-layout > cap-combobox,
         cap-groupbox > cap-content > cap-layout > cap-textbox,
         cap-groupbox > cap-content > cap-layout > cap-textarea,
         cap-groupbox > cap-content > cap-layout > cap-timepicker,
@@ -697,6 +705,7 @@ cap-toggle {
         cap-dropdown > label,
         cap-datepicker > label,
         cap-datetimepicker > label,
+        cap-combobox > label,
         cap-textbox > label,
         cap-textarea > label,
         cap-timepicker > label,
@@ -1257,8 +1266,10 @@ cap-filterpanel {
         }
 
 cap-popover,
+cap-comboboxoptions,
 cap-dropdownmenu { display: contents; }
         cap-popover > [popover],
+        cap-comboboxoptions > [popover],
         cap-dropdownmenu > [popover] {
             position: fixed;
             inset: auto;
@@ -1276,8 +1287,10 @@ cap-dropdownmenu { display: contents; }
             font: inherit;
         }
         cap-popover > [popover]::backdrop,
+        cap-comboboxoptions > [popover]::backdrop,
         cap-dropdownmenu > [popover]::backdrop { background: transparent; }
         @media (forced-colors: active) { cap-popover > [popover],
+ cap-comboboxoptions > [popover],
  cap-dropdownmenu > [popover] { border: 1px solid CanvasText; } }
 
 cap-datepicker,
@@ -1505,6 +1518,32 @@ cap-dialog > dialog {
                 background: Canvas;
             }
         }
+
+cap-combobox { display: grid; grid-template-columns: minmax(0, 1fr); min-inline-size: 0; }
+        cap-combobox:has(> label) { grid-template-columns: max-content minmax(0, 1fr); }
+        cap-combobox .cap-combo-shell { display: flex; min-inline-size: 0; inline-size: var(--input-width, 15rem); max-inline-size: 100%; }
+        cap-combobox .cap-combo-shell > input {
+            inline-size: 100%; min-inline-size: 0; padding: var(--ui-control-padding); box-sizing: border-box;
+            font: inherit; color: var(--input-color); background: var(--input-background);
+            border: var(--input-border); border-radius: var(--ui-border-radius); box-shadow: var(--input-shadow); user-select: text;
+        }
+        cap-combobox .cap-combo-shell > cap-button cap-icon { transform: rotate(90deg); }
+        cap-combobox .cap-combo-shell > input:focus-visible { outline: 2px solid transparent; box-shadow: var(--focus-ring); }
+        cap-combobox .cap-combo-shell > input:disabled { color: var(--input-color-disabled); background: var(--input-background-disabled); }
+        cap-combobox .cap-combo-shell > input[readonly]:not(:disabled) { color: var(--input-color-readonly); background: var(--input-background-readonly); }
+        cap-combobox .cap-combo-shell > input[aria-invalid="true"] { border-color: var(--error-control-border); box-shadow: var(--error-control-shadow); }
+        cap-combobox .cap-combo-shell > input[data-cap-busy-visible]:not([aria-invalid="true"]) {
+            background-image: var(--working-background-image); background-size: 2rem 2rem; animation: cap-working-progress .55s linear infinite;
+        }
+        @media (prefers-reduced-motion: reduce) { cap-combobox input[data-cap-busy-visible] { animation: none; } }
+
+cap-comboboxoptions > [popover] { min-inline-size: min(16rem, calc(100vw - 1rem)); min-block-size: 2rem; padding: .25rem; }
+        cap-comboboxoptions [role="option"] { padding: .35em .6em; border-radius: var(--ui-border-radius); cursor: default; }
+        cap-comboboxoptions [role="option"][data-active] { background: var(--selection-background, Highlight); color: var(--selection-color, HighlightText); }
+        cap-comboboxoptions [role="option"][aria-disabled="true"] { color: var(--input-color-disabled); }
+        cap-comboboxoptions .cap-combo-empty { color: var(--ui-muted-text-color, inherit); }
+        cap-comboboxoptions [data-cap-busy-visible] { background-image: var(--working-background-image); background-size: 2rem 2rem; animation: cap-working-progress .55s linear infinite; }
+        @media (prefers-reduced-motion: reduce) { cap-comboboxoptions [data-cap-busy-visible] { animation: none; } }
 
 cap-app {
             box-sizing: border-box;

@@ -35,6 +35,7 @@ export class Popover<TProps extends PopoverProps = PopoverProps> extends Compone
         const Host = this.Host
         return <Host className={componentClass(this.props) || null}>
             <div id={this.panelId} popover="auto" role={this.surfaceRole} aria-label={this.props.label}
+                aria-busy={this.surfaceBusy ? 'true' : null}
                 tabIndex={-1} ref={(element: HTMLElement | null) => this.panel = element}>
                 {this.renderSurfaceContent()}
             </div>
@@ -42,7 +43,10 @@ export class Popover<TProps extends PopoverProps = PopoverProps> extends Compone
     }
 
     /** Specialized widgets retain their own semantics and keyboard model. */
-    protected get surfaceRole(): 'dialog' | 'menu' { return 'dialog' }
+    protected get surfaceRole(): 'dialog' | 'menu' | 'listbox' { return 'dialog' }
+    protected get restoreFocusOnClose(): boolean { return true }
+    protected get surfaceBusy(): boolean { return false }
+    protected containsTrigger(target: Node | null): boolean { return this.props.anchor?.contains(target) ?? false }
     protected renderSurfaceContent(): CapillaryUiChild { return this.props.children }
     protected focusOnOpen(panel: HTMLElement): void {
         const ref = this.props.initialFocusRef
@@ -100,11 +104,11 @@ export class Popover<TProps extends PopoverProps = PopoverProps> extends Compone
                 this.detachViewport.push(this.listenWhile(doc, 'scroll', () => this.position(), true))
                 this.detachViewport.push(this.listenWhile<PointerEvent>(doc, 'pointerdown', event => {
                     const target = event.target as Node | null
-                    this.lightDismiss = !panel.contains(target) && !anchor.contains(target)
+                    this.lightDismiss = !panel.contains(target) && !this.containsTrigger(target)
                 }, true))
                 this.detachViewport.push(this.listenWhile<MouseEvent>(doc, 'click', event => {
                     const target = event.target as Node | null
-                    if (!panel.contains(target) && !anchor.contains(target)) {
+                    if (!panel.contains(target) && !this.containsTrigger(target)) {
                         this.lightDismiss = true
                         this.close()
                     }
@@ -131,7 +135,7 @@ export class Popover<TProps extends PopoverProps = PopoverProps> extends Compone
         }
     }
 
-    private position(): void {
+    protected position(): void {
         const panel = this.panel, anchor = this.props.anchor
         if (!panel || !anchor?.isConnected) { this.close(); return }
         const view = panel.ownerDocument.defaultView
@@ -160,7 +164,7 @@ export class Popover<TProps extends PopoverProps = PopoverProps> extends Compone
         this.restoreFocusTo = null
         // Light dismissal must not steal focus from an outside control clicked
         // by the user. Escape/cancel returns focus to the initiating control.
-        if (restore?.isConnected && !this.lightDismiss) {
+        if (restore?.isConnected && !this.lightDismiss && this.restoreFocusOnClose) {
             restore.focus({preventScroll: true})
         }
         invoke(this.props.onClose)

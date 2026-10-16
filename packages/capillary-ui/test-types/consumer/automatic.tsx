@@ -13,6 +13,7 @@ import {
     FormLayout,
     TextArea,
     Textbox,
+    ComboBox,
     TabLine,
     CapillaryUiApp,
     Layout,
@@ -66,6 +67,15 @@ const duplicateFormSubmit = <Form submitCommand={formCommand} submitArguments={(
 // @ts-expect-error TextArea exposes a textarea ref, not an input ref.
 const invalidAreaRef = <TextArea inputRef={{current: null} as {current: HTMLInputElement | null}}/>
 void [form, invalidForm, duplicateFormSubmit, invalidAreaRef]
+const choices = <>
+    <ComboBox<number> label="Record" options={[{value: 0, label: 'Zero'}]} valueEmitter={new Emitter<number | null>(0)}/>
+    <ComboBox<string> label="Type" options={[]} allowCustomValue searchEmitter={new Emitter('')} filter="none"/>
+</>
+// @ts-expect-error Custom text cannot be stored in a numeric selection.
+const invalidCustomChoice = <ComboBox<number> options={[]} allowCustomValue/>
+// @ts-expect-error Custom text is not a closed literal union.
+const invalidLiteralChoice = <ComboBox<'a' | 'b'> options={[]} allowCustomValue/>
+void [choices, invalidCustomChoice, invalidLiteralChoice]
 const input = <input aria-label="Name" ref={{current: null} as {current: HTMLInputElement | null}} />
 const sidebar = <Sidebar header="Requests">Request one</Sidebar>
 const layout = <Layout vertical scroll>Content</Layout>

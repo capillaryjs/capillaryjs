@@ -151,7 +151,7 @@ custom elements.
 | Family | Public components |
 | --- | --- |
 | Actions | `Button`, `Icon`, `Toolbar`, `MenuButton`, `DropdownMenu` |
-| Text and choices | `Label`, `Textbox`, `TextArea`, `Dropdown`, `RadioButton`, `RadioGroup`, `Toggle`, `Checkbox`, `TriCheckbox`, `QuadCheckbox` |
+| Text and choices | `Label`, `Textbox`, `TextArea`, `Dropdown`, `ComboBox`, `RadioButton`, `RadioGroup`, `Toggle`, `Checkbox`, `TriCheckbox`, `QuadCheckbox` |
 | Forms | `Form`, `FormSubmission`, `FormField`, `FormFieldControlProps`, `FormLayout` |
 | Layout and navigation | `Breadcrumb`, `CapillaryUiApp`, `Layout`, `Header`, `GroupBox`, `NavigationBar`, `OptionGroup`, `OptionGroupHeaderEnd`, `OptionsBox`, `Panel`, `PanelToolbar`, `Sidebar`, `SidebarToolbar`, `SplitPrimary`, `SplitSecondary`, `SplitView`, `Tab`, `TabLine`, `TabPanel` |
 | Records and collections | `DescriptionItem`, `DescriptionList`, `InfoField`, `InfoPanel`, `Placeholder`, `ListView`, `TreeItem`, `TreeView` |
@@ -294,6 +294,20 @@ accept ariaDescribedBy/ariaInvalid for outer field associations. `FormField`
 requires controlId/label/control and supplies id/required/description/invalid
 props to the explicit control factory; help/error remain presentation, not domain
 validation. `FormLayout` supplies width-dependent aligned/stacked fields.
+
+`ComboBox<TValue extends string | number = string>` accepts nullable value-control
+state and readonly plain/live `ComboBoxOption<TValue>[]` (including an undefined
+initial query result). Options have unique finite/string values, optional string
+labels and disabled states. It separates accepted values from an optional
+caller-owned string searchEmitter, supports synchronous local filtering or
+filter=none for supplied results, and uses listbox active-descendant navigation.
+allowCustomValue requires a broad string type. Native forms serialize accepted
+ids and required validity never treats search text as the selected value.
+It reuses changeCommand/onChange, busy/error, description, disabled/readOnly,
+name/id/label/ariaLabel/optionsLabel/placeholder and inputRef contracts. Local
+search is not asynchronous work; supplied query errors/replacement do not undo
+selection. Runtime comboBox* messages supply UI-owned copy. Button.tabIndex is
+available for composite-widget indicators excluded from sequential keyboard focus.
 
 ### Data helpers
 

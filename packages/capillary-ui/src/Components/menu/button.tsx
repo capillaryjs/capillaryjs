@@ -32,6 +32,7 @@ interface ButtonCommonProps extends ComponentProps,
     name?: string
     value?: string | number
     title?: string
+    tabIndex?: number
     ariaLabel?: string
     ariaDescribedBy?: string
     formNoValidate?: boolean
@@ -94,6 +95,7 @@ export class Button extends LineControl<ButtonProps> {
             name,
             value,
             title,
+            tabIndex,
             ariaLabel,
             ariaDescribedBy,
             formNoValidate,
@@ -142,6 +144,7 @@ export class Button extends LineControl<ButtonProps> {
                 name={name}
                 value={value == null ? undefined : String(value)}
                 title={title ?? (icon == null ? undefined : ariaLabel)}
+                tabIndex={tabIndex}
                 type={type}
                 formNoValidate={formNoValidate}
                 disabled={unavailable}

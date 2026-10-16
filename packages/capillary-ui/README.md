@@ -435,6 +435,53 @@ narrow containers. Give it an available width; contextual forms should have an
 intentional panel width. It does not provide scrolling, model state or persistence.
 `Button.ariaDescribedBy` also composes supplementary help with its own errors.
 
+#### Searchable values
+
+Use `ComboBox` for an editable search field with a list of values, not a menu
+of commands. Options have a string/number `value`, optional string `label` and
+`disabled` state. Values must be unique and finite; labels must be nonempty.
+The accepted `TValue | null` value is independent of the editable search text.
+
+```tsx
+<ComboBox label="Field type" valueEmitter={fieldType}
+    options={knownTypes} searchEmitter={typeSearch} />
+<ComboBox<string> label="Suggested code" valueEmitter={code}
+    options={suggestions} allowCustomValue />
+```
+
+The normal value-control convention applies. Use a nullable emitter for a
+clearable accepted value, and write to it for programmatic reconciliation;
+reconciliation never invokes `changeCommand`. `searchEmitter` is an optional
+caller-owned string emitter; otherwise the control owns its search buffer.
+Typing/search and active-option exploration do not change the accepted value.
+The default local filter is synchronous and case-insensitive in the runtime
+locale. Opening a fresh chooser clears the search buffer to show all options;
+opening while editing preserves the current query. `filter="none"`
+trusts supplied results, for example from an application-owned LiveQuery driven
+by the search emitter. The control never creates a transport, debounce policy
+or query. Option emitters may initially be undefined, and source replacement
+releases the old subscriptions. Controlled value/search emitters are stable for
+the component's lifetime.
+
+Arrow keys open/navigate enabled choices while DOM focus stays in the input.
+Enter accepts the active option or an exact unique label; native text-editing
+keys and composition Enter are not intercepted. Escape abandons search without
+undoing the accepted value. In strict mode, unaccepted nonempty text is discarded
+on blur. Clearing text and committing it accepts null. With `allowCustomValue`,
+Enter without an active choice or blur commits custom text; this mode requires
+the broad `string` type, not numbers or a closed literal union. Empty custom text
+also commits null. Clicking the toggle opens/closes the anchored listbox.
+
+Optional props include label/ariaLabel/optionsLabel, id/name/placeholder,
+disabled/readOnly/required, inputRef and the ordinary busy/error/description and
+changeCommand/onChange contracts. Required native validity tests the accepted
+value (null and an empty string are missing), not the transient query. A named hidden native input serializes the
+accepted option id rather than its display label. Option/query loading remains
+separate from a declared selection command; errors do not roll back acceptance.
+Owned UI text is configurable through the `comboBoxOptionsLabel`,
+`comboBoxOpenLabel`, `comboBoxEmpty`, `comboBoxLoading` and `comboBoxRequired`
+runtime messages, with ordinary English fallback.
+
 #### Action menus
 
 Use `MenuButton` to offer a compact set of actions, not to select a persistent

@@ -1,4 +1,5 @@
 import {expect, test} from '@playwright/test'
+import type {Route} from '@playwright/test'
 import {AxeBuilder} from '@axe-core/playwright'
 
 test.beforeEach(async ({page}) => { await page.goto('/workbench-primitives.html') })
@@ -123,4 +124,81 @@ test('multiline editing retains native keyboard/selection and field help/error a
     expect((await area.boundingBox())!.width).toBeLessThanOrEqual(375)
     const results = await new AxeBuilder({page}).include('section[aria-label="Native form fixture"]').analyze()
     expect(results.violations).toEqual([])
+})
+
+test('combobox search, active choice and form value remain separate with native keyboard editing', async ({page}) => {
+    const input = page.getByRole('combobox', {name: 'Local choice'})
+    await input.fill('be')
+    await expect(page.getByRole('option', {name: 'Beta', exact: true})).toBeVisible()
+    await expect(input).toBeFocused()
+    await expect(input).not.toHaveAttribute('aria-busy')
+    await expect(page.getByRole('status', {name: 'Option requests'})).toHaveText('1')
+    await expect(page.getByRole('status', {name: 'Local selected value'})).toHaveText('a')
+    expect(await page.getByRole('form', {name: 'Choice serialization'}).evaluate(element => new FormData(element as HTMLFormElement).get('choice'))).toBe('a')
+    expect(await input.evaluate(element => {
+        const event = new KeyboardEvent('keydown', {key: 'Home', bubbles: true, cancelable: true})
+        element.dispatchEvent(event)
+        return event.defaultPrevented
+    })).toBe(false)
+    await input.press('ControlOrMeta+ArrowLeft')
+    expect(await input.evaluate(element => (element as HTMLInputElement).selectionStart)).toBe(0)
+    await input.press('Escape'); await expect(input).toHaveValue('Alpha')
+    await input.press('ArrowDown'); await input.press('ArrowDown')
+    await expect(input).toHaveValue('Alpha')
+    await input.press('Enter'); await expect(input).toHaveValue('Beta')
+    await expect(page.getByRole('status', {name: 'Local selected value'})).toHaveText('b')
+    await input.fill(''); await input.press('Enter')
+    expect(await input.evaluate(element => (element as HTMLInputElement).checkValidity())).toBe(false)
+    const custom = page.getByRole('combobox', {name: 'Custom type'})
+    await custom.fill('New exact type'); await custom.press('Tab')
+    await expect(page.getByRole('status', {name: 'Custom selected value'})).toHaveText('New exact type')
+    await custom.fill('Pointer custom type')
+    await page.getByRole('textbox', {name: 'Before menu'}).click()
+    await expect(page.getByRole('status', {name: 'Custom selected value'})).toHaveText('Pointer custom type')
+})
+
+test('combobox toggle, pointer choices, narrow popup and required action feedback are scoped', async ({page}) => {
+    await page.setViewportSize({width: 375, height: 800})
+    const combo = page.locator('cap-combobox').filter({has: page.getByRole('combobox', {name: 'Required choice'})})
+    await combo.getByRole('button', {name: 'Show options'}).click()
+    const list = page.getByRole('listbox', {name: 'Required choice'})
+    await expect(list).toBeVisible()
+    const bounds = (await list.boundingBox())!
+    expect(bounds.x).toBeGreaterThanOrEqual(7); expect(bounds.x + bounds.width).toBeLessThanOrEqual(368)
+    await expect(page.getByRole('combobox', {name: 'Required choice'})).toBeFocused()
+    await page.getByRole('option', {name: 'Beta', exact: true}).click()
+    const input = page.getByRole('combobox', {name: 'Required choice'})
+    await expect(input).toHaveValue('Beta'); await expect(list).not.toBeVisible()
+    await expect(input).toHaveAttribute('aria-busy', 'true')
+    await expect(combo.getByRole('button')).not.toHaveAttribute('aria-busy')
+    await expect(page.getByRole('combobox', {name: 'Local choice'})).not.toHaveAttribute('aria-busy')
+    await page.getByRole('button', {name: 'Fail choice action'}).click()
+    await expect(input).toHaveAttribute('aria-invalid', 'true'); await expect(input).toHaveValue('Beta')
+    const results = await new AxeBuilder({page}).include('section[aria-label="Searchable choices"]').analyze()
+    expect(results.violations).toEqual([])
+})
+
+test('live combobox options supersede slow searches and retain accepted values on query errors', async ({page}) => {
+    let slow: Route | null = null
+    await page.route('**/fixture-options?*', async route => {
+        const search = new URL(route.request().url()).searchParams.get('search')
+        if (search === 'slow') { slow = route; return }
+        if (search === 'broken') await route.fulfill({status: 500, body: 'Unavailable'})
+        else await route.fulfill({json: [{value: 'new', label: 'Newest'}]})
+    })
+    const input = page.getByRole('combobox', {name: 'Remote choice'})
+    await expect(input).toHaveValue('Alpha')
+    await input.fill('slow'); await expect.poll(() => slow !== null).toBe(true)
+    await expect(input).toHaveAttribute('aria-busy', 'true')
+    await expect(page.getByRole('listbox', {name: 'Remote choice'})).toHaveAttribute('aria-busy', 'true')
+    await expect(page.getByRole('status', {name: 'Remote selected value'})).toHaveText('a')
+    await input.fill('newest')
+    await expect(page.getByRole('option', {name: 'Newest'})).toBeVisible()
+    await slow!.fulfill({json: [{value: 'old', label: 'Obsolete'}]})
+    await expect(page.getByRole('option', {name: 'Obsolete'})).toHaveCount(0)
+    await input.fill('broken')
+    await expect(input).toHaveAttribute('aria-invalid', 'true')
+    await expect(page.getByRole('status', {name: 'Remote selected value'})).toHaveText('a')
+    await input.press('Escape'); await expect(input).toHaveValue('Alpha')
+    await page.unroute('**/fixture-options?*')
 })

@@ -1,4 +1,4 @@
-import {AsyncCommand, Emitter, bindCommand} from '@capillaryjs/capillary'
+import {AsyncCommand, Emitter, LiveQuery, bindCommand} from '@capillaryjs/capillary'
 import {
     Component,
     DeclarativeRegion,
@@ -16,6 +16,7 @@ import {
     FormField,
     FormLayout,
     TextArea,
+    ComboBox,
     NavigationBar,
     CapillaryUiApp,
     Layout,
@@ -56,6 +57,8 @@ const submit = new AsyncCommand<string, void>({execute: async () => {}})
 new Form<string>({submitCommand: submit, submitArguments: ({form}) => form.id})
 new Form({submitCommand: bindCommand(submit, () => 'saved')})
 new TextArea({valueEmitter: text, rows: 4, ariaDescribedBy: 'help', ariaInvalid: false})
+new ComboBox<number>({options: [{value: 0, label: 'Zero'}], defaultValue: 0}).valueEmitter.get()?.toFixed()
+new ComboBox<string>({options: new LiveQuery({handler: {fetch: () => [{value: 'one', label: 'One'}]}}), allowCustomValue: true})
 new FormLayout({children: h(FormField, {controlId: 'field', label: 'Name', control: props => h(Textbox, {...props})})})
 new MenuButton({ariaLabel: 'Create', icon: 'add', items: [{id: 'class', label: 'Class', onSelect() {}}]})
 new DropdownMenu({label: 'Commands', anchor: null, initialFocus: 'last', items: []})
