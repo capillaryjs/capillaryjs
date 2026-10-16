@@ -8,6 +8,9 @@ Versioning.
 
 ### Added
 
+- Add owner-scoped `createPointerDrag` with thresholded preview/commit,
+  capture/identity/cancellation cleanup and keyboard-safe pointer-click
+  suppression. Expose Component.listenWhile for temporary traced integrations.
 - Add controlled live SplitView pane collapse/restore, retained expanded sizes
   and focus-safe resize cancellation. Add inline nonmodal Drawer with logical
   edges, named close/focus behavior and explicit content-mount policy.

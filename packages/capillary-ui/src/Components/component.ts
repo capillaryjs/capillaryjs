@@ -909,7 +909,7 @@ export class Component<TProps extends ComponentProps = ComponentProps> {
      * runs through the same traced native-event coalescing as listen(), and
      * is removed on destroy if it is still attached.
      */
-    protected listenWhile<TEvent extends Event = Event>(
+    listenWhile<TEvent extends Event = Event>(
         target: EventTarget,
         type: string,
         listener: (event: TEvent) => void,

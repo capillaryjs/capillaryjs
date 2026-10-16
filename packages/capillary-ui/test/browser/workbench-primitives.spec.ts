@@ -4,6 +4,45 @@ import {AxeBuilder} from '@axe-core/playwright'
 
 test.beforeEach(async ({page}) => { await page.goto('/workbench-primitives.html') })
 
+test('pointer dragging previews independently, commits once and keeps the grip out of button semantics', async ({page}) => {
+    const object = page.getByRole('article', {name: 'Draggable object'})
+    const grip = page.locator('.fixture-grip')
+    await grip.scrollIntoViewIfNeeded()
+    expect(await grip.getAttribute('role')).toBeNull()
+    const rect = (await grip.boundingBox())!
+    await page.mouse.move(rect.x + rect.width / 2, rect.y + rect.height / 2); await page.mouse.down()
+    await page.mouse.move(rect.x + rect.width / 2 + 2, rect.y + rect.height / 2)
+    await expect(page.getByRole('status', {name: 'Drag preview'})).toHaveText('None')
+    await page.mouse.move(rect.x + rect.width / 2 + 60, rect.y + rect.height / 2 + 30)
+    await expect(page.getByRole('status', {name: 'Drag preview'})).toHaveText('Preview')
+    await expect(page.getByRole('status', {name: 'Drag accepted position'})).toHaveText('{"x":20,"y":20}')
+    await page.mouse.up()
+    await expect(page.getByRole('status', {name: 'Drag accepted position'})).toHaveText('{"x":80,"y":50}')
+    await expect(page.getByRole('status', {name: 'Drag commits'})).toHaveText('1')
+    await object.focus(); await page.keyboard.press('ArrowRight')
+    await expect(page.getByRole('status', {name: 'Drag accepted position'})).toHaveText('{"x":90,"y":50}')
+})
+
+test('Escape/context cancellation preserve accepted state and drag-click suppression leaves keyboard actions usable', async ({page}) => {
+    const grip = page.locator('.fixture-grip'); await grip.scrollIntoViewIfNeeded()
+    const rect = (await grip.boundingBox())!
+    await page.mouse.move(rect.x + 5, rect.y + 5); await page.mouse.down(); await page.mouse.move(rect.x + 50, rect.y + 30)
+    await page.keyboard.press('Escape'); await page.mouse.up()
+    await expect(page.getByRole('status', {name: 'Drag cancellation'})).toHaveText('escape')
+    await expect(page.getByRole('status', {name: 'Drag accepted position'})).toHaveText('{"x":20,"y":20}')
+    await page.mouse.move(rect.x + 5, rect.y + 5); await page.mouse.down(); await page.mouse.move(rect.x + 50, rect.y + 30)
+    await page.getByRole('button', {name: 'Replace drag context'}).evaluate(element => (element as HTMLButtonElement).click())
+    await page.mouse.up(); await expect(page.getByRole('status', {name: 'Drag commits'})).toHaveText('0')
+    await expect(page.getByRole('status', {name: 'Drag cancellation'})).toHaveText('context-changed')
+    const button = page.getByRole('button', {name: 'Drag or open connection'})
+    const port = (await button.boundingBox())!
+    await page.mouse.move(port.x + 8, port.y + 8); await page.mouse.down(); await page.mouse.move(port.x + 80, port.y + 30); await page.mouse.up()
+    await expect(page.getByRole('status', {name: 'Drag commits'})).toHaveText('1')
+    await expect(page.getByRole('status', {name: 'Connection clicks'})).toHaveText('0')
+    await button.focus(); await page.keyboard.press('Enter')
+    await expect(page.getByRole('status', {name: 'Connection clicks'})).toHaveText('1')
+})
+
 test('collapsed panes fill the layout, retain expanded size and restore focus from the hidden pane', async ({page}) => {
     await page.setViewportSize({width: 375, height: 800})
     const navigation = page.getByRole('region', {name: 'Fixture navigation'})

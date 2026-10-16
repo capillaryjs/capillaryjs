@@ -91,11 +91,22 @@ peer dependency.
 | `CapillaryUiRuntime`, `createCapillaryUiRuntime`, `defaultCapillaryUiRuntime` | Application-scoped component creation, mounting, styles, services, optional routing, and static localization |
 | `CapillaryUiLocalizationOptions`, `CapillaryUiLocalization`, `CapillaryUiMessageOverrides`, `CapillaryUiMessage` | Typed runtime locale and partial Capillary UI-authored message overrides with English fallback |
 | `StyleRegistry`, `createStyleRegistry`, `styleRegistry` | Dependency-aware structural CSS collection and injection |
+| `createPointerDrag`, `PointerDrag`, `PointerDragOptions`, `PointerDragSnapshot` | Component-owned threshold/capture/preview/commit/cancel lifecycle without domain mutation policy |
 
 Public declaration contracts include component constructors/dependencies,
 props, children, vnodes, keys, refs, writable emitters, live bindings and prop
 contracts, emitter snapshots, template props, runtime options, and style
 registry types.
+
+`Component.listenWhile` is a public traced native-listener adapter returning an
+early disposer that also removes its owner cleanup registration. Pointer dragging
+reuses it: begin captures caller context and one primary pointer; thresholded
+snapshots carry context, element, points, deltas and the native event. Replacement,
+Escape, blur, capture failure/loss, cancel, exceptions and disposal release the
+gesture. Commit happens once after a drag, never for a click. consumeClick only
+suppresses the corresponding pointer-generated click; keyboard clicks remain
+available. The app owns accessible/keyboard alternatives and revision/permission
+checks. No async subscriber waiting or application transaction is inferred.
 
 Runtime `diagnosticScope`, component static `diagnosticScope`/`diagnosticLabel`,
 the overridable instance `diagnosticLabel` getter, and function-component `diagnosticLabel` support opt-in automatic native

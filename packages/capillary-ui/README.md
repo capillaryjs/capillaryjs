@@ -168,6 +168,55 @@ state. Timers are cancelled on completion, identity replacement and destruction.
 `onCleanup()` registers listeners or other cleanup functions that Capillary UI invokes
 on destruction.
 
+`listen(target, type, callback, options?)` attaches a traced native listener until
+destruction. `listenWhile(...)` has the same owner/tracing contract but returns a
+disposer; calling it removes both the listener and its cleanup registration.
+Use it for temporary integrations instead of accumulating dormant listeners.
+
+### Pointer dragging
+
+`createPointerDrag<TContext>(owner, options)` owns one pointer gesture for a
+Component. Call `begin(event, capturedContext, captureElement?)` from the native
+pointerdown handler. The default capture element is event.currentTarget; use the
+owning focusable widget when the visual grip is decorative. Primary left-pointer
+starts only are accepted. Native pointer capture is required; keep touch-action
+appropriate to the handle. Starting a new gesture cancels the previous one.
+
+```ts
+const drag = createPointerDrag<{x: number; y: number}>(owner, {
+    onMove: ({context, dx, dy}) => preview.set({x: context.x + dx, y: context.y + dy}),
+    onCommit: ({context, dx, dy}) => {
+        preview.set(null)
+        commitMove({x: context.x + dx, y: context.y + dy})
+    },
+    onCancel: () => preview.set(null),
+})
+```
+
+Start/preview callbacks run only beyond `threshold` CSS pixels (default 3,
+Euclidean distance); release commits once if that distance was crossed, including
+a release without an intervening move event. A click does not commit a drag.
+Snapshots contain context, capture element, start/current points, dx/dy and the
+native PointerEvent. `preventDefault` defaults to true. Context is caller-owned;
+capture revision/permission/callback identity and recheck before accepting edits.
+Callbacks are synchronous, not implicitly awaited; explicit commands and owned
+feedback handle required async outcomes.
+
+`active`, `dragging` and `context` describe the current gesture. `cancel(reason?)`
+clears it; cancellation reports the last pointer snapshot and a reason such as
+replaced, pointercancel, lostcapture, escape, blur, capturefailed or disposed.
+Listeners/capture are released on every terminal path and owner destruction;
+`dispose()` allows earlier cleanup. `consumeClick(event)` consumes only the
+immediate pointer-generated click on the captured widget after a drag, never
+keyboard activation. Check it in a widget's click handler when click is the
+non-drag alternative. A new pointer start clears stale suppression.
+
+Keep recognizable grips, keyboard manipulation and a non-drag alternative in the
+owning widget. This helper provides no button semantics, domain transaction,
+coordinate system, selection store or model-specific validation.
+
+### Component diagnostics and example
+
 Diagnostic labels default to static `diagnosticLabel`, `hostName`, then the class
 name. Override the instance `diagnosticLabel` getter when instances need distinct
 names; identity labels are captured at first observation. Table diagnostics expose

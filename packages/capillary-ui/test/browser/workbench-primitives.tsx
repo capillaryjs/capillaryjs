@@ -1,6 +1,7 @@
 import {AsyncCommand, Emitter, LiveQuery} from '@capillaryjs/capillary'
 import {Button, CapillaryUiApp, ComboBox, Drawer, Form, FormField, FormLayout, MenuButton, SplitPrimary, SplitSecondary, SplitView, TextArea, Textbox, Tooltip, live} from '../../src/index.js'
 import type {CollapsedSplitPane, ComboBoxOption} from '../../src/index.js'
+import {DragFixture} from './dragFixture.js'
 import '../../themes/base.css'
 import '../../colors/iceblue/colors.css'
 import '../../themes/minimal/theme.css'
@@ -134,10 +135,11 @@ class WorkbenchPrimitivesFixture extends CapillaryUiApp {
                 </Drawer>
                 <input aria-label="After drawers"/>
             </section>
+            <section aria-label="Pointer dragging"><h2>Pointer dragging</h2><DragFixture/></section>
             <div style={{blockSize: '70rem'}}/>
         </>
     }
-    static override dependencies = [Button, MenuButton, Form, FormLayout, FormField, TextArea, Textbox, ComboBox, Tooltip, Drawer, SplitView, SplitPrimary, SplitSecondary]
+    static override dependencies = [Button, MenuButton, Form, FormLayout, FormField, TextArea, Textbox, ComboBox, Tooltip, Drawer, SplitView, SplitPrimary, SplitSecondary, DragFixture]
     override onDestroy(): void {
         this.collapsedPane.dispose(); this.reviewOpen.dispose(); this.retainedOpen.dispose()
         this.save.dispose(); this.formCommand.dispose(); this.submitted.dispose(); this.formError.dispose(); this.formInvocations.dispose()

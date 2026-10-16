@@ -88,6 +88,12 @@ connection port can support dragging to a target, with a visible preview and
 valid-target feedback. Provide a click/keyboard alternative that does not
 require dragging.
 
+Use `createPointerDrag` for shared capture, threshold, preview/commit and cleanup
+mechanics. Capture application context at the start, cancel it when that context
+changes, and validate it before accepting a move or connection. Keep preview
+separate from accepted source. The helper does not replace the owning widget's
+keyboard interaction or click-based connection alternative.
+
 Place contextual choosers near their initiating control. Avoid a detached form
 that appears above the canvas and shifts the user's working area. Keep the
 surface usable during pan, zoom, scrolling and narrow layouts. Cancellation,

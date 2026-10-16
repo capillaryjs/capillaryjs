@@ -8,6 +8,8 @@ import {
     Popover,
     Tooltip,
     Drawer,
+    Component,
+    createPointerDrag,
     MenuButton,
     DropdownMenu,
     Form,
@@ -49,6 +51,10 @@ const panels = <>
 // @ts-expect-error Drawer edges are logical, not physical.
 const physicalDrawer = <Drawer label="Changes" edge="left"/>
 void [panels, physicalDrawer]
+const dragOwner = new Component({})
+const drag = createPointerDrag<{id: string}>(dragOwner, {onCommit: state => {state.context.id.toUpperCase(); state.dx.toFixed()}})
+dragOwner.listenWhile(document, 'pointerup', () => {})()
+drag.dispose(); dragOwner.destroy()
 const pending = new Emitter(false)
 const interactions = <Panel>
     <MenuButton icon="add" ariaLabel="Create" disabled={live(pending)} items={[{id: 'class', label: 'Class', onSelect: () => {}}]}/>
