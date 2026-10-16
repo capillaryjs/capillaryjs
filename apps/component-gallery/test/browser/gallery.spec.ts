@@ -18,10 +18,12 @@ test('loading emitter modes animate determinate and indeterminate progress examp
     for (const mode of ['Loading (refresh)', 'Loading (replace)']) {
         await page.getByRole('radio', {name: mode, exact: true}).click()
         await expect(partial).toHaveAttribute('aria-busy', 'true')
-        expect(await partialSurface.evaluate((element) => getComputedStyle(element, '::after').animationName))
+        await expect(partial).toHaveAttribute('data-cap-busy-visible', '')
+        await expect.poll(() => partialSurface.evaluate((element) => getComputedStyle(element, '::after').animationName))
             .toContain('cap-working-progress')
         await expect(indeterminate).toHaveAttribute('aria-busy', 'true')
-        expect(await surface.evaluate((element) => getComputedStyle(element, '::after').animationName))
+        await expect(indeterminate).toHaveAttribute('data-cap-busy-visible', '')
+        await expect.poll(() => surface.evaluate((element) => getComputedStyle(element, '::after').animationName))
             .toContain('cap-working-progress')
     }
 })
@@ -658,9 +660,8 @@ test('data collections distinguish refresh retention from replacement-loading sk
                 .toHaveCount(0)
             await expect(control).not.toContainText(/Runtime|Visualization|Platform|3 items/)
             await expect(control.locator('[role="status"]')).toContainText(/Loading/)
-            const animated = await control.locator('cap-placeholder').first().evaluate((e) =>
-                getComputedStyle(e, '::after').animationName)
-            expect(animated).toBe('cap-working-progress')
+            await expect.poll(() => control.locator('cap-placeholder').first().evaluate((e) =>
+                getComputedStyle(e, '::after').animationName)).toBe('cap-working-progress')
         }
     }
     await page.screenshot({path: testInfo.outputPath('loading-gallery.png'), fullPage: true})
