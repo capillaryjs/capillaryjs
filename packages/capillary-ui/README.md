@@ -374,6 +374,40 @@ the tables below denotes that TypeScript type parameter.
 
 ### Actions, inputs, and choices
 
+Use `MenuButton` to offer a compact set of actions, not to select a persistent
+field value. `DropdownMenu` exposes the separately anchored menu surface.
+
+```tsx
+<MenuButton icon="add" appearance="subtle" ariaLabel="Create definition" items={[
+    {id: 'class', label: 'Class', onSelect: () => openClassEditor()},
+    {id: 'type', label: 'Type', onSelect: () => openTypeEditor()},
+    {id: 'save', label: 'Save', command: saveCommand},
+]}/>
+```
+
+Items have stable unique `id`s and string `label`s, optional `icon`/`disabled`,
+and exactly one `command` or synchronous `onSelect`. Separators use
+`{kind: 'separator', id}`; labelled groups use `{kind: 'group', id, label, items}`.
+`MenuButton` accepts `label` or a named `icon`, `appearance`, `disabled`, `id`,
+and the normal Boolean value-control convention for open state. A labelled
+trigger includes a dropdown indicator. Opening performs no asynchronous work.
+
+`DropdownMenu` requires `label`, `anchor` and `items`, accepts the same open-state
+convention, `id`, `initialFocus: 'first' | 'last'`, `onClose`, `onAction` and
+`onActionError`. `onAction` is a synchronous notification, not awaited work.
+It owns only menu content, not arbitrary form children or nested submenus.
+Both controls support arrows, Home/End, typeahead, native Enter/Space activation,
+Escape, Tab exit and outside dismissal. Disabled actions remain focusable for
+discovery but cannot run. Closing precedes activation so an action may safely
+open its own dialog or remove its trigger.
+
+MenuButton retains busy/error presentation for commands invoked from that menu
+after it closes; other actions remain accessible while a command runs. Each
+item presents only its own command. An independently composed DropdownMenu must
+provide persistent outcome/error feedback in its owning view when it closes;
+observe command errors and use `onActionError` for invocation/handler failures.
+Do not pass async work as a synchronous `onSelect` handler. Use an explicit command.
+
 | Component | Purpose | Key props and state |
 | --- | --- | --- |
 | `Button` | Native button with optional pressed and busy state | `label`, `type`, `disabled`, `pressed`, `busy`, `busyLabel`, `error`, `command`, `disableWhileRunning`, `onClick`; a command requires native `type="button"`; live: `disabled`, `pressed`, `busy`, `error` |

@@ -12,17 +12,17 @@ export interface PopoverProps extends ValueControlProps<boolean> {
 }
 
 /** Anchored, nonmodal native top-layer surface; callers own its content/state. */
-export class Popover extends Component<PopoverProps> {
+export class Popover<TProps extends PopoverProps = PopoverProps> extends Component<TProps> {
     readonly openEmitter: ValueEmitter<boolean>
     readonly panelId: string
-    private panel: HTMLElement | null = null
+    protected panel: HTMLElement | null = null
     private synchronizedOpen = false
     private restoreFocusTo: HTMLElement | null = null
     private lightDismiss = false
     private detachViewport: Array<() => void> = []
     private resizeObserver: ResizeObserver | null = null
 
-    constructor(props: PopoverProps) {
+    constructor(props: TProps) {
         super(props)
         if (!props.label?.trim()) throw new TypeError('Popover requires an accessible label')
         this.openEmitter = createValueEmitter(this, props, false, 'popover open state')
@@ -34,11 +34,29 @@ export class Popover extends Component<PopoverProps> {
     render(): CapillaryUiChild {
         const Host = this.Host
         return <Host className={componentClass(this.props) || null}>
-            <div id={this.panelId} popover="auto" role="dialog" aria-label={this.props.label}
+            <div id={this.panelId} popover="auto" role={this.surfaceRole} aria-label={this.props.label}
                 tabIndex={-1} ref={(element: HTMLElement | null) => this.panel = element}>
-                {this.props.children}
+                {this.renderSurfaceContent()}
             </div>
         </Host>
+    }
+
+    /** Specialized widgets retain their own semantics and keyboard model. */
+    protected get surfaceRole(): 'dialog' | 'menu' { return 'dialog' }
+    protected renderSurfaceContent(): CapillaryUiChild { return this.props.children }
+    protected focusOnOpen(panel: HTMLElement): void {
+        const ref = this.props.initialFocusRef
+        const initial = ref != null && typeof ref !== 'function' ? ref.current : null
+        ;(initial ?? panel.querySelector<HTMLElement>(
+            '[autofocus], button:not(:disabled), input:not(:disabled):not([type="hidden"]), select:not(:disabled), textarea:not(:disabled), [tabindex]:not([tabindex="-1"])',
+        ) ?? panel).focus({preventScroll: true})
+    }
+    protected onSurfaceKeyDown(event: KeyboardEvent): void {
+        if (event.key === 'Escape' && !event.defaultPrevented) {
+            event.preventDefault()
+            this.lightDismiss = false
+            this.close()
+        }
     }
 
     afterMount(): void {
@@ -91,13 +109,7 @@ export class Popover extends Component<PopoverProps> {
                         this.close()
                     }
                 }))
-                this.detachViewport.push(this.listenWhile<KeyboardEvent>(panel, 'keydown', event => {
-                    if (event.key === 'Escape' && !event.defaultPrevented) {
-                        event.preventDefault()
-                        this.lightDismiss = false
-                        this.close()
-                    }
-                }))
+                this.detachViewport.push(this.listenWhile<KeyboardEvent>(panel, 'keydown', event => this.onSurfaceKeyDown(event)))
                 if (view) {
                     this.detachViewport.push(this.listenWhile(view, 'resize', () => this.position()))
                     if (view.visualViewport) {
@@ -111,11 +123,7 @@ export class Popover extends Component<PopoverProps> {
                     }
                 }
                 this.position()
-                const ref = this.props.initialFocusRef
-                const initial = ref != null && typeof ref !== 'function' ? ref.current : null
-                ;(initial ?? panel.querySelector<HTMLElement>(
-                    '[autofocus], button:not(:disabled), input:not(:disabled):not([type="hidden"]), select:not(:disabled), textarea:not(:disabled), [tabindex]:not([tabindex="-1"])',
-                ) ?? panel).focus({preventScroll: true})
+                this.focusOnOpen(panel)
             } else this.position()
         } else if (this.synchronizedOpen) {
             if (panel.matches(':popover-open')) panel.hidePopover()

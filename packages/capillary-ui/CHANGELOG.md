@@ -8,6 +8,9 @@ Versioning.
 
 ### Added
 
+- Add `MenuButton` and `DropdownMenu` for named command actions with native
+  top-layer anchoring, keyboard/typeahead navigation, grouping, dismissal and
+  focus restoration. Trigger feedback retains invoked command outcomes after close.
 - Add runtime `busyDelayMs` (150 ms by default), protected
   `Component.presentBusy()` and reusable `StatusPresentation` styling. Loading
   decoration and busy labels are delayed; ARIA, errors and guards are immediate.

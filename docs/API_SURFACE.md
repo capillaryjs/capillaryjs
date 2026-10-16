@@ -150,7 +150,7 @@ custom elements.
 
 | Family | Public components |
 | --- | --- |
-| Actions | `Button`, `Icon`, `Toolbar` |
+| Actions | `Button`, `Icon`, `Toolbar`, `MenuButton`, `DropdownMenu` |
 | Text and choices | `Label`, `Textbox`, `Dropdown`, `RadioButton`, `RadioGroup`, `Toggle`, `Checkbox`, `TriCheckbox`, `QuadCheckbox` |
 | Layout and navigation | `Breadcrumb`, `CapillaryUiApp`, `Layout`, `Header`, `GroupBox`, `NavigationBar`, `OptionGroup`, `OptionGroupHeaderEnd`, `OptionsBox`, `Panel`, `PanelToolbar`, `Sidebar`, `SidebarToolbar`, `SplitPrimary`, `SplitSecondary`, `SplitView`, `Tab`, `TabLine`, `TabPanel` |
 | Records and collections | `DescriptionItem`, `DescriptionList`, `InfoField`, `InfoPanel`, `Placeholder`, `ListView`, `TreeItem`, `TreeView` |
@@ -267,6 +267,18 @@ Notable public behavior:
 - `ContentMountPolicy` selects eager, lazy-retained, or active-only content
   lifetime for `TabPanel` and `RouteOutlet`; `TabPanelMountPolicy` remains an
   alias while tabs preserve semantic tabpanel shells.
+
+`MenuButton` composes a named icon/text action trigger with `DropdownMenu`.
+`MenuAction` requires an `id`, string `label` and exactly one `command` or
+synchronous `onSelect`; optional fields are `icon` and `disabled`. `MenuEntry`
+also supports `kind: 'separator'` and labelled `kind: 'group'` entries.
+MenuButton accepts Boolean value-control open state, items, disabled/name/icon/
+appearance/id props and retains invoked command busy/error feedback when closed.
+DropdownMenu requires label/anchor/items and accepts Boolean open state, id,
+initialFocus, onClose, onAction and onActionError. It uses menu rather than dialog
+semantics, composite keyboard focus, typeahead, native top-layer anchoring and
+dismissal. Arbitrary form children, nested menus and persistent value selection
+are not menu contracts. Standalone menu owners retain visible operation feedback.
 
 ### Data helpers
 

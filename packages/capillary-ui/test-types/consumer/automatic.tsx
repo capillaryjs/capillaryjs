@@ -6,6 +6,8 @@ import {
     TreeView,
     DataTable,
     Popover,
+    MenuButton,
+    DropdownMenu,
     TabLine,
     CapillaryUiApp,
     Layout,
@@ -28,6 +30,8 @@ import {
 const tree = <Panel header="Automatic"><Button label="Save" /></Panel>
 const pending = new Emitter(false)
 const interactions = <Panel>
+    <MenuButton icon="add" ariaLabel="Create" disabled={live(pending)} items={[{id: 'class', label: 'Class', onSelect: () => {}}]}/>
+    <DropdownMenu label="Commands" anchor={null} items={[{id: 'group', kind: 'group', label: 'Create', items: [{id: 'type', label: 'Type', onSelect: () => {}}]}]}/>
     <Button icon="add" appearance="subtle" ariaLabel="Add item" busy={live(pending)} disableWhileRunning={false}
         ariaControls="item-popup" ariaExpanded={false} ariaHasPopup="dialog"/>
     <Icon name="grip"/>
@@ -39,6 +43,9 @@ const interactions = <Panel>
     <TabPanel tabs={[{id: 'one', label: 'One', content: 'Content'}]} busy={live(pending)}/>
 </Panel>
 void interactions
+// @ts-expect-error Menu actions cannot be passive value options.
+const invalidMenu = <MenuButton label="Create" items={[{id: 'one', label: 'One'}]}/>
+void invalidMenu
 const input = <input aria-label="Name" ref={{current: null} as {current: HTMLInputElement | null}} />
 const sidebar = <Sidebar header="Requests">Request one</Sidebar>
 const layout = <Layout vertical scroll>Content</Layout>

@@ -10,6 +10,8 @@ import {
     Dialog,
     DialogActions,
     Dropdown,
+    MenuButton,
+    DropdownMenu,
     NavigationBar,
     CapillaryUiApp,
     Layout,
@@ -46,6 +48,8 @@ import type {
 import {Fragment, jsx} from '@capillaryjs/capillary-ui/jsx-runtime'
 
 const text = new Emitter('typed')
+new MenuButton({ariaLabel: 'Create', icon: 'add', items: [{id: 'class', label: 'Class', onSelect() {}}]})
+new DropdownMenu({label: 'Commands', anchor: null, initialFocus: 'last', items: []})
 new Textbox({valueEmitter: text}).valueEmitter.get().toUpperCase()
 
 const numeric = new Dropdown<number>({

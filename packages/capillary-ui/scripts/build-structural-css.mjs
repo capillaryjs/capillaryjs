@@ -37,6 +37,8 @@ import {Textbox} from '../src/Components/lineinputs/textbox.tsx'
 import {Toggle} from '../src/Components/lineinputs/toggle.tsx'
 import {Button} from '../src/Components/menu/button.tsx'
 import {Toolbar} from '../src/Components/menu/toolbar.tsx'
+import {MenuButton} from '../src/Components/menu/menuButton.tsx'
+import {DropdownMenu} from '../src/Components/menu/dropdownMenu.tsx'
 import {ProgressBar} from '../src/Components/status/progressBar.tsx'
 import {ColorPicker, ThemePicker} from '../src/Components/theme/stylesheetPicker.tsx'
 import {RouteOutlet} from '../src/routing/RouteOutlet.tsx'
@@ -81,6 +83,8 @@ const components = [
     TimePicker,
     Toggle,
     Toolbar,
+    MenuButton,
+    DropdownMenu,
     TreeItem,
     TreeView,
     TriCheckbox,

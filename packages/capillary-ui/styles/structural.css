@@ -1247,8 +1247,10 @@ cap-filterpanel {
             }
         }
 
-cap-popover { display: contents; }
-        cap-popover > [popover] {
+cap-popover,
+cap-dropdownmenu { display: contents; }
+        cap-popover > [popover],
+        cap-dropdownmenu > [popover] {
             position: fixed;
             inset: auto;
             margin: 0;
@@ -1264,8 +1266,10 @@ cap-popover { display: contents; }
             box-shadow: var(--dialog-shadow);
             font: inherit;
         }
-        cap-popover > [popover]::backdrop { background: transparent; }
-        @media (forced-colors: active) { cap-popover > [popover] { border: 1px solid CanvasText; } }
+        cap-popover > [popover]::backdrop,
+        cap-dropdownmenu > [popover]::backdrop { background: transparent; }
+        @media (forced-colors: active) { cap-popover > [popover],
+ cap-dropdownmenu > [popover] { border: 1px solid CanvasText; } }
 
 cap-datepicker,
 cap-datetimepicker,
@@ -2994,6 +2998,29 @@ cap-toolbar {
             flex-direction: column;
             align-items: stretch;
         }
+
+cap-menubutton { display: inline-flex; }
+
+cap-dropdownmenu > [popover] { min-inline-size: 12rem; padding: .25rem; }
+        cap-dropdownmenu .cap-menu-entry { position: relative; }
+        cap-dropdownmenu [role="menuitem"] {
+            display: flex; align-items: center; gap: .5em; inline-size: 100%;
+            min-block-size: var(--control-min-height, 2em); box-sizing: border-box;
+            padding: .35em .6em; border: 0; border-radius: var(--ui-border-radius);
+            font: inherit; color: inherit; background: transparent; text-align: start;
+        }
+        cap-dropdownmenu [role="menuitem"]:hover, cap-dropdownmenu [role="menuitem"]:focus-visible {
+            background: var(--button-background-hover); outline: 2px solid transparent;
+        }
+        cap-dropdownmenu [role="menuitem"]:focus-visible { box-shadow: inset 0 0 0 2px var(--ui-focus-color, Highlight); }
+        cap-dropdownmenu [role="menuitem"][aria-disabled="true"] { color: var(--input-color-disabled); }
+        cap-dropdownmenu [role="menuitem"][data-cap-busy-visible] {
+            background-image: var(--working-background-image); background-size: 2rem 2rem;
+            animation: cap-working-progress .55s linear infinite;
+        }
+        cap-dropdownmenu [role="separator"] { block-size: 1px; margin: .25rem; background: var(--ui-border-color, GrayText); }
+        cap-dropdownmenu .cap-menu-group-label { padding: .35em .6em; font-size: .85em; font-weight: 600; }
+        @media (prefers-reduced-motion: reduce) { cap-dropdownmenu [data-cap-busy-visible] { animation: none; } }
 
 cap-treeview {
             display: flex;

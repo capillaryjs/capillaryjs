@@ -65,6 +65,18 @@ without looking like an ordinary standalone button.
 
 ## Keep manipulation direct and contextual
 
+Use a `MenuButton` for a compact group of commands such as creating different
+definition kinds. A visible, named add icon can open a short anchored menu with
+descriptive labels. Do not present routine commands as an expandable content
+section that reveals a strip of ordinary buttons and shifts the work area.
+This is a workflow decision, not a ban on disclosure: native details/summary
+remain appropriate for optional advanced explanations and source metadata.
+
+Menus invoke actions; `Dropdown` selects a value; `Popover` holds contextual
+interactive content such as a form. Choose by intent, not visual similarity.
+Commands invoked from MenuButton retain their busy/error feedback at the trigger
+after dismissal. Standalone menus need persistent feedback in the owning view.
+
 For a diagram, expose a recognizable drag grip rather than a selection step
 whose only purpose is to reveal a Move button. Keep names as content. A
 connection port can support dragging to a target, with a visible preview and
