@@ -2,7 +2,7 @@ import {ViewFeedback} from "../ViewFeedback.js";
 import type {LocalDateTime, CapillaryUiChild} from "@capillaryjs/capillary-ui";
 import {
     Component, Panel, PanelToolbar, InfoPanel, InfoField,
-    Button, Dialog, DialogActions, Textbox, Dropdown, DateTimePicker, Label, ListView,
+    Button, Dialog, DialogActions, Textbox, TextArea, Dropdown, DateTimePicker, ListView,
     Sidebar, SidebarToolbar, SplitPrimary, SplitSecondary, SplitView,
     RouteLink, RouteValue, Placeholder, Toolbar, routeTarget,
     combineLocalDateTime, splitLocalDateTime,
@@ -19,7 +19,7 @@ const severities = ["low", "medium", "high", "critical"].map(value => ({value, l
 export class IssueReportView extends Component {
     static dependencies = [
         Panel, PanelToolbar, InfoPanel, InfoField,
-        Button, Dialog, DialogActions, Textbox, Dropdown, DateTimePicker, Label, ListView,
+        Button, Dialog, DialogActions, Textbox, TextArea, Dropdown, DateTimePicker, ListView,
         Sidebar, SidebarToolbar, SplitView,
         RouteLink, RouteValue, Placeholder, Toolbar,
     ];
@@ -167,15 +167,7 @@ export class IssueReportView extends Component {
                         ? <p>Mark “{detail.title}” as resolved on {b.value?.metadata.anchorDate}?</p>
                         : <>
                             <Textbox label="Title" valueEmitter={this.draft.title} disabled={busy} required/>
-                            <Label text="Description"/>
-                            <textarea
-                                className="cap-textbox"
-                                key={String(detail.id)}
-                                defaultValue={String(detail.record?.description ?? "")}
-                                rows={4}
-                                disabled={busy}
-                                onInput={event => this.draft.description.set((event.currentTarget as HTMLTextAreaElement).value)}
-                            />
+                            <TextArea label="Description" valueEmitter={this.draft.description} rows={4} disabled={busy}/>
                             <Dropdown
                                 label="Severity"
                                 options={severities}

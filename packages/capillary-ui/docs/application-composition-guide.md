@@ -20,6 +20,34 @@ theme boundaries, action versus widget semantics, direct manipulation, icons
 and pending feedback. These interaction rules complement the layout and
 lifetime decisions below.
 
+## Component-first authoring
+
+Before writing interactive markup, look for an existing Capillary UI component
+whose contract matches the task, then for a reusable component already owned by
+the application. Use that component rather than rebuilding its behavior with
+native tags and event handlers. This applies to framework controls, collections,
+layout and application-specific components alike. A component may still render
+native elements internally; component-first describes application composition,
+not a ban on semantic HTML.
+
+Use native semantic elements directly for document content and structure when
+they express the meaning and no component owns the task. Static headings,
+paragraphs, lists, details/summary, landmarks, and semantic containers do not
+need wrappers simply to satisfy this rule. A clear capability gap is a reason
+to compose an application component or extend the framework component before
+adding a one-off interaction implementation.
+
+Extract repeated nontrivial behavior—such as keyboard/focus handling,
+selection, accessibility, validation, busy/error feedback, or lifecycle—when it
+appears for the second time. A repeated meaningful multi-element responsibility
+is also a strong candidate at its second use. Keep trivial semantic fragments
+inline; a third occurrence is a prompt to review, not an automatic extraction
+rule. Similar styling alone does not make two elements the same responsibility.
+
+When using a component, preserve its actual contract: declare it in the owning
+component's dependencies, pass its controlled value/command through the public
+props, and let the selected theme provide the overall visual treatment.
+
 The [workbench recipes](workbench-composition-guide.md) apply these contracts to
 buffered editors, command menus, contextual feedback, collapsible panes and
 direct manipulation.

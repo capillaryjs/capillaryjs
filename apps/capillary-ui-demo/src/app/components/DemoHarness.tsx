@@ -1,4 +1,5 @@
 import {
+    Checkbox,
     ColorPicker,
     Component,
     Panel,
@@ -6,6 +7,7 @@ import {
     Toggle,
     live,
 } from '@capillaryjs/capillary-ui'
+import {Emitter} from '@capillaryjs/capillary'
 import type {ComponentProps, CapillaryUiChild} from '@capillaryjs/capillary-ui'
 import type {MeridianModel} from '../model/MeridianModel.js'
 
@@ -22,6 +24,9 @@ const fetchStateOptions = [
 ] as const
 
 export class DemoHarness extends Component<DemoHarnessProps> {
+    static override dependencies = [Panel, Toggle, Checkbox, ThemePicker, ColorPicker]
+    private readonly showStatusError = new Emitter(false, {owner: this, purpose: 'show status focus error'})
+
     render(): CapillaryUiChild {
         const {model} = this.props
         const visible = this.read(model.scopedChanges)
@@ -30,6 +35,8 @@ export class DemoHarness extends Component<DemoHarnessProps> {
         this.read(model.sourceChanges)
         const fetchState = model.sourceChanges.getFetchState()
         const fetchError = model.sourceChanges.getError()
+        const statusErrorIsShown = this.read(model.statusFocusError) != null
+        if (this.showStatusError.get() !== statusErrorIsShown) this.showStatusError.set(statusErrorIsShown)
         return <Panel island className="demo-harness" header="Demo harness">
             <Toggle
                 label="Data state"
@@ -38,31 +45,13 @@ export class DemoHarness extends Component<DemoHarnessProps> {
                 onChange={(state) => model.setDemoFetchState(state)}
             />
             <div class="harness-switches" aria-label="Global control overrides">
-                <label>
-                    <input type="checkbox" bind:checked={model.forceDisabled} />
-                    Force disabled
-                </label>
-                <label>
-                    <input type="checkbox" bind:checked={model.forceRequired} />
-                    Force required
-                </label>
-                <label>
-                    <input type="checkbox" bind:checked={model.panelDisabled} />
-                    Disable summary panel
-                </label>
-                <label>
-                    <input
-                        type="checkbox"
-                        checked={this.read(model.statusFocusError) != null}
-                        onChange={(event: Event) => model.statusFocusError.set(
-                            (event.currentTarget as HTMLInputElement).checked
-                                ? 'Choose a status focus before continuing.'
-                                : null,
-                            'status-focus error toggled',
-                        )}
-                    />
-                    Show status error
-                </label>
+                <Checkbox label="Force disabled" valueEmitter={model.forceDisabled}/>
+                <Checkbox label="Force required" valueEmitter={model.forceRequired}/>
+                <Checkbox label="Disable summary panel" valueEmitter={model.panelDisabled}/>
+                <Checkbox label="Show status error" valueEmitter={this.showStatusError} onChange={checked => model.statusFocusError.set(
+                    checked ? 'Choose a status focus before continuing.' : null,
+                    'status-focus error toggled',
+                )}/>
             </div>
             <fieldset class="appearance-controls">
                 <legend>Appearance</legend>

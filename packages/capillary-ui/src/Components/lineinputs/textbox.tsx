@@ -27,6 +27,7 @@ interface TextboxCommonProps extends ValueControlProps<string>,
     label?: CapillaryUiChild
     placeholder?: string
     type?: string
+    list?: string
     name?: string
     disabled?: boolean
     required?: boolean
@@ -34,7 +35,12 @@ interface TextboxCommonProps extends ValueControlProps<string>,
     busy?: boolean
     error?: unknown
     autoComplete?: string
+    autoCapitalize?: string
+    spellCheck?: boolean
     inputMode?: string
+    min?: number | string
+    max?: number | string
+    step?: number | string
     minLength?: number
     maxLength?: number
     pattern?: string
@@ -80,6 +86,7 @@ export class Textbox extends LabeledInputControl<TextboxProps> {
             label,
             placeholder,
             type = 'text',
+            list,
             name,
             disabled = false,
             required = false,
@@ -87,7 +94,12 @@ export class Textbox extends LabeledInputControl<TextboxProps> {
             busy = false,
             error = null,
             autoComplete,
+            autoCapitalize,
+            spellCheck,
             inputMode,
+            min,
+            max,
+            step,
             minLength,
             maxLength,
             pattern,
@@ -118,13 +130,19 @@ export class Textbox extends LabeledInputControl<TextboxProps> {
                 id={this.inputId}
                 name={name}
                 type={type}
+                list={list}
                 value={value}
                 placeholder={placeholder}
                 disabled={isDisabled}
                 required={required}
                 readOnly={readOnly}
                 autoComplete={autoComplete}
+                autoCapitalize={autoCapitalize}
+                spellcheck={spellCheck}
                 inputMode={inputMode}
+                min={min}
+                max={max}
+                step={step}
                 minLength={minLength}
                 maxLength={maxLength}
                 pattern={pattern}
@@ -201,6 +219,18 @@ export class Textbox extends LabeledInputControl<TextboxProps> {
             border-color: var(--ui-input-border-disabled);
             cursor: not-allowed;
         }
+
+        & > input[type="range"] {
+            appearance: auto;
+            padding: 0;
+            background: transparent;
+            border: 0;
+            box-shadow: none;
+            accent-color: var(--ui-accent-color, auto);
+            cursor: pointer;
+        }
+
+        & > input[type="range"]:disabled { cursor: not-allowed; }
 
         & > input[readonly]:not(:disabled) {
             color: var(--input-color-readonly);

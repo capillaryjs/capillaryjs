@@ -33,6 +33,8 @@ interface TextAreaCommonProps extends ValueControlProps<string>, InputDescriptio
     inputRef?: Ref<HTMLTextAreaElement>
     disableWhileRunning?: boolean
     onInput?: (value: string, event: Event) => void
+    onFocus?: (event: FocusEvent) => void
+    onBlur?: (event: FocusEvent) => void
 }
 export type TextAreaProps = TextAreaCommonProps & (
     | {changeCommand: CommandAction<string>; onChange?: never}
@@ -61,7 +63,7 @@ export class TextArea extends LabeledInputControl<TextAreaProps> {
     render(): CapillaryUiChild {
         const {label, name, placeholder, rows = 3, cols, wrap = 'soft', disabled = false, required = false,
             readOnly = false, busy = false, error = null, autoComplete, spellCheck, minLength, maxLength,
-            ariaLabel, inputRef, changeCommand, disableWhileRunning = true, commandErrors = 'inline', onCommandInvocationError, onInput, onChange} = this.props
+            ariaLabel, inputRef, changeCommand, disableWhileRunning = true, commandErrors = 'inline', onCommandInvocationError, onInput, onChange, onFocus, onBlur} = this.props
         if (!Number.isInteger(rows) || rows < 1 || cols != null && (!Number.isInteger(cols) || cols < 1)) throw new TypeError('TextArea rows/cols must be positive integers')
         this.commandPresentation.reconcile(changeCommand)
         const command = commandSource(changeCommand), value = this.valueEmitter.get() ?? ''
@@ -78,6 +80,8 @@ export class TextArea extends LabeledInputControl<TextAreaProps> {
                 aria-label={label == null ? ariaLabel : null} aria-busy={working ? 'true' : null}
                 data-cap-busy-visible={this.presentBusy(working && displayedError == null) ? '' : null}
                 {...inputDescription(this.props, displayedError, this.errorId)}
+                onFocus={onFocus == null ? undefined : (event: FocusEvent) => invoke(onFocus, event)}
+                onBlur={onBlur == null ? undefined : (event: FocusEvent) => invoke(onBlur, event)}
                 onInput={(event: Event) => {
                     const target = event.currentTarget as HTMLTextAreaElement
                     if (readOnly || unavailable) { target.value = value; return }

@@ -4,8 +4,11 @@ import type {ViewResult} from "../../api/ScenarioApi.ts";
 import {Metrics} from "../shared/ViewComponents.tsx";
 import {Analytics} from "./Analytics.tsx";
 import {options, ScreenView} from "../shared/ScreenView.tsx";
+import {RangeFilter} from "../shared/RangeFilter.tsx";
 
 export class AnalyticsScreen extends ScreenView {
+    static override dependencies = [RangeFilter]
+
     protected renderContent(result?: ViewResult): CapillaryUiChild {
         const trends = this.field("tab").get() === "trends";
 
@@ -26,18 +29,7 @@ export class AnalyticsScreen extends ScreenView {
                             )}
 
                             {trends && (
-                                <label className="range-control">
-                                    History · {this.read(this.field("days"))} days
-                                    <input
-                                        aria-label="History window"
-                                        type="range"
-                                        min="14"
-                                        max="365"
-                                        step="7"
-                                        value={this.field("days").get()}
-                                        onInput={(e: Event) => this.field("days").set((e.target as HTMLInputElement).value)}
-                                    />
-                                </label>
+                                <RangeFilter label="History" unit="days" valueEmitter={this.field("days")} min={14} max={365} step={7}/>
                             )}
                         </Toolbar>
 

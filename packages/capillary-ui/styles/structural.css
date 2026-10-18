@@ -2796,6 +2796,18 @@ cap-textbox {
             cursor: not-allowed;
         }
 
+        cap-textbox > input[type="range"] {
+            appearance: auto;
+            padding: 0;
+            background: transparent;
+            border: 0;
+            box-shadow: none;
+            accent-color: var(--ui-accent-color, auto);
+            cursor: pointer;
+        }
+
+        cap-textbox > input[type="range"]:disabled { cursor: not-allowed; }
+
         cap-textbox > input[readonly]:not(:disabled) {
             color: var(--input-color-readonly);
             background: var(--input-background-readonly);

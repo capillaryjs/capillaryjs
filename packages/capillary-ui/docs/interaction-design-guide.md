@@ -8,6 +8,10 @@ rather than allowing them to dictate the user experience.
 This guide complements the [application composition guide](application-composition-guide.md).
 Applications own task meaning, validation and persistence; Capillary UI owns
 presentation and browser lifecycle; Capillary owns reactive and async state.
+For interactive markup, use the component-first rule: reuse a matching
+framework or application component before recreating its behavior in raw
+elements. Native semantic document content remains welcome; see the composition
+guide for the extraction threshold.
 
 ## Apply the theme to the whole interface
 

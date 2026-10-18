@@ -178,6 +178,10 @@ Notable public behavior:
 - Value controls expose `valueEmitter`; `defaultValue` initializes uncontrolled
   state. The old `value` form is an initial-value compatibility alias, not a
   continuously controlled prop.
+- Prefer a matching Capillary UI or application-owned component for interactive
+  UI; reserve raw native markup for semantic document content or a concrete
+  component-contract gap. Extract repeated nontrivial behavior at its second use;
+  trivial semantic fragments may stay inline.
 - `busy` is live presentation state on actions, input/choice controls, date/time
   controls, collections, tabs, table headers/filters and `OptionGroup`. Inputs
   and selections remain usable. Button guards activation by default;
@@ -249,6 +253,9 @@ Notable public behavior:
   remain sticky within its local scrollport.
 - Rich `Checkbox` and `TableColumn` labels accept a textual `ariaLabel` for
   Capillary UI-generated state, sort, and filter accessibility messages.
+- `Checkbox<boolean>` is an ordinary two-state control. When boolean state is
+  supplied without custom symbols, it defaults to unchecked `false` and checked
+  `true`; FilterMode checkboxes retain their existing semantic defaults.
 - `Dialog` uses a native modal surface with focus containment and restoration.
 - `Popover` uses the native nonmodal top layer, anchored to an element, with
   viewport clamping, outside/Escape dismissal and focus restoration. Its caller
@@ -302,7 +309,9 @@ reuses the command and scoped origin feedback; no duplicate click command or
 form-value store is created. Button exposes native formNoValidate and composed
 ariaDescribedBy. Native submit() bypasses this adapter; use requestSubmit().
 `TextArea` follows Textbox's string/change-command contract with native multiline
-rows/cols/wrap/spellCheck and textarea ref. Textbox/TextArea/Dropdown/Checkbox
+rows/cols/wrap/spellCheck, textarea ref, and focus/blur callbacks. Textbox also
+exposes native `list`, `autoCapitalize`, `spellCheck`, `min`, `max`, and `step`.
+Textbox/TextArea/Dropdown/Checkbox
 accept ariaDescribedBy/ariaInvalid for outer field associations. `FormField`
 requires controlId/label/control and supplies id/required/description/invalid
 props to the explicit control factory; help/error remain presentation, not domain

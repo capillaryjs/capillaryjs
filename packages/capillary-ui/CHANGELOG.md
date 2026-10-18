@@ -8,6 +8,11 @@ Versioning.
 
 ### Added
 
+- Document component-first application authoring and its practical reuse
+  threshold. Let `Checkbox<boolean>` use conventional unchecked/checked states
+  when a boolean value is supplied; expose TextArea focus/blur and Textbox
+  datalist/spell-check/autocapitalize/bounds props for composed browser-native
+  behavior, including app-owned range filters backed by Textbox.
 - Document workbench, buffered-editing, persistent-feedback and native-disclosure
   recipes. Add MenuButton trigger refs/descriptions and external outcome inputs;
   dismiss supplemental tooltips on activation and use a named PanZoomToolbar region.

@@ -1,6 +1,6 @@
 # Capillary UI
 
-Capillary UI is a browser-only TypeScript UI runtime that gives Capillary application models native, interactive browser structure. It provides TSX rendering, explicit component lifecycle, accessible controls and data views, scoped services and routing, runtime localization, and dependency-collected structural CSS. It prefers native HTML when the browser already provides the right semantic concept and uses readable light-DOM component boundaries where an application needs something more specific.
+Capillary UI is a browser-only TypeScript UI runtime that gives Capillary application models native, interactive browser structure. It provides TSX rendering, explicit component lifecycle, accessible controls and data views, scoped services and routing, runtime localization, and dependency-collected structural CSS. Application views should first use the existing Capillary UI or project-owned component whose contract matches the interaction; use native semantic HTML directly for document content and where no component owns the task. Framework components use native HTML internally when it is the right semantic implementation.
 
 Capillary UI 1.x is ESM-only and targets current evergreen browsers. Install it with
 its Capillary peer:
@@ -45,6 +45,15 @@ The boundaries are deliberate:
 Capillary UI prefers native HTML when it expresses the contract. Custom `cap-*`
 hosts are readable light-DOM ownership and styling boundaries; they are not
 registered custom elements and do not use Shadow DOM.
+
+Application authors follow a component-first rule: reuse an existing Capillary UI
+or project component when it provides the needed interaction and presentation
+contract. Do not rebuild the same validation, keyboard/focus, selection,
+accessibility, busy/error, or lifecycle behavior in raw markup without a concrete
+gap. Native semantic elements remain appropriate for document structure and
+content, and are the normal implementation inside Capillary UI components. See
+the [application composition guide](docs/application-composition-guide.md) for
+the practical reuse and extraction threshold.
 
 The [interaction design guide](docs/interaction-design-guide.md) covers complete
 theme boundaries, buttons versus widget interactions, direct manipulation,
@@ -467,10 +476,15 @@ command: its persistent owning view must present any remaining outcome/recovery.
 
 `TextArea` uses the same string value-control, `onInput`/committed `onChange` or
 `changeCommand`, disabled/readOnly/required/busy/error and command-error contracts
-as Textbox. It adds `rows`, `cols`, `wrap`, `spellCheck`, and a textarea `inputRef`;
-name, placeholder, autoComplete and min/maxLength are native attributes. Native
-editing/IME and textarea newline behavior remain native; source codecs belong
-to the application. It is not a code editor or a lossless source-file codec.
+as Textbox. It adds `rows`, `cols`, `wrap`, `spellCheck`, a textarea `inputRef`,
+and focus/blur callbacks for explicit integrations; name, placeholder,
+autoComplete and min/maxLength are native attributes. Native editing/IME and
+textarea newline behavior remain native; source codecs belong to the application.
+It is not a code editor or a lossless source-file codec. Textbox also exposes
+native `list`, `autoCapitalize`, `spellCheck`, `min`, `max`, and `step` for
+browser features that belong alongside the standard input contract. The bounds
+also let an app-owned range-filter component reuse Textbox's value and label
+contract for a native range input.
 
 `FormField` requires `controlId`, `label` and a `control` function, with optional
 help/error/required props. The function receives `id`, `ariaDescribedBy`,
@@ -599,12 +613,12 @@ Do not pass async work as a synchronous `onSelect` handler. Use an explicit comm
 | `Button` | Native button with optional pressed and busy state | `label`, `type`, `disabled`, `pressed`, `busy`, `busyLabel`, `error`, `command`, `disableWhileRunning`, `onClick`; a command requires native `type="button"`; live: `disabled`, `pressed`, `busy`, `error` |
 | `Toolbar` | Named action group | `label`, `orientation` |
 | `Label` | Native label for rich or live text | `text`, `htmlFor`; live: `text` |
-| `Textbox` | Labelled native text input with validation | Existing value/native props plus `changeCommand`, `disableWhileRunning`, `onInput`, `onChange`; live: availability, `busy`, and `error` |
+| `Textbox` | Labelled native input with validation | Existing value/native props (including `list`, `autoCapitalize`, `spellCheck`, `min`, `max`, and `step`) plus `changeCommand`, `disableWhileRunning`, `onInput`, `onChange`; live: availability, `busy`, and `error` |
 | `Dropdown<T>` | Labelled native select | Existing option/value props plus `changeCommand`, `disableWhileRunning`, `onChange`; `readOnly` retains focusability and restores the selected value; options may be static or a readable emitter with loading/error feedback |
 | `RadioButton` | Standalone native radio and label | Existing native state props plus `changeCommand`, `disableWhileRunning`, `onChange`; live: state, availability, `busy`, `error` |
 | `RadioGroup<T>` | Named native-radio fieldset owning one value | Existing option/value props plus `changeCommand`, `disableWhileRunning`, `onChange`; options are ordinary render data |
 | `Toggle<T>` | ARIA radio group rendered as toggle buttons | Existing option/value props plus `changeCommand`, `disableWhileRunning`, `onChange` |
-| `Checkbox<T>` | Configurable keyboard-operable semantic state cycle | Existing symbol/value props plus `changeCommand`, `disableWhileRunning`, `onChange` |
+| `Checkbox<T>` | Configurable keyboard-operable semantic state cycle, including ordinary boolean values | Existing symbol/value props plus `changeCommand`, `disableWhileRunning`, `onChange` |
 | `TriCheckbox` | Neutral/prefer/deny `FilterMode` cycle | Same public props as `Checkbox`, except fixed symbols |
 | `QuadCheckbox` | Neutral/prefer/require/deny `FilterMode` cycle | Same public props as `Checkbox`, except fixed symbols |
 | `DatePicker` (experimental) | Native `<input type="date">` | `CivilDate` value props, `label`/`ariaLabel`, `name`, `autoComplete`, `disabled`, `required`, `readOnly`, `busy`, `error`, `min`/`max`/`step`, `inputRef`, input/change callbacks |

@@ -21,7 +21,7 @@ import {
 } from '../../commandSupport.js'
 import type {CommandAction, CommandInteractionOptions} from '../../commandSupport.js'
 
-export type CheckboxValue = string | number
+export type CheckboxValue = string | number | boolean
 export type CheckboxSymbol<TValue extends CheckboxValue = FilterModeValue> = readonly [
     symbol: CapillaryUiChild,
     value: TValue,
@@ -113,11 +113,20 @@ export class Checkbox<TValue extends CheckboxValue = FilterModeValue>
         const componentType = this.constructor as typeof Checkbox
         // Static members cannot carry the instance's generic state parameter;
         // subclasses validate the tuple values before this boundary is used.
+        const currentValue = props.valueEmitter?.get()
+        const booleanState = typeof props.initialSemanticState === 'boolean'
+            || typeof props.defaultValue === 'boolean'
+            || typeof props.initialValue === 'boolean'
+            || typeof props.value === 'boolean'
+            || typeof currentValue === 'boolean'
+        const booleanSymbols = [[null, false], ['✓', true]] as const
         this.symbols = props.symbols
-            ?? componentType.symbols as unknown as readonly CheckboxSymbol<TValue>[]
+            ?? (booleanState
+                ? booleanSymbols as unknown as readonly CheckboxSymbol<TValue>[]
+                : componentType.symbols as unknown as readonly CheckboxSymbol<TValue>[])
         validateSymbols(this.symbols)
         const fallback = props.initialSemanticState
-            ?? componentType.defaultSemanticState as TValue
+            ?? (booleanState ? false as TValue : componentType.defaultSemanticState as TValue)
             ?? this.symbols[0]![1]
         const emitterProps: CheckboxProps<TValue> = {...props}
         if (emitterProps.defaultValue == null && props.initialSemanticState != null) {
