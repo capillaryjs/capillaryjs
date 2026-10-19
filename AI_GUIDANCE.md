@@ -38,5 +38,21 @@ derivation from available data synchronous where appropriate. Use the framework'
 shared visual delay and `Component.presentBusy()` for custom surfaces; do not
 reimplement timers or suppress actual errors/activation guards for brief work.
 
+Apply [progressive rendering and independent interaction](packages/capillary-ui/docs/interaction-design-guide.md#render-progressively-and-keep-independent-controls-usable)
+from startup onward. Identify each control's real prerequisites before wiring
+availability. Render known structure and controls early, with region/field
+loading feedback; keep independent navigation, actions and editable input
+usable. Optional discovery triggered by sign-in must keep its own lifecycle
+rather than prolong a global authentication lock. Preserve input, focus and
+valid prior content while loading, and cancel or fence obsolete responses by
+their captured account/selection/revision.
+
+Review runtime changes with individual initial/refresh requests deliberately
+held pending. Exercise independent controls, Cancel and replacement selection,
+then release responses out of order and fail an independent read. Verify that
+loading remains local, failures offer local recovery, and newer input/context
+cannot be overwritten. Use the shared feedback timing and reduced-motion
+behavior; animation is optional.
+
 Use the same human-facing review checklist as any other developer. Keep
 AI-specific process language out of primary package documentation and examples.

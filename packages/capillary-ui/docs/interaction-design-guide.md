@@ -13,6 +13,44 @@ framework or application component before recreating its behavior in raw
 elements. Native semantic document content remains welcome; see the composition
 guide for the extraction threshold.
 
+## Render progressively and keep independent controls usable
+
+Design every screen for responsiveness to input during startup, navigation,
+loading and refresh. Render the known application structure and controls as
+early as possible. Show status or placeholders within regions awaiting data;
+do not hide the whole interface until every request has finished.
+
+A control's availability follows its own data, permission and operation
+prerequisites. Disable it only when a required prerequisite is unavailable or
+its operation would conflict with work already running. Unrelated loading must
+not disable navigation, buttons, dropdowns, textboxes or other useful controls.
+Busy feedback describes work in progress; it does not by itself require a lock.
+
+During startup, identify genuine shared prerequisites, such as knowing the
+signed-in account and its permissions. Once those are known, make independent
+actions available while optional discovery continues in its own region. For
+example, loading an external catalog should not prolong sign-in's busy state
+or block creating a local record. When selecting an item loads details, keep
+selection available for replacement where safe; only actions that require
+those details must wait.
+
+Keep loading, empty and failed states distinguishable, with recovery beside
+the affected result. Preserve useful existing content during refresh when it
+is still valid; identify retained older content or clear it when the context
+changes. Preserve layout, focus, selection and entered values as results arrive.
+Loading feedback should not repeatedly remove and recreate usable controls.
+
+Use existing control/collection busy presentation and `Placeholder` where
+appropriate, with accessible status in the owning region. Animation is optional;
+follow the [shared feedback delay and reduced-motion behavior](#scope-feedback-to-the-work-and-allow-brief-operations-to-finish).
+Brief operations need no loading flash or artificial minimum wait.
+
+Keeping interactions available also requires correct replacement behavior.
+Cancel obsolete reads where appropriate and check their captured account,
+selection or revision before adopting results. An older response must not
+overwrite a newer selection, draft, loading state or error. Each independent
+operation retains its own completion and recovery owner as described below.
+
 ## Apply the theme to the whole interface
 
 Load the variable base, palette and theme, and mount the complete intended
@@ -271,6 +309,12 @@ already represented by a query or command.
 
 ## Review the whole task
 
+- With an initial or refresh request deliberately held pending, does the known
+  interface remain visible and can independent controls still operate?
+- Does each disabled control have an actual missing prerequisite or conflict,
+  with loading, empty and failed states explained in the affected region?
+- Do replacement input and out-of-order responses preserve the current account,
+  selection, draft, focus and layout?
 - Does the complete shell inherit the intended typography, including contextual
   surfaces, while code retains its intentional font?
 - Do actions, navigation, selection, expansion and manipulation have the right

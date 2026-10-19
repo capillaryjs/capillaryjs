@@ -8,6 +8,9 @@ Versioning.
 
 ### Added
 
+- Clarify progressive rendering and independent control availability during
+  startup and refresh, including scoped placeholders, genuine prerequisites,
+  retained input/content and review with delayed or out-of-order reads.
 - Document component-first application authoring and its practical reuse
   threshold. Let `Checkbox<boolean>` use conventional unchecked/checked states
   when a boolean value is supplied; expose TextArea focus/blur and Textbox

@@ -53,6 +53,21 @@ queries; lazy retains visited DOM/input; eager starts immediately. Destroying a
 view does not dispose app-owned work elsewhere. A drawer is nonmodal and does
 not trap focus; use Dialog for modality and Popover for anchored forms.
 
+## Load regions and options independently
+
+Apply [progressive rendering and independent interaction](interaction-design-guide.md#render-progressively-and-keep-independent-controls-usable)
+to the explorer, workspace, inspector and forms. Render known controls while
+their results or options load, with busy feedback or placeholders in the
+affected region. Loading inspector details should leave explorer selection
+available for replacement where safe. Loading reference options should leave
+independent title/description fields, Cancel and navigation usable.
+
+Disable Apply only for its actual unmet requirements, such as a required
+reference, validation, permission or current revision. Retain useful content
+and valid options during refresh, identify stale results, and preserve buffered
+input and focus. Check captured target/revision before adopting a response so
+an older option/detail load cannot replace a newer edit or selection.
+
 ## Keep editing buffered and revision-aware
 
 Own one edit buffer with a captured target/revision. FormField and FormLayout
@@ -168,4 +183,6 @@ menu labels remain descriptive for reading, keyboard navigation and typeahead.
 Review the complete task through create/edit/cancel, stale input, pending/error,
 popup dismissal, pane collapse, camera changes, keyboard, touch alternatives,
 narrow widths and enlarged text. Verify actual scroll ranges, focus and cleanup.
+Hold initial and refresh requests pending while exercising independent controls;
+release reads out of order and check retained input and the current selection.
 Do not let implementation convenience silently replace a more intuitive model.

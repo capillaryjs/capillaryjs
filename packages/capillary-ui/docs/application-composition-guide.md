@@ -17,8 +17,8 @@ where to put the resulting code.
 
 Use the [interaction design guide](interaction-design-guide.md) when choosing
 theme boundaries, action versus widget semantics, direct manipulation, icons
-and pending feedback. These interaction rules complement the layout and
-lifetime decisions below.
+and pending feedback, progressive rendering and independent control availability.
+These interaction rules complement the layout and lifetime decisions below.
 
 ## Component-first authoring
 
@@ -376,17 +376,34 @@ long-lived state implies persistence across a browser reload.
 
 ### Confine loading and errors to the affected work
 
-If only results are loading, keep the shell, filters, and useful actions
-available. A results component can observe a query snapshot and choose loading,
-error, empty, or populated output inside its assigned region. Returning a
-spinner before rendering the entire page frame removes that frame and its
-local component state too.
+Apply [progressive rendering and independent interaction](interaction-design-guide.md#render-progressively-and-keep-independent-controls-usable)
+to initial loading as well as refresh. Keep the known shell, filters, and useful
+actions available. A results component can observe a query snapshot and choose
+loading, error, empty, or populated output inside its assigned region. Retain
+control identities and space for pending content so arriving results preserve
+focus, input and layout. Returning a spinner before rendering the entire page
+frame removes that frame and its local component state too.
 
 Decide whether a refresh keeps the previous result visible with a busy indicator
 or clears it. Disable actions whose prerequisites are unavailable rather than
 disabling unrelated navigation. An empty result still occupies a meaningful
 results region in a fullscreen workspace. Application-wide startup failures
-may justify a broader boundary; the scope should match what is unavailable.
+or unknown shared identity/permissions may justify a broader boundary; narrow
+it as soon as those prerequisites are known.
+
+Separate required startup work from independent region queries. For example,
+authentication may establish the account while optional external catalog
+discovery continues with its own loading/error state. Starting discovery after
+sign-in does not make its completion a prerequisite for local actions, navigation
+or sign-out. Avoid an aggregate application `ready` or `busy` flag that waits
+for all such reads. Derive each control's availability from the prerequisites
+it actually needs, using the query/command's existing lifecycle owner.
+
+When option data is unavailable, render the labelled control with scoped loading
+feedback. Keep other fields usable, and retain valid existing options during
+refresh where safe. A replaceable selection can start a newer read before the
+old one finishes; cancel or fence obsolete results against the current account
+and selection so they cannot overwrite newer work.
 
 Details opened by a selection follow the same principle: the page owns the
 selection and close action, while a details component presents the selected
@@ -896,6 +913,9 @@ Before treating a composition or shared layout as established, check:
   subscriptions and queries released at the right lifetime boundary?
 - During loading, refresh, error, and empty results, do useful controls remain
   available and is feedback confined to the affected region?
+- With one startup request held pending or failed, can independent regions
+  operate? When requests finish out of order, do the current selection, input
+  and focus survive?
 - With overflowing content, which elements actually scroll? In a viewport
   layout, verify that content does not accidentally grow the document or
   create competing ancestor scrollbars.

@@ -57,7 +57,9 @@ the practical reuse and extraction threshold.
 
 The [interaction design guide](docs/interaction-design-guide.md) covers complete
 theme boundaries, buttons versus widget interactions, direct manipulation,
-icons and required feedback for asynchronous user operations. The
+icons and required feedback for asynchronous user operations. Its
+[progressive-rendering rule](docs/interaction-design-guide.md#render-progressively-and-keep-independent-controls-usable)
+keeps known structure visible and independent controls usable while data loads. The
 [application composition guide](docs/application-composition-guide.md) applies
 those choices to screen structure and lifetime.
 
