@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict'
 import {after, afterEach, before, test} from 'node:test'
 import {Window} from 'happy-dom'
-import {AsyncCommand, Emitter} from '@capillaryjs/capillary'
+import {AsyncCommand, Emitter, FetchState} from '@capillaryjs/capillary'
 import {Button, Component, Form, FormField, FormLayout, TextArea, Textbox, h} from '../src/index.js'
 
 let window: Window
@@ -161,4 +161,45 @@ test('multiline read-only, invalid options and handler contracts are explicit', 
     area.destroy(); value.dispose()
     assert.throws(() => new TextArea({rows: 0}).attachTo(document.body), /positive integers/)
     assert.throws(() => new Form({submitCommand: null as never}), /requires submitCommand/)
+})
+
+test('Textbox presents native busy state from its own value emitter fetch state', async () => {
+    const value = new Emitter('Retained while loading', {fetchState: FetchState.Initial})
+    const textbox = new Textbox({valueEmitter: value}).attachTo(document.body)
+    const input = document.querySelector<HTMLInputElement>('input')!
+    assert.equal(input.value, 'Retained while loading')
+    assert.equal(input.getAttribute('aria-busy'), 'true')
+    await new Promise(resolve => setTimeout(resolve, 175))
+    assert.equal(input.hasAttribute('data-cap-busy-visible'), true)
+
+    value.setWithState('Loaded value', FetchState.Ready)
+    assert.equal(input.value, 'Loaded value')
+    assert.equal(input.hasAttribute('aria-busy'), false)
+    assert.equal(input.hasAttribute('data-cap-busy-visible'), false)
+    textbox.setProps({busy: true})
+    assert.equal(input.getAttribute('aria-busy'), 'true', 'explicit busy remains supported')
+    textbox.setProps({busy: false})
+
+    value.setWithState('Loaded value', FetchState.Error, new Error('Read failed'))
+    assert.equal(input.hasAttribute('aria-busy'), false, 'an errored value emitter is not reported as loading')
+    textbox.destroy(); value.dispose()
+})
+
+test('TextArea presents native busy state from its own value emitter fetch state', async () => {
+    const value = new Emitter('Retained source', {fetchState: FetchState.Loading})
+    const area = new TextArea({valueEmitter: value}).attachTo(document.body)
+    const textarea = document.querySelector<HTMLTextAreaElement>('textarea')!
+    assert.equal(textarea.value, 'Retained source')
+    assert.equal(textarea.getAttribute('aria-busy'), 'true')
+    await new Promise(resolve => setTimeout(resolve, 175))
+    assert.equal(textarea.hasAttribute('data-cap-busy-visible'), true)
+
+    value.setWithState('Loaded source', FetchState.Ready)
+    assert.equal(textarea.value, 'Loaded source')
+    assert.equal(textarea.hasAttribute('aria-busy'), false)
+    assert.equal(textarea.hasAttribute('data-cap-busy-visible'), false)
+
+    value.setWithState('Loaded source', FetchState.Error, new Error('Read failed'))
+    assert.equal(textarea.hasAttribute('aria-busy'), false, 'an errored value emitter is not reported as loading')
+    area.destroy(); value.dispose()
 })

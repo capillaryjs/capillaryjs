@@ -1,3 +1,4 @@
+import {FetchState} from '@capillaryjs/capillary'
 import {css} from '../component.js'
 import type {CapillaryUiChild, LivePropContract, Ref} from '../component.js'
 import {
@@ -116,10 +117,12 @@ export class Textbox extends LabeledInputControl<TextboxProps> {
         const value = this.valueEmitter.get() ?? ''
         const command = commandSource(changeCommand)
         const commandRunning = command == null ? false : this.read(command.isRunning)
+        const valueFetchState = this.valueEmitter.getFetchState()
+        const valueLoading = valueFetchState === FetchState.Initial || valueFetchState === FetchState.Loading
         const commandError = commandErrors === 'external' || command == null
             ? null : this.snapshot(command).error
         const invocationError = this.commandPresentation.error(commandErrors)
-        const isBusy = busy || commandRunning
+        const isBusy = busy || valueLoading || commandRunning
         const displayedError = error ?? invocationError ?? commandError
         const isDisabled = disabled || (commandRunning && disableWhileRunning)
 

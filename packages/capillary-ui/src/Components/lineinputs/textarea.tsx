@@ -1,3 +1,4 @@
+import {FetchState} from '@capillaryjs/capillary'
 import {css} from '../component.js'
 import type {CapillaryUiChild, LivePropContract, Ref} from '../component.js'
 import {componentClass, controlId, createValueEmitter, invoke} from '../controlUtils.js'
@@ -68,9 +69,11 @@ export class TextArea extends LabeledInputControl<TextAreaProps> {
         this.commandPresentation.reconcile(changeCommand)
         const command = commandSource(changeCommand), value = this.valueEmitter.get() ?? ''
         const running = command == null ? false : this.read(command.isRunning)
+        const valueFetchState = this.valueEmitter.getFetchState()
+        const valueLoading = valueFetchState === FetchState.Initial || valueFetchState === FetchState.Loading
         const displayedError = error ?? this.commandPresentation.error(commandErrors)
             ?? (command == null || commandErrors === 'external' ? null : this.snapshot(command).error)
-        const working = busy || running, unavailable = disabled || running && disableWhileRunning
+        const working = busy || valueLoading || running, unavailable = disabled || running && disableWhileRunning
         const Host = this.Host
         return <Host className={componentClass(this.props) || null}>
             {label == null ? null : <label htmlFor={this.inputId}>{label}</label>}

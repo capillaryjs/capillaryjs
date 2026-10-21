@@ -210,6 +210,12 @@ selection feedback follows the selected items automatically. Do not mark the
 whole collection busy for a detail query. Keep selection available for replacement
 where the task allows it.
 
+For `Textbox` and `TextArea`, keep value loading on the control's own
+`valueEmitter`; Initial/Loading fetch state supplies its native busy feedback.
+Use the explicit `busy` prop for additional work not represented by that value
+emitter. Do not mirror the value emitter's fetch state into a separate
+application-owned busy boolean.
+
 A Refresh button shows its own refresh operation. A search/filter/sort control
 shows work requested by that criterion, not every request sharing a result
 query. For example, selecting a project must not mark an unchanged tree filter

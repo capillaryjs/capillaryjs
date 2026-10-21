@@ -478,7 +478,8 @@ command: its persistent owning view must present any remaining outcome/recovery.
 
 `TextArea` uses the same string value-control, `onInput`/committed `onChange` or
 `changeCommand`, disabled/readOnly/required/busy/error and command-error contracts
-as Textbox. It adds `rows`, `cols`, `wrap`, `spellCheck`, a textarea `inputRef`,
+as Textbox, including native busy feedback from its value emitter's Initial/Loading
+fetch state. It adds `rows`, `cols`, `wrap`, `spellCheck`, a textarea `inputRef`,
 and focus/blur callbacks for explicit integrations; name, placeholder,
 autoComplete and min/maxLength are native attributes. Native editing/IME and
 textarea newline behavior remain native; source codecs belong to the application.
@@ -615,7 +616,7 @@ Do not pass async work as a synchronous `onSelect` handler. Use an explicit comm
 | `Button` | Native button with optional pressed and busy state | `label`, `type`, `disabled`, `pressed`, `busy`, `busyLabel`, `error`, `command`, `disableWhileRunning`, `onClick`; a command requires native `type="button"`; live: `disabled`, `pressed`, `busy`, `error` |
 | `Toolbar` | Named action group | `label`, `orientation` |
 | `Label` | Native label for rich or live text | `text`, `htmlFor`; live: `text` |
-| `Textbox` | Labelled native input with validation | Existing value/native props (including `list`, `autoCapitalize`, `spellCheck`, `min`, `max`, and `step`) plus `changeCommand`, `disableWhileRunning`, `onInput`, `onChange`; live: availability, `busy`, and `error` |
+| `Textbox` | Labelled native input with validation | Existing value/native props (including `list`, `autoCapitalize`, `spellCheck`, `min`, `max`, and `step`) plus `changeCommand`, `disableWhileRunning`, `onInput`, `onChange`; live: availability, `busy`, and `error`. Its value emitter's Initial/Loading fetch state also supplies native busy feedback. |
 | `Dropdown<T>` | Labelled native select | Existing option/value props plus `changeCommand`, `disableWhileRunning`, `onChange`; `readOnly` retains focusability and restores the selected value; options may be static or a readable emitter with loading/error feedback |
 | `RadioButton` | Standalone native radio and label | Existing native state props plus `changeCommand`, `disableWhileRunning`, `onChange`; live: state, availability, `busy`, `error` |
 | `RadioGroup<T>` | Named native-radio fieldset owning one value | Existing option/value props plus `changeCommand`, `disableWhileRunning`, `onChange`; options are ordinary render data |
@@ -630,6 +631,12 @@ Do not pass async work as a synchronous `onSelect` handler. Use an explicit comm
 `FilterMode` exports `neutral`, `prefer`, `require`, and `deny` semantic values.
 Arrow keys move backward or forward through a multi-state checkbox; Space uses
 the native forward cycle.
+
+For `Textbox` and `TextArea`, an Initial or Loading fetch state on the control's
+own `valueEmitter` contributes to its native busy state. This keeps loading
+feedback attached to the value owner instead of requiring an application to
+mirror emitter status into a second boolean. The explicit `busy` prop remains
+available for independent work and composes with value-emitter loading.
 
 `busy` sets native/ARIA busy semantics immediately. Standard visual loading
 treatment and `Button.busyLabel` appear after 150 ms, configured once with
