@@ -8,6 +8,11 @@ Versioning.
 
 ### Added
 
+- Let `Textbox` and `TextArea` derive delayed native loading presentation from
+  their bound value emitters' fetch state, without requiring an application
+  readiness boolean. Explicit busy presentation and command feedback remain
+  supported.
+
 - Clarify progressive rendering and independent control availability during
   startup and refresh, including scoped placeholders, genuine prerequisites,
   retained input/content and review with delayed or out-of-order reads.
