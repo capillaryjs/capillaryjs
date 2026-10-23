@@ -2,7 +2,7 @@
   "type": "module",
   "name": "@capillaryjs/capillary-ui",
   "private": false,
-  "version": "1.6.0",
+  "version": "1.7.0",
   "description": "Browser-only TypeScript component runtime, JSX controls, and semantic themes.",
   "license": "Apache-2.0",
   "author": {
@@ -78,7 +78,7 @@
     "dev": "vite"
   },
   "peerDependencies": {
-    "@capillaryjs/capillary": "^1.6.0"
+    "@capillaryjs/capillary": "^1.7.0"
   },
   "devDependencies": {
     "@capillaryjs/capillary": "workspace:^",

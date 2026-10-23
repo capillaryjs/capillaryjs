@@ -6,6 +6,8 @@ Versioning.
 
 ## Unreleased
 
+## 1.7.0 - 2026-10-23
+
 ### Changed
 
 - Clarify application-owned interaction completion, independent reaction errors,

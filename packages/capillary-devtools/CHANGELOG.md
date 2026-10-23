@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 1.4.0 - 2026-10-23
+
 ### Changed
 
 - Align bundled control styling with Capillary UI's delayed visual busy marker,

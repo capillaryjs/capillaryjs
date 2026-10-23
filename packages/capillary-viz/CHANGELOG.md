@@ -6,6 +6,8 @@ and Semantic Versioning.
 
 ## Unreleased
 
+## 1.4.0 - 2026-10-23
+
 ### Added
 
 - Add live replacement-data `busy` presentation to BlockGraph and LineGraph,
