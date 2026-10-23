@@ -1,6 +1,6 @@
 import {test, expect} from '@playwright/test'
 import AxeBuilder from '@axe-core/playwright'
-import {filterTrace, projectFlow, traceAttempts} from '../../../../packages/capillary-devtools/src/model/projection.js'
+import {filterTrace, projectFlow, traceAttempts, traceRoots} from '../../../../packages/capillary-devtools/src/model/projection.js'
 import type {TraceRecording} from '../../../../packages/capillary-devtools/src/model/types.js'
 
 const url = 'http://127.0.0.1:4176'
@@ -8,6 +8,8 @@ const recording = (page: import('@playwright/test').Page) => page.evaluate(() =>
     (Reflect.get(window, 'capillaryFlowLab') as {recording(): TraceRecording}).recording())
 const metrics = (page: import('@playwright/test').Page) => page.evaluate(() =>
     (Reflect.get(window, 'capillaryFlowLab') as {metrics(): unknown}).metrics())
+const selected = (page: import('@playwright/test').Page) => page.evaluate(() =>
+    (Reflect.get(window, 'capillaryFlowLab') as {selected(): {rootId: string | null; eventId: string | null; nodeId: string | null}}).selected())
 
 test('real search reaches the table, UI bindings and every non-UI leaf; replay is isolated', async ({page}) => {
     const errors: string[] = []
@@ -105,9 +107,14 @@ test('table rendering and captured row contents include bounded header busy feed
     expect(headerRenders.length).toBeLessThanOrEqual(2)
     expect(events.some(event => event.nodeId === body.id && (event.consumer?.domWrites ?? 0) > 0)).toBe(true)
     await page.locator(`.trace-node[data-node-id="${body.id}"]`).click()
+    await expect.poll(() => selected(page)).toMatchObject({rootId: root.id, eventId: null, nodeId: body.id})
     const details = page.getByRole('region', {name: 'Trace details'})
     await expect(details).toContainText('Own renderer DOM writes')
     await expect(details).toContainText('Table body')
+    await page.getByRole('button', {name: 'Direct write / diamond'}).click()
+    await expect.poll(async () => traceRoots(await recording(page)).some(event => event.id !== root.id)).toBe(true)
+    await expect.poll(() => selected(page)).toMatchObject({rootId: root.id, eventId: null, nodeId: body.id})
+    await expect(details).toContainText('Own renderer DOM writes')
     await page.locator(`.trace-node[data-node-id="${query.id}"]`).click()
     await details.locator('summary').filter({hasText: /^Array/}).click()
     await details.locator('summary').filter({hasText: /^0: Object/}).click()
@@ -158,9 +165,14 @@ test('unchanged branches, source/target convergence filters, capture limits and 
 test('keyboard and constrained-width inspection remains accessible with reduced motion', async ({page}) => {
     await page.emulateMedia({reducedMotion: 'reduce'})
     await page.setViewportSize({width: 780, height: 900})
-    await page.goto(url)
+    // Keep axe focused on a representative bounded inspector rather than the
+    // full high-volume recording, which can make Firefox analysis time out in CI.
+    await page.goto(`${url}/?limit=12`)
     await page.getByRole('textbox', {name: 'Search', exact: true}).fill('accessible')
     await expect(page.getByTestId('summary')).toHaveText('2 results')
+    const trace = await recording(page)
+    expect(trace.events.length).toBeGreaterThan(0)
+    expect(trace.events.length).toBeLessThanOrEqual(12)
     await page.getByRole('button', {name: 'First step', exact: true}).focus()
     await page.keyboard.press('Enter')
     await expect(page.getByRole('slider', {name: 'Replay step'})).toHaveValue('0')

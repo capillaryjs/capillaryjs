@@ -83,7 +83,9 @@ export function mountDemo(compose: (models: DemoComposition) => Component): void
         const recording = recorder.snapshot()
         const root = traceRoots(recording).findLast((event) => event.kind === 'interaction'
             && recording.events.some((child) => child.parentId === event.id))
-        if (root && selection.state.get().rootId !== root.id) { selection.selectRoot(root.id); playback.seek(null, 0) }
+        const current = selection.state.get()
+        const followingRoot = current.nodeId === null && (current.eventId === null || current.eventId === current.rootId)
+        if (root && followingRoot && current.rootId !== root.id) { selection.selectRoot(root.id); playback.seek(null, 0) }
     }, {emitCurrent: false, diagnosticScope: devtoolsDiagnosticScope})
     // Explicit demo diagnostics for semantic browser assertions; no application mutation API.
     Reflect.set(window, 'capillaryFlowLab', {
