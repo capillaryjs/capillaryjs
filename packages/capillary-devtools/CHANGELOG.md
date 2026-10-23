@@ -12,6 +12,11 @@
   not action buttons. Use named icon buttons for capture and playback while
   preserving selection, keyboard navigation and diagnostic self-exclusion.
 
+### Fixed
+
+- Apply trace-node pointer selection on primary press as well as click, so a
+  concurrent trace update cannot leave the inspector on the previous root.
+
 ## 1.3.0 - 2026-09-29
 
 ### Added

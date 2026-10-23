@@ -85,7 +85,12 @@ export class FlowGraphView extends TraceView {
                                 const current = nodeValueEvent(occurrences.filter((event) => reached.has(event.id)))
                                 const kind = node.kind === 'component' || node.kind === 'binding' ? 'UI' : node.kind
                                 const kindLabel = node.kind === 'component' || node.kind === 'binding' ? 'UI consumer' : node.kind
-                                return h('div', {...this.optionProps(selectedId === node.id, tabbable === node.id, () => this.props.selection.selectNode(node.id)), key: node.id, className: 'trace-node',
+                                const selectNode = () => {
+                                    if (this.props.selection.state.get().nodeId !== node.id) this.props.selection.selectNode(node.id)
+                                }
+                                return h('div', {...this.optionProps(selectedId === node.id, tabbable === node.id, selectNode),
+                                    onPointerDown: (event: PointerEvent) => { if (event.button === 0) selectNode() },
+                                    key: node.id, className: 'trace-node',
                                     'data-node-id': node.id, 'data-kind': node.kind, 'data-observed': String(occurrences.length > 0),
                                     'data-reached': String(Boolean(current)),
                                     'aria-current': events[this.cursor]?.nodeId === node.id ? 'step' : undefined,
