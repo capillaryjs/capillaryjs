@@ -49,6 +49,8 @@ const definitions = [
                 || /^themes\/(?:README\.md|base\.css|[a-z]+\/theme\.css)$/.test(path)
                 || path === 'docs/application-composition-guide.md'
                 || path === 'docs/application-layout-guide.md'
+                || path === 'docs/interaction-design-guide.md'
+                || path === 'docs/workbench-composition-guide.md'
         },
     },
     {
